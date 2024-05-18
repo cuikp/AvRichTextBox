@@ -13,7 +13,7 @@ The RichTextBox has the usual key functions:
 Ctrl-B for bold/unbold
 Ctrl-I for italic/unitalic 
 Ctrl-U for underline/remove underline 
-Ctrl-Z for undo 
+Ctrl-Z for undo
 Ctrl-A for select all
 
 The FlowDoc has a "Selection" property, with Start, End, Length, Select, Delete, Text, etc.
