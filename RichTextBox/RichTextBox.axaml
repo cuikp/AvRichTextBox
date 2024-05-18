@@ -1,0 +1,150 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" Background="WhiteSmoke"
+			 xmlns:local="using:AvRichTextBox" KeyDown="RichTextBox_KeyDown"  Focusable="True"
+	         x:Class="AvRichTextBox.RichTextBox" PointerReleased="RichTextBox_PointerReleased" PointerExited="RichTextBox_PointerExited" >
+
+
+	<DockPanel x:Name="MainDP" >
+
+		<!--VISUAL DEBUGGER-->
+		<Grid IsVisible="{Binding RunDebuggerVisible}" DockPanel.Dock="Right" Width="400" >
+			<DockPanel x:Name="RunDebugger"  >
+				<DockPanel DockPanel.Dock="Top" Background="Coral">
+
+					<Border x:Name="DocSelPanel" DockPanel.Dock="Top" BorderBrush="Black" BorderThickness="0.8">
+						<DockPanel>
+							<TextBlock DockPanel.Dock="Top" Background="LightGray" Text="{Binding Selection.Start, StringFormat='DocSelStart={0}'}"/>
+							<TextBlock Background="LightGray" Text="{Binding Selection.End, StringFormat='DocSelEnd={0}'}"/>
+						</DockPanel>
+					</Border>
+				</DockPanel>
+
+				<Grid Margin="10, 1, 10, 1" ColumnDefinitions="50* 10* 10* 10*" HorizontalAlignment="Stretch" ShowGridLines="True" DockPanel.Dock="Top">
+
+					<TextBlock Grid.Column="0" Text="Text" TextAlignment="Center" />
+					<TextBlock  Grid.Column="1" Text="Idx" TextAlignment="Center" />
+					<TextBlock  Grid.Column="2" Text="Len" TextAlignment="Center" />
+					<TextBlock  Grid.Column="3" Text="SSIRT" TextAlignment="Center" />
+				</Grid>
+
+				<ListBox DockPanel.Dock="Top" ItemsSource="{Binding SelectionParagraphs}" Background="Wheat" BorderBrush="Black" BorderThickness="1"
+						 Padding="0" >
+					<ListBox.ItemTemplate>
+						<DataTemplate>
+							<DockPanel>
+								<DockPanel DockPanel.Dock="Top" Background="AliceBlue">
+									<TextBlock DockPanel.Dock="Left" Text="{Binding Inlines.Count, StringFormat='Inlines={0}'}"/>
+									<TextBlock Margin="20, 0, 0, 0" Text="{Binding StartInDoc, StringFormat='ParStartIdxInDoc={0}'}"/>
+								</DockPanel>
+
+
+								<ItemsControl  ItemsSource="{Binding Inlines}" Margin="-5, 2, -5, 20"  BorderBrush="DarkBlue" BorderThickness="0.7" >
+
+									<ItemsControl.ItemTemplate>
+										<DataTemplate>
+											<Border BorderBrush="Black" BorderThickness="{Binding InlineSelectedBorderThickness}" Background="{Binding BackBrush}">
+												<Grid ColumnDefinitions="50* 10* 10* 10*" HorizontalAlignment="Stretch" ShowGridLines="True" Margin="0" >
+													<!--<Border BorderBrush="LightGray" BorderThickness="0.5" Grid.ColumnSpan="3" Background="{Binding BackBrush}"/>-->
+													<TextBlock Margin="3, 0" Grid.Column="0" Text="{Binding DisplayInlineText}" TextWrapping="Wrap"
+															   FontWeight="{Binding FontWeight}" FontStyle="{Binding FontStyle}" TextDecorations="{Binding TextDecorations}"
+													   />
+													<TextBlock  Grid.Column="1" Text="{Binding TextPositionOfInlineInParagraph}" TextAlignment="Center" />
+													<TextBlock  Grid.Column="2" Text="{Binding InlineText.Length}" TextAlignment="Center" />
+													<TextBlock  Grid.Column="3" Text="{Binding SSIRT}" TextAlignment="Center" />
+												</Grid>
+											</Border>
+										</DataTemplate>
+									</ItemsControl.ItemTemplate>
+								</ItemsControl>
+
+
+							</DockPanel>
+
+						</DataTemplate>
+
+					</ListBox.ItemTemplate>
+
+				</ListBox>
+
+			</DockPanel>
+
+		</Grid>
+
+		<ScrollViewer x:Name="FlowDocSV"  HorizontalScrollBarVisibility="Disabled" Margin="1"
+					   Offset="{Binding RTBScrollOffset, Mode=OneWay}"  ScrollChanged="ScrollViewer_ScrollChanged"
+					  PointerPressed="FlowDocSV_PointerPressed" PointerMoved="FlowDocSV_PointerMoved" PointerReleased="FlowDocSV_PointerReleased" >
+
+
+			<Grid VerticalAlignment="Top">
+								
+				<ItemsControl x:Name="DocIC"  DataContext="{Binding FlowDoc}" VerticalAlignment="Top" ItemsSource="{Binding Blocks}" Margin="8"  >
+
+					<ItemsControl.ItemsPanel>
+						<ItemsPanelTemplate>
+							<StackPanel Orientation="Vertical" />
+						</ItemsPanelTemplate>
+					</ItemsControl.ItemsPanel>
+
+					<ItemsControl.ItemTemplate>
+					
+							<DataTemplate>
+								
+								<Border BorderThickness="1" BorderBrush="Transparent" CornerRadius="3" Margin="{Binding Margin}"
+									 VerticalAlignment="Top" HorizontalAlignment="Stretch" Padding="0">
+									
+									<ContentControl Content="{Binding}" HorizontalAlignment="Stretch" >
+
+										<ContentControl.DataTemplates>
+											<DataTemplate DataType="local:Paragraph">
+
+												<local:EditableParagraph xml:space="preserve" TextWrapping="Wrap" Margin="0"
+														FontFamily="{Binding FontFamily}"
+														FontWeight="{Binding FontWeight}"
+														FontSize="{Binding FontSize}"
+														Background="{Binding Background}"
+														TextAlignment="{Binding TextAlignment}"
+																		 
+														SelectionStart="{Binding SelectionStartInBlock, Mode=TwoWay}"
+														SelectionEnd="{Binding SelectionEndInBlock, Mode=TwoWay}"
+														MouseMove="EditableParagraph_MouseMove"
+														LostFocus="EditableParagraph_LostFocus"
+														TextLayoutInfoStartRequested="{Binding RequestTextLayoutInfoStart}"
+														TextLayoutInfoEndRequested="{Binding RequestTextLayoutInfoEnd}"
+														 
+														SelectionStartRect_Changed="SelectionStart_RectChanged"
+														SelectionEndRect_Changed="SelectionEnd_RectChanged"
+														local:RequestExtensions.TextBoxFocusRequested="{Binding RequestTextBoxFocus}"
+														local:RequestExtensions.IsInlineUpdateRequested="{Binding RequestInlinesUpdate}"
+														local:RequestExtensions.InvalidateVisualRequested="{Binding RequestInvalidateVisual}"		/>
+
+											</DataTemplate>
+
+
+											<!--<DataTemplate DataType="local:Table" >
+												<Border BorderBrush="Black" BorderThickness="{Binding BorderThickness}" Background="Azure" >
+													<local:EditableTable HorizontalAlignment="Stretch" Cells="{Binding Cells}" Background="Coral"
+																		 ColDefs="{Binding ColDefs}" RowDefs="{Binding RowDefs}" />
+												</Border>
+											</DataTemplate>-->
+											
+										</ContentControl.DataTemplates>
+									</ContentControl>
+								</Border>
+						
+						</DataTemplate>
+					</ItemsControl.ItemTemplate>
+				</ItemsControl>
+				<Polygon x:Name="selRect" Stroke="Red" StrokeThickness="2.5" HorizontalAlignment="Left" VerticalAlignment="Top"
+					 IsHitTestVisible="False" />
+
+				<!--<Button Content="UpdateStart" HorizontalAlignment="Left" VerticalAlignment="Top" Background="White" BorderBrush="Black" Click="UpdateStartBut_Click" />-->
+				
+			</Grid>
+		</ScrollViewer>
+
+
+	</DockPanel>
+</UserControl>
