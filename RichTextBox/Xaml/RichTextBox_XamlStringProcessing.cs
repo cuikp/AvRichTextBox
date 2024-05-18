@@ -33,7 +33,7 @@ public partial class RichTextBox
 
          foreach (IEditable ied in paragraph.Inlines)
          {
-            //string RunHeader = "<Run FontFamily=\"" + ied.FontFamily + "\" FontWeight=\"" + ied.FontWeight.ToString() + "\" FontSize=\"" + ied.FontSize.ToString() + "\""
+            //xstring RunHeader = "<Run FontFamily=\"" + ied.FontFamily + "\" FontWeight=\"" + ied.FontWeight.ToString() + "\" FontSize=\"" + ied.FontSize.ToString() + "\""
             //    + " Foreground=\"#FF000000\" TextDecorations=\"None\" Background=\"#00000000\">";
             switch (ied.GetType())
             {
