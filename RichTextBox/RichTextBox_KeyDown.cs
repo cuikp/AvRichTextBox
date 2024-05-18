@@ -38,35 +38,35 @@ public partial class RichTextBox
                break;
 
             case Key.Home: // Ctrl-Home 
-               rtbVM.FlowDoc.MoveToDocStart();
+               FlowDoc.MoveToDocStart();
                break;
 
             case Key.End: // Ctrl-End 
-               rtbVM.FlowDoc.MoveToDocEnd();
+               FlowDoc.MoveToDocEnd();
                break;
 
             case Key.Z:
-               rtbVM.FlowDoc.Undo();
+               FlowDoc.Undo();
                break;
 
             case Key.A:
-               rtbVM.FlowDoc.SelectAll();
+               FlowDoc.SelectAll();
                break;
 
             case Key.Delete:
-               rtbVM.FlowDoc.DeleteWord();
+               FlowDoc.DeleteWord();
                break;
 
             case Key.Back:
-               rtbVM.FlowDoc.BackWord();
+               FlowDoc.BackWord();
                break;
 
             case Key.Right:
-               rtbVM.FlowDoc.MoveRightWord();
+               FlowDoc.MoveRightWord();
                break;
 
             case Key.Left:
-               rtbVM.FlowDoc.MoveLeftWord();
+               FlowDoc.MoveLeftWord();
                break;
          }
       }
@@ -83,39 +83,41 @@ public partial class RichTextBox
                InsertParagraph();
                break;
             case Key.Home:
-               rtbVM.FlowDoc.MoveToStartOfLine(e.KeyModifiers.HasFlag(KeyModifiers.Shift));
+               FlowDoc.MoveToStartOfLine(e.KeyModifiers.HasFlag(KeyModifiers.Shift));
                break;
 
             case Key.End:
-               rtbVM.FlowDoc.MoveToEndOfLine(e.KeyModifiers.HasFlag(KeyModifiers.Shift));
+               FlowDoc.MoveToEndOfLine(e.KeyModifiers.HasFlag(KeyModifiers.Shift));
                break;
 
             case Key.Right:
                if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
-                  rtbVM.FlowDoc.ExtendSelectionRight();
+                  FlowDoc.ExtendSelectionRight();
                else
-                  rtbVM.FlowDoc.MoveSelectionRight(true);
+                  FlowDoc.MoveSelectionRight(true);
+               FlowDoc.ResetInsertFormatting();
                break;
 
             case Key.Left:
                if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
-                  rtbVM.FlowDoc.ExtendSelectionLeft();
+                  FlowDoc.ExtendSelectionLeft();
                else
-                  rtbVM.FlowDoc.MoveSelectionLeft(false);
+                  FlowDoc.MoveSelectionLeft(false);
+               FlowDoc.ResetInsertFormatting();
                break;
 
             case Key.Up:
                if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
-                  rtbVM.FlowDoc.ExtendSelectionUp();
+                  FlowDoc.ExtendSelectionUp();
                else
-                  rtbVM.FlowDoc.MoveSelectionUp(false);
+                  FlowDoc.MoveSelectionUp(false);
                break;
 
             case Key.Down:
                if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
-                  rtbVM.FlowDoc.ExtendSelectionDown();
+                  FlowDoc.ExtendSelectionDown();
                else
-                  rtbVM.FlowDoc.MoveSelectionDown(true);
+                  FlowDoc.MoveSelectionDown(true);
                break;
 
             case Key.Back:
@@ -123,8 +125,8 @@ public partial class RichTextBox
                break;
 
             case Key.Delete:
-               if (rtbVM.FlowDoc.Selection!.Length > 0)
-                  rtbVM.FlowDoc.DeleteSelection();
+               if (FlowDoc.Selection!.Length > 0)
+                  FlowDoc.DeleteSelection();
                else
                   DeleteChar();
                break;

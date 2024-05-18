@@ -23,7 +23,7 @@ public partial class RichTextBox
                   
       StringBuilder selXaml = new (SectionTextDefault);
 
-      foreach (Paragraph paragraph in rtbVM.FlowDoc.Blocks)
+      foreach (Paragraph paragraph in FlowDoc.Blocks)
       {
 
          StringBuilder ParagraphHeader = new StringBuilder("<Paragraph ");
@@ -103,8 +103,8 @@ public partial class RichTextBox
    {
       //Debug.WriteLine("xaml:\n" + docXamlString);
 
-      //rtbVM.FlowDoc.SelectionParagraphs.Clear();
-      rtbVM.FlowDoc.Blocks.Clear();
+      //FlowDoc.SelectionParagraphs.Clear();
+      FlowDoc.Blocks.Clear();
 
 
       XmlDocument xamlDocument = new();
@@ -254,7 +254,7 @@ public partial class RichTextBox
                }
 
                if (newPar.Inlines.Count == 0) newPar.Inlines.Add(new EditableRun(""));
-              rtbVM.FlowDoc.Blocks.Add(newPar);
+              FlowDoc.Blocks.Add(newPar);
 
             }
 

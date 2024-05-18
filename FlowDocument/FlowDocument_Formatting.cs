@@ -191,7 +191,14 @@ public partial class FlowDocument
          if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).Background = (ImmutableSolidColorBrush)value; }
    }
 
+   internal void ResetInsertFormatting()
+   {
+      InsertRunMode = false;
+      BoldOn = false;
+      ItalicOn = false;
+      UnderliningOn = false;
 
+   }
 
 }
 

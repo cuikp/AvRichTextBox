@@ -7,25 +7,25 @@ public partial class RichTextBox
     
    private void ToggleItalics()
    {
-      rtbVM.FlowDoc.ToggleItalic();
+      FlowDoc.ToggleItalic();
 
    }
 
    private void ToggleBold()
    {
-      rtbVM.FlowDoc.ToggleBold();
+      FlowDoc.ToggleBold();
 
    }
 
    private void ToggleUnderlining()
    {
-      rtbVM.FlowDoc.ToggleUnderlining();
+      FlowDoc.ToggleUnderlining();
 
    }
 
    private void CopyToClipboard()
    {
-      TopLevel.GetTopLevel(this)!.Clipboard!.SetTextAsync(rtbVM.FlowDoc.Selection.GetText());
+      TopLevel.GetTopLevel(this)!.Clipboard!.SetTextAsync(FlowDoc.Selection.GetText());
          
 
    }
@@ -35,7 +35,7 @@ public partial class RichTextBox
       string? clipboardText = await TopLevel.GetTopLevel(this)!.Clipboard!.GetTextAsync();
       //clipboardText = clipboardText.Replace("\r\n", "\v");
       if (clipboardText != null)
-         rtbVM.FlowDoc.SetText(rtbVM.FlowDoc.Selection, clipboardText);
+         FlowDoc.SetText(FlowDoc.Selection, clipboardText);
 
    }
 

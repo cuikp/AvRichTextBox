@@ -99,7 +99,7 @@ public partial class RichTextBox : UserControl
    private void MovePage(int direction, bool extend)
    {
       double currentY = 0;
-      switch (rtbVM.FlowDoc.SelectionExtendMode)
+      switch (FlowDoc.SelectionExtendMode)
       {
          case FlowDocument.ExtendMode.ExtendModeRight:
             currentY = FlowDoc.Selection!.EndRect!.Y;
@@ -124,7 +124,7 @@ public partial class RichTextBox : UserControl
          double relYInEP = newCaretY - thisEP!.TranslatePoint(thisEP!.Bounds.Position, DocIC)!.Value.Y + 18;
          TextHitTestResult tres = thisEP.TextLayout.HitTestPoint(new Point(distanceFromLeft, relYInEP));
          int newCharIndexInDoc = ((Paragraph)thisEP.DataContext!).StartInDoc + tres.CharacterHit.FirstCharacterIndex;
-         rtbVM.FlowDoc.MovePageSelection(direction, extend, newCharIndexInDoc);
+         FlowDoc.MovePageSelection(direction, extend, newCharIndexInDoc);
       }
 
    }
@@ -179,7 +179,7 @@ public partial class RichTextBox : UserControl
    {
       //Point? selStartPoint = edPar.TranslatePoint(selStartRect.Position, DocIC);
       //if (selStartPoint != null)
-      //   rtbVM.FlowDoc.Selection.StartRect = new Rect((Point)selStartPoint!, selStartRect.Size);
+      //   FlowDoc.Selection.StartRect = new Rect((Point)selStartPoint!, selStartRect.Size);
 
    }
    

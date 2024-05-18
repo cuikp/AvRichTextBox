@@ -135,7 +135,7 @@ public partial class RichTextBox
 
 
             //Save images, if any  
-            List<Paragraph> imageContainingParagraphs = rtbVM.FlowDoc.Blocks.Where(b => b.IsParagraph && ((Paragraph)b).Inlines.Where(iline =>
+            List<Paragraph> imageContainingParagraphs = FlowDoc.Blocks.Where(b => b.IsParagraph && ((Paragraph)b).Inlines.Where(iline =>
                 iline.GetType() == typeof(EditableInlineUIContainer) && ((EditableInlineUIContainer)iline).Child.GetType() == typeof(Image)).Any()).ToList().ConvertAll(bb=>(Paragraph)bb);
 
             if (imageContainingParagraphs.Any())

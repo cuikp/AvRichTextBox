@@ -43,13 +43,13 @@ public partial class RichTextBox
       TextHitTestResult hitCarIndex = currentMouseOverEP.TextLayout.HitTestPoint(e.GetPosition(currentMouseOverEP));
       Paragraph thisPar = (Paragraph)currentMouseOverEP.DataContext!;
       SelectionOrigin = thisPar.StartInDoc + hitCarIndex.TextPosition;
-      rtbVM.FlowDoc.Selection.Start = SelectionOrigin;
+      FlowDoc.Selection.Start = SelectionOrigin;
 
-      rtbVM.FlowDoc.Selection.CollapseToStart();
+      FlowDoc.Selection.CollapseToStart();
 
 
       //Clear all selections in all paragraphs      
-      foreach (Paragraph p in rtbVM.FlowDoc.Blocks.Where(pp => pp.SelectionLength != 0)) { p.ClearSelection(); }
+      foreach (Paragraph p in FlowDoc.Blocks.Where(pp => pp.SelectionLength != 0)) { p.ClearSelection(); }
       
      
       //e.Pointer.Capture(null);
@@ -82,18 +82,18 @@ public partial class RichTextBox
 
             if (thisPar.StartInDoc + charIndex < SelectionOrigin)
             {
-               rtbVM.FlowDoc.SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeLeft;
-               rtbVM.FlowDoc.Selection.End = SelectionOrigin;
-               rtbVM.FlowDoc.Selection.Start = thisPar.StartInDoc + charIndex;
+               FlowDoc.SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeLeft;
+               FlowDoc.Selection.End = SelectionOrigin;
+               FlowDoc.Selection.Start = thisPar.StartInDoc + charIndex;
             }
             else
             {
-               rtbVM.FlowDoc.SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeRight;
-               rtbVM.FlowDoc.Selection.Start = SelectionOrigin;
-               rtbVM.FlowDoc.Selection.End = thisPar.StartInDoc + charIndex;
+               FlowDoc.SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeRight;
+               FlowDoc.Selection.Start = SelectionOrigin;
+               FlowDoc.Selection.End = thisPar.StartInDoc + charIndex;
             }
 
-            rtbVM.FlowDoc.EnsureSelectionContinuity();
+            FlowDoc.EnsureSelectionContinuity();
           
 
          }

@@ -33,6 +33,7 @@ public partial class FlowDocument
       SelectionExtendMode = ExtendMode.ExtendModeNone;
       ScrollInDirection!(1);
 
+
    }
 
    internal void MoveRightWord()
@@ -197,7 +198,7 @@ public partial class FlowDocument
       Selection.CollapseToStart();
       SelectionExtendMode = ExtendMode.ExtendModeNone;
       ScrollInDirection!(-1);
-
+      
    }
 
   

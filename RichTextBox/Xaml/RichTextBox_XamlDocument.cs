@@ -9,23 +9,23 @@ public partial class RichTextBox
    public void CloseDocument()
    {
 
-      rtbVM.FlowDoc.Blocks.Clear();
+      FlowDoc.Blocks.Clear();
 
-      for (int tRangeNo = rtbVM.FlowDoc.TextRanges.Count - 1; tRangeNo >=0; tRangeNo--)
+      for (int tRangeNo = FlowDoc.TextRanges.Count - 1; tRangeNo >=0; tRangeNo--)
       {
-         if (!rtbVM.FlowDoc.TextRanges[tRangeNo].Equals(rtbVM.FlowDoc.Selection))
-         rtbVM.FlowDoc.TextRanges[tRangeNo].Dispose();
+         if (!FlowDoc.TextRanges[tRangeNo].Equals(FlowDoc.Selection))
+         FlowDoc.TextRanges[tRangeNo].Dispose();
       }
          
 
-      rtbVM.FlowDoc.Undos.Clear();
+      FlowDoc.Undos.Clear();
 
       rtbVM.RTBScrollOffset = new Vector(0, 0);
       this.UpdateLayout();
       Paragraph newpar = new();
       EditableRun newerun = new("");
       newpar.Inlines.Add(newerun);
-      rtbVM.FlowDoc.Blocks.Add(newpar);
+      FlowDoc.Blocks.Add(newpar);
 
       InitializeDocument();
 
@@ -37,7 +37,7 @@ public partial class RichTextBox
       this.Focus();
 
 #if DEBUG
-      RunDebugger.DataContext = rtbVM.FlowDoc;
+      RunDebugger.DataContext = FlowDoc;
 #else
       RunDebugger.DataContext = null;
 #endif
@@ -48,8 +48,8 @@ public partial class RichTextBox
       this.UpdateLayout();
       this.InvalidateVisual();
 
-      rtbVM.FlowDoc.Selection.Start = 0;
-      rtbVM.FlowDoc.Selection.CollapseToStart();
+      FlowDoc.Selection.Start = 0;
+      FlowDoc.Selection.CollapseToStart();
 
    }
 
