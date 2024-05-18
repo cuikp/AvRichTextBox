@@ -10,7 +10,7 @@ The FlowDoc is at heart merely an ObservableCollection of Blocks bound as the It
 (The hard part after that was implementing the selection logic, because Selection for the RichTextBox has to be able to move between and span multiple Paragraphs (SelectableTextBlocks), both with the keyboard and the mouse, and to allow editing functions that involve splitting or merging Paragraphs. And of course the Inline logic for spanning, inserting, splitting or deleting Inlines.
 
 The RichTextBox has the usual key functions: 
-Ctrl-B for bold/unbold 
+Ctrl-B for bold/unbold
 Ctrl-I for italic/unitalic 
 Ctrl-U for underline/remove underline 
 Ctrl-Z for undo 
@@ -25,7 +25,8 @@ I've tried to add Undos for all editing possibilities, but Undo hasn't really be
 The RichTextBox content can be saved/loaded either as straight Xaml or a XamlPackage (to preserve images), similar to the WPF RichTextBox.
 
 Various future to-do improvements include:
- Adding Table and Section Block types 
+Adding Table and Section Block types
+
 Paragraph formatting 
 Allow the Undo limit to be set 
 Redo functionality 
