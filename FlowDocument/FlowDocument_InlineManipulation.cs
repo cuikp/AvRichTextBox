@@ -105,7 +105,7 @@ public partial class FlowDocument
       }
       else
       {
-         //split last run and remove trailing excess run from lithat
+         //split last run and remove trailing excess run from list
          if (!RangeEndsAtInlineEnd)
          {
             lastInline.InlineText = lastInlineText.Substring(0, lastInlineSplitIndex);
