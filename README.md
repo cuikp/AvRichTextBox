@@ -1,5 +1,5 @@
 ## A RichTextBox control for Avalonia
-[![NuGet version](https://img.shields.io/nuget/v/Simplecto.Avalonia.RichTextBox.svg)](https://www.nuget.org/packages/Simplecto.Avalonia.RichTextBox/)
+[![NuGet version](https://img.shields.io/nuget/v/Simplecto.Avalonia.RichTextBox.svg?cachebuster=1)](https://www.nuget.org/packages/Simplecto.Avalonia.RichTextBox/)
 
 As of 2024, Avalonia doesn't yet come with a RichTextBox, and since I needed one I created a "poor-man's version" based on the existing control "SelectableTextBox".
 
