@@ -22,6 +22,8 @@
 	  <PackageReleaseNotes>In version 1.0.6,  ability to load/save as Word file (.docx only) has been added.  (Word file load error fixed)
 Also, FontStyle and Underline attributes are properly saved/loaded now.</PackageReleaseNotes>
 
+      <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 
   </PropertyGroup>
 
