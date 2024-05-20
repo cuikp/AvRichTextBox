@@ -192,6 +192,7 @@ public partial class FlowDocument
 
    internal void DeleteRange(TextRange trange, bool saveUndo)
    {
+  
       int originalSelectionStart = Selection.Start;
       int originalTRangeLength = trange.Length;
 
@@ -250,6 +251,7 @@ public partial class FlowDocument
 
 
       UpdateTextRanges(originalSelectionStart, -originalTRangeLength);
+
 
       UpdateSelection();
      

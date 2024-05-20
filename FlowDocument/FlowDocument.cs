@@ -24,8 +24,8 @@ public partial class FlowDocument : INotifyPropertyChanged
    public delegate void ScrollInDirection_Handler(int direction);
    internal event ScrollInDirection_Handler? ScrollInDirection;
 
-   //public delegate void UpdateRTBLayout_Handler();
-   //internal event UpdateRTBLayout_Handler? UpdateRTBLayout;
+   private Thickness _PagePadding = new Thickness(5);
+   public Thickness PagePadding { get => _PagePadding; set {  _PagePadding = value; NotifyPropertyChanged(nameof(PagePadding)); } }
 
    internal bool IsEditable { get; set; } = true;
 
@@ -74,6 +74,33 @@ public partial class FlowDocument : INotifyPropertyChanged
 
    }
 
+   internal void CloseDocument()
+   {
+
+      Blocks.Clear();
+
+      for (int tRangeNo = TextRanges.Count - 1; tRangeNo >= 0; tRangeNo--)
+      {
+         if (!TextRanges[tRangeNo].Equals(Selection))
+            TextRanges[tRangeNo].Dispose();
+      }
+
+
+      Undos.Clear();
+            
+      Paragraph newpar = new();
+      EditableRun newerun = new("");
+      newpar.Inlines.Add(newerun);
+      Blocks.Add(newpar);
+
+   }
+
+   internal void InitializeDocument()
+   {
+      InitializeParagraphs();
+                  
+   }
+
    internal void InitializeParagraphs()
    {
       UpdateBlockAndInlineStarts(0);
@@ -87,7 +114,9 @@ public partial class FlowDocument : INotifyPropertyChanged
       Selection.UpdateEnd();
       
       ((Paragraph)Blocks[0]).RequestTextBoxFocus = true;
-      
+
+      UpdateBlockAndInlineStarts(0);
+
    }
 
    private void UpdateSelectionParagraphs()

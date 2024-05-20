@@ -69,30 +69,69 @@ public partial class RichTextBox : UserControl
 
    }
 
+   public void CloseDocument()
+   {
+
+      FlowDoc.CloseDocument();
+
+      rtbVM.RTBScrollOffset = new Vector(0, 0);
+      this.UpdateLayout();
+
+      InitializeDocument();
+
+   }
+
+   private void InitializeDocument()
+   {
+      this.Focus();
+
+#if DEBUG
+      RunDebugger.DataContext = FlowDoc;
+#else
+      RunDebugger.DataContext = null;
+#endif
+
+      FlowDoc.InitializeDocument();
+
+      this.UpdateLayout();
+      this.InvalidateVisual();
+
+   }
+
+   public void SaveAsWord(string filename)
+   {
+      FlowDoc.ExportToWord(filename);
+   }
+
+   public void LoadXaml (string fileName)
+   {
+      FlowDoc.LoadXaml(fileName);
+   }
+
+   public void SaveXamlPackage (string fileName)
+   {
+      FlowDoc.SaveXamlPackage(fileName);
+   }
+
+   public void SaveXaml (string fileName)
+   {
+      FlowDoc.SaveXaml(fileName);
+   }
+
+   public void LoadXamlPackage (string fileName)
+   {
+      FlowDoc.LoadXamlPackage(fileName);
+
+      //FlowDocSV.Focus();
+      //FlowDoc.Selection.StartParagraph = (Paragraph)FlowDoc.Blocks[0];
+      //FlowDoc.UpdateSelection();
+      
+   }
 
    private void FlowDocSV_KeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
    {
-      if (e.Key == Avalonia.Input.Key.PageDown)
-      { 
+      if (e.Key == Avalonia.Input.Key.PageDown || e.Key == Avalonia.Input.Key.PageUp)
          e.Handled = true;
-         if (rtbVM.RTBScrollOffset.Y >= DocIC.Bounds.Height - FlowDocSV.Bounds.Height) return;
-
-         if (e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Shift))
-            MovePage(1, true);
-         else
-            MovePage(1, false);
-      }
-
-      if (e.Key == Avalonia.Input.Key.PageUp)
-      {
-         e.Handled = true;
-         if (rtbVM.RTBScrollOffset.Y == 0) return; 
-
-         if (e.KeyModifiers.HasFlag(Avalonia.Input.KeyModifiers.Shift))
-            MovePage(-1, true);
-         else
-            MovePage(-1, false);
-      }
 
    }
 
@@ -102,6 +141,7 @@ public partial class RichTextBox : UserControl
       switch (FlowDoc.SelectionExtendMode)
       {
          case FlowDocument.ExtendMode.ExtendModeRight:
+         case FlowDocument.ExtendMode.ExtendModeNone:
             currentY = FlowDoc.Selection!.EndRect!.Y;
             break;
 
@@ -114,12 +154,18 @@ public partial class RichTextBox : UserControl
       double distanceFromLeft = FlowDoc.Selection!.StartRect!.X + FlowDocSV.Margin.Left;
       double newScrollY = rtbVM.RTBScrollOffset.Y + FlowDocSV.Bounds.Height * direction;
       rtbVM.RTBScrollOffset = rtbVM.RTBScrollOffset.WithY(newScrollY);
-
       double newCaretY = newScrollY + distanceFromTop;
+
+      //Debug.WriteLine("\nnewCaretY = " + newCaretY + "\nnewscrollY= " + newScrollY + "\ndistanceTop=" + distanceFromTop);
 
       EditableParagraph? thisEP = DocIC.GetVisualDescendants().OfType<EditableParagraph>().Where(ep => ep.TranslatePoint(ep.Bounds.Position, DocIC)!.Value.Y <= newCaretY).LastOrDefault();
 
-      if (thisEP != null)
+      if (thisEP == null)
+      {
+         if (direction == -1)
+            FlowDoc.Select(0, 0);
+      }
+      else
       {
          double relYInEP = newCaretY - thisEP!.TranslatePoint(thisEP!.Bounds.Position, DocIC)!.Value.Y + 18;
          TextHitTestResult tres = thisEP.TextLayout.HitTestPoint(new Point(distanceFromLeft, relYInEP));
@@ -169,12 +215,7 @@ public partial class RichTextBox : UserControl
 
    }
 
-   private void InitializeParagraphs()
-   {
-      FlowDoc.InitializeParagraphs();
-      
-   }
-
+   
    private void EditableParagraph_CharIndexRect_Notified(EditableParagraph edPar, Rect selStartRect)
    {
       //Point? selStartPoint = edPar.TranslatePoint(selStartRect.Position, DocIC);

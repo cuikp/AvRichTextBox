@@ -11,7 +11,7 @@ using System.Xml;
 
 namespace AvRichTextBox;
 
-public partial class RichTextBox
+public partial class FlowDocument
 {
 
    string SectionTextDefault => "<Section xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\">";
@@ -23,7 +23,7 @@ public partial class RichTextBox
                   
       StringBuilder selXaml = new (SectionTextDefault);
 
-      foreach (Paragraph paragraph in FlowDoc.Blocks)
+      foreach (Paragraph paragraph in Blocks)
       {
 
          StringBuilder ParagraphHeader = new StringBuilder("<Paragraph ");
@@ -104,7 +104,7 @@ public partial class RichTextBox
       //Debug.WriteLine("xaml:\n" + docXamlString);
 
       //FlowDoc.SelectionParagraphs.Clear();
-      FlowDoc.Blocks.Clear();
+      Blocks.Clear();
 
 
       XmlDocument xamlDocument = new();
@@ -254,7 +254,7 @@ public partial class RichTextBox
                }
 
                if (newPar.Inlines.Count == 0) newPar.Inlines.Add(new EditableRun(""));
-              FlowDoc.Blocks.Add(newPar);
+              Blocks.Add(newPar);
 
             }
 

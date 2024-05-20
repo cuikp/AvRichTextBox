@@ -1,4 +1,5 @@
 using Avalonia.Input;
+using System.Diagnostics;
 
 
 namespace AvRichTextBox;
@@ -129,6 +130,17 @@ public partial class RichTextBox
                   FlowDoc.DeleteSelection();
                else
                   DeleteChar();
+               break;
+
+            case Key.PageDown:
+
+               MovePage(1, e.KeyModifiers.HasFlag(KeyModifiers.Shift));
+               break;
+
+            case Key.PageUp:
+               
+               MovePage(-1, e.KeyModifiers.HasFlag(KeyModifiers.Shift));
+
                break;
 
          }

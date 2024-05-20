@@ -80,7 +80,7 @@
 
 			<Grid VerticalAlignment="Top">
 								
-				<ItemsControl x:Name="DocIC"  DataContext="{Binding FlowDoc}" VerticalAlignment="Top" ItemsSource="{Binding Blocks}" Margin="8"  >
+				<ItemsControl x:Name="DocIC"  DataContext="{Binding FlowDoc}" VerticalAlignment="Top" ItemsSource="{Binding Blocks}" Margin="8" Padding="{Binding PagePadding}"  >
 
 					<ItemsControl.ItemsPanel>
 						<ItemsPanelTemplate>

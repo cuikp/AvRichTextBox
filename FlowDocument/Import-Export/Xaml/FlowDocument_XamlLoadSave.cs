@@ -12,15 +12,15 @@ using System.Text.RegularExpressions;
 
 namespace AvRichTextBox;
 
-public partial class RichTextBox
+public partial class FlowDocument
 {
   
-   public void SaveXaml(string fileName)
+   internal void SaveXaml(string fileName)
    {
       File.WriteAllText(fileName, GetDocXaml(false));
    }
 
-   public void LoadXaml(string fileName)
+   internal void LoadXaml(string fileName)
    {
       string xamlDocString = File.ReadAllText(fileName);
       ProcessXamlString(xamlDocString);
@@ -30,7 +30,7 @@ public partial class RichTextBox
 
    List<Bitmap> consecutiveImageBitmaps = [];
 
-   public void LoadXamlPackage(string fileName)
+   internal void LoadXamlPackage(string fileName)
    {
       using (FileStream fstream = new FileStream(fileName, FileMode.Open))
       {
@@ -113,7 +113,7 @@ public partial class RichTextBox
    }
 
 
-   public void SaveXamlPackage(string fileName)
+   internal void SaveXamlPackage(string fileName)
    {
       using (FileStream fstream = new FileStream(fileName, FileMode.Create))
       {
@@ -135,7 +135,7 @@ public partial class RichTextBox
 
 
             //Save images, if any  
-            List<Paragraph> imageContainingParagraphs = FlowDoc.Blocks.Where(b => b.IsParagraph && ((Paragraph)b).Inlines.Where(iline =>
+            List<Paragraph> imageContainingParagraphs = Blocks.Where(b => b.IsParagraph && ((Paragraph)b).Inlines.Where(iline =>
                 iline.GetType() == typeof(EditableInlineUIContainer) && ((EditableInlineUIContainer)iline).Child.GetType() == typeof(Image)).Any()).ToList().ConvertAll(bb=>(Paragraph)bb);
 
             if (imageContainingParagraphs.Any())

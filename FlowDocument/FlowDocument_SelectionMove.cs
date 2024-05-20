@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Avalonia.Controls;
+using System;
 using System.Diagnostics;
 
 namespace AvRichTextBox;
@@ -251,6 +252,9 @@ public partial class FlowDocument
       foreach (Paragraph p in Blocks)
          p.ClearSelection();
 
+      Blocks[^1].SelectionStartInBlock = Blocks[^1].BlockLength - 1;
+      Blocks[^1].SelectionEndInBlock = Blocks[^1].BlockLength - 1;
+
    }
 
    internal void MoveToStartOfLine(bool selExtend)
@@ -308,7 +312,6 @@ public partial class FlowDocument
 
    }
 
-
    internal void MovePageSelection(int direction, bool extend, int newIndexInDoc)
    {
       switch (direction)
@@ -319,6 +322,7 @@ public partial class FlowDocument
             {
                switch (SelectionExtendMode)
                {
+
                   case ExtendMode.ExtendModeRight:
                   case ExtendMode.ExtendModeNone:
                      Selection.End = newIndexInDoc;
@@ -370,6 +374,7 @@ public partial class FlowDocument
 
       }
 
+      
    }
 
 
