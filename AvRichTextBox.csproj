@@ -10,7 +10,7 @@
 	  <Company>---</Company>
 	  <Product>AvRichTextBox</Product>
 	  <PackageId>Simplecto.Avalonia.RichTextBox</PackageId>
-	  <Version>1.0.5</Version>
+	  <Version>1.0.6</Version>
 	  <Description>A RichTextBox control to be used in Avalonia</Description>
 	  <PackageTags>Avalonia;UserControl;RichTextBox</PackageTags>
 	  <Title>A RichTextBox control for Avalonia</Title>
@@ -19,7 +19,7 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>In version 1.0.5,  ability to load/save as Word file (.docx only) has been added.  
+	  <PackageReleaseNotes>In version 1.0.6,  ability to load/save as Word file (.docx only) has been added.  (Word file load error fixed)
 Also, FontStyle and Underline attributes are properly saved/loaded now.</PackageReleaseNotes>
 
 

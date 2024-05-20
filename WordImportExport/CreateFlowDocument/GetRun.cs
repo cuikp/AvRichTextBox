@@ -8,6 +8,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net.Mime;
+using System.Text;
 using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;
@@ -267,9 +268,10 @@ public static partial class WordConversions
                               break;
 
 
-                           case "i": ((EditableRun)iline).FontStyle = FontStyle.Italic; break;
-                           case "b": ((EditableRun)iline).FontWeight = FontWeight.Bold; break;
-
+                           //case "i": ((EditableRun)iline).FontStyle = FontStyle.Italic; break;
+                           case "i": thisrun.FontStyle = FontStyle.Italic; break;
+                           case "b": thisrun.FontWeight = FontWeight.Bold; break;
+                                 
                            case "rFonts":
 
                               string runAsciiFont = "";
@@ -279,7 +281,7 @@ public static partial class WordConversions
                               foreach (OpenXmlAttribute ga in rprsection.GetAttributes())
                               {
                                  switch (ga.LocalName)
-                                 {
+                                 {                                       
                                     case "ascii": { runAsciiFont = ga.Value!; break; }
                                     case "eastAsia": { runEastAsiaFont = ga.Value!; break; }
                                     case "hAnsi": { break; }
@@ -293,14 +295,13 @@ public static partial class WordConversions
                                        }
                                     default: { break; }
                                  }
-
                               }
 
                               runEastAsiaFont = (runEastAsiaFont == "") ? DefaultEastAsiaFont : runEastAsiaFont;
-                              runAsciiFont = (runAsciiFont == "") ? DefaultAsciiFont : runAsciiFont;
+                              runAsciiFont = (runAsciiFont == "compositefont:Inter,#Inter, ") ? DefaultAsciiFont : runAsciiFont;
 
                               if (runAsciiFont != DefaultAsciiFont | runEastAsiaFont != DefaultEastAsiaFont)
-                                 thisRun.FontFamily = new FontFamily(runAsciiFont + ", " + runEastAsiaFont);
+                                 thisRun.FontFamily = new FontFamily(runEastAsiaFont + ", Inter");
 
                               break;
 
