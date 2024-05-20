@@ -100,16 +100,12 @@ public partial class FlowDocument
    }
 
    private void ProcessXamlString(string docXamlString)
-   {
-      //Debug.WriteLine("xaml:\n" + docXamlString);
+   {  //Debug.WriteLine("xaml:\n" + docXamlString);
 
       //FlowDoc.SelectionParagraphs.Clear();
       Blocks.Clear();
 
-
       XmlDocument xamlDocument = new();
-
-      //docXamlString = docXamlString.Replace("\0", "t");
 
       xamlDocument.LoadXml(docXamlString);
       if (xamlDocument.ChildNodes.Count == 1)
@@ -285,12 +281,8 @@ public partial class FlowDocument
               Blocks.Add(newPar);
 
             }
-
          }
-
-
       }
-
 
    }
 

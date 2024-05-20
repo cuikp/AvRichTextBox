@@ -22,15 +22,23 @@ The RichTextBox also includes the concept of TextRange (of which Selection is me
 
 I've tried to add Undos for all editing possibilities, but Undo hasn't really been stress-tested to the max, yet. There is no particular limit set for number of undos at the current time. (Redo doesn't exist yet.)
 
-The RichTextBox content can be saved/loaded either as straight Xaml or a XamlPackage (to preserve images), similar to the WPF RichTextBox.
+The RichTextBox content can be saved/loaded either as straight Xaml or a XamlPackage (to preserve images), similar to the WPF RichTextBox.<br>
+It can also save and load the FlowDoc content as a Word document (.docx), though only with a subset of Word document features.  This includes text, some common text/paragraph formatting, and most images, but not very much else at this time.<br>
+
 
 Various future to-do improvements include:<br>
+
 Adding Table and Section Block types<br>
-Paragraph formatting <br>
+More paragraph formatting (such as line spacing) <br>
+More Inline (IEditable) formatting (such as Foreground color) <br>
 Allow the Undo limit to be set <br>
-Redo functionality <br>
+Redo functionality (could be a headache) <br>
 More stress testing <br>
 A quirk or two at times when extending selection using PageUp or PageDown Key.<br>
-Right when the caret is after the space at the end of a line should technically move the caret to the second character of the next line, not the first.<br>
+Moving right when the caret is after the space at the end of a line should technically move the caret to the second character of the next line, not the first.<br>
+RTF import/export (need to find a reasonably solid RTF parser)<br>
+Save/Load Xaml for Selection as well as any given TextRange, instead of just the FlowDoc as a whole<br>
+Save/Load Xaml to a Stream instead of just to a file
+
 
 

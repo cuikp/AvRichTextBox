@@ -1,5 +1,6 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using System;
@@ -144,108 +145,94 @@ public static partial class WordConversions
 
                case "drawing":
 
-                  Debug.WriteLine("drawqing");
-                  //try
-                  //{
+                  try
+                  {
+                     var inelm = rsection.Elements().Where(ce => (ce.LocalName ?? "") == "inline").ElementAtOrDefault(0);
+                     var img = new Image();
+                     string rIdno = "";
+                     Stream imgStream = null!;
+                     contentType = "";
 
-                  //   var inelm = rsection.Elements().Where(ce => (ce.LocalName ?? "") == "inline").ElementAtOrDefault(0);
-                  //   var img = new Image();
-                  //   string rIdno = "";
-                  //   Stream imgStream = null;
-                  //   contentType = "";
+                     if (inelm != null)
+                     {
+                        var extelm = inelm.Elements().Where(ce => (ce.LocalName ?? "") == "extent").ElementAtOrDefault(0);
+                        if (extelm != null)
+                        {
+                           img.Width = EMUToPix(Convert.ToDouble(extelm.GetAttributes().Where(gat => gat.LocalName == "cx").FirstOrDefault().Value));
+                           img.Height = EMUToPix(Convert.ToDouble(extelm.GetAttributes().Where(gat => gat.LocalName == "cy").FirstOrDefault().Value));
+                        }
+                        //MessageBox.Show("extelmWidth=" + img.Width.ToString() + ":::extELMHeight=" + img.Height.ToString());
 
-                  //   if (inelm != null)
-                  //   {
+                        var grelm = inelm.Elements().Where(ce => (ce.LocalName ?? "") == "graphic").ElementAtOrDefault(0);
+                        var grdataelm = grelm.Elements().Where(ce => (ce.LocalName ?? "") == "graphicData").ElementAtOrDefault(0);
 
-                  //      //MessageBox.Show("inelm loading");
+                        var picelm = grdataelm.Elements().Where(ce => (ce.LocalName ?? "") == "pic").ElementAtOrDefault(0);
+                        if (picelm != null)
+                        {
+                           var blipFillelm = picelm.Elements().Where(ce => (ce.LocalName ?? "") == "blipFill").ElementAtOrDefault(0);
+                           var blip = blipFillelm.Elements().Where(ce => (ce.LocalName ?? "") == "blip").ElementAtOrDefault(0);
+                           rIdno = blip.GetAttributes()[0].Value;
+                           var spPr = picelm.Elements().Where(ce => (ce.LocalName ?? "") == "spPr").ElementAtOrDefault(0);
+                           var xfrm = spPr.Elements().Where(ce => (ce.LocalName ?? "") == "xfrm").ElementAtOrDefault(0);
+                           var ext = xfrm.Elements().Where(ce => (ce.LocalName ?? "") == "ext").ElementAtOrDefault(0);
+                           img.Width = EMUToPix(Convert.ToDouble(ext.GetAttributes()[0].Value));
+                           img.Height = EMUToPix(Convert.ToDouble(ext.GetAttributes()[1].Value));
 
-                  //      var extelm = inelm.Elements().Where(ce => (ce.LocalName ?? "") == "extent").ElementAtOrDefault(0);
-                  //      if (extelm != null)
-                  //      {
-                  //         img.Width = EMUToPix(Convert.ToDouble(extelm.GetAttributes().Where(gat => gat.LocalName == "cx").FirstOrDefault().Value));
-                  //         img.Height = EMUToPix(Convert.ToDouble(extelm.GetAttributes().Where(gat => gat.LocalName == "cy").FirstOrDefault().Value));
-                  //      }
-                  //      //MessageBox.Show("extelmWidth=" + img.Width.ToString() + ":::extELMHeight=" + img.Height.ToString());
+                           ImagePart imgp = (ImagePart)mainDocPart.GetPartById(rIdno);
+                           contentType = imgp.ContentType.ToString();
+                           imgStream = imgp.GetStream();
 
-                  //      var grelm = inelm.Elements().Where(ce => (ce.LocalName ?? "") == "graphic").ElementAtOrDefault(0);
-                  //      var grdataelm = grelm.Elements().Where(ce => (ce.LocalName ?? "") == "graphicData").ElementAtOrDefault(0);
+                        }
 
-                  //      var picelm = grdataelm.Elements().Where(ce => (ce.LocalName ?? "") == "pic").ElementAtOrDefault(0);
-                  //      if (picelm != null)
-                  //      {
-                  //         var blipFillelm = picelm.Elements().Where(ce => (ce.LocalName ?? "") == "blipFill").ElementAtOrDefault(0);
-                  //         var blip = blipFillelm.Elements().Where(ce => (ce.LocalName ?? "") == "blip").ElementAtOrDefault(0);
-                  //         rIdno = blip.GetAttributes()[0].Value;
-                  //         var spPr = picelm.Elements().Where(ce => (ce.LocalName ?? "") == "spPr").ElementAtOrDefault(0);
-                  //         var xfrm = spPr.Elements().Where(ce => (ce.LocalName ?? "") == "xfrm").ElementAtOrDefault(0);
-                  //         var ext = xfrm.Elements().Where(ce => (ce.LocalName ?? "") == "ext").ElementAtOrDefault(0);
-                  //         img.Width = EMUToPix(Convert.ToDouble(ext.GetAttributes()[0].Value));
-                  //         img.Height = EMUToPix(Convert.ToDouble(ext.GetAttributes()[1].Value));
+                        var chartelm = grdataelm.Elements().Where(ce => (ce.LocalName ?? "") == "chart").ElementAtOrDefault(0);
+                        if (chartelm != null)
+                        {
+                           rIdno = chartelm.GetAttributes().Where(gat => gat.LocalName == "id").FirstOrDefault().Value;
+                           ChartPart chp = (ChartPart)mainDocPart.GetPartById(rIdno);
+                           contentType = chp.ContentType.ToString();
+                           imgStream = chp.GetStream();
+                        }
 
-                  //         ImagePart imgp = (ImagePart)mainDocPart.GetPartById(rIdno);
-                  //         contentType = imgp.ContentType.ToString();
-                  //         imgStream = imgp.GetStream();
+                        Bitmap bmg = null!; 
+                        //Debug.WriteLine("contenttype= " + contentType);
 
-                  //      }
+                        if (contentType == "image/x-emf" || contentType == "image/x-wmf")
+                        {
+                           MemoryStream streamEx = new MemoryStream();
+                           imgStream.CopyTo(streamEx);  //have to copy to new stream because it's in a zip, can't set position
+                           streamEx.Position = 0;
+                           bmg = new Bitmap(streamEx);
 
-                  //      var chartelm = grdataelm.Elements().Where(ce => (ce.LocalName ?? "") == "chart").ElementAtOrDefault(0);
-                  //      if (chartelm != null)
-                  //      {
-                  //         rIdno = chartelm.GetAttributes().Where(gat => gat.LocalName == "id").FirstOrDefault().Value;
-                  //         ChartPart chp = (ChartPart)mainDocPart.GetPartById(rIdno);
-                  //         contentType = chp.ContentType.ToString();
-                  //         imgStream = chp.GetStream();
-                  //      }
+                           //System.Drawing.Imaging.Metafile mfimg = new System.Drawing.Imaging.Metafile(streamEx);
+                           //streamEx.Position = 0;
+                           ////Must redraw emf's to large size (*5) for better quality when converted to png
+                           //var target = new System.Drawing.Bitmap((int)img.Width * 5, (int)img.Height * 5);
+                           //var g = System.Drawing.Graphics.FromImage(target);
+                           //g.DrawImage(mfimg, 0, 0, (int)img.Width * 5, (int)img.Height * 5);
+                           //target.Save(streamEx, System.Drawing.Imaging.ImageFormat.Png);
+                           //streamEx.Position = 0;
+                           //bmg.BeginInit();
+                           //bmg.CacheOption = BitmapCacheOption.OnLoad;
+                           //bmg.StreamSource = streamEx;
+                           //bmg.EndInit();
+                        }
 
+                        else
+                        {
+                           MemoryStream streamEx = new MemoryStream();
+                           imgStream.CopyTo(streamEx);  //have to copy to new stream because it's in a zip, can't set position
+                           streamEx.Position = 0;
+                           bmg = new Bitmap(streamEx);
+                        }
 
-                  //      var bmg = new BitmapImage();
+                        img.IsVisible = true;
+                        img.Source = bmg;
 
-                  //      //MessageBox.Show("contenttype= " + contentType);
+                        iline = new EditableInlineUIContainer(img);
+                     }
 
-                  //      if (contentType == "image/x-emf" || contentType == "image/x-wmf")
-                  //      {
-
-                  //         MemoryStream streamEx = new MemoryStream();
-                  //         imgStream.CopyTo(streamEx);  //have to copy to new stream because it's in a zip, can't set position
-
-                  //         streamEx.Position = 0;
-                  //         System.Drawing.Imaging.Metafile mfimg = new System.Drawing.Imaging.Metafile(streamEx);
-                  //         streamEx.Position = 0;
-
-                  //         //Must redraw emf's to large size (*5) for better quality when converted to png
-                  //         var target = new System.Drawing.Bitmap((int)img.Width * 5, (int)img.Height * 5);
-                  //         var g = System.Drawing.Graphics.FromImage(target);
-                  //         g.DrawImage(mfimg, 0, 0, (int)img.Width * 5, (int)img.Height * 5);
-                  //         target.Save(streamEx, System.Drawing.Imaging.ImageFormat.Png);
-
-                  //         streamEx.Position = 0;
-                  //         bmg.BeginInit();
-                  //         bmg.CacheOption = BitmapCacheOption.OnLoad;
-                  //         bmg.StreamSource = streamEx;
-                  //         bmg.EndInit();
-                  //      }
-
-                  //      else
-                  //      {
-                  //         MemoryStream streamEx = new MemoryStream();
-                  //         imgStream.CopyTo(streamEx);  //have to copy to new stream because it's in a zip, can't set position
-                  //         streamEx.Position = 0;
-                  //         bmg.BeginInit();
-                  //         bmg.CacheOption = BitmapCacheOption.OnDemand;
-                  //         bmg.StreamSource = streamEx;
-                  //         bmg.EndInit();
-                  //      }
-
-                  //      img.IsVisible = true;
-                  //      img.Source = bmg;
-
-                  //      iline = new EditableInlineUIContainer(img);
-
-                  //      para.FontFamily = new FontFamily("IMAGE");
-                  //   }
-
-                  //}
-                  //catch (Exception exd) { numDrawingErrors += 1; }
+                  }
+                  catch (Exception exd) { numDrawingErrors += 1; }
 
                   break;
 

@@ -72,7 +72,6 @@ public partial class FlowDocument
                   Match relLine = Regex.Match(relString, RelationshipEntryLine);
                   Match m = Regex.Match(relLine.Value, @"(?<=Target="").*?(?="")");
                   EntryXamlDocumentName = m.Value.TrimStart('/');
-                  Debug.WriteLine(EntryXamlDocumentName);
                }
             }
 
@@ -84,8 +83,6 @@ public partial class FlowDocument
                for(int i = 1; i <= imageEntries.Count; i++)
                {
                   ZipArchiveEntry? imageEntry = zipArchive.GetEntry("Xaml/Image" + i.ToString() + ".png");
-                  //Debug.WriteLine("image=" + imageEntry.FullName);
-                  
                   if (imageEntry != null)
                   {
                      try
@@ -98,7 +95,6 @@ public partial class FlowDocument
                            consecutiveImageBitmaps.Add(new Bitmap(memStream));
                         }
                      }
-                     
                      catch { consecutiveImageBitmaps.Add(null!); Debug.WriteLine("png file in package could not be gotten.: " + imageEntry.FullName);  }
                   }
                }
