@@ -27,7 +27,7 @@ public partial class FlowDocument
       {
 
          StringBuilder ParagraphHeader = new StringBuilder("<Paragraph ");
-         ParagraphHeader.Append("FontFamily=\"" + paragraph.FontFamily.Name + "\" FontWeight=\"" + paragraph.FontWeight.ToString() + "\" FontSize=\"" + paragraph.FontSize.ToString() + 
+         ParagraphHeader.Append("FontFamily=\"" + paragraph.FontFamily.Name + "\" FontWeight=\"" + paragraph.FontWeight.ToString() + "\" FontStyle=\"" + paragraph.FontStyle.ToString() + "\" FontSize=\"" + paragraph.FontSize.ToString() + 
           "\" Margin=\"" + paragraph.Margin.ToString() + "\" Background=\"" + paragraph.Background.ToString() + "\">");
          selXaml.Append(ParagraphHeader);
 
@@ -45,7 +45,7 @@ public partial class FlowDocument
                   else
                   {
                      StringBuilder RunHeader = new StringBuilder("<Run ");
-                     RunHeader.Append("FontFamily=\"" + erun.FontFamily + "\" FontWeight=\"" + erun.FontWeight.ToString() + "\" FontSize=\"" + erun.FontSize.ToString() + "\">");
+                     RunHeader.Append(GetRunAttributesString(erun));
                      selXaml.Append(RunHeader);
                      selXaml.Append(erun.Text!.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;"));
                      selXaml.Append("</Run>");
@@ -149,23 +149,51 @@ public partial class FlowDocument
                            switch (att.Name)
                            {
                               case "FontFamily":
-                                 erun.FontFamily = new Avalonia.Media.FontFamily(att.Value);
+                                 erun.FontFamily = new FontFamily(att.Value);
                                  break;
 
                               case "FontWeight":
                                  switch (att.Value)
                                  {
                                     case "Normal":
-                                       erun.FontWeight = Avalonia.Media.FontWeight.Normal;
+                                       erun.FontWeight = FontWeight.Normal;
                                        break;
                                     case "Bold":
-                                       erun.FontWeight = Avalonia.Media.FontWeight.Bold;
+                                       erun.FontWeight = FontWeight.Bold;
                                        break;
                                  }
                                  break;
 
                               case "FontSize":
                                  erun.FontSize = double.Parse(att.Value);
+                                 break;
+
+                              case "FontStyle":
+                                 switch (att.Value)
+                                 {
+                                    case "Normal":
+                                       erun.FontStyle = FontStyle.Normal;
+                                       break;
+                                    case "Italic":
+                                       erun.FontStyle = FontStyle.Italic;
+                                       break;
+                                 }
+                                 break;
+
+                              case "TextDecorations":
+                                 //Debug.WriteLine("\nTextDec: " + att.Value.ToString());
+                                 switch (att.Value)
+                                 {
+                                    case "Underline":
+                                       erun.TextDecorations = TextDecorations.Underline;
+                                       break;
+                                    case "Overline":
+                                       erun.TextDecorations = TextDecorations.Overline;
+                                       break;
+                                    case "Baseline":
+                                       erun.TextDecorations = TextDecorations.Baseline;
+                                       break;
+                                 }
                                  break;
                            }
                         }
@@ -267,6 +295,42 @@ public partial class FlowDocument
    }
 
 
+   private string GetRunAttributesString(EditableRun erun)
+   {
+      StringBuilder attSB = new StringBuilder();
+      attSB.Append("FontFamily=\"" + erun.FontFamily.ToString() + "\"");
+      attSB.Append(" FontWeight=\"" + erun.FontWeight.ToString() + "\"");
+      attSB.Append(" FontSize=\"" + erun.FontSize.ToString() + "\"");
+      attSB.Append(" FontStyle=\"" + erun.FontStyle.ToString() + "\"");
+
+      if (erun.TextDecorations != null)
+      {
+         string textDecString = "";
+         if (erun.TextDecorations.Count > 0)
+         {
+            textDecString = " TextDecorations=\"";
+            switch (erun.TextDecorations[0].Location)
+            {
+               case TextDecorationLocation.Underline:
+                  textDecString += "Underline";
+                  break;
+               case TextDecorationLocation.Baseline:
+                  textDecString += "Baseline";
+                  break;
+               case TextDecorationLocation.Overline:
+                  textDecString += "Overline";
+                  break;
+            }
+            textDecString += "\"";
+         }
+         attSB.Append(textDecString);
+      }
+      
+      //Closing bracket
+      attSB.Append(">");
+
+      return attSB.ToString();
+   }
 
 
 

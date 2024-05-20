@@ -3,14 +3,10 @@
 //using System;
 //using System.Collections.Generic;
 //using System.Linq;
-//using System.Windows;
-//using System.Windows.Documents;
-//using System.Windows.Media;
-//using static QuikFind.FunctionsModule;
 
-//namespace QuikFind;
+//namespace AvRichTextBox;
 
-//public partial class XmlToFlowDocument
+//public static partial class WordConversions
 //{
 
 //    public static System.Windows.Documents.Table GetTable(DocumentFormat.OpenXml.Wordprocessing.Table wordTable)

@@ -7,7 +7,7 @@ using System.Diagnostics;
 
 namespace AvRichTextBox;
 
-public partial class FlowDocument
+public static partial class WordConversions
 {
    public static DOW.Run GetWordDocRun(EditableRun edRun)
    {

@@ -6,9 +6,9 @@
 //using System.Xml;
 //using DOW = DocumentFormat.OpenXml.Wordprocessing;
 
-//namespace QuikFind;
+//namespace AvRichTextBox;
 
-//public static partial class WordDocumentCreator
+//public static partial class WordConversions
 //{
 //    static bool firstTable = true;
 

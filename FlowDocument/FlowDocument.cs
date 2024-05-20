@@ -74,9 +74,19 @@ public partial class FlowDocument : INotifyPropertyChanged
 
    }
 
-   internal void CloseDocument()
+   internal void NewDocument()
    {
+      ClearDocument();
 
+      Paragraph newpar = new();
+      EditableRun newerun = new("");
+      newpar.Inlines.Add(newerun);
+      Blocks.Add(newpar);
+
+   }
+
+   internal void ClearDocument()
+   {
       Blocks.Clear();
 
       for (int tRangeNo = TextRanges.Count - 1; tRangeNo >= 0; tRangeNo--)
@@ -85,13 +95,7 @@ public partial class FlowDocument : INotifyPropertyChanged
             TextRanges[tRangeNo].Dispose();
       }
 
-
       Undos.Clear();
-            
-      Paragraph newpar = new();
-      EditableRun newerun = new("");
-      newpar.Inlines.Add(newerun);
-      Blocks.Add(newpar);
 
    }
 

@@ -1,16 +1,18 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.Documents;
+using Avalonia.Media.Imaging;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.Diagnostics;
 using System.IO;
-using System.Xml;
 using DOW = DocumentFormat.OpenXml.Wordprocessing;
+using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;
 
-public partial class FlowDocument
+public static partial class WordConversions
 {
    public static DOW.Paragraph CreateWordDocParagraph(Block b)
    {
@@ -42,7 +44,6 @@ public partial class FlowDocument
          {
             case var @case when @case == typeof(EditableLineBreak):
                parg.AppendChild(new Break());
-               Debug.WriteLine("found break");
                break;
 
             case var @case when @case == typeof(EditableInlineUIContainer):
@@ -56,25 +57,26 @@ public partial class FlowDocument
                   Image img = (Image)edUIC.Child;
                   img.Width = img.Bounds.Width;
                   img.Height = img.Bounds.Height;
+                  Bitmap? imgbitmap = (Bitmap)img.Source!;
 
                   string extension = "";
+                  ImagePart imagePart = mainPart.AddImagePart(ImagePartType.Jpeg);
+                                                      
+                  //Debug.WriteLine("Imagesource is null ? : " + (thisImg.Source == null));
+                  if (imgbitmap != null)
+                  {
+                     using (var memStream = new MemoryStream())
+                     {
+                        ResizeAndSaveBitmap(imgbitmap, (int)imgbitmap.Size.Width, (int)imgbitmap.Size.Height, memStream);
+                        memStream.Position = 0;
+                        imagePart.FeedData(memStream);
+                        extension = ".jpg";
+                     }
 
-                  //ImagePart imagePart = mainPart.AddImagePart(ImagePartType.Jpeg);
-                  //using (var memStream = new MemoryStream())
-                  //{
-                  //   var encoder = new JpegBitmapEncoder();
-                  //   encoder.Frames.Add(BitmapFrame.Create((BitmapSource)img.Source));
-                  //   encoder.Save(memStream);
-                  //   memStream.Position = 0;
-                  //   imagePart.FeedData(memStream);
-                  //   extension = ".jpg";
-                  //}
+                     parg.AppendChild(new DOW.Run(CreateWordDocDrawing(mainPart.GetIdOfPart(imagePart), img.Width, img.Height, extension)));
 
-                  //parg.AppendChild(new DOW.Run(CreateWordDocDrawing(mainPart.GetIdOfPart(imagePart), img.Width, img.Height, extension)));
-
+                  }
                   break;
-
-                 
                }
 
                break;

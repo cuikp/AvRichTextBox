@@ -1,30 +1,23 @@
 ﻿using Avalonia.Media;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Presentation;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System;
 using System.Diagnostics;
-using System.Xml;
 using DOW = DocumentFormat.OpenXml.Wordprocessing;
 using static AvRichTextBox.HelperMethods;
-using Avalonia.Controls.Documents;
-using System.IO;
-using Avalonia.Controls;
-using System.Linq;
 
 namespace AvRichTextBox;
 
-public partial class FlowDocument
+public static partial class WordConversions
 {
    private static bool toClientFormat = false;
    private static MainDocumentPart mainPart;
 
-   internal void ExportToWord(string saveWordFileName)
+   internal static void SaveWordDoc(string saveWordFileName, FlowDocument fdoc)
    {
       using (var WPDoc = WordprocessingDocument.Create(saveWordFileName, WordprocessingDocumentType.Document))
       {
-         var fdoc = this;
 
          mainPart = WPDoc.AddMainDocumentPart();
          mainPart.Document = new Document();

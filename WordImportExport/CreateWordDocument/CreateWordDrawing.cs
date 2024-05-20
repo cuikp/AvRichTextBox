@@ -6,7 +6,7 @@ using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;
 
-public static partial class WordDocumentCreator
+public static partial class WordConversions
 {
    public static DOW.Drawing CreateWordDocDrawing(string relationshipID, double pixelWidth, double pixelHeight, string extension)
    {

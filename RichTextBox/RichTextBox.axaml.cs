@@ -10,11 +10,13 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
+using DocumentFormat.OpenXml.Packaging;
 using DynamicData;
 using ReactiveUI;
 using System;
 using System.Diagnostics;
 using System.Linq;
+using static AvRichTextBox.WordConversions;
 
 namespace AvRichTextBox;
 
@@ -72,7 +74,7 @@ public partial class RichTextBox : UserControl
    public void CloseDocument()
    {
 
-      FlowDoc.CloseDocument();
+      FlowDoc.NewDocument();
 
       rtbVM.RTBScrollOffset = new Vector(0, 0);
       this.UpdateLayout();
@@ -98,9 +100,15 @@ public partial class RichTextBox : UserControl
 
    }
 
+   public void LoadWordDoc(string fileName)
+   {
+      FlowDoc.LoadWordDoc(fileName);
+      
+   }
+
    public void SaveAsWord(string filename)
    {
-      FlowDoc.ExportToWord(filename);
+      FlowDoc.SaveWordDoc(filename);
    }
 
    public void LoadXaml (string fileName)

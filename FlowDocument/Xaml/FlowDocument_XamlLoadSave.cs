@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -9,6 +10,8 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text.RegularExpressions;
+using static AvRichTextBox.HelperMethods;
+using static AvRichTextBox.WordConversions;
 
 namespace AvRichTextBox;
 
@@ -26,6 +29,26 @@ public partial class FlowDocument
       ProcessXamlString(xamlDocString);
       InitializeDocument();
       
+   }
+
+   internal void SaveWordDoc(string fileName)
+   {
+      WordConversions.SaveWordDoc(fileName, this);
+   }
+
+   internal void LoadWordDoc(string fileName)
+   {
+      using (WordprocessingDocument WordDoc = WordprocessingDocument.Open(fileName, false))
+      {
+         try
+         {
+            ClearDocument();
+            GetFlowDocument(WordDoc.MainDocumentPart!, this);
+            InitializeDocument();
+         }
+         catch (Exception ex2) { Debug.WriteLine("error getting flow doc:\n" + ex2.Message); }
+      }
+
    }
 
    List<Bitmap> consecutiveImageBitmaps = [];
@@ -222,18 +245,6 @@ public partial class FlowDocument
 
    }
 
-
-   public void ResizeAndSaveBitmap(Bitmap originalBitmap, int newWidth, int newHeight, Stream memoryStream)
-   {
-      var renderTarget = new RenderTargetBitmap(new PixelSize(newWidth, newHeight));
-
-      using (var context = renderTarget.CreateDrawingContext())
-      {
-         context.DrawImage(originalBitmap, new Rect(0, 0, newWidth, newHeight));
-      }
-
-      renderTarget.Save(memoryStream);  // png by default
-   }
 
 }
 

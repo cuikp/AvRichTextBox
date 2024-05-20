@@ -9,12 +9,12 @@ The FlowDoc is at heart merely an ObservableCollection of Blocks bound as the It
 
 (The hard part after that was implementing the selection logic, because Selection for the RichTextBox has to be able to move between and span multiple Paragraphs (SelectableTextBlocks), both with the keyboard and the mouse, and to allow editing functions that involve splitting or merging Paragraphs. And of course the Inline logic for spanning, inserting, splitting or deleting Inlines.
 
-The RichTextBox has the usual key functions: 
-Ctrl-B for bold/unbold
-Ctrl-I for italic/unitalic 
-Ctrl-U for underline/remove underline 
-Ctrl-Z for undo
-Ctrl-A for select all
+The RichTextBox has the usual key functions:<br>
+Ctrl-B for bold/unbold<br>
+Ctrl-I for italic/unitalic<br> 
+Ctrl-U for underline/remove underline<br>
+Ctrl-Z for undo<br>
+Ctrl-A for select all<br>
 
 The FlowDoc has a "Selection" property, with Start, End, Length, Select, Delete, Text, etc.
 
@@ -24,19 +24,13 @@ I've tried to add Undos for all editing possibilities, but Undo hasn't really be
 
 The RichTextBox content can be saved/loaded either as straight Xaml or a XamlPackage (to preserve images), similar to the WPF RichTextBox.
 
-Various future to-do improvements include:
-
-Adding Table and Section Block types
-
-Paragraph formatting 
-
-Allow the Undo limit to be set 
-
-Redo functionality 
-
-More stress testing 
-A quirk or two at times when extending selection using PageUp or PageDown Key.
-
-Right when the caret is after the space at the end of a line should technically move the caret to the second character of the next line, not the first.
+Various future to-do improvements include:<br>
+Adding Table and Section Block types<br>
+Paragraph formatting <br>
+Allow the Undo limit to be set <br>
+Redo functionality <br>
+More stress testing <br>
+A quirk or two at times when extending selection using PageUp or PageDown Key.<br>
+Right when the caret is after the space at the end of a line should technically move the caret to the second character of the next line, not the first.<br>
 
 

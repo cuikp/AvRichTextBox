@@ -13,7 +13,8 @@ public class Block : INotifyPropertyChanged
    public event PropertyChangedEventHandler? PropertyChanged;
    internal void NotifyPropertyChanged([CallerMemberName] String propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
-   public Thickness Margin => new Thickness(0, 10, 0, 0);
+   private Thickness _Margin = new Thickness(0, 10, 0, 0);
+   public Thickness Margin { get => _Margin; set { _Margin = value; NotifyPropertyChanged(nameof(Margin)); } }
 
    public string Text
    {

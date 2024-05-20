@@ -36,6 +36,9 @@ public class Paragraph : Block
    private FontWeight _FontWeight = FontWeight.Normal;
    public FontWeight FontWeight { get => _FontWeight; set { _FontWeight = value; NotifyPropertyChanged(nameof(FontWeight)); } }
 
+   private FontStyle _FontStyle = FontStyle.Normal;
+   public FontStyle FontStyle{ get => _FontStyle; set { _FontStyle = value; NotifyPropertyChanged(nameof(FontStyle)); } }
+
    private TextAlignment _TextAlignment = TextAlignment.Left;
    public TextAlignment TextAlignment { get => _TextAlignment; set { _TextAlignment = value; NotifyPropertyChanged(nameof(TextAlignment)); } }
 

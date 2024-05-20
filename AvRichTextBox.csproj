@@ -19,6 +19,8 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
+	  <PackageReleaseNotes>In version 1.0.5,  ability to load/save as Word file (.docx only) has been added.  
+Also, FontStyle and Underline attributes are properly saved/loaded now.</PackageReleaseNotes>
 
 
   </PropertyGroup>
@@ -57,10 +59,10 @@
     <Compile Update="RichTextBox\RichTextBox_PointerEvents.cs">
       <DependentUpon>%(Filename)</DependentUpon>
     </Compile>
-    <Compile Update="FlowDocument\Import-Export\Xaml\FlowDocument_XamlStringProcessing.cs">
+    <Compile Update="FlowDocument\Xaml\FlowDocument_XamlStringProcessing.cs">
       <DependentUpon>%(Filename)</DependentUpon>
     </Compile>
-    <Compile Update="FlowDocument\Import-Export\Xaml\FlowDocument_XamlLoadSave.cs">
+    <Compile Update="FlowDocument\Xaml\FlowDocument_XamlLoadSave.cs">
       <DependentUpon>%(Filename)</DependentUpon>
     </Compile>
     <Compile Update="VisualHelper.cs">
