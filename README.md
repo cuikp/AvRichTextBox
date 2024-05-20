@@ -1,4 +1,5 @@
-A RichTextBox control for Avalonia
+## A RichTextBox control for Avalonia
+![NuGet Version](https://img.shields.io/nuget/v/Simplecto.Avalonia.RichTextBox)
 
 As of 2024, Avalonia doesn't yet come with a RichTextBox, and since I needed one I created a "poor-man's version" based on the existing control "SelectableTextBox".
 
