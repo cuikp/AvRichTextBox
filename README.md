@@ -31,13 +31,7 @@ classDiagram
         +EditableInlineUIContainer EditableInlineUIContainer
     }
     class Selection{
-        +int Start
-        +int End
-        +int Length
         +Select()
-        +Delete()
-        +string Text
-        +ApplyFormatting(AvaloniaProperty, object)
     }
     class TextRange{
         +int Start
@@ -50,10 +44,10 @@ classDiagram
 
     RichTextBox --> FlowDocument : contains
     FlowDocument --> Blocks : contains
+    FlowDoc --> TextRange : has
     Blocks --> Paragraph : contains
     Paragraph --> IEditable : contains
-    FlowDoc --> TextRange : has
-    TextRange --> Selection : contains
+    TextRange --> Selection : instance
     RichTextBox --> FlowDoc : contains
 
 ```
