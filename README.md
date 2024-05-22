@@ -33,7 +33,6 @@ classDiagram
         +EditableInlineUIContainer EditableInlineUIContainer
     }
     class Selection{
-        +Select()
     }
     class TextRange{
         +int Start
