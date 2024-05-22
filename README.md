@@ -53,6 +53,7 @@ classDiagram
     Blocks --> Paragraph : contains
     Paragraph --> IEditable : contains
     FlowDoc --> TextRange : has
+    TextRange --> Selection : contains
     RichTextBox --> FlowDoc : contains
 
 ```
