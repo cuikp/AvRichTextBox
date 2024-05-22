@@ -53,7 +53,8 @@ classDiagram
     Blocks --> Paragraph : contains
     Paragraph --> IEditable : contains
     FlowDoc --> TextRange : has
-    
+    RichTextBox --> FlowDoc : contains
+
 ```
 
 The RichTextBox has the usual key functions:
