@@ -39,8 +39,7 @@ classDiagram
         +int Length
         +Delete()
         +string Text
-        +ApplyFormatting(AvaloniaProperty, 
-        object)
+        +ApplyFormatting(AvaloniaProperty, object)
     }
 
     RichTextBox --> FlowDocument : contains
