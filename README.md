@@ -17,6 +17,8 @@ classDiagram
     }
     class FlowDocument{
         +ObservableCollection<Blocks>
+    }
+    class FlowDoc{
         -List<TextRange> TextRanges
     }
     class Blocks{
@@ -39,7 +41,7 @@ classDiagram
         +int Length
         +Delete()
         +string Text
-        +ApplyFormatting(AvaloniaProperty, object)
+        +ApplyFormatting(AvaloniaProperty,  object)
     }
 
     RichTextBox --> FlowDocument : contains
