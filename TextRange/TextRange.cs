@@ -1,7 +1,9 @@
 ﻿using Avalonia;
+using Avalonia.Input;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
@@ -41,8 +43,10 @@ public class TextRange : INotifyPropertyChanged, IDisposable
    internal Paragraph StartParagraph = null!;
    internal Paragraph EndParagraph = null!;
 
+   internal Rect PrevCharRect;
    internal Rect StartRect { get; set; }
    internal Rect EndRect { get; set; }
+   internal bool IsAtEndOfLineSpace = false;
    internal bool IsAtEndOfLine = false;
 
    internal bool BiasForward = true;
@@ -154,7 +158,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
    //   myFlowDoc.DeleteRange(this);
    //}
 
-   public string GetText()
+   internal string GetText()
    {
       if (myFlowDoc == null) return "";
       return myFlowDoc.GetText(this);
@@ -193,5 +197,23 @@ public class TextRange : INotifyPropertyChanged, IDisposable
       }
       _disposed = true;
    }
+
+   //internal void SaveXaml(Stream stream, bool asXamlPackage)
+   //{
+   //   byte[] stringBytes = System.Text.Encoding.UTF8.GetBytes(GetDocXaml(asXamlPackage));
+   //   stream.Write(stringBytes, 0, stringBytes.Length);
+   //}
+
+   //internal void LoadXaml(Stream stream)
+   //{
+   //   byte[] readBytes = new byte[stream.Length];
+   //   stream.Write(readBytes, 0, readBytes.Length);
+   //   string xamlString = System.Text.Encoding.UTF8.GetString(readBytes);
+      
+   //   ProcessXamlString(xamlString);
+
+   //}
+
+
 }
 

@@ -49,8 +49,15 @@ public partial class RichTextBox
       if (matches.Count > 0)
          FlowDoc.Select(matches[0].Index, matches[0].Length);
 
-      //foreach (Match m in matches)
-      //   FlowDoc.ApplyFormattingRange(Inline.BackgroundProperty, Brushes.Red, new TextRange(FlowDoc, m.Index, m.Index + m.Length));
+      
+      foreach (Match m in matches)
+      {
+         TextRange trange = new TextRange(FlowDoc, m.Index, m.Index + m.Length);
+         FlowDoc.ApplyFormattingRange(Inline.FontStretchProperty, FontStretch.UltraCondensed, trange);
+         FlowDoc.ApplyFormattingRange(Inline.ForegroundProperty, new SolidColorBrush(Colors.BlueViolet), trange);
+         FlowDoc.ApplyFormattingRange(Inline.BackgroundProperty, new SolidColorBrush(Colors.Wheat), trange);
+      }
+         
 
 
    }

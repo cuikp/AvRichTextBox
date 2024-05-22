@@ -33,8 +33,6 @@ public partial class FlowDocument
 
          foreach (IEditable ied in paragraph.Inlines)
          {
-            //xstring RunHeader = "<Run FontFamily=\"" + ied.FontFamily + "\" FontWeight=\"" + ied.FontWeight.ToString() + "\" FontSize=\"" + ied.FontSize.ToString() + "\""
-            //    + " Foreground=\"#FF000000\" TextDecorations=\"None\" Background=\"#00000000\">";
             switch (ied.GetType())
             {
                case Type t when t == typeof(EditableRun):
@@ -151,12 +149,18 @@ public partial class FlowDocument
                               case "FontWeight":
                                  switch (att.Value)
                                  {
-                                    case "Normal":
-                                       erun.FontWeight = FontWeight.Normal;
-                                       break;
-                                    case "Bold":
-                                       erun.FontWeight = FontWeight.Bold;
-                                       break;
+                                    case "Normal": erun.FontWeight = FontWeight.Normal; break;
+                                    case "Bold": erun.FontWeight = FontWeight.Bold; break;
+                                    case "DemiBold": erun.FontWeight = FontWeight.DemiBold; break;
+                                    case "ExtraBold": erun.FontWeight = FontWeight.ExtraBold; break;
+                                    case "Light": erun.FontWeight = FontWeight.Light; break;
+                                    case "Thin": erun.FontWeight = FontWeight.Thin; break;
+                                    case "Black": erun.FontWeight = FontWeight.Black; break;
+                                    case "ExtraBlack": erun.FontWeight = FontWeight.ExtraBlack; break;
+                                    case "UltraLight": erun.FontWeight = FontWeight.UltraLight; break;
+                                    case "ExtraLight": erun.FontWeight = FontWeight.ExtraLight; break;
+                                    case "SemiLight": erun.FontWeight = FontWeight.SemiLight; break;
+                                    case "Heavy": erun.FontWeight = FontWeight.Heavy; break;
                                  }
                                  break;
 
@@ -167,29 +171,58 @@ public partial class FlowDocument
                               case "FontStyle":
                                  switch (att.Value)
                                  {
-                                    case "Normal":
-                                       erun.FontStyle = FontStyle.Normal;
-                                       break;
-                                    case "Italic":
-                                       erun.FontStyle = FontStyle.Italic;
-                                       break;
+                                    case "Normal": erun.FontStyle = FontStyle.Normal; break;
+                                    case "Italic": erun.FontStyle = FontStyle.Italic; break;
+                                    case "Oblique": erun.FontStyle = FontStyle.Oblique; break;
                                  }
                                  break;
 
                               case "TextDecorations":
-                                 //Debug.WriteLine("\nTextDec: " + att.Value.ToString());
                                  switch (att.Value)
                                  {
-                                    case "Underline":
-                                       erun.TextDecorations = TextDecorations.Underline;
-                                       break;
-                                    case "Overline":
-                                       erun.TextDecorations = TextDecorations.Overline;
-                                       break;
-                                    case "Baseline":
-                                       erun.TextDecorations = TextDecorations.Baseline;
-                                       break;
+                                    case "Underline": erun.TextDecorations = TextDecorations.Underline; break;
+                                    case "Overline": erun.TextDecorations = TextDecorations.Overline; break;
+                                    case "Baseline": erun.TextDecorations = TextDecorations.Baseline; break;
+                                    case "Strikethrough": erun.TextDecorations = TextDecorations.Strikethrough; break;
                                  }
+                                 break;
+
+                              case "Foreground":
+                                 erun.Foreground = new SolidColorBrush(Color.Parse(att.Value));
+                                 break;
+
+                              case "Background":
+                                 erun.Background = new SolidColorBrush(Color.Parse(att.Value));
+                                 break;
+
+                              case "FontStretch":
+                                 switch (att.Value)
+                                 {
+                                    case "Normal": erun.FontStretch = FontStretch.Normal; break;
+                                    case "Condensed": erun.FontStretch = FontStretch.Condensed; break;
+                                    case "SemiCondensed": erun.FontStretch = FontStretch.SemiCondensed; break;
+                                    case "ExtraCondensed": erun.FontStretch = FontStretch.ExtraCondensed; break;
+                                    case "UltraCondensed": erun.FontStretch = FontStretch.UltraCondensed; break;
+                                    case "Expanded": erun.FontStretch = FontStretch.Expanded; break;
+                                    case "SemiExpanded":erun.FontStretch = FontStretch.SemiExpanded; break;
+                                    case "ExtraExpanded": erun.FontStretch = FontStretch.ExtraExpanded; break;
+                                    case "UltraExpanded": erun.FontStretch = FontStretch.UltraExpanded; break;
+                                 }
+                                 break;
+
+                              case "BaselineAlignment":
+                                 switch (att.Value)
+                                 {
+                                    case "Baseline": erun.BaselineAlignment = BaselineAlignment.Baseline; break;
+                                    case "Bottom": erun.BaselineAlignment = BaselineAlignment.Bottom; break;
+                                    case "Top": erun.BaselineAlignment = BaselineAlignment.Top; break;
+                                    case "Center": erun.BaselineAlignment = BaselineAlignment.Center; break;
+                                    case "TextTop": erun.BaselineAlignment = BaselineAlignment.TextTop; break;
+                                    case "TextBottom": erun.BaselineAlignment = BaselineAlignment.TextBottom; break;
+                                    case "Superscript": erun.BaselineAlignment = BaselineAlignment.Superscript; break;
+                                    case "Subscript": erun.BaselineAlignment = BaselineAlignment.Subscript; break;
+                                 }
+                                 
                                  break;
                            }
                         }
@@ -294,6 +327,12 @@ public partial class FlowDocument
       attSB.Append(" FontWeight=\"" + erun.FontWeight.ToString() + "\"");
       attSB.Append(" FontSize=\"" + erun.FontSize.ToString() + "\"");
       attSB.Append(" FontStyle=\"" + erun.FontStyle.ToString() + "\"");
+      attSB.Append(" FontStretch=\"" + erun.FontStretch.ToString() + "\"");
+      attSB.Append(" BaselineAlignment=\"" + erun.BaselineAlignment.ToString() + "\"");
+      if (erun.Foreground != null)
+         attSB.Append(" Foreground=\"" + erun.Foreground.ToString() + "\"");
+      if (erun.Background != null)
+         attSB.Append(" Background=\"" + erun.Background.ToString() + "\"");
 
       if (erun.TextDecorations != null)
       {

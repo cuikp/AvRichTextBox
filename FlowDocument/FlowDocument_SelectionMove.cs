@@ -23,6 +23,7 @@ public partial class FlowDocument
                return;  // End of document
 
             Selection.End += 1;
+
             break;
          case ExtendMode.ExtendModeRight:
          case ExtendMode.ExtendModeLeft:
@@ -285,16 +286,18 @@ public partial class FlowDocument
 
       Paragraph thisEndPar = Selection.EndParagraph;
 
-      Selection.IsAtEndOfLine = true;
-
-      if (thisEndPar == Blocks[^1] && Selection.EndParagraph.IsEndAtLastLine)
+      if (thisEndPar.IsEndAtLastLine)
          Selection!.End = Selection.EndParagraph.StartInDoc + thisEndPar.BlockLength - 1;
       else
-         Selection!.End = Selection.EndParagraph.StartInDoc + Selection.EndParagraph.LastIndexEndLine;
+         Selection!.End = Selection.EndParagraph.StartInDoc + thisEndPar.LastIndexEndLine;
 
-      if (Selection.EndParagraph != thisEndPar)
-       Selection.End -= 1;
-
+      string parText = thisEndPar.Text;
+      if (thisEndPar.LastIndexEndLine <= parText.Length && parText[thisEndPar.LastIndexEndLine] == ' ')
+      {
+         Selection.IsAtEndOfLineSpace = true;
+         Selection.End += 1;
+      }
+ 
       if (!selExtend)
       {
          if (Selection!.Length > 0)
@@ -308,7 +311,8 @@ public partial class FlowDocument
 
       Selection.BiasForward = true;
 
-      Selection.IsAtEndOfLine = false;
+      Selection.IsAtEndOfLineSpace = false;
+
 
    }
 

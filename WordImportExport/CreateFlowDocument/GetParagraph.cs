@@ -14,7 +14,7 @@ public static partial class WordConversions
 
    public static Paragraph GetParagraph(OpenXmlElement section)
    {
-      Paragraph para = new Paragraph();
+      Paragraph para = new ();
 
       foreach (OpenXmlElement psection in section.Elements())
       {
@@ -71,11 +71,11 @@ public static partial class WordConversions
 
                         case "rPr":
 
-                           OpenXmlElement rprSize = pps.ChildElements.Where(gat => gat.LocalName == "sz").FirstOrDefault();
+                           OpenXmlElement? rprSize = pps.ChildElements.Where(gat => gat.LocalName == "sz").FirstOrDefault();
                            if (rprSize != null)
                               para.FontSize = PointsToPixels(Convert.ToDouble(rprSize.GetAttributes()[0].Value) / 2);
 
-                           OpenXmlElement rprCsSize = pps.ChildElements.Where(gat => gat.LocalName == "szCs").FirstOrDefault();
+                           OpenXmlElement? rprCsSize = pps.ChildElements.Where(gat => gat.LocalName == "szCs").FirstOrDefault();
                            if (rprCsSize != null)
                               para.FontSize = PointsToPixels(Convert.ToDouble(rprCsSize.GetAttributes()[0].Value) / 2);
 

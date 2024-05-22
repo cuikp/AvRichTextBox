@@ -53,23 +53,29 @@ public partial class FlowDocument : INotifyPropertyChanged
 
       formatRunsActions = new Dictionary<AvaloniaProperty, FormatRuns>
        {
+           { Inline.FontFamilyProperty, ApplyFontFamilyRuns },
            { Inline.FontWeightProperty, ApplyBoldRuns },
            { Inline.FontStyleProperty, ApplyItalicRuns },
-           { Inline.TextDecorationsProperty, ApplyUnderlineRuns },
+           { Inline.TextDecorationsProperty, ApplyTextDecorationRuns },
            { Inline.FontSizeProperty, ApplyFontSizeRuns },
-           { Inline.BackgroundProperty, ApplyHighlightingRuns }
-
+           { Inline.BackgroundProperty, ApplyBackgroundRuns },
+           { Inline.ForegroundProperty, ApplyForegroundRuns },
+           { Inline.FontStretchProperty, ApplyFontStretchRuns },
+           { Inline.BaselineAlignmentProperty, ApplyBaselineAlignmentRuns }
        };
       
       
       formatRunActions = new Dictionary<AvaloniaProperty, FormatRun>
        {
+           { Inline.FontFamilyProperty, ApplyFontFamilyRun },
            { Inline.FontWeightProperty, ApplyBoldRun },
            { Inline.FontStyleProperty, ApplyItalicRun },
-           { Inline.TextDecorationsProperty, ApplyUnderlineRun },
+           { Inline.TextDecorationsProperty, ApplyTextDecorationRun },
            { Inline.FontSizeProperty, ApplyFontSizeRun },
-           { Inline.BackgroundProperty, ApplyHighlightingRun }
-
+           { Inline.BackgroundProperty, ApplyBackgroundRun },
+           { Inline.ForegroundProperty, ApplyForegroundRun },
+           { Inline.FontStretchProperty, ApplyFontStretchRun },
+           { Inline.BaselineAlignmentProperty, ApplyBaselineAlignmentRun }
        };
 
    }
@@ -131,11 +137,13 @@ public partial class FlowDocument : INotifyPropertyChanged
 
    internal void SelectionStart_Changed(TextRange selRange, int newStart)
    {
-      
-      selRange.StartParagraph = GetContainingParagraph(newStart);
-      selRange.StartParagraph.SelectionStartInBlock = newStart - selRange.StartParagraph.StartInDoc;
-      selRange.StartParagraph.UpdateTextLayoutInfoStart();
-      selRange.GetStartInline(); //?????????????
+
+      Paragraph startPar = GetContainingParagraph(newStart);
+      selRange.StartParagraph = startPar;
+      startPar.SelectionStartInBlock = newStart - startPar.StartInDoc;
+      startPar.UpdateTextLayoutInfoStart();
+      IEditable startInline = selRange.GetStartInline();
+
       UpdateSelectionParagraphs();
 
       //Make sure end is not less than start

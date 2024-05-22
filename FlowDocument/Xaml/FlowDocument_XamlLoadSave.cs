@@ -28,7 +28,6 @@ public partial class FlowDocument
       string xamlDocString = File.ReadAllText(fileName);
       ProcessXamlString(xamlDocString);
       InitializeDocument();
-      
    }
 
    internal void SaveWordDoc(string fileName)

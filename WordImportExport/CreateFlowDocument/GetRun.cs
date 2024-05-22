@@ -1,6 +1,7 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Media.Immutable;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using System;
@@ -16,12 +17,6 @@ namespace AvRichTextBox;
 
 public static partial class WordConversions
 {
-   public static int numDrawingErrors = 0;
-
-   public static int picno = 0;
-
-   private static string lastRunText = "";
-
    public static IEditable GetDeletedRun(OpenXmlElement psection, ref Paragraph para)
    {
       foreach (OpenXmlElement rsection in psection.Elements())
@@ -31,7 +26,7 @@ public static partial class WordConversions
                return GetIEditable(rsection, ref para);
          }
 
-      return null;
+      return null!;
 
    }
 
@@ -59,7 +54,6 @@ public static partial class WordConversions
    {
       var thisrun = new EditableRun("");
       IEditable iline = thisrun;
-      string ridnostring = "";
       string contentType = "";
 
       foreach (OpenXmlElement rsection in psection.Elements())
@@ -164,31 +158,30 @@ public static partial class WordConversions
                         //MessageBox.Show("extelmWidth=" + img.Width.ToString() + ":::extELMHeight=" + img.Height.ToString());
 
                         var grelm = inelm.Elements().Where(ce => (ce.LocalName ?? "") == "graphic").ElementAtOrDefault(0);
-                        var grdataelm = grelm.Elements().Where(ce => (ce.LocalName ?? "") == "graphicData").ElementAtOrDefault(0);
-
-                        var picelm = grdataelm.Elements().Where(ce => (ce.LocalName ?? "") == "pic").ElementAtOrDefault(0);
+                        var grdataelm = grelm?.Elements().Where(ce => (ce.LocalName ?? "") == "graphicData").ElementAtOrDefault(0);
+                        var picelm = grdataelm?.Elements().Where(ce => (ce.LocalName ?? "") == "pic").ElementAtOrDefault(0);
                         if (picelm != null)
                         {
                            var blipFillelm = picelm.Elements().Where(ce => (ce.LocalName ?? "") == "blipFill").ElementAtOrDefault(0);
-                           var blip = blipFillelm.Elements().Where(ce => (ce.LocalName ?? "") == "blip").ElementAtOrDefault(0);
-                           rIdno = blip.GetAttributes()[0].Value;
+                           var blip = blipFillelm?.Elements().Where(ce => (ce.LocalName ?? "") == "blip").ElementAtOrDefault(0);
+                           rIdno = blip?.GetAttributes()[0].Value ?? "0";
                            var spPr = picelm.Elements().Where(ce => (ce.LocalName ?? "") == "spPr").ElementAtOrDefault(0);
-                           var xfrm = spPr.Elements().Where(ce => (ce.LocalName ?? "") == "xfrm").ElementAtOrDefault(0);
-                           var ext = xfrm.Elements().Where(ce => (ce.LocalName ?? "") == "ext").ElementAtOrDefault(0);
-                           img.Width = EMUToPix(Convert.ToDouble(ext.GetAttributes()[0].Value));
-                           img.Height = EMUToPix(Convert.ToDouble(ext.GetAttributes()[1].Value));
+                           var xfrm = spPr?.Elements().Where(ce => (ce.LocalName ?? "") == "xfrm").ElementAtOrDefault(0);
+                           var ext = xfrm?.Elements().Where(ce => (ce.LocalName ?? "") == "ext").ElementAtOrDefault(0);
+                           img.Width = EMUToPix(Convert.ToDouble(ext?.GetAttributes()[0].Value));
+                           img.Height = EMUToPix(Convert.ToDouble(ext?.GetAttributes()[1].Value));
 
-                           ImagePart imgp = (ImagePart)mainDocPart.GetPartById(rIdno);
+                           ImagePart imgp = (ImagePart)mainDocPart!.GetPartById(rIdno!);
                            contentType = imgp.ContentType.ToString();
                            imgStream = imgp.GetStream();
 
                         }
 
-                        var chartelm = grdataelm.Elements().Where(ce => (ce.LocalName ?? "") == "chart").ElementAtOrDefault(0);
+                        var chartelm = grdataelm?.Elements().Where(ce => (ce.LocalName ?? "") == "chart").ElementAtOrDefault(0);
                         if (chartelm != null)
                         {
-                           rIdno = chartelm.GetAttributes().Where(gat => gat.LocalName == "id").FirstOrDefault().Value;
-                           ChartPart chp = (ChartPart)mainDocPart.GetPartById(rIdno);
+                           rIdno = chartelm.GetAttributes().Where(gat => gat.LocalName == "id").FirstOrDefault().Value ?? "0";
+                           ChartPart chp = (ChartPart)mainDocPart!.GetPartById(rIdno);
                            contentType = chp.ContentType.ToString();
                            imgStream = chp.GetStream();
                         }
@@ -198,7 +191,7 @@ public static partial class WordConversions
 
                         if (contentType == "image/x-emf" || contentType == "image/x-wmf")
                         {
-                           MemoryStream streamEx = new MemoryStream();
+                           MemoryStream streamEx = new ();
                            imgStream.CopyTo(streamEx);  //have to copy to new stream because it's in a zip, can't set position
                            streamEx.Position = 0;
                            bmg = new Bitmap(streamEx);
@@ -219,7 +212,7 @@ public static partial class WordConversions
 
                         else
                         {
-                           MemoryStream streamEx = new MemoryStream();
+                           MemoryStream streamEx = new ();
                            imgStream.CopyTo(streamEx);  //have to copy to new stream because it's in a zip, can't set position
                            streamEx.Position = 0;
                            bmg = new Bitmap(streamEx);
@@ -232,7 +225,7 @@ public static partial class WordConversions
                      }
 
                   }
-                  catch (Exception exd) { numDrawingErrors += 1; }
+                  catch { Debug.WriteLine("drawing error:" + rsection.LocalName); }
 
                   break;
 
@@ -248,12 +241,9 @@ public static partial class WordConversions
                         {
                            case "u":
 
-                              var ProtectedTextDecoration = new TextDecoration();
-                              ProtectedTextDecoration.Location = TextDecorationLocation.Underline;
-                              thisRun.TextDecorations = new TextDecorationCollection();
-                              thisRun.TextDecorations!.Add(ProtectedTextDecoration);
+                              TextDecoration ProtectedTextDecoration = new() { Location = TextDecorationLocation.Underline };
+                              thisRun.TextDecorations = [ ProtectedTextDecoration ];
                               break;
-
 
                            //case "i": ((EditableRun)iline).FontStyle = FontStyle.Italic; break;
                            case "i": thisrun.FontStyle = FontStyle.Italic; break;
@@ -316,7 +306,9 @@ public static partial class WordConversions
 
                            case "highlight":
 
-                              thisRun.Background = HighlightColorValueToBrush(rprsection.GetAttributes()[0].Value);
+                              //thisRun.Background = HighlightColorValueToBrush(rprsection.GetAttributes()[0].Value ?? "#00000000");
+                              BrushConverter? Bconverter = new();
+                              thisRun.Background = (ImmutableSolidColorBrush)Bconverter.ConvertFromString(WordHighlightColorValueToHexString(rprsection.GetAttributes()[0].Value ?? "#00000000"))!;
                               break;
 
                            //case "tag":
@@ -327,23 +319,24 @@ public static partial class WordConversions
 
                            case "color":
 
-                              //try
-                              //{
-                              //   BrushConverter Bconverter = new BrushConverter();
-                              //   Brush brush = (Brush)Bconverter.ConvertFromString("#FF000000");
-                              //   string colorValString = rprsection.GetAttributes()[0].Value;
-                              //   switch (colorValString)
-                              //   {
-                              //      case "auto":
-                              //         brush = (Brush)Bconverter.ConvertFromString("#FFFF0000"); //red
-                              //         break;
-                              //      default:
-                              //         brush = (Brush)Bconverter.ConvertFromString("#FF" + rprsection.GetAttributes()[0].Value);
-                              //         break;
-                              //   }
-                              //   thisRun.Foreground = brush;
-                              //}
-                              //catch (Exception cEx) { Debug.WriteLine("Color error at:\n" + lastRunText + "\n\nvalue=" + rprsection.GetAttributes()[0].Value + "\n" + cEx.Message); }
+                              try
+                              {
+                                 BrushConverter? BConverter = new();
+                                 string? brushString = "#FF000000"!;
+                                 string colorValString = rprsection.GetAttributes()[0].Value!;
+                                 switch (colorValString)
+                                 {
+                                    case "auto":
+                                       brushString = "#FF000000"!;
+                                       break;
+                                    default:
+                                       brushString = WordHighlightColorValueToHexString(rprsection.GetAttributes()[0].Value!);
+                                       break;
+                                 }
+                                 thisRun.Foreground = (ImmutableSolidColorBrush)BConverter.ConvertFromString(brushString)!;
+                                 //thisRun.Foreground = (SolidColorBrush)BConverter.ConvertFromString(brushString)!;
+                              }
+                              catch (Exception cEx) { Debug.WriteLine("Color error at:\n" + thisRun.Text + "\n\nvalue=" + rprsection.GetAttributes()[0].Value + "\n" + cEx.Message); }
                               break;
 
 
@@ -380,7 +373,7 @@ public static partial class WordConversions
 
 
                case "br":
-                  EditableLineBreak newLineBreak = new EditableLineBreak();
+                  EditableLineBreak newLineBreak = new();
                   para.Inlines.Add(newLineBreak);
 
                   //if (rsection.HasAttributes)

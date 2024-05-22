@@ -11,7 +11,7 @@ namespace AvRichTextBox;
 
 public static partial class WordConversions
 {
-   internal static MainDocumentPart mainDocPart;
+   internal static MainDocumentPart? mainDocPart;
    internal static string DefaultEastAsiaFont = "";
    internal static string DefaultAsciiFont = "";
 
@@ -63,10 +63,10 @@ public static partial class WordConversions
 
       if (pMarg != null)
       {
-         double docmargT = TwipToPix(Convert.ToDouble((int)pMarg.Top));
-         double docmargR = TwipToPix(Convert.ToDouble((uint)pMarg.Right));
-         double docmargB = TwipToPix(Convert.ToDouble((int)pMarg.Bottom));
-         double docmargL = TwipToPix(Convert.ToDouble((uint)pMarg.Left));
+         double docmargT = TwipToPix(Convert.ToDouble((int)pMarg.Top!));
+         double docmargR = TwipToPix(Convert.ToDouble((uint)pMarg.Right!));
+         double docmargB = TwipToPix(Convert.ToDouble((int)pMarg.Bottom!));
+         double docmargL = TwipToPix(Convert.ToDouble((uint)pMarg.Left!));
          fdoc.PagePadding = new Thickness(docmargL, docmargT, docmargR, docmargB);
       }
 
@@ -89,13 +89,13 @@ public static partial class WordConversions
             {
                case "sectPr":
 
-                  DocumentFormat.OpenXml.Wordprocessing.PageMargin spMarg = section.Descendants<DocumentFormat.OpenXml.Wordprocessing.PageMargin>().FirstOrDefault();
+                  //DocumentFormat.OpenXml.Wordprocessing.PageMargin? spMarg = section.Descendants<DocumentFormat.OpenXml.Wordprocessing.PageMargin>().FirstOrDefault();
                   if (pMarg != null)
                   {
-                     double docmargT = TwipToPix(Convert.ToDouble((int)pMarg.Top));
-                     double docmargR = TwipToPix(Convert.ToDouble((uint)pMarg.Right));
-                     double docmargB = TwipToPix(Convert.ToDouble((int)pMarg.Bottom));
-                     double docmargL = TwipToPix(Convert.ToDouble((uint)pMarg.Left));
+                     double docmargT = TwipToPix(Convert.ToDouble((int)pMarg.Top!));
+                     double docmargR = TwipToPix(Convert.ToDouble((uint)pMarg.Right!));
+                     double docmargB = TwipToPix(Convert.ToDouble((int)pMarg.Bottom!));
+                     double docmargL = TwipToPix(Convert.ToDouble((uint)pMarg.Left!));
                      fdoc.PagePadding = new Thickness(docmargL, docmargT, docmargR, docmargB);
                   }
 

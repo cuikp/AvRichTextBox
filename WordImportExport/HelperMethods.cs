@@ -1,14 +1,17 @@
 ﻿using Avalonia;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using DocumentFormat.OpenXml.Wordprocessing;
 using System;
+using System.Diagnostics;
 using System.IO;
+using AvColor = Avalonia.Media.Color;
 
 namespace AvRichTextBox;
 
 internal static class HelperMethods
 {
-   internal static Color ColorFromHex(string hex) { return Color.Parse(hex); }
+   internal static AvColor ColorFromHex(string hex) { return AvColor.Parse(hex); }
    internal static double TwipToPix(double unitTwip) { return Convert.ToInt32(96.0 / 1440 * unitTwip); }
    internal static double PixToTwip(double unitPix) { return Convert.ToInt32(15 * unitPix); }
    internal static double EMUToPix(double unitTwip) { return Convert.ToInt32(96 / (double)914400 * unitTwip); }
@@ -30,23 +33,51 @@ internal static class HelperMethods
       renderTarget.Save(memoryStream);  // png by default
    }
 
-   public static Brush HighlightColorValueToBrush(string hcv)
+   public static string WordHighlightColorValueToHexString(string hcv)
    {
       switch (hcv.ToLower())
       {
-         case "darkyellow": return new SolidColorBrush(ColorFromHex("#FF9ACD32"));
-         case "cyan": return new SolidColorBrush(ColorFromHex("#FFE8EBF9"));
-         case "green": return new SolidColorBrush(ColorFromHex("#FF98FB98"));
-         case "yellow": return new SolidColorBrush(ColorFromHex("#FFFFE0C0"));
-         case "red": return new SolidColorBrush(ColorFromHex("#FFFF4500"));
-         case "blue": return new SolidColorBrush(ColorFromHex("#FFE3BFFF"));
-         case "black": return new SolidColorBrush(ColorFromHex("#FFaaaaaa"));
-         case "None": return new SolidColorBrush(Colors.White);
-         default: return new SolidColorBrush(Colors.Black);
+         case "darkyellow": return "#FF9ACD32";
+         case "blueviolet": return "#FF931FDF";
+         case "cyan": return "#FFE8EBF9";
+         case "green": return "#FF98FB98";
+         case "yellow": return "#FFFFE0C0";
+         case "red": return "#FFFF4500";
+         case "blue": return "#FFE3BFFF";
+         case "black": case "ck": return "#FF000000";
+         case "None": return "#FFFFFFFF";
+         default: return "#FF000000";
+      }
+   }
+
+   public static HighlightColorValues BrushToHighlightColorValue(IBrush br)
+   {
+      var hcv = new HighlightColorValues();
+      switch (((SolidColorBrush)br).Color)
+      {
+         case AvColor col when col == Colors.Yellow | col == Colors.Wheat | col.ToString() == "#FFFFE0C0": { hcv = HighlightColorValues.Yellow; break; }
+         case AvColor col when col == Colors.Red | col.ToString() == "#FFFF4500": { hcv = HighlightColorValues.Red; break; }
+         case AvColor col when col == Colors.Cyan | col.ToString() == "#FFE8EBF9": { hcv = HighlightColorValues.Cyan; break; }
+         case AvColor col when col == Colors.Green | col.ToString() == "#FF98FB98": { hcv = HighlightColorValues.Green; break; }
+         case AvColor col when col == Colors.Blue | col.ToString() == "#FFE3BFFF": { hcv = HighlightColorValues.Blue; break; }
+         case AvColor col when col == Colors.YellowGreen | col.ToString() == "#FF9ACD32": { hcv = HighlightColorValues.DarkYellow; break; }
+         case AvColor col when col == Colors.White: { hcv = HighlightColorValues.White; break; }
+         case AvColor col when col == Colors.Magenta: { hcv = HighlightColorValues.Magenta; break; }
+         case AvColor col when col == Colors.LightGray: { hcv = HighlightColorValues.LightGray; break; }
+         case AvColor col when col == Colors.DarkRed: { hcv = HighlightColorValues.DarkRed; break; }
+         case AvColor col when col == Colors.DarkMagenta: { hcv = HighlightColorValues.DarkMagenta; break; }
+         case AvColor col when col == Colors.DarkGreen: { hcv = HighlightColorValues.DarkGreen; break; }
+         case AvColor col when col == Colors.DarkGray: { hcv = HighlightColorValues.DarkGray; break; }
+         case AvColor col when col == Colors.DarkCyan: { hcv = HighlightColorValues.DarkCyan; break; }
+         case AvColor col when col == Colors.DarkBlue: { hcv = HighlightColorValues.DarkBlue; break; }
+         case AvColor col when col == Colors.BlueViolet: { hcv = HighlightColorValues.Blue; break; }
+         case AvColor col when col == Colors.Black: { hcv = HighlightColorValues.Black; break; }
+         case AvColor col when col == Colors.Transparent:  { hcv = HighlightColorValues.None; break; }
+         default: hcv = HighlightColorValues.LightGray; break;
       }
 
-      //return (Brush)new BrushConverter().ConvertFromString(hcv);
-
+      return hcv;
    }
+
 
 }

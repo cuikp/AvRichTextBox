@@ -52,11 +52,10 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
 
    internal void UpdateCursor()
    {
-      // (this needs to be changed - key.end should move to start of next line but show cursor at end of previous line)
+      double cursorML = FlowDoc.Selection.IsAtEndOfLineSpace ? FlowDoc.Selection!.PrevCharRect!.Right : FlowDoc.Selection.StartRect!.Left;
+      double cursorMT = FlowDoc.Selection.IsAtEndOfLineSpace ? FlowDoc.Selection!.PrevCharRect.Top + 2 : FlowDoc.Selection.StartRect.Top + 2;
+      CursorHeight = FlowDoc.Selection.IsAtEndOfLineSpace ? FlowDoc.Selection.PrevCharRect.Height * 0.85 : FlowDoc.Selection.StartRect.Height * 0.85;
 
-      double cursorML = FlowDoc.Selection.IsAtEndOfLine ? FlowDoc.Selection!.StartRect!.Right : FlowDoc.Selection.StartRect!.Left;
-      double cursorMT = FlowDoc.Selection.StartRect.Top + 2;
-      CursorHeight = FlowDoc.Selection.StartRect.Height * 0.85;
       CursorMargin = new Thickness(cursorML, cursorMT, 0, 0);
       CursorVisible = FlowDoc.Selection.Length == 0;
 

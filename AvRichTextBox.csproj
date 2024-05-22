@@ -10,7 +10,7 @@
 	  <Company>---</Company>
 	  <Product>AvRichTextBox</Product>
 	  <PackageId>Simplecto.Avalonia.RichTextBox</PackageId>
-	  <Version>1.0.6</Version>
+	  <Version>1.0.7</Version>
 	  <Description>A RichTextBox control to be used in Avalonia</Description>
 	  <PackageTags>Avalonia;UserControl;RichTextBox</PackageTags>
 	  <Title>A RichTextBox control for Avalonia</Title>
@@ -58,6 +58,9 @@ Also, FontStyle and Underline attributes are properly saved/loaded now.</Package
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="RichTextBox\RichTextBox_SelectionRect.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
     <Compile Update="RichTextBox\RichTextBox_PointerEvents.cs">
       <DependentUpon>%(Filename)</DependentUpon>
     </Compile>

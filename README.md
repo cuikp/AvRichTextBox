@@ -28,17 +28,12 @@ It can also save and load the FlowDoc content as a Word document (.docx), though
 
 Various future to-do improvements include:<br>
 
+**Finish paragraph formatting (such as line spacing) <br>
+**RTF import/export (need to find a reasonably solid RTF parser)<br>
+**Save/Load Xaml (to/from a stream) for Selection and any given TextRange <br>
+
 Adding Table and Section Block types<br>
-More paragraph formatting (such as line spacing) <br>
-More Inline (IEditable) formatting (such as Foreground color) <br>
 Allow the Undo limit to be set <br>
 Redo functionality (could be a headache) <br>
 More stress testing <br>
 A quirk or two at times when extending selection using PageUp or PageDown Key.<br>
-Moving right when the caret is after the space at the end of a line should technically move the caret to the second character of the next line, not the first.<br>
-RTF import/export (need to find a reasonably solid RTF parser)<br>
-Save/Load Xaml for Selection as well as any given TextRange, instead of just the FlowDoc as a whole<br>
-Save/Load Xaml to a Stream instead of just to a file
-
-
-

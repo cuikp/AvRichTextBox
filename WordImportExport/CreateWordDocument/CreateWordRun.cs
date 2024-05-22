@@ -4,6 +4,7 @@ using DOW = DocumentFormat.OpenXml.Wordprocessing;
 using Avalonia.Media;
 using System;
 using System.Diagnostics;
+using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;
 
@@ -12,9 +13,7 @@ public static partial class WordConversions
    public static DOW.Run GetWordDocRun(EditableRun edRun)
    {
       string? thisRunText = "";
-
       thisRunText = edRun.Text;
-
       //Debug.WriteLine("thisRuntext= " + thisRunText);
       
       var newrun = new DOW.Run();
@@ -25,12 +24,11 @@ public static partial class WordConversions
        var runtext = new Text(thisRunText!);  // convert text to "wordprocessing.text" form
          runtext.Space = SpaceProcessingModeValues.Preserve;
 
-
          var RunProp = new RunProperties();
 
-         if (((EditableRun)edRun).TextDecorations != null)
+         if (edRun.TextDecorations != null)
          {
-            foreach (TextDecoration td in ((EditableRun)edRun).TextDecorations!)
+            foreach (TextDecoration td in edRun.TextDecorations!)
             {
                switch (td.Location)
                {
@@ -44,38 +42,39 @@ public static partial class WordConversions
             }
          }
 
-         if (((EditableRun)edRun).FontWeight == FontWeight.Bold)
+         if (edRun.FontWeight == FontWeight.Bold)
             RunProp.AppendChild(new DOW.Bold());
 
-         if (((EditableRun)edRun).FontStyle == FontStyle.Italic)
+         if (edRun.FontStyle == FontStyle.Italic)
             RunProp.AppendChild(new DOW.Italic());
 
-         if (!(((EditableRun)edRun).Background == null))
+         if (edRun.Background != null)
          {
-            var Hlight = new Highlight() { Val = BrushToHighlightColorValue(((EditableRun)edRun).Background) };
+            var Hlight = new  Highlight() { Val = BrushToHighlightColorValue(edRun.Background) };
             RunProp.AppendChild(Hlight);
          }
 
-         // Debug.WriteLine(edRun.BaselineAlignment.ToString() & vbCr & runtext.Text)
+         if (edRun.Foreground != null)
+         {
+            var foreColor = new DocumentFormat.OpenXml.Wordprocessing.Color() { Val  = edRun.Foreground.ToString() };
+            RunProp.AppendChild(foreColor);
+         }
 
-         if (((EditableRun)edRun).BaselineAlignment == BaselineAlignment.Subscript)
-            RunProp.AppendChild(new VerticalTextAlignment() { Val = VerticalPositionValues.Subscript });
-         if (((EditableRun)edRun).BaselineAlignment == BaselineAlignment.Superscript | ((EditableRun)edRun).BaselineAlignment == BaselineAlignment.TextTop)
-            RunProp.AppendChild(new VerticalTextAlignment() { Val = VerticalPositionValues.Superscript });
+         switch (edRun.BaselineAlignment)
+         {
+            case BaselineAlignment.Baseline: RunProp.AppendChild(new VerticalTextAlignment() { Val = VerticalPositionValues.Baseline }); break;
+            case BaselineAlignment.TextTop: RunProp.AppendChild(new VerticalTextAlignment() { Val = VerticalPositionValues.Superscript }); break;
+            case BaselineAlignment.Bottom: RunProp.AppendChild(new VerticalTextAlignment() { Val = VerticalPositionValues.Subscript }); break;
+         }
 
          // Get font
          var rFont = new RunFonts();
          var fntSize = default(double);
-         rFont.Ascii = ((EditableRun)edRun).FontFamily.ToString();
-         fntSize = ((EditableRun)edRun).FontSize * 0.75 * 2;  // converts pixels to points
+         rFont.Ascii = edRun.FontFamily.ToString();
+         fntSize = edRun.FontSize * 0.75 * 2;  // converts pixels to points
 
          RunProp.AppendChild(rFont);
          RunProp.AppendChild(new FontSize() { Val = fntSize.ToString() });
-
-
-         // Get font color
-         Avalonia.Media.Color bgcolor = ((SolidColorBrush)((EditableRun)edRun).Foreground!).Color;
-         RunProp.AppendChild(new DOW.Color() { Val = bgcolor.ToString().Substring(3) });  // Delete "#FF" portion
 
          //Attach run properties
          newrun.AppendChild(RunProp);
@@ -92,7 +91,7 @@ public static partial class WordConversions
          }
 
       }
-      catch { }
+      catch (Exception ex) { Debug.WriteLine("Failed to create run: " + edRun.Text + "\nexception: " + ex.Message); }
 
       return newrun;
    }
