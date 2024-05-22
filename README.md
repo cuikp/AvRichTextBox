@@ -43,7 +43,7 @@ classDiagram
     class TextRange{
         +int Start int
         +int End int
-        +ApplyFormatting(IEditable, object)
+        +ApplyFormatting(AvaloniaProperty, object)
     }
     RichTextBox --> FlowDocument : contains
     FlowDocument --> Blocks : contains
