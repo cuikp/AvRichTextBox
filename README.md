@@ -14,8 +14,6 @@ The `FlowDoc` is at heart merely an `ObservableCollection` of Blocks bound as th
 classDiagram
     class RichTextBox{
         +FlowDocument FlowDoc
-        +TextRange Selection
-        +TextRange TextRange
     }
     class FlowDocument{
         +ObservableCollection<Blocks>
@@ -39,10 +37,14 @@ classDiagram
         +Select()
         +Delete()
         +string Text
+        +ApplyFormatting(AvaloniaProperty, object)
     }
     class TextRange{
         +int Start int
         +int End int
+        +int Length
+        +Delete()
+        +string Text
         +ApplyFormatting(AvaloniaProperty, object)
     }
     RichTextBox --> FlowDocument : contains
@@ -51,6 +53,7 @@ classDiagram
     Paragraph --> IEditable : contains
     FlowDoc--> Selection : has
     RichTextBox --> TextRange : has
+    RichTextBox --> Selection
     RichTextBox --> FlowDoc : contains
 
 ```
