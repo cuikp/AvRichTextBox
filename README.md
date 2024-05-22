@@ -40,22 +40,20 @@ classDiagram
         +ApplyFormatting(AvaloniaProperty, object)
     }
     class TextRange{
-        +int Start int
-        +int End int
+        +int Start
+        +int End
         +int Length
         +Delete()
         +string Text
         +ApplyFormatting(AvaloniaProperty, object)
     }
+
     RichTextBox --> FlowDocument : contains
     FlowDocument --> Blocks : contains
     Blocks --> Paragraph : contains
     Paragraph --> IEditable : contains
-    FlowDoc--> Selection : has
-    RichTextBox --> TextRange : has
-    RichTextBox --> Selection
-    RichTextBox --> FlowDoc : contains
-
+    FlowDoc --> TextRange : has
+    
 ```
 
 The RichTextBox has the usual key functions:
