@@ -33,6 +33,9 @@ public class Paragraph : Block
    private double _FontSize = 16D;
    public double FontSize { get => _FontSize; set { _FontSize = value; NotifyPropertyChanged(nameof(FontSize)); } }
 
+   private double _LineHeight = 18.666D;
+   public double LineHeight { get => _LineHeight; set { _LineHeight = value; NotifyPropertyChanged(nameof(LineHeight)); } }
+
    private FontWeight _FontWeight = FontWeight.Normal;
    public FontWeight FontWeight { get => _FontWeight; set { _FontWeight = value; NotifyPropertyChanged(nameof(FontWeight)); } }
 
@@ -42,8 +45,6 @@ public class Paragraph : Block
    private TextAlignment _TextAlignment = TextAlignment.Left;
    public TextAlignment TextAlignment { get => _TextAlignment; set { _TextAlignment = value; NotifyPropertyChanged(nameof(TextAlignment)); } }
 
-   //private double _LineHeight = 36; // 18.666D;
-   //public double LineHeight { get => _LineHeight; set { _LineHeight = value; NotifyPropertyChanged(nameof(LineHeight)); } }
 
    internal double DistanceSelectionEndFromLeft = 0;
    internal double DistanceSelectionStartFromLeft = 0;

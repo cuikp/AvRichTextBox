@@ -15,9 +15,9 @@ using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;
 
-public static partial class WordConversions
+internal static partial class WordConversions
 {
-   public static IEditable GetDeletedRun(OpenXmlElement psection, ref Paragraph para)
+   internal static IEditable GetDeletedRun(OpenXmlElement psection, ref Paragraph para)
    {
       foreach (OpenXmlElement rsection in psection.Elements())
          switch (rsection.LocalName)
@@ -30,7 +30,7 @@ public static partial class WordConversions
 
    }
 
-   public static IEditable GetInsertedRun(OpenXmlElement psection, ref Paragraph para)
+   internal static IEditable GetInsertedRun(OpenXmlElement psection, ref Paragraph para)
    {
       var thisrun = new EditableRun("");
 
@@ -50,7 +50,7 @@ public static partial class WordConversions
 
    }
 
-   public static IEditable GetIEditable(OpenXmlElement psection, ref Paragraph para)
+   internal static IEditable GetIEditable(OpenXmlElement psection, ref Paragraph para)
    {
       var thisrun = new EditableRun("");
       IEditable iline = thisrun;
@@ -349,10 +349,8 @@ public static partial class WordConversions
                                     thisRun.FontSize /= 1.5;
                                     break;
 
-
                                  case "superscript":
-                                    // iline.BaselineAlignment = BaselineAlignment.Superscript  //displays too high
-                                    thisRun.BaselineAlignment = BaselineAlignment.TextTop;
+                                    thisRun.BaselineAlignment = BaselineAlignment.Top;
                                     thisRun.FontSize /= 1.5;
                                     break;
 
@@ -408,7 +406,7 @@ public static partial class WordConversions
    }
 
 
-   public static void AddDeepRuns(OpenXmlElement psection, ref Paragraph para)
+   internal static void AddDeepRuns(OpenXmlElement psection, ref Paragraph para)
    {
       foreach (OpenXmlElement deepRun in psection.Elements())
       {

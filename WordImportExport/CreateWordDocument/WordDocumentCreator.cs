@@ -10,7 +10,7 @@ using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;
 
-public static partial class WordConversions
+internal static partial class WordConversions
 {
    private static MainDocumentPart? mainPart;
 

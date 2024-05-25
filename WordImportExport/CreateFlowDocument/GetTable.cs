@@ -6,10 +6,10 @@
 
 //namespace AvRichTextBox;
 
-//public static partial class WordConversions
+//internal static partial class WordConversions
 //{
 
-//    public static System.Windows.Documents.Table GetTable(DocumentFormat.OpenXml.Wordprocessing.Table wordTable)
+//    internal static System.Windows.Documents.Table GetTable(DocumentFormat.OpenXml.Wordprocessing.Table wordTable)
 //    {
 
 //        var thisTable = new System.Windows.Documents.Table();

@@ -8,9 +8,9 @@ using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;
 
-public static partial class WordConversions
+internal static partial class WordConversions
 {
-   public static DOW.Run GetWordDocRun(EditableRun edRun)
+   internal static DOW.Run GetWordDocRun(EditableRun edRun)
    {
       string? thisRunText = "";
       thisRunText = edRun.Text;
@@ -37,7 +37,9 @@ public static partial class WordConversions
                      break;
                   case TextDecorationLocation.Overline: { break; }
                   case TextDecorationLocation.Baseline: { break; }
-                  case TextDecorationLocation.Strikethrough: { break; }
+                  case TextDecorationLocation.Strikethrough:
+                     RunProp.AppendChild(new DOW.Strike());
+                     break; 
                }
             }
          }

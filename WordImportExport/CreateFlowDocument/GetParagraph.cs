@@ -9,10 +9,10 @@ using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;
 
-public static partial class WordConversions
+internal static partial class WordConversions
 {
 
-   public static Paragraph GetParagraph(OpenXmlElement section)
+   internal static Paragraph GetParagraph(OpenXmlElement section)
    {
       Paragraph para = new ();
 

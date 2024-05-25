@@ -97,6 +97,18 @@ public partial class RichTextBox : UserControl
 
    }
 
+   public void LoadRtfDoc(string fileName)
+   {
+      FlowDoc.LoadRtf(fileName);
+      
+   }
+
+   private void SaveRtfDoc(string fileName)
+   {
+      FlowDoc.SaveRtf(fileName);
+      
+   }
+
    public void LoadWordDoc(string fileName)
    {
       FlowDoc.LoadWordDoc(fileName);

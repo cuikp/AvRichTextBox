@@ -43,13 +43,13 @@ classDiagram
         +ApplyFormatting(AvaloniaProperty,  object)
     }
 
-    RichTextBox --> FlowDocument : contains
-    FlowDocument --> Blocks : contains
+    RichTextBox --> FlowDocument : has
+    FlowDocument --> Blocks : has
     FlowDoc --> TextRange : has
     Blocks --> Paragraph : contains
-    Paragraph --> IEditable : contains
+    Paragraph --> IEditable : has
     TextRange --> Selection : instance
-    RichTextBox --> FlowDoc : contains
+    RichTextBox --> FlowDoc : has
 
 ```
 
@@ -72,10 +72,13 @@ It can also save and load the FlowDoc content as a Word document (.docx), though
 
 ## Various future to-do improvements include:
 * Finish paragraph formatting (such as line spacing) 
-* RTF import/export (need to find a reasonably solid RTF parser)
+* RTF export (RTF import was recently added, but unfortunately the best RTF parser I could find (RtfDomParser) is only an RTF reader, without a corresponding RTF code generator)
 * Save/Load Xaml (to/from a stream) for Selection and any given TextRange 
 * Adding Table and Section Block types
 * Allow the Undo limit to be set 
 * Redo functionality (could be a headache) 
 * More stress testing 
 * A quirk or two at times when extending selection using <kbd>PageUp</kbd> or <kbd>PageDown</kbd> Key.
+
+
+RtfDomParser can be found at https://github.com/SourceCodeBackup/RtfDomParser, but for this project I had to manually modify it to use Avalonia.Media instead of System.Drawing

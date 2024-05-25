@@ -100,6 +100,8 @@
 										<ContentControl.DataTemplates>
 											<DataTemplate DataType="local:Paragraph">
 
+												<!--LineHeight="{Binding LineHeight}"-->
+												
 												<local:EditableParagraph xml:space="preserve" TextWrapping="Wrap" Margin="0"
 														FontFamily="{Binding FontFamily}"
 														FontWeight="{Binding FontWeight}"

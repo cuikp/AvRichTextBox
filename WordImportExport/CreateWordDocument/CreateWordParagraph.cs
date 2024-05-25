@@ -12,9 +12,9 @@ using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;
 
-public static partial class WordConversions
+internal static partial class WordConversions
 {
-   public static DOW.Paragraph CreateWordDocParagraph(Block b)
+   internal static DOW.Paragraph CreateWordDocParagraph(Block b)
    {
 
       var parg = new DOW.Paragraph();

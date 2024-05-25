@@ -6,9 +6,9 @@ using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;
 
-public static partial class WordConversions
+internal static partial class WordConversions
 {
-   public static DOW.Drawing CreateWordDocDrawing(string relationshipID, double pixelWidth, double pixelHeight, string extension)
+   internal static DOW.Drawing CreateWordDocDrawing(string relationshipID, double pixelWidth, double pixelHeight, string extension)
    {
       double emuWidth = PixToEMU(pixelWidth);
       double emuHeight = PixToEMU(pixelHeight);

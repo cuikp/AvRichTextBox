@@ -9,13 +9,13 @@ using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;
 
-public static partial class WordConversions
+internal static partial class WordConversions
 {
    internal static MainDocumentPart? mainDocPart;
    internal static string DefaultEastAsiaFont = "";
    internal static string DefaultAsciiFont = "";
 
-   public static void GetFlowDocument(MainDocumentPart mDocPart, FlowDocument fdoc)
+   internal static void GetFlowDocument(MainDocumentPart mDocPart, FlowDocument fdoc)
    {
 
       mainDocPart = mDocPart;
@@ -152,9 +152,6 @@ public static partial class WordConversions
                      fdoc.Blocks.Add(para);
                   }
                   catch (Exception paraEx) { Debug.WriteLine("Could not get paragraph:\n" + paraEx.Message); }
-
-                  
-
 
                   break;
 

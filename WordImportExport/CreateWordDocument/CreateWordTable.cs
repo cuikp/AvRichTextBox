@@ -8,11 +8,11 @@
 
 //namespace AvRichTextBox;
 
-//public static partial class WordConversions
+//internal static partial class WordConversions
 //{
 //    static bool firstTable = true;
 
-//    public static DOW.Table CreateWordDocTable(System.Windows.Documents.Table t)
+//    internal static DOW.Table CreateWordDocTable(System.Windows.Documents.Table t)
 //    {
 
 //        var tabl = new DOW.Table();

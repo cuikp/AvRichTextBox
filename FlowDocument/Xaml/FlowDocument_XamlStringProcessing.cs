@@ -114,6 +114,8 @@ public partial class FlowDocument
             foreach (XmlNode parNode in SectionNode.ChildNodes.OfType<XmlNode>().Where(n => n.Name == "Paragraph"))
             {
                Paragraph newPar = new();
+               
+               //newPar.LineHeight = ;
 
                XmlAttribute? textAlignAttribute = parNode.Attributes!.OfType<XmlAttribute>().Where(attP => attP.Name == "TextAlignment").FirstOrDefault();
                if (textAlignAttribute != null)
