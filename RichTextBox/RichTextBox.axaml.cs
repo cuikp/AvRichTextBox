@@ -61,7 +61,7 @@ public partial class RichTextBox : UserControl
 
       this.TextInput += RichTextBox_TextInput;
 
-      //Necessary to capture pagedown/up events for scrollviewer
+      //Necessary to capture pagedown/up events from scrollviewer
       FlowDocSV.AddHandler(KeyDownEvent, FlowDocSV_KeyDown, Avalonia.Interactivity.RoutingStrategies.Tunnel);
 
       
@@ -145,6 +145,8 @@ public partial class RichTextBox : UserControl
    {
       if (e.Key == Avalonia.Input.Key.PageDown || e.Key == Avalonia.Input.Key.PageUp)
          e.Handled = true;
+
+      Debug.WriteLine ("key down in Scrollviewer: " + e.Key.ToString ());
 
    }
 

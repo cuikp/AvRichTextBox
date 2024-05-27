@@ -53,6 +53,8 @@ classDiagram
 
 ```
 
+Currently, when used in Debug Mode, the RichTextBox displays Inline debugging information in a right-hand panel - Inline starts, paragraph starts, inline texts, and indicates the inlines of the Selection start and end by background color coding.  The Debugger panel is not shown in Release mode.
+
 The RichTextBox has the usual key functions:
 * <kbd>Ctrl</kbd>+<kbd>B</kbd> for **bold**/unbold
 * <kbd>Ctrl</kbd>-<kbd>I</kbd> for *italic*/unitalic
