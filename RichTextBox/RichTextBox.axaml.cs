@@ -79,11 +79,11 @@ public partial class RichTextBox : UserControl
    {
       this.Focus();
 
-#if DEBUG
-      RunDebugger.DataContext = FlowDoc;
-#else
-      RunDebugger.DataContext = null;
-#endif
+//#if DEBUG
+//      RunDebugger.DataContext = FlowDoc;
+//#else
+//      RunDebugger.DataContext = null;
+//#endif
 
       FlowDoc.InitializeDocument();
 

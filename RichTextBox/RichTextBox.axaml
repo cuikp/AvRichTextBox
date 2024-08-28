@@ -9,8 +9,8 @@
 
 	<DockPanel x:Name="MainDP" >
 
-		<!--VISUAL DEBUGGER-->
-		<Grid IsVisible="{Binding RunDebuggerVisible}" DockPanel.Dock="Right" Width="400" >
+		<!--VISUAL DEBUGGER - Use this Grid for debugging, to show a right-docked panel with visualization of runs -->
+		<!--<Grid DockPanel.Dock="Right" Width="400" DataContext="{Binding FlowDoc}" >
 			<DockPanel x:Name="RunDebugger"  >
 				<DockPanel DockPanel.Dock="Top" Background="Coral">
 
@@ -47,10 +47,9 @@
 										<DataTemplate>
 											<Border BorderBrush="Black" BorderThickness="{Binding InlineSelectedBorderThickness}" Background="{Binding BackBrush}">
 												<Grid ColumnDefinitions="50* 10* 10* 10*" HorizontalAlignment="Stretch" ShowGridLines="True" Margin="0" >
-													<!--<Border BorderBrush="LightGray" BorderThickness="0.5" Grid.ColumnSpan="3" Background="{Binding BackBrush}"/>-->
 													<TextBlock Margin="3, 0" Grid.Column="0" Text="{Binding DisplayInlineText}" TextWrapping="Wrap"
-															   FontWeight="{Binding FontWeight}" FontStyle="{Binding FontStyle}" TextDecorations="{Binding TextDecorations}"
-													   />
+															   FontWeight="{Binding FontWeight}" FontStyle="{Binding FontStyle}" 
+															   TextDecorations="{Binding TextDecorations}"/>
 													<TextBlock  Grid.Column="1" Text="{Binding TextPositionOfInlineInParagraph}" TextAlignment="Center" />
 													<TextBlock  Grid.Column="2" Text="{Binding InlineText.Length}" TextAlignment="Center" />
 													<TextBlock  Grid.Column="3" Text="{Binding SSIRT}" TextAlignment="Center" />
@@ -71,7 +70,7 @@
 
 			</DockPanel>
 
-		</Grid>
+		</Grid>-->
 
 		<ScrollViewer x:Name="FlowDocSV"  HorizontalScrollBarVisibility="Disabled" Margin="1"
 					   Offset="{Binding RTBScrollOffset, Mode=OneWay}"  ScrollChanged="ScrollViewer_ScrollChanged"

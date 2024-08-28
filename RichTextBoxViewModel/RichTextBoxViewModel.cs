@@ -35,7 +35,7 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
 #if DEBUG
       RunDebuggerVisible = true;
 #endif
-   
+
    }
 
    internal double ScrollViewerHeight = 10;

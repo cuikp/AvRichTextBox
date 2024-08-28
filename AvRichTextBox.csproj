@@ -10,7 +10,7 @@
 	  <Company>---</Company>
 	  <Product>AvRichTextBox</Product>
 	  <PackageId>Simplecto.Avalonia.RichTextBox</PackageId>
-	  <Version>1.0.9</Version>
+	  <Version>1.0.10</Version>
 	  <Description>A RichTextBox control to be used in Avalonia</Description>
 	  <PackageTags>Avalonia;UserControl;RichTextBox</PackageTags>
 	  <Title>A RichTextBox control for Avalonia</Title>
@@ -19,7 +19,7 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>In version 1.0.8,  ability to load (but not save) most of the RichTextBox content as an rtf file.  (Some features are not honored in saving - notably, images).</PackageReleaseNotes>
+	  <PackageReleaseNotes>In version 1.0.10, commented out the right-docked Debugger by default.</PackageReleaseNotes>
 
       <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
       <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
