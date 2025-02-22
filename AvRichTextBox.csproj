@@ -10,7 +10,7 @@
 	  <Company>---</Company>
 	  <Product>AvRichTextBox</Product>
 	  <PackageId>Simplecto.Avalonia.RichTextBox</PackageId>
-	  <Version>1.0.12</Version>
+	  <Version>1.0.13</Version>
 	  <Description>A RichTextBox control to be used in Avalonia</Description>
 	  <PackageTags>Avalonia;UserControl;RichTextBox</PackageTags>
 	  <Title>A RichTextBox control for Avalonia</Title>
@@ -19,7 +19,7 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>In version 1.0.12, fixed an inline range-calculating error - cloned inlines need to retain their paragraph-relative text positions, and right-docked Debugger panel is not visible (removed) by default (developers see github link for using Debugger Panel).</PackageReleaseNotes>
+	  <PackageReleaseNotes>In version 1.0.13, changed the internal binding from the RichTextBox (the UserControl) itself to an immediate child (DockPanel) in order to free it for external binding.  (Also, minor change to allow copying/pasting of paragraph breaks).</PackageReleaseNotes>
 
       <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
       <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
