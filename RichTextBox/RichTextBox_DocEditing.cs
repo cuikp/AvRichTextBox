@@ -52,7 +52,7 @@ public partial class RichTextBox
       
       foreach (Match m in matches)
       {
-         TextRange trange = new TextRange(FlowDoc, m.Index, m.Index + m.Length);
+         TextRange trange = new (FlowDoc, m.Index, m.Index + m.Length);
          FlowDoc.ApplyFormattingRange(Inline.FontStretchProperty, FontStretch.UltraCondensed, trange);
          FlowDoc.ApplyFormattingRange(Inline.ForegroundProperty, new SolidColorBrush(Colors.BlueViolet), trange);
          FlowDoc.ApplyFormattingRange(Inline.BackgroundProperty, new SolidColorBrush(Colors.Wheat), trange);

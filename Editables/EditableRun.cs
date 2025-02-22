@@ -35,8 +35,9 @@ public class EditableRun : Run, IEditable, INotifyPropertyChanged
        IsStartInline ? new SolidColorBrush(Colors.LawnGreen) : (IsEndInline ? new SolidColorBrush(Colors.Pink) : new SolidColorBrush(Colors.Transparent));
 
    public bool IsLineBreak => this.Text == "\v";
-
+   
    public Thickness InlineSelectedBorderThickness => (IsStartInline || IsEndInline) ? new Thickness(3) : new Thickness(0.7);
+   public bool IsFirstInlineOfParagraph { get; set; }
 
    public IEditable Clone()
    {
@@ -48,7 +49,8 @@ public class EditableRun : Run, IEditable, INotifyPropertyChanged
          FontSize = this.FontSize,
          FontFamily = this.FontFamily,
          Background = this.Background,
-         myParagraph = this.myParagraph
+         myParagraph = this.myParagraph,
+         TextPositionOfInlineInParagraph = this.TextPositionOfInlineInParagraph  //necessary because clone is produced when calculating range inline positions
       };
    }
 

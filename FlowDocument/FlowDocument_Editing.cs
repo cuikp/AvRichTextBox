@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace AvRichTextBox;
 
@@ -144,14 +145,14 @@ public partial class FlowDocument
          tRange.CollapseToStart(); 
          SelectionExtendMode = ExtendMode.ExtendModeNone;
       }
-
+            
       IEditable startInline = tRange.GetStartInline();
       List<IEditable> splitInlines = SplitRunAtPos(tRange, startInline, startInline.GetRangeStartInInline(tRange));
       
       int startInlineIndex = startPar.Inlines.IndexOf(splitInlines[0]) + 1;
 
       EditableRun? sRun = splitInlines[0] as EditableRun;
-      EditableRun newEditableRun = new EditableRun(newText)
+      EditableRun newEditableRun = new (newText)
       {
          FontFamily = sRun!.FontFamily,
          FontWeight = sRun.FontWeight,
@@ -172,6 +173,17 @@ public partial class FlowDocument
       tRange.End = rangeStart + newText.Length;
       tRange.CollapseToEnd();
       tRange.BiasForward = false;
+
+      
+      //try to split at paragraphs
+      List<int> pargPoints = Regex.Matches(newText, @"[\r\n]").Select(m => m.Index).ToList();
+      Debug.WriteLine("indexes: " + string.Join(":::", pargPoints));
+      for (int i = pargPoints.Count - 1; i >= 0; i--)
+      {
+         Select(startPar.StartInDoc + startInlineIndex + pargPoints[i], 0);
+         InsertParagraph(false);
+      }
+
 
       if (tRange.Equals(Selection))
          UpdateSelection();
@@ -284,8 +296,10 @@ public partial class FlowDocument
 
       List<IEditable> OriginalParInlines = startPar.Inlines.ToList().ConvertAll(il => il.Clone());
 
-      List<IEditable> RunList1 = new(startPar.Inlines.Take(new Range(0, StartRunIdx)).ToList().ConvertAll(r => r as IEditable));
-      RunList1.Add(parSplitRuns[0]);
+      List<IEditable> RunList1 = new(startPar.Inlines.Take(new Range(0, StartRunIdx)).ToList().ConvertAll(r => r as IEditable))
+      {
+         parSplitRuns[0]
+      };
       List<IEditable> RunList2 = new(startPar.Inlines.Take(new Range(StartRunIdx + 1, startPar.Inlines.Count)).ToList().ConvertAll(r => r as IEditable));
 
       Paragraph? originalPar = startPar;
@@ -350,7 +364,7 @@ public partial class FlowDocument
       Selection!.BiasForward = true;
 
       if (thisPar.Inlines.Count > 1)
-         RemoveEmptyInlines(new List<int>() { etbIndex });
+         RemoveEmptyInlines([etbIndex]);
 
       if (saveUndo)
          Undos.Add(new MergeParagraphUndo(Selection.Start, this));
@@ -394,9 +408,9 @@ public partial class FlowDocument
 
          if (startP.Inlines.Count > 1)
             //RemoveEmptyInlines(new List<Paragraph>() { Selection.StartParagraph });
-            RemoveEmptyInlines(new List<int>() { Blocks.IndexOf(Selection.StartParagraph) });
+            RemoveEmptyInlines([Blocks.IndexOf(Selection.StartParagraph)]);
          
-         TextRange deleteTextRange = new TextRange(this, Selection.Start, NextWordEndPoint);
+         TextRange deleteTextRange = new (this, Selection.Start, NextWordEndPoint);
          DeleteRange(deleteTextRange, true);  // updates all text ranges and adds undo
                            
          UpdateBlockAndInlineStarts(Blocks.IndexOf(startP));

@@ -20,7 +20,7 @@ internal static partial class RtfConversions
          {
             Paragraph? p = b as Paragraph;
 
-            RTFDomParagraph rtfpar = new RTFDomParagraph();
+            RTFDomParagraph rtfpar = new ();
 
             switch (p!.TextAlignment)
             {
@@ -40,8 +40,7 @@ internal static partial class RtfConversions
                if (ied.GetType() == typeof(EditableRun))
                {
                   EditableRun erun = (EditableRun) ied;
-                  RTFDomText rtftext = new RTFDomText();
-                  rtftext.Text = erun.Text;
+                  RTFDomText rtftext = new() { Text = erun.Text };
                   rtftext.Format.FontSize = (float)(erun.FontSize / 2D);
                   rtftext.Format.FontName = erun.FontFamily.Name;
                   rtftext.Format.TextColor = erun.Foreground == null ? Colors.Black : ((SolidColorBrush)erun.Foreground).Color;

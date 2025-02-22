@@ -24,10 +24,10 @@ public class Paragraph : Block
    //public string Text => string.Join("", Inlines.ToList().ConvertAll(ied => ied.InlineText));
 
 
-   private SolidColorBrush _Background = new SolidColorBrush(Colors.Transparent);
+   private SolidColorBrush _Background = new (Colors.Transparent);
    public SolidColorBrush Background { get => _Background; set { _Background = value; NotifyPropertyChanged(nameof(Background)); } }
 
-   private FontFamily _FontFamily = new FontFamily("Times New Roman, ＭＳ 明朝");
+   private FontFamily _FontFamily = new ("Times New Roman, ＭＳ 明朝");
    public FontFamily FontFamily { get => _FontFamily; set { _FontFamily = value; NotifyPropertyChanged(nameof(FontFamily)); } }
 
    private double _FontSize = 16D;

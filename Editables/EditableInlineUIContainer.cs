@@ -29,6 +29,9 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable, INotifyPr
    public SolidColorBrush BackBrush =>
        IsStartInline ? new SolidColorBrush(Colors.LawnGreen) : (IsEndInline ? new SolidColorBrush(Colors.Pink) : new SolidColorBrush(Colors.Transparent));
    public Thickness InlineSelectedBorderThickness => (IsStartInline || IsEndInline) ? new Thickness(3) : new Thickness(1);
+      
+
+   public bool IsFirstInlineOfParagraph { get; set;}
 
    public int ImageNo;
 

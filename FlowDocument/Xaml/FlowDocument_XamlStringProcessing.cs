@@ -26,7 +26,7 @@ public partial class FlowDocument
       foreach (Paragraph paragraph in Blocks)
       {
 
-         StringBuilder ParagraphHeader = new StringBuilder("<Paragraph ");
+         StringBuilder ParagraphHeader = new ("<Paragraph ");
          ParagraphHeader.Append("FontFamily=\"" + paragraph.FontFamily.Name + "\" FontWeight=\"" + paragraph.FontWeight.ToString() + "\" FontStyle=\"" + paragraph.FontStyle.ToString() + "\" FontSize=\"" + paragraph.FontSize.ToString() + 
           "\" Margin=\"" + paragraph.Margin.ToString() + "\" Background=\"" + paragraph.Background.ToString() + "\">");
          selXaml.Append(ParagraphHeader);
@@ -42,7 +42,7 @@ public partial class FlowDocument
                      selXaml.Append("<LineBreak/>");
                   else
                   {
-                     StringBuilder RunHeader = new StringBuilder("<Run ");
+                     StringBuilder RunHeader = new ("<Run ");
                      RunHeader.Append(GetRunAttributesString(erun));
                      selXaml.Append(RunHeader);
                      selXaml.Append(erun.Text!.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;"));
@@ -254,7 +254,7 @@ public partial class FlowDocument
                            XmlNode? controlNode = inlineNode.ChildNodes[0];
                            if (controlNode!.Name == "Image")
                            {
-                              Image img = new Image();
+                              Image img = new ();
 
                               foreach (XmlAttribute attC in controlNode.Attributes!)
                               {
@@ -324,7 +324,7 @@ public partial class FlowDocument
 
    private string GetRunAttributesString(EditableRun erun)
    {
-      StringBuilder attSB = new StringBuilder();
+      StringBuilder attSB = new ();
       attSB.Append("FontFamily=\"" + erun.FontFamily.ToString() + "\"");
       attSB.Append(" FontWeight=\"" + erun.FontWeight.ToString() + "\"");
       attSB.Append(" FontSize=\"" + erun.FontSize.ToString() + "\"");

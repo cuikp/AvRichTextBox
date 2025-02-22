@@ -21,8 +21,10 @@ internal static partial class WordConversions
       try
       {
 
-       var runtext = new Text(thisRunText!);  // convert text to "wordprocessing.text" form
-         runtext.Space = SpaceProcessingModeValues.Preserve;
+         var runtext = new Text(thisRunText!) // convert text to "wordprocessing.text" form
+         {
+            Space = SpaceProcessingModeValues.Preserve
+         };  
 
          var RunProp = new RunProperties();
 
@@ -113,8 +115,10 @@ internal static partial class WordConversions
          }
          else
          {
-            var txt = new Text();
-            txt.Text = line;
+            var txt = new Text
+            {
+               Text = line
+            };
             r.AppendChild(txt);
          }
       }

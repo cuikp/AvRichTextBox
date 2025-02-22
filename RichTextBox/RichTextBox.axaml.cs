@@ -18,14 +18,13 @@ using System.Linq;
 namespace AvRichTextBox;
 
 public partial class RichTextBox : UserControl
-{
-   
+{   
    //public delegate void Status_ChangedHandler(string statusText);
    //public event Status_ChangedHandler? Status_Changed;
 
    public FlowDocument FlowDoc => rtbVM.FlowDoc;
 
-   private Rectangle? _CursorRect = new Rectangle()
+   private readonly Rectangle? _CursorRect = new ()
    {
       StrokeThickness = 2,
       Stroke = Brushes.Black,
@@ -38,14 +37,18 @@ public partial class RichTextBox : UserControl
 
    RichTextBoxViewModel rtbVM { get; set; } = new();
 
+
    public RichTextBox()
    {
       InitializeComponent();
 
-      this.DataContext = rtbVM;
+      //this.DataContext = rtbVM;
+      MainDP.DataContext = rtbVM;
 
       this.Loaded += RichTextBox_Loaded;
       this.Initialized += RichTextBox_Initialized;
+
+      this.PropertyChanged += RichTextBox_PropertyChanged;
 
       FlowDocSV.SizeChanged += FlowDocSV_SizeChanged;
 
@@ -60,6 +63,17 @@ public partial class RichTextBox : UserControl
       _CursorRect.DataContext = rtbVM;
 
       this.TextInput += RichTextBox_TextInput;
+
+   }
+
+   private void RichTextBox_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+   {
+
+      if (e.Property.ToString() == "IsVisible")
+      {
+         rtbVM.CursorVisible = this.IsVisible;
+      }
+
 
    }
 

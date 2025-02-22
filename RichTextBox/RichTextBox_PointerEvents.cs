@@ -66,7 +66,7 @@ public partial class RichTextBox
          foreach (KeyValuePair<EditableParagraph, Rect> kvp in VisualHelper.GetVisibleEditableParagraphs(this))
          {
             double parTopMargin = ((Paragraph)kvp.Key.DataContext!).Margin.Top;
-            Rect thisEPRect = new Rect(kvp.Value.X - DocIC.Margin.Left, kvp.Value.Y - (DocIC.Margin.Top * 2 + parTopMargin * 2), kvp.Value.Width, kvp.Value.Height);
+            Rect thisEPRect = new (kvp.Value.X - DocIC.Margin.Left, kvp.Value.Y - (DocIC.Margin.Top * 2 + parTopMargin * 2), kvp.Value.Width, kvp.Value.Height);
             Point ePoint = e.GetCurrentPoint(this).Position;
             bool epContainsPoint = thisEPRect.Top <= ePoint.Y + parTopMargin * 2 && thisEPRect.Bottom >= ePoint.Y;
             if (epContainsPoint)

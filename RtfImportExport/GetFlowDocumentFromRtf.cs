@@ -42,9 +42,11 @@ internal static partial class RtfConversions
                {
                   RTFDomText rtftext = (RTFDomText)domelm;
 
-                  EditableRun erun = new EditableRun(rtftext.Text);
-                  erun.FontSize = rtftext.Format.FontSize * 2;
-                  
+                  EditableRun erun = new (rtftext.Text)
+                  {
+                     FontSize = rtftext.Format.FontSize * 2
+                  };
+
                   if (rtftext.Format.Bold)
                      erun.FontWeight = FontWeight.Bold;
                   

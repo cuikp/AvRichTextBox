@@ -12,7 +12,7 @@ public partial class EditableParagraph : SelectableTextBlock
 {
    public bool IsEditable { get; set; } = true;
 
-   SolidColorBrush cursorBrush = new SolidColorBrush(Colors.Cyan, 0.55);
+   private readonly SolidColorBrush cursorBrush = new (Colors.Cyan, 0.55);
 
    public int RectCharacterIndex = 0;
 
@@ -42,17 +42,15 @@ public partial class EditableParagraph : SelectableTextBlock
 
    public void UpdateVMFromEPStart()
    {
-      if (SelectionStartRect_Changed != null)
-         SelectionStartRect_Changed(this);
-      
+      SelectionStartRect_Changed?.Invoke(this);
+
       this.SetValue(TextLayoutInfoStartRequestedProperty, false);
 
    }
 
    public void UpdateVMFromEPEnd()
    {
-      if (SelectionEndRect_Changed != null)
-         SelectionEndRect_Changed(this);
+      SelectionEndRect_Changed?.Invoke(this);
 
       this.SetValue(TextLayoutInfoEndRequestedProperty, false);
    }
@@ -129,8 +127,7 @@ public partial class EditableParagraph : SelectableTextBlock
 
       TextHitTestResult result = this.TextLayout.HitTestPoint(e.GetPosition(this));
 
-      if (MouseMove != null)
-         MouseMove(this, result.TextPosition);
+      MouseMove?.Invoke(this, result.TextPosition);
 
    }
 

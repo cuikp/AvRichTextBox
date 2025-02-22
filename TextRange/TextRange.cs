@@ -33,9 +33,9 @@ public class TextRange : INotifyPropertyChanged, IDisposable
    internal FlowDocument myFlowDoc;
    public int Length  => End - Start;
    private int _Start;
-   public int Start { get => _Start; set { if (_Start != value) { _Start = value;  if (Start_Changed != null) Start_Changed(this, value); NotifyPropertyChanged(nameof(Start)); } } }
+   public int Start { get => _Start; set { if (_Start != value) { _Start = value;  Start_Changed?.Invoke(this, value); NotifyPropertyChanged(nameof(Start)); } } }
    private int _End;
-   public int End { get => _End; set { if (_End != value) { _End = value; if (End_Changed != null) End_Changed(this, value); NotifyPropertyChanged(nameof(End)); } } }
+   public int End { get => _End; set { if (_End != value) { _End = value; End_Changed?.Invoke(this, value); NotifyPropertyChanged(nameof(End)); } } }
 
    internal void UpdateStart() { NotifyPropertyChanged(nameof(Start)); }
    internal void UpdateEnd() { NotifyPropertyChanged(nameof(End)); }

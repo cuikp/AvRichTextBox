@@ -24,12 +24,12 @@ public partial class FlowDocument : INotifyPropertyChanged
    public delegate void ScrollInDirection_Handler(int direction);
    internal event ScrollInDirection_Handler? ScrollInDirection;
 
-   private Thickness _PagePadding = new Thickness(5);
+   private Thickness _PagePadding = new (5);
    public Thickness PagePadding { get => _PagePadding; set {  _PagePadding = value; NotifyPropertyChanged(nameof(PagePadding)); } }
 
    internal bool IsEditable { get; set; } = true;
 
-   SolidColorBrush cursorBrush = new SolidColorBrush(Colors.Cyan, 0.55);
+   readonly SolidColorBrush cursorBrush = new(Colors.Cyan, 0.55);
 
    internal List<IUndo> Undos { get; set; } = [];
 
@@ -42,8 +42,8 @@ public partial class FlowDocument : INotifyPropertyChanged
    public string Text => string.Join("", Blocks.ToList().ConvertAll(b => string.Join("", b.Text + "\r")));
    public TextRange Selection { get; set; }
 
-   Dictionary<AvaloniaProperty, FormatRuns> formatRunsActions;
-   Dictionary<AvaloniaProperty, FormatRun> formatRunActions;
+   readonly Dictionary<AvaloniaProperty, FormatRuns> formatRunsActions;
+   readonly Dictionary<AvaloniaProperty, FormatRun> formatRunActions;
 
    public FlowDocument()
    {

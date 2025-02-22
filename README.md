@@ -84,3 +84,8 @@ It can also save and load the FlowDoc content as a Word document (.docx), though
 
 
 RtfDomParser can be found at https://github.com/SourceCodeBackup/RtfDomParser, but for this project I had to manually modify it to use Avalonia.Media instead of System.Drawing
+
+**Added 2025/02/22:
+Internal binding was of the RTB itself to its viewmodel, which prevented external binding to UserControl properties (such as IsVisible).  Internal binding is now to the immediate child (DockPanel "MainDP"), freeing up the properties of the UserControl itself.
+
+Also upgraded copy/paste to allow copying and pasting of paragraph breaks (\r), which were ignored before.

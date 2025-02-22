@@ -7,6 +7,10 @@ namespace AvRichTextBox;
 
 public static class RequestExtensions
 {
+   //public static readonly AttachedProperty<FlowDocument> FlowDocumentProperty = AvaloniaProperty.RegisterAttached<RichTextBox, FlowDocument>("FlowDocument", typeof(RequestExtensions));
+   //public static void SetFlowDocument(AvaloniaObject element, FlowDocument value) => element.SetValue(FlowDocumentProperty, value);
+   //public static FlowDocument GetFlowDocument(AvaloniaObject element) => (FlowDocument)element.GetValue(FlowDocumentProperty);
+
 
    public static readonly AttachedProperty<bool> TextBoxFocusRequestedProperty = AvaloniaProperty.RegisterAttached<EditableParagraph, bool>("TextBoxFocusRequested", typeof(RequestExtensions));
    public static void SetTextBoxFocusRequested(AvaloniaObject element, bool value) => element.SetValue(TextBoxFocusRequestedProperty, value);
@@ -50,7 +54,10 @@ public static class RequestExtensions
          }
       });
 
-   
+
+           
+
+
    }
 }
 

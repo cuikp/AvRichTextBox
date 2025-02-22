@@ -14,11 +14,14 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
    //public delegate void UpdateRTBLayout_Handler();
    //public event UpdateRTBLayout_Handler? UpdateRTBLayout;
 
-   private Vector _RTBScrollOffset = new Vector(0, 0);
+   private Vector _RTBScrollOffset = new (0, 0);
    public Vector RTBScrollOffset { get => _RTBScrollOffset; set { if (_RTBScrollOffset != value) _RTBScrollOffset = value; NotifyPropertyChanged(nameof(RTBScrollOffset)); } }
 
-   private readonly FlowDocument _FlowDoc = new();
-   public FlowDocument FlowDoc  => _FlowDoc;
+   //private readonly FlowDocument _FlowDoc = new();
+   //public FlowDocument FlowDoc => _FlowDoc;
+
+   private FlowDocument _FlowDoc = new();
+   public FlowDocument FlowDoc { get { return _FlowDoc; } set { _FlowDoc = value; NotifyPropertyChanged(nameof(FlowDoc)); } }
 
    public bool RunDebuggerVisible { get; set; } = false;
 
@@ -28,7 +31,7 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
       FlowDoc.ScrollInDirection += FlowDoc_ScrollInDirection;
    
       //Create initial empty paragraph
-      Paragraph hPar = new Paragraph();
+      Paragraph hPar = new ();
       FlowDoc.Blocks.Add(hPar);
       hPar.Inlines.Add(new EditableRun(""));
 
@@ -36,15 +39,19 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
       RunDebuggerVisible = true;
 #endif
 
+
+      
+
    }
 
    internal double ScrollViewerHeight = 10;
+      
 
    
    private double _CursorHeight = 5;
    public double CursorHeight { get => _CursorHeight; set { _CursorHeight = value; NotifyPropertyChanged(nameof(CursorHeight)); } }
 
-   private Thickness _CursorMargin = new Thickness(0);
+   private Thickness _CursorMargin = new (0);
    public Thickness CursorMargin { get => _CursorMargin; set { _CursorMargin = value; NotifyPropertyChanged(nameof(CursorMargin)); } }
 
    private bool _CursorVisible = true;
