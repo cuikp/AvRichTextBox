@@ -7,14 +7,12 @@ using System.Runtime.CompilerServices;
 
 namespace AvRichTextBox;
 
-public class UniqueBitmap
+public class UniqueBitmap(Bitmap ubmap, int w, int h, int cIndex)
 {
-    public UniqueBitmap(Bitmap ubmap, int w, int h, int cIndex) { uBitmap = ubmap; maxWidth = w; maxHeight = h; consecutiveIndex = cIndex; }
-
-    internal Bitmap uBitmap;
-    internal int maxWidth;
-    internal int maxHeight;
-    internal int consecutiveIndex;
+   internal Bitmap uBitmap = ubmap;
+    internal int maxWidth = w;
+    internal int maxHeight = h;
+    internal int consecutiveIndex = cIndex;
 
 }
 

@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Documents;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
@@ -10,6 +11,8 @@ namespace AvRichTextBox;
 
 public partial class EditableParagraph : SelectableTextBlock
 {
+      
+
    public bool IsEditable { get; set; } = true;
 
    private readonly SolidColorBrush cursorBrush = new (Colors.Cyan, 0.55);
@@ -23,6 +26,7 @@ public partial class EditableParagraph : SelectableTextBlock
       this.Loaded += EditableParagraph_Loaded;
 
       this.PropertyChanged += EditableParagraph_PropertyChanged;
+
       //this.KeyDown += EditableParagraph_KeyDown;
 
    }
@@ -39,11 +43,9 @@ public partial class EditableParagraph : SelectableTextBlock
    public static readonly StyledProperty<bool> TextLayoutInfoEndRequestedProperty = AvaloniaProperty.Register<EditableParagraph, bool>(nameof(TextLayoutInfoEndRequested));
    public bool TextLayoutInfoEndRequested { get => GetValue(TextLayoutInfoEndRequestedProperty); set { SetValue(TextLayoutInfoEndRequestedProperty, value); } }
 
-
    public void UpdateVMFromEPStart()
    {
       SelectionStartRect_Changed?.Invoke(this);
-
       this.SetValue(TextLayoutInfoStartRequestedProperty, false);
 
    }
@@ -51,7 +53,6 @@ public partial class EditableParagraph : SelectableTextBlock
    public void UpdateVMFromEPEnd()
    {
       SelectionEndRect_Changed?.Invoke(this);
-
       this.SetValue(TextLayoutInfoEndRequestedProperty, false);
    }
 
@@ -65,9 +66,8 @@ public partial class EditableParagraph : SelectableTextBlock
 
    private void EditableParagraph_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
    {
-      //if (!e.Property.Name.Contains("IsPointerOver"))
-      //   Debug.WriteLine("e.propertyName = " + e.Property.Name);
 
+      //Debug.WriteLine("e.propertyName = " + e.Property.Name);
 
       if (thisPar != null)  //because this may be called right after paragraph has been deleted
       {
@@ -80,20 +80,17 @@ public partial class EditableParagraph : SelectableTextBlock
                break;
 
             //case "Inlines":
-            //   //Debug.WriteLine("inlines changed: " + e.;
-            //   ////raise event as TextChanged:
-            //   if (EditableParagraph_TextChanged != null)
-            //      EditableParagraph_TextChanged(this);
-
-            //   break;
-
-            //case "SelectionStart":
             //   UpdateVMFromEPStart();
-            //   break;
-
-            //case "SelectionEnd":
             //   UpdateVMFromEPEnd();
             //   break;
+
+            case "SelectionStart":
+               UpdateVMFromEPStart();
+               break;
+
+            case "SelectionEnd":
+               UpdateVMFromEPEnd();
+               break;
 
             case "TextLayoutInfoStartRequested":
                UpdateVMFromEPStart();
@@ -103,6 +100,7 @@ public partial class EditableParagraph : SelectableTextBlock
                UpdateVMFromEPEnd();
                break;
          }
+
       }
 
    }
@@ -118,9 +116,10 @@ public partial class EditableParagraph : SelectableTextBlock
    {
       //Keep to override
       //e.Handled = true;
-
+      //UpdateVMFromEPEnd();
    }
 
+   
    protected override void OnPointerMoved(PointerEventArgs e)
    {
       //e.Handled = true;
@@ -139,8 +138,15 @@ public partial class EditableParagraph : SelectableTextBlock
 
    internal void UpdateInlines()
    {
+
       if (((Paragraph)this.DataContext!).Inlines != null)
          this.Inlines = GetFormattedInlines();
+
+      //foreach (Inline thisIL in this.Inlines!)
+      //   Debug.WriteLine("1:\n" + ((Run)thisIL).Text + " ::: " + thisIL.FontWeight);
+
+      this.InvalidateMeasure();
+      this.InvalidateVisual();
 
    }
 

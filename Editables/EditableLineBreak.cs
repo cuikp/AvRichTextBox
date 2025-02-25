@@ -33,7 +33,7 @@ public class EditableLineBreak : LineBreak, IEditable, INotifyPropertyChanged
 
    public Thickness InlineSelectedBorderThickness => (IsStartInline || IsEndInline) ? new Thickness(3) : new Thickness(1);
 
-   public bool IsFirstInlineOfParagraph { get; set; }
+   public bool IsLastInlineOfParagraph { get; set; }
 
    public IEditable Clone() => new EditableLineBreak() { myParagraph = this.myParagraph }; 
 

@@ -35,19 +35,19 @@ internal static class HelperMethods
 
    public static string WordHighlightColorValueToHexString(string hcv)
    {
-      switch (hcv.ToLower())
+      return hcv.ToLower() switch
       {
-         case "darkyellow": return "#FF9ACD32";
-         case "blueviolet": return "#FF931FDF";
-         case "cyan": return "#FFE8EBF9";
-         case "green": return "#FF98FB98";
-         case "yellow": return "#FFFFE0C0";
-         case "red": return "#FFFF4500";
-         case "blue": return "#FFE3BFFF";
-         case "black": case "ck": return "#FF000000";
-         case "None": return "#FFFFFFFF";
-         default: return "#FF000000";
-      }
+         "darkyellow" => "#FF9ACD32",
+         "blueviolet" => "#FF931FDF",
+         "cyan" => "#FFE8EBF9",
+         "green" => "#FF98FB98",
+         "yellow" => "#FFFFE0C0",
+         "red" => "#FFFF4500",
+         "blue" => "#FFE3BFFF",
+         "black" or "ck" => "#FF000000",
+         "None" => "#FFFFFFFF",
+         _ => "#FF000000",
+      };
    }
 
    public static HighlightColorValues BrushToHighlightColorValue(IBrush br)

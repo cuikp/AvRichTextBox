@@ -23,7 +23,7 @@ internal class InsertCharUndo (Paragraph charParagraph, int insertInlineIdx, int
       {
          Run? thisRun = CharParagraph.Inlines[InsertInlineIdx] as Run;
          thisRun!.Text = thisRun.Text!.Remove(InsertPos, 1);
-         CharParagraph.RequestInlinesUpdate = true;
+         CharParagraph.CallRequestInlinesUpdate();
          FlowDoc.UpdateBlockAndInlineStarts(CharParagraph);
          FlowDoc.Selection.Start = OrigSelectionStart;
          FlowDoc.Selection.End = FlowDoc.Selection.Start;
@@ -33,32 +33,18 @@ internal class InsertCharUndo (Paragraph charParagraph, int insertInlineIdx, int
    }
 }
 
-internal class DeleteCharUndo : IUndo
+internal class DeleteCharUndo(Paragraph charParagraph, IEditable deleteInline, int deleteInlineIdx, string deleteChar, int deletePos, FlowDocument flowDoc, int origSelectionStart, bool createInline) : IUndo
 {
-   internal Paragraph CharParagraph;
-   internal string DeleteChar;
-   internal IEditable DeleteInline;
-   internal int DeletePos;
-   internal FlowDocument FlowDoc;
-   internal int OrigSelectionStart;
+   internal Paragraph CharParagraph = charParagraph;
+   internal string DeleteChar = deleteChar;
+   internal IEditable DeleteInline = deleteInline;
+   internal int DeletePos = deletePos;
+   internal FlowDocument FlowDoc = flowDoc;
+   internal int OrigSelectionStart = origSelectionStart;
    public int UndoEditOffset => 1;
    public bool UpdateTextRanges => true;
-   internal bool CreateInline = false;
-   internal int DeleteInlineIdx = -1;
-
-   public DeleteCharUndo(Paragraph charParagraph, IEditable deleteInline, int deleteInlineIdx, string deleteChar, int deletePos, FlowDocument flowDoc, int origSelectionStart, bool createInline)
-   {
-      
-      CharParagraph = charParagraph;
-      DeleteChar = deleteChar;
-      DeleteInline = deleteInline;
-      DeletePos = deletePos;
-      FlowDoc = flowDoc;
-      OrigSelectionStart = origSelectionStart;
-      CreateInline = createInline;
-      DeleteInlineIdx = deleteInlineIdx;
-
-   }
+   internal bool CreateInline = createInline;
+   internal int DeleteInlineIdx = deleteInlineIdx;
 
    public void PerformUndo()
    {
@@ -79,7 +65,7 @@ internal class DeleteCharUndo : IUndo
             thisRun!.Text = thisRun.Text!.Insert(DeletePos, DeleteChar);
          }
 
-         CharParagraph.RequestInlinesUpdate = true;
+         CharParagraph.CallRequestInlinesUpdate();
          FlowDoc.UpdateBlockAndInlineStarts(CharParagraph);
          FlowDoc.Selection.Start = OrigSelectionStart;
          FlowDoc.Selection.End = FlowDoc.Selection.Start;
@@ -162,7 +148,7 @@ internal class InsertParagraphUndo (Dictionary<Block, List<IEditable>> keptParsA
          if (addedBlock.IsParagraph)
          {
             ((Paragraph)addedBlock).Inlines.Clear();
-            ((Paragraph)addedBlock).RequestInlinesUpdate = true;
+            ((Paragraph)addedBlock).CallRequestInlinesUpdate();
          }
          FlowDoc.Blocks.Remove(addedBlock);
                   
@@ -171,7 +157,7 @@ internal class InsertParagraphUndo (Dictionary<Block, List<IEditable>> keptParsA
          {
             Paragraph? thisPar = (Paragraph)thisBlock;
             thisPar.Inlines.Clear();
-            thisPar.RequestInlinesUpdate = true;
+            thisPar.CallRequestInlinesUpdate();
          }
 
          FlowDoc.RestoreDeletedBlocks(KeptParsAndInlines, InsertedParIndex);
@@ -227,7 +213,7 @@ internal class ApplyFormattingUndo (FlowDocument flowDoc, List<IEditableProperty
             FlowDoc.ApplyFormattingInline(propassoc.FormatRun, propassoc.InlineItem, propassoc.PropertyValue);
 
       foreach (Paragraph p in FlowDoc.GetRangeBlocks(TRange).Where(b=>b.IsParagraph))
-         p.RequestInlinesUpdate = true;
+         p.CallRequestInlinesUpdate();
       
       FlowDoc.Selection.Start = OriginalSelection;
       FlowDoc.Selection.End = OriginalSelection;

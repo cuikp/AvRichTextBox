@@ -17,18 +17,18 @@ public partial class FlowDocument
 
       //Create clones of all inlines
       List<IEditable> AllSelectedInlines = Blocks.Where(b => b.IsParagraph).SelectMany( b =>
-            ((Paragraph)b).Inlines.Where(iline => b.StartInDoc + iline.TextPositionOfInlineInParagraph + iline.InlineLength > trange.Start &&
-             b.StartInDoc + iline.TextPositionOfInlineInParagraph < trange.End)
+            ((Paragraph)b).Inlines.Where(iline => 
+            {
+               double absInlineStart = b.StartInDoc + iline.TextPositionOfInlineInParagraph;
+               double absInlineEnd = b.StartInDoc + iline.TextPositionOfInlineInParagraph + iline.InlineLength;
+               iline.IsLastInlineOfParagraph = iline == ((Paragraph)b).Inlines[^1];
+               return absInlineEnd > trange.Start && absInlineStart < trange.End;
+            })
       ).ToList().ConvertAll(il => 
       {
-         //replace paragraph starts with \r char
-         bool startsParagraph = il.TextPositionOfInlineInParagraph == 0 && il.myParagraph != startPar;
          IEditable clonedInline = il.Clone();
-         if (startsParagraph)
-         {
-            clonedInline.IsFirstInlineOfParagraph = true;
-            clonedInline.InlineText = "\r" + clonedInline.InlineText;
-         }
+         if (il.IsLastInlineOfParagraph)  //replace paragraph ends with \r char
+            clonedInline.InlineText += "\r";
          return clonedInline; 
       });
 
@@ -50,8 +50,6 @@ public partial class FlowDocument
       {
          IEditable lastInline = AllSelectedInlines[^1];
          int lastInlineSplitIndex = trange.End - endPar!.StartInDoc - lastInline.TextPositionOfInlineInParagraph;
-         if (lastInline.IsFirstInlineOfParagraph)
-            lastInlineSplitIndex += 1;
          firstInline.InlineText = firstInline.InlineText[firstInlineSplitIndex ..];
          lastInline.InlineText = lastInline.InlineText[..lastInlineSplitIndex];
       }
@@ -151,8 +149,8 @@ public partial class FlowDocument
          }
       }
 
-      startPar.RequestInlinesUpdate = true;
-      endPar.RequestInlinesUpdate = true;
+      startPar.CallRequestInlinesUpdate();
+      endPar.CallRequestInlinesUpdate();
       UpdateBlockAndInlineStarts(Blocks.IndexOf(startPar));
  
     
@@ -160,11 +158,21 @@ public partial class FlowDocument
 
    }
 
+   internal void RemoveEmptyParagraphs(int upToParNo)
+   {
+      for (int idx = Blocks.Count - 1; idx >= upToParNo; idx--)
+      {
+         Paragraph p = (Paragraph)Blocks[idx];
+         if (p.Inlines.Count == 0 || (p.Inlines.Count == 1 && p.Inlines[0].InlineLength == 0))
+            Blocks.Remove(p);
+      }
+   }
+
    internal void RemoveEmptyInlines(List<int> processParIndexes)
    {
       List<IEditable> toDeleteRuns = [];
-      for (int idx = 0; idx < processParIndexes.Count; idx ++)
-      //foreach (Paragraph p in processPars)
+      //for (int idx = 0; idx < processParIndexes.Count; idx ++)
+      for (int idx = processParIndexes.Count - 1; idx >=0; idx --)
       {
          Paragraph p = (Paragraph)Blocks[processParIndexes[idx]];
          for (int iedno = p.Inlines.Count - 1; iedno >= 0; iedno -= 1)
@@ -184,6 +192,8 @@ public partial class FlowDocument
 
       ObservableCollection<IEditable> inlines = GetContainingParagraph(tRange.Start).Inlines;
       int runIdx = inlines.IndexOf(inlineToSplit);
+
+      //splitPos = Math.Min(splitPos, inlineToSplit.InlineLength);
 
       string part2Text = inlineToSplit.InlineText[splitPos..];
       inlineToSplit.InlineText = inlineToSplit.InlineText[..splitPos];

@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using static AvRichTextBox.HelperMethods;
 using RtfDomParser;
+using DocumentFormat.OpenXml.Office2016.Excel;
 
 namespace AvRichTextBox;
 
@@ -15,6 +16,7 @@ internal static partial class RtfConversions
 
    internal static void GetFlowDocumentFromRtf(RTFDomDocument rtfdoc, FlowDocument fdoc)
    {
+
       foreach (RTFDomElement rtfelm in rtfdoc.Elements)
       {
          if (rtfelm.GetType() == typeof(RTFDomParagraph))
@@ -34,6 +36,7 @@ internal static partial class RtfConversions
             newpar.FontFamily = new FontFamily(rtfpar.Format.FontName);
             //newpar.Margin = new Thickness(rtfpar.Format.xxx);
 
+
             fdoc.Blocks.Add(newpar);
 
             foreach (RTFDomElement domelm in rtfpar.Elements)
@@ -44,7 +47,7 @@ internal static partial class RtfConversions
 
                   EditableRun erun = new (rtftext.Text)
                   {
-                     FontSize = rtftext.Format.FontSize * 2
+                     FontSize = rtftext.Format.FontSize
                   };
 
                   if (rtftext.Format.Bold)

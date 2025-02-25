@@ -189,7 +189,7 @@ internal static partial class WordConversions
                         Bitmap bmg = null!; 
                         //Debug.WriteLine("contenttype= " + contentType);
 
-                        if (contentType == "image/x-emf" || contentType == "image/x-wmf")
+                        if (contentType is "image/x-emf" or "image/x-wmf")
                         {
                            MemoryStream streamEx = new ();
                            imgStream.CopyTo(streamEx);  //have to copy to new stream because it's in a zip, can't set position
@@ -324,15 +324,11 @@ internal static partial class WordConversions
                                  BrushConverter? BConverter = new();
                                  string? brushString = "#FF000000"!;
                                  string colorValString = rprsection.GetAttributes()[0].Value!;
-                                 switch (colorValString)
+                                 brushString = colorValString switch
                                  {
-                                    case "auto":
-                                       brushString = "#FF000000"!;
-                                       break;
-                                    default:
-                                       brushString = WordHighlightColorValueToHexString(rprsection.GetAttributes()[0].Value!);
-                                       break;
-                                 }
+                                    "auto" => "#FF000000"!,
+                                    _ => WordHighlightColorValueToHexString(rprsection.GetAttributes()[0].Value!),
+                                 };
                                  thisRun.Foreground = (ImmutableSolidColorBrush)BConverter.ConvertFromString(brushString)!;
                                  //thisRun.Foreground = (SolidColorBrush)BConverter.ConvertFromString(brushString)!;
                               }

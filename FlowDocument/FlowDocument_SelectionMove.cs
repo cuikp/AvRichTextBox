@@ -26,6 +26,8 @@ public partial class FlowDocument
 
             break;
          case ExtendMode.ExtendModeRight:
+            Selection.End = Math.Min(Selection.End, this.Text.Length - 1);
+            break;
          case ExtendMode.ExtendModeLeft:
             //Do nothing just collapse selection
             break;
@@ -160,7 +162,9 @@ public partial class FlowDocument
             int nextParIndex = Blocks.IndexOf(Selection.EndParagraph) + 1;
             Paragraph nextPar = (Paragraph)Blocks[nextParIndex];
 
+            int oldSE = Selection.End;
             Selection.End = Math.Min(nextPar.StartInDoc + nextPar.BlockLength - 1, Selection.EndParagraph.StartInDoc + Selection.EndParagraph.CharNextLineEnd);
+            //Debug.WriteLine("Old selectionEnd = " + oldSE + " ::: New Selection end: " + Selection.End);
          }
       }
       else
@@ -191,13 +195,17 @@ public partial class FlowDocument
          {
             int prevParIndex = Blocks.IndexOf(Selection.StartParagraph) - 1;
             Paragraph prevPar = (Paragraph)Blocks[prevParIndex];
+            int oldSS = Selection.Start;
             Selection.Start = Math.Min(prevPar.StartInDoc + prevPar.BlockLength - 1, prevPar.StartInDoc + prevPar.FirstIndexLastLine + Selection.StartParagraph.CharPrevLineStart);
          }
       }
       else
+      {
          Selection.Start = Selection.StartParagraph.StartInDoc + Selection.StartParagraph.CharPrevLineStart;
-
+      }
+         
       Selection.CollapseToStart();
+      
       SelectionExtendMode = ExtendMode.ExtendModeNone;
       ScrollInDirection!(-1);
       
@@ -215,6 +223,8 @@ public partial class FlowDocument
       foreach (Paragraph p in Blocks)
          p.ClearSelection();
 
+      ((Paragraph)Blocks[0]).CallRequestTextLayoutInfoStart();
+      ((Paragraph)Blocks[0]).CallRequestTextLayoutInfoEnd();
 
    }
 
@@ -225,6 +235,7 @@ public partial class FlowDocument
       SelectionParagraphs.Clear();
       Selection.End = this.Text.Length;
       EnsureSelectionContinuity();
+      this.SelectionExtendMode = ExtendMode.ExtendModeRight;
    }
    
    internal void Select(int Start, int Length)
@@ -385,13 +396,13 @@ public partial class FlowDocument
    internal void UpdateSelection()
    {
       UpdateBlockAndInlineStarts(Selection.StartParagraph);
-      Selection.StartParagraph.RequestInlinesUpdate = true;
-      Selection.EndParagraph.RequestInlinesUpdate = true;
+      Selection.StartParagraph.CallRequestInlinesUpdate();
+      Selection.EndParagraph.CallRequestInlinesUpdate();
       Selection.GetStartInline();
       Selection.GetEndInline();
-      Selection.StartParagraph.UpdateTextLayoutInfoStart();
-      Selection.EndParagraph.UpdateTextLayoutInfoEnd();
-      Selection.StartParagraph.RequestTextBoxFocus = true;
+      Selection.StartParagraph.CallRequestTextLayoutInfoStart();
+      Selection.EndParagraph.CallRequestTextLayoutInfoEnd();
+      Selection.StartParagraph.CallRequestTextBoxFocus();
    }
 
 

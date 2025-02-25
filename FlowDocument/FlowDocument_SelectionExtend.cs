@@ -1,7 +1,4 @@
-using Avalonia.Controls;
-using Avalonia.Media;
 using System;
-using System.Diagnostics;
 using System.Linq;
 
 namespace AvRichTextBox;
@@ -71,7 +68,7 @@ public partial class FlowDocument
 
             SelectionExtendMode = ExtendMode.ExtendModeRight;
 
-            if (Selection!.EndParagraph == Blocks[^1] && Selection.EndParagraph.IsEndAtLastLine)
+            if (Selection!.EndParagraph == Blocks[^1] && Selection.End == Text.Length)
                return;  // last line of document
             
             Paragraph origEndPar = Selection.EndParagraph;

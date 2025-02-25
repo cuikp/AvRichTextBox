@@ -119,13 +119,24 @@ public partial class FlowDocument : INotifyPropertyChanged
       SelectionStart_Changed(Selection, 0);
       SelectionEnd_Changed(Selection, 0);
 
-      Selection.StartParagraph.RequestInlinesUpdate = true;
+      Selection.StartParagraph.CallRequestInlinesUpdate();
       Selection.UpdateStart();
       Selection.UpdateEnd();
-      
-      ((Paragraph)Blocks[0]).RequestTextBoxFocus = true;
 
       UpdateBlockAndInlineStarts(0);
+
+      Selection.Start = 0;
+      SelectionExtendMode = ExtendMode.ExtendModeNone;
+
+      Paragraph firstPar = (Paragraph)Blocks[0];
+      firstPar.CharNextLineEnd = firstPar.Text.Length + 1;
+      //firstPar.CharNextLineStart = firstPar.Text.Length + 1;
+      firstPar.LastIndexEndLine = firstPar.Text.Length;
+
+      Selection.StartParagraph.CallRequestTextBoxFocus();
+      Selection.StartParagraph.CallRequestTextLayoutInfoStart();
+      Selection.StartParagraph.CallRequestTextLayoutInfoEnd();
+
 
    }
 
@@ -141,7 +152,7 @@ public partial class FlowDocument : INotifyPropertyChanged
       Paragraph startPar = GetContainingParagraph(newStart);
       selRange.StartParagraph = startPar;
       startPar.SelectionStartInBlock = newStart - startPar.StartInDoc;
-      startPar.UpdateTextLayoutInfoStart();
+      startPar.CallRequestTextLayoutInfoStart();
       IEditable startInline = selRange.GetStartInline();
 
       UpdateSelectionParagraphs();
@@ -151,30 +162,38 @@ public partial class FlowDocument : INotifyPropertyChanged
          if (selRange.StartParagraph.SelectionEndInBlock < selRange.StartParagraph.SelectionStartInBlock)
             selRange.StartParagraph.SelectionEndInBlock = selRange.StartParagraph.SelectionStartInBlock;
 
+      //if (selRange.StartParagraph != null)
+      //   selRange.StartParagraph.CallRequestTextLayoutInfoStart();
+
+      //Debug.WriteLine("startpar text? = " + selRange.StartParagraph?.Text + "\n________________");
 
    }
 
    internal void SelectionEnd_Changed(TextRange selRange, int newEnd)
    {
-      //Debug.WriteLine("END CHANGE");
-
+            
       selRange.EndParagraph = GetContainingParagraph(newEnd);
+      
       selRange.EndParagraph.SelectionEndInBlock = newEnd - selRange.EndParagraph.StartInDoc;
-      selRange.EndParagraph.UpdateTextLayoutInfoEnd();
+    
+      selRange.EndParagraph.CallRequestTextLayoutInfoEnd();
       selRange.GetEndInline();
       UpdateSelectionParagraphs();
+            
 
       //Make sure end is not less than start
       if (Selection.Length > 0)
          if (selRange.EndParagraph.SelectionEndInBlock < selRange.EndParagraph.SelectionStartInBlock)
             selRange.EndParagraph.SelectionStartInBlock = selRange.EndParagraph.SelectionEndInBlock;
-
+   
    }
 
    internal string GetText(TextRange tRange)
    {
       List<IEditable> rangeInlines = GetRangeInlines(tRange);
-      return string.Join("", rangeInlines.ToList().ConvertAll(il=> il.myParagraph!.Inlines.IndexOf(il) == il.myParagraph.Inlines.Count - 1 ? il.InlineText + "\r" : il.InlineText));
+      //return string.Join("", rangeInlines.ToList().ConvertAll(il=> il.myParagraph!.Inlines.IndexOf(il) == il.myParagraph.Inlines.Count - 1 ? il.InlineText + "\r" : il.InlineText));
+      //return string.Join("", rangeInlines.ToList().ConvertAll(il => (il.TextPositionOfInlineInParagraph + il.InlineLength == il.myParagraph!.BlockLength) ? il.InlineText + "\r" : il.InlineText));
+      return string.Join("", rangeInlines.ToList().ConvertAll(il => il.InlineText));
 
    }
 

@@ -118,7 +118,7 @@ public partial class FlowDocument
       UpdateBlockAndInlineStarts(Blocks.IndexOf(Blocks.LastOrDefault(p => p.StartInDoc <= textRange.Start)!));
       
       foreach (Paragraph p in GetRangeBlocks(textRange).Where(b=>b.IsParagraph))
-         p.RequestInlinesUpdate = true;
+         p.CallRequestInlinesUpdate();
 
 
       Selection.BiasForward = true;

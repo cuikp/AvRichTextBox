@@ -15,13 +15,13 @@ using static AvRichTextBox.WordConversions;
 using static AvRichTextBox.RtfConversions;
 using RtfDomParser;
 using ReactiveUI;
+using System.Text;
 
 
 namespace AvRichTextBox;
 
 public partial class FlowDocument
 {
-
 
    internal void LoadRtf(string fileName)
    {
@@ -39,97 +39,13 @@ public partial class FlowDocument
 
    }
 
-   internal static void TestBuildRTF(RTFWriter w)
-   {
-      w.Encoding = System.Text.Encoding.GetEncoding(936);
-      // write header
-      w.WriteStartGroup();
-      w.WriteKeyword("rtf1");
-      w.WriteKeyword("ansi");
-      w.WriteKeyword("ansicpg" + w.Encoding.CodePage);
-      // wirte font table
-      w.WriteStartGroup();
-      w.WriteKeyword("fonttbl");
-      w.WriteStartGroup();
-      w.WriteKeyword("f0");
-      w.WriteText("Arial;");
-      w.WriteEndGroup();
-      w.WriteStartGroup();
-      w.WriteKeyword("f1");
-      w.WriteText("Times New Roman;");
-      w.WriteEndGroup();
-      w.WriteEndGroup();
-      // write color table
-      w.WriteStartGroup();
-      w.WriteKeyword("colortbl");
-      w.WriteText(";");
-      w.WriteKeyword("red0");
-      w.WriteKeyword("green0");
-      w.WriteKeyword("blue255");
-      w.WriteText(";");
-      w.WriteEndGroup();
-      // write content
-      w.WriteKeyword("qc"); // set alignment center
-      w.WriteKeyword("f0"); // set font
-      w.WriteKeyword("fs30"); // set font size
-      w.WriteText("This is the first paragraph text ");
-      w.WriteKeyword("cf1"); // set text color
-      w.WriteText("Arial ");
-      w.WriteKeyword("cf0"); // set default color
-      w.WriteKeyword("f1"); // set font
-      w.WriteText("Align center ABC12345");
-      w.WriteKeyword("par"); // new paragraph
-      w.WriteKeyword("pard"); // clear format
-      w.WriteKeyword("f1"); // set font 
-      w.WriteKeyword("fs20"); // set font size
-      w.WriteKeyword("cf1");
-      w.WriteText("This is the secend paragraph Arial left alignment ABC12345");
-      // finish
-      w.WriteEndGroup();
-   }
-
    internal void SaveRtf(string fileName)
    {
       try
       {
-
-         RTFWriter writer = new ("D:\\asdfasdfasdf.rtf");
-
-         TestBuildRTF(writer);
-
-         writer.Close();
-
-         //RTFReader rTFReader = new RTFReader();
-         //rTFReader.
-
-         //RTFRawDocument rtfraw = new RTFRawDocument();
-         //RTFNode baseNode = new RTFNode(RTFNodeType.Root, "rtf");
-         //rtfraw.AppendChild(baseNode);
-
-         //RTFNode parnode = new RTFNodeGroup();
-         //rtfraw.AppendChild(parnode);
-
-         //rtfraw.AppendChild(parnode);
-         ////RTFNodeGroup group = new RTFNodeGroup();
-         ////group.Nodes.
-         //rtfraw.AppendChild(new RTFNode(RTFNodeType.Text, "b"));
-         //rtfraw.Save("D:\\asdfasdfasdf.rtf");
-         
-         //RTFDomDocument rtfdom = GetRtfFromFlowDocument(this);
-         //Debug.WriteLine("rtfdom=" + rtfdom.ToDomString() + "\n\n\n" + rtfdom.ToString());
-         //baseNode.OwnerDocument = rtfdom;
-
-         //Debug.WriteLine("gner-" + rtfdom.);
-
-         //RTFDocumentWriter writer = new RTFDocumentWriter(fileName);
-         //writer.WriteStartDocument();
-         //writer.WriteStartParagraph(new DocumentFormatInfo() { Align = RTFAlignment.Left });
-         //writer.WriteString("hello", new DocumentFormatInfo() { Bold = true, Underline = true });
-         //writer.WriteEndParagraph();
-         //writer.WriteEndDocument();
-         //writer.Close();
-         
-         //File.WriteAllText(fileName, rtfraw.wr);
+         string rtfText = ConvertBlocksToRtf(this.Blocks);
+         File.WriteAllText(fileName, rtfText, Encoding.Default);
+         //Debug.WriteLine(rtfText);
       }
       catch (Exception ex2) { Debug.WriteLine("error getting flow doc:\n" + ex2.Message); }
 
@@ -192,7 +108,7 @@ public partial class FlowDocument
          if (EntryXamlDocumentName != "")
          {
 
-            List<ZipArchiveEntry> imageEntries = zipArchive.Entries.Where(ent => Regex.IsMatch(ent.FullName, @"Xaml/Image[0-9]{1,}\.png")).ToList();
+            List<ZipArchiveEntry> imageEntries = zipArchive.Entries.Where(ent => FindXamlImageEntriesRegex().IsMatch(ent.FullName)).ToList();
             for (int i = 1; i <= imageEntries.Count; i++)
             {
                ZipArchiveEntry? imageEntry = zipArchive.GetEntry("Xaml/Image" + i.ToString() + ".png");
@@ -262,7 +178,7 @@ public partial class FlowDocument
       List<Paragraph> imageContainingParagraphs = Blocks.Where(b => b.IsParagraph && ((Paragraph)b).Inlines.Where(iline =>
           iline.GetType() == typeof(EditableInlineUIContainer) && ((EditableInlineUIContainer)iline).Child.GetType() == typeof(Image)).Any()).ToList().ConvertAll(bb => (Paragraph)bb);
 
-      if (imageContainingParagraphs.Any())
+      if (imageContainingParagraphs.Count != 0)
       {
          int imageNo = 0; //Consecutively define image nos.
          List<UniqueBitmap> uniqueBitmaps = [];
@@ -343,7 +259,8 @@ public partial class FlowDocument
 
    }
 
-
+   [GeneratedRegex(@"Xaml/Image[0-9]{1,}\.png")]
+   public static partial Regex FindXamlImageEntriesRegex();
 }
 
 

@@ -34,6 +34,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
    public int Length  => End - Start;
    private int _Start;
    public int Start { get => _Start; set { if (_Start != value) { _Start = value;  Start_Changed?.Invoke(this, value); NotifyPropertyChanged(nameof(Start)); } } }
+      
    private int _End;
    public int End { get => _End; set { if (_End != value) { _End = value; End_Changed?.Invoke(this, value); NotifyPropertyChanged(nameof(End)); } } }
 
@@ -50,7 +51,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
    internal bool IsAtEndOfLine = false;
 
    internal bool BiasForward = true;
-   public void CollapseToStart() { End = Start; }
+   public void CollapseToStart() { End = Start;  }
    public void CollapseToEnd() { Start = End ; }
 
 

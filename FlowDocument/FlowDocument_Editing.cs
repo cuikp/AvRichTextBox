@@ -1,6 +1,4 @@
-﻿using Avalonia.Controls;
-using Avalonia.Controls.Documents;
-using DynamicData;
+﻿using DynamicData;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,15 +9,16 @@ namespace AvRichTextBox;
 
 public partial class FlowDocument
 {
-
-   internal void InsertChar(string? insertChar)
+   internal void InsertText(string? insertText)
    {
       IEditable startInline = Selection.GetStartInline();
 
+      if (startInline == null) return;
+
       if (startInline.GetType() == typeof(EditableInlineUIContainer))
          return;
-
-      if (insertChar != null)
+      
+      if (insertText != null)
       {
          if (Selection!.Length > 0)
          {
@@ -39,24 +38,25 @@ public partial class FlowDocument
                Selection.StartParagraph.Inlines.Insert(0, applyInlines[0]);
             }
             startInline = applyInlines[0];
-            startInline.InlineText = insertChar;
+            startInline.InlineText = insertText;
             toggleFormatRun!(startInline);
             InsertRunMode = false;
          }
          else
          {
             insertIdx = Selection.GetStartInline().GetRangeStartInInline(Selection);
-            startInline.InlineText = startInline.InlineText!.Insert(insertIdx, insertChar);
+            startInline.InlineText = startInline.InlineText!.Insert(insertIdx, insertText);
          }
 
          Undos.Add(new InsertCharUndo(Selection.StartParagraph, Selection.StartParagraph.Inlines.IndexOf(startInline!), insertIdx, this, Selection.Start));
-         UpdateTextRanges(Selection.Start, 1);
+         UpdateTextRanges(Selection.Start, insertText.Length);
 
 
-         Selection.StartParagraph.RequestInlinesUpdate = true;
+         Selection.StartParagraph.CallRequestInlinesUpdate();
          UpdateBlockAndInlineStarts(Blocks.IndexOf(Selection.StartParagraph));
 
-         MoveSelectionRight(false);
+         for (int i = 0; i < insertText.Length; i++) 
+            MoveSelectionRight(false);
 
 
       }
@@ -106,8 +106,8 @@ public partial class FlowDocument
       }
 
       SelectionStart_Changed(Selection, Selection.Start);
-      Selection.StartParagraph.RequestInlinesUpdate = true;
-      Selection.StartParagraph.UpdateTextLayoutInfoStart();
+      Selection.StartParagraph.CallRequestInlinesUpdate();
+      Selection.StartParagraph.CallRequestTextLayoutInfoStart();
 
    }
 
@@ -167,28 +167,44 @@ public partial class FlowDocument
       if (splitInlines[0].InlineText == "")
          startPar.Inlines.Remove(splitInlines[0]);
 
-      startPar.RequestInlinesUpdate = true;
+      startPar.CallRequestInlinesUpdate();
       UpdateBlockAndInlineStarts(startPar);
 
-      tRange.End = rangeStart + newText.Length;
-      tRange.CollapseToEnd();
-      tRange.BiasForward = false;
 
+      //try to create paragraphs at line breaks
+      List<int> pargPoints = FindLineBreakCharsRegex().Matches(newText).Select(m => m.Index).ToList();
       
-      //try to split at paragraphs
-      List<int> pargPoints = Regex.Matches(newText, @"[\r\n]").Select(m => m.Index).ToList();
-      Debug.WriteLine("indexes: " + string.Join(":::", pargPoints));
+      List<Paragraph> addedPars = [];
       for (int i = pargPoints.Count - 1; i >= 0; i--)
       {
-         Select(startPar.StartInDoc + startInlineIndex + pargPoints[i], 0);
-         InsertParagraph(false);
+         Select(rangeStart + pargPoints[i], 0);
+
+         Paragraph newPar = InsertParagraph(false);
+         if (newPar.Inlines[0].InlineText.StartsWith('\r'))
+            newPar.Inlines[0].InlineText = newPar.Inlines[0].InlineText[1..];
+         addedPars.Add(newPar);
+
       }
+   
+      RemoveEmptyParagraphs(Blocks.IndexOf(startPar));
 
+      UpdateTextRanges(rangeStart, newText.Length);
 
+      startPar.CallRequestInlinesUpdate();
+      UpdateBlockAndInlineStarts(startPar);
+ 
       if (tRange.Equals(Selection))
          UpdateSelection();
 
-      UpdateTextRanges(rangeStart, newText.Length);
+      foreach (Paragraph p in addedPars)
+      {
+         p.CallRequestTextLayoutInfoStart();
+         p.CallRequestTextLayoutInfoEnd();
+         p.CallRequestInlinesUpdate();
+         p.CallRequestInvalidateVisual();
+      }
+
+
 
    }
 
@@ -223,9 +239,8 @@ public partial class FlowDocument
             if (b.IsParagraph)
             {
                Paragraph p = (Paragraph)b;
-               if (p.Inlines.Contains(toDeleteRun))
-                  p.Inlines.Remove(toDeleteRun);
-               p.RequestInlinesUpdate = true;
+               p.Inlines.Remove(toDeleteRun);
+               p.CallRequestInlinesUpdate();
             }
          }
 
@@ -236,7 +251,7 @@ public partial class FlowDocument
          if (Blocks[i].IsParagraph)
          {
             ((Paragraph)Blocks[i]).Inlines.Clear();
-            ((Paragraph)Blocks[i]).RequestInlinesUpdate = true;
+            ((Paragraph)Blocks[i]).CallRequestInlinesUpdate();
          }
          Blocks.RemoveAt(i);
       }
@@ -251,9 +266,9 @@ public partial class FlowDocument
          Paragraph? lastPar = allBlocks[^1] as Paragraph;
          List<IEditable> moveInlines = new(lastPar!.Inlines);
          lastPar.Inlines.RemoveMany(moveInlines);
-         lastPar.RequestInlinesUpdate = true;
+         lastPar.CallRequestInlinesUpdate();
          ((Paragraph)Blocks[idxStartPar]).Inlines.AddRange(moveInlines);
-         ((Paragraph)Blocks[idxStartPar]).RequestInlinesUpdate = true; // ensure any image containers are updated
+         ((Paragraph)Blocks[idxStartPar]).CallRequestInlinesUpdate(); // ensure any image containers are updated
          Blocks.Remove(lastPar);
       }
 
@@ -271,7 +286,7 @@ public partial class FlowDocument
    }
 
 
-   internal void InsertParagraph(bool addUndo)
+   internal Paragraph InsertParagraph(bool addUndo)
    {  //The delete range and InsertParagraph should constitute one Undo operation
 
       Paragraph startPar = Selection.StartParagraph;
@@ -330,8 +345,8 @@ public partial class FlowDocument
       UpdateTextRanges(Selection.Start, 1);
 
       UpdateBlockAndInlineStarts(parIndex);
-      originalPar.RequestInlinesUpdate = true;
-      newPar.RequestInlinesUpdate = true;
+      originalPar.CallRequestInlinesUpdate();
+      newPar.CallRequestInlinesUpdate();
 
       Selection.BiasForward = true;
 
@@ -339,13 +354,14 @@ public partial class FlowDocument
       Selection.CollapseToEnd();
       SelectionExtendMode = ExtendMode.ExtendModeNone;
 
-      originalPar.UpdateTextLayoutInfoStart();
-      newPar.UpdateTextLayoutInfoStart();
-      originalPar.UpdateTextLayoutInfoEnd();
-      newPar.UpdateTextLayoutInfoEnd();
+      originalPar.CallRequestTextLayoutInfoStart();
+      newPar.CallRequestTextLayoutInfoStart();
+      originalPar.CallRequestTextLayoutInfoEnd();
+      newPar.CallRequestTextLayoutInfoEnd();
 
       ScrollInDirection!(1);
 
+      return newPar;
 
    }
 
@@ -358,7 +374,7 @@ public partial class FlowDocument
       
       List <IEditable> inlinesToMove = new(nextPar.Inlines);
       nextPar.Inlines.Clear();
-      nextPar.RequestInlinesUpdate = true; // ensure image containers are updated
+      nextPar.CallRequestInlinesUpdate(); // ensure image containers are updated
       Blocks.Remove(nextPar);
       thisPar.Inlines.AddRange(inlinesToMove);
       Selection!.BiasForward = true;
@@ -371,10 +387,10 @@ public partial class FlowDocument
 
       UpdateTextRanges(Selection.Start, -1);
 
-      thisPar.RequestInlinesUpdate = true;
+      thisPar.CallRequestInlinesUpdate();
       UpdateBlockAndInlineStarts(etbIndex);
 
-      thisPar.RequestTextBoxFocus = true;
+      thisPar.CallRequestTextBoxFocus();
 
    }
 
@@ -398,7 +414,7 @@ public partial class FlowDocument
             NextWordEndPoint = Selection.Start + 1;
          else
          {
-            int IndexNextSpace = Selection.StartParagraph.Text.IndexOf(" ", Selection.Start - Selection.StartParagraph.StartInDoc);
+            int IndexNextSpace = Selection.StartParagraph.Text.IndexOf(' ', Selection.Start - Selection.StartParagraph.StartInDoc);
             if (IndexNextSpace == -1)
                IndexNextSpace = Selection.StartParagraph.Text.Length;
             else
@@ -417,8 +433,8 @@ public partial class FlowDocument
       }
 
       SelectionStart_Changed(Selection, Selection.Start);
-      Selection.StartParagraph.RequestInlinesUpdate = true;
-      Selection.StartParagraph.UpdateTextLayoutInfoStart();
+      Selection.StartParagraph.CallRequestInlinesUpdate();
+      Selection.StartParagraph.CallRequestTextLayoutInfoStart();
 
    }
 
@@ -460,7 +476,7 @@ public partial class FlowDocument
          {
             Paragraph? p = restorePar.Key as Paragraph;
             p!.Inlines.Clear();
-            p.RequestInlinesUpdate = true;
+            p.CallRequestInlinesUpdate();
             p.Inlines.AddRange(restorePar.Value);
          }
       }
@@ -473,7 +489,7 @@ public partial class FlowDocument
          if (restorePar.Key.IsParagraph)
          {
             Paragraph? p = restorePar.Key as Paragraph;
-            p!.RequestInlinesUpdate = true;
+            p!.CallRequestInlinesUpdate();
             p.ClearSelection();
          }
 
@@ -481,5 +497,6 @@ public partial class FlowDocument
 
    }
 
-
+   [GeneratedRegex(@"[\r\n]")]
+   internal static partial Regex FindLineBreakCharsRegex();
 }

@@ -1,54 +1,40 @@
 using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Controls;
-using Avalonia.Controls.Documents;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Data;
+using Avalonia.Input;
+using Avalonia.Input.TextInput;
+using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
-using DynamicData;
-using ReactiveUI;
 using System;
-using System.Diagnostics;
 using System.Linq;
 
 namespace AvRichTextBox;
 
 public partial class RichTextBox : UserControl
-{   
-   //public delegate void Status_ChangedHandler(string statusText);
-   //public event Status_ChangedHandler? Status_Changed;
-
+{
    public FlowDocument FlowDoc => rtbVM.FlowDoc;
-
-   private readonly Rectangle? _CursorRect = new ()
-   {
-      StrokeThickness = 2,
-      Stroke = Brushes.Black,
-      Height = 20,
-      Width = 1.5,
-      IsVisible = false,
-      HorizontalAlignment = HorizontalAlignment.Left,
-      VerticalAlignment = VerticalAlignment.Top
-   };
-
    RichTextBoxViewModel rtbVM { get; set; } = new();
-
 
    public RichTextBox()
    {
       InitializeComponent();
 
-      //this.DataContext = rtbVM;
-      MainDP.DataContext = rtbVM;
+
+      MainDP.DataContext = rtbVM;  // bind to child DockPanel, not the UserControl itself
+
 
       this.Loaded += RichTextBox_Loaded;
       this.Initialized += RichTextBox_Initialized;
 
-      this.PropertyChanged += RichTextBox_PropertyChanged;
+      this.GotFocus += RichTextBox_GotFocus;
+
+      //this.PropertyChanged += RichTextBox_PropertyChanged;
 
       FlowDocSV.SizeChanged += FlowDocSV_SizeChanged;
 
@@ -64,17 +50,113 @@ public partial class RichTextBox : UserControl
 
       this.TextInput += RichTextBox_TextInput;
 
+      this.Focusable = true;
+
+
    }
 
-   private void RichTextBox_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+   private void RichTextBox_GotFocus(object? sender, GotFocusEventArgs e)
    {
+   }
 
-      if (e.Property.ToString() == "IsVisible")
+   public void UpdateAllInlines()
+   {
+      
+      foreach (Paragraph p in FlowDoc.Blocks.Where(b => b.IsParagraph))
       {
-         rtbVM.CursorVisible = this.IsVisible;
+         p.CallRequestInlinesUpdate();
+         p.CallRequestInvalidateVisual();
+
+      }
+         
+
+   }
+
+
+   internal void CreateClient()
+   {
+      InputMethod.SetIsInputMethodEnabled(this, true);
+      this.TextInputMethodClientRequested += RichTextBox_TextInputMethodClientRequested;
+
+      client = new RichTextBoxTextInputClient(this);
+
+      //Debug.WriteLine("created new client)");
+
+      this.Focus();
+
+   }
+
+   RichTextBoxTextInputClient client = null!;
+
+   private void RichTextBox_TextInputMethodClientRequested(object? sender, TextInputMethodClientRequestedEventArgs e)
+   {
+     
+      if (e.GetType() == typeof(TextInputMethodClientRequestedEventArgs))
+      {
+         if (client == null)
+            client = new RichTextBoxTextInputClient(this);
+        
+         e.Client = client;
+
+         //Debug.WriteLine("e.Client requested = " + e.Client.Selection.ToString());
+
       }
 
+   }
 
+   string _preeditText = "";
+
+   public void InsertPreeditText(string preeditText)
+   {      
+      _preeditText = preeditText;
+      //Debug.WriteLine("preditexttext = *" + _preeditText + "*");
+      UpdatePreeditOverlay();
+      
+   }
+
+   internal Point CursorPosition { get; set; }
+   public Point GetCurrentPosition() => CursorPosition;
+
+
+   private void UpdatePreeditOverlay()
+   {
+      if (!string.IsNullOrEmpty(_preeditText))
+      {
+
+         double cX = _CursorRect!.Margin.Left + 5;
+         double cY = _CursorRect!.Margin.Top + 7;
+                  
+         PreeditOverlay.Text = _preeditText;
+         PreeditOverlay.Margin = new Thickness(cX, cY, 0, 0);
+         PreeditOverlay.IsVisible = true;
+         CursorPosition = new Point(cX, cY - rtbVM.RTBScrollOffset.Y);
+         client.UpdateCursorPosition();
+
+      }
+      else
+      {
+         PreeditOverlay.IsVisible = false;
+      }
+   }
+
+   
+   
+   private readonly Rectangle? _CursorRect = new()
+   {
+      StrokeThickness = 2,
+      Stroke = Brushes.Black,
+      Height = 20,
+      Width = 1.5,
+      IsVisible = false,
+      HorizontalAlignment = HorizontalAlignment.Left,
+      VerticalAlignment = VerticalAlignment.Top
+   };
+
+
+   public void InvalidateCursor()
+   {
+      rtbVM.CursorVisible = true;
+         
    }
 
    public void CloseDocument()
@@ -93,13 +175,14 @@ public partial class RichTextBox : UserControl
    {
       this.Focus();
 
-//#if DEBUG
-//      RunDebugger.DataContext = FlowDoc;
-//#else
-//      RunDebugger.DataContext = null;
-//#endif
+      //#if DEBUG
+      //      RunDebugger.DataContext = FlowDoc;
+      //#else
+      //      RunDebugger.DataContext = null;
+      //#endif
 
       FlowDoc.InitializeDocument();
+
 
       this.UpdateLayout();
       this.InvalidateVisual();
@@ -112,7 +195,7 @@ public partial class RichTextBox : UserControl
       
    }
 
-   private void SaveRtfDoc(string fileName)
+   public void SaveRtfDoc(string fileName)
    {
       FlowDoc.SaveRtf(fileName);
       
@@ -208,9 +291,9 @@ public partial class RichTextBox : UserControl
          IterationCount = IterationCount.Infinite,
          Children =
             {
-                new KeyFrame { Cue = new Cue(0.0), Setters = { new Setter(Rectangle.OpacityProperty, 0.0) } },
-                new KeyFrame { Cue = new Cue(0.5), Setters = { new Setter(Rectangle.OpacityProperty, 1.0) } },
-                new KeyFrame { Cue = new Cue(1.0), Setters = { new Setter(Rectangle.OpacityProperty, 0.0) } }
+                new KeyFrame { Cue = new (0.0), Setters = { new Setter(Rectangle.OpacityProperty, 0.0) } },
+                new KeyFrame { Cue = new (0.5), Setters = { new Setter(Rectangle.OpacityProperty, 1.0) } },
+                new KeyFrame { Cue = new (1.0), Setters = { new Setter(Rectangle.OpacityProperty, 0.0) } }
             }
       };
    }
@@ -221,15 +304,18 @@ public partial class RichTextBox : UserControl
       //selRect.Points = RecreatePolygonPoints();
    }
 
-   private void RichTextBox_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+   private void RichTextBox_Loaded(object? sender, RoutedEventArgs e)
    {
    
       this.Focus();
       
       InitializeDocument();
 
+      CreateClient();
+
+
    }
-  
+
    private void ScrollViewer_ScrollChanged(object? sender, Avalonia.Controls.ScrollChangedEventArgs e)
    {
       rtbVM.RTBScrollOffset = FlowDocSV.Offset;
@@ -238,5 +324,4 @@ public partial class RichTextBox : UserControl
 
 
 }
-
 

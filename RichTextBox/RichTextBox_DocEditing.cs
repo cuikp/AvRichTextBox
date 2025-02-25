@@ -11,10 +11,19 @@ public partial class RichTextBox
 
    private void RichTextBox_TextInput(object? sender, Avalonia.Input.TextInputEventArgs e)
    {
-      FlowDoc.InsertChar(e.Text);
+      FlowDoc.InsertText(e.Text);
       UpdateCurrentParagraphLayout();
-
       
+      if (PreeditOverlay.IsVisible)
+         HideIMEOverlay();
+         
+   }
+
+   private void HideIMEOverlay()
+   {
+      _preeditText = "";
+      PreeditOverlay.IsVisible = false;
+
    }
 
    private void DeleteSelection()
@@ -71,7 +80,7 @@ public partial class RichTextBox
          if (FlowDoc.Selection.Start == 0) return;
 
          if (FlowDoc.Selection.StartParagraph.SelectionStartInBlock == 0)
-         {
+         { //at start of paragraph 
             FlowDoc.MoveSelectionLeft(true);
             FlowDoc.MergeParagraphForward(FlowDoc.Selection.StartParagraph, true);
          }

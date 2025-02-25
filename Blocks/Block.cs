@@ -5,13 +5,14 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace AvRichTextBox;
 
 public class Block : INotifyPropertyChanged
 {
    public event PropertyChangedEventHandler? PropertyChanged;
-   internal void NotifyPropertyChanged([CallerMemberName] String propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
+   public void NotifyPropertyChanged([CallerMemberName] String propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
    private Thickness _Margin = new (0, 10, 0, 0);
    public Thickness Margin { get => _Margin; set { _Margin = value; NotifyPropertyChanged(nameof(Margin)); } }
@@ -51,20 +52,39 @@ public class Block : INotifyPropertyChanged
    internal int EndInDoc => StartInDoc + BlockLength;
 
    private int _SelectionStartInBlock;
-   internal int SelectionStartInBlock
+   public int SelectionStartInBlock
    {
       get => _SelectionStartInBlock;
       set { if (_SelectionStartInBlock != value) { _SelectionStartInBlock = value; NotifyPropertyChanged(nameof(SelectionStartInBlock)); } }
    }
 
    private int _SelectionEndInBlock;
-   internal int SelectionEndInBlock
+   public int SelectionEndInBlock
    {
       get => _SelectionEndInBlock;
-      set { if (_SelectionEndInBlock != value) { _SelectionEndInBlock = value; NotifyPropertyChanged(nameof(SelectionEndInBlock)); } }
+      //set { _SelectionEndInBlock = value; NotifyPropertyChanged(nameof(SelectionEndInBlock)); }
+
+      set
+      {
+
+         if (_SelectionEndInBlock != value)
+         {
+
+            
+            _SelectionEndInBlock = value; // Set the correct value
+            NotifyPropertyChanged(nameof(SelectionEndInBlock));
+
+            //Task.Delay(10).ContinueWith(_ => NotifyPropertyChanged(nameof(SelectionEndInBlock)), TaskScheduler.FromCurrentSynchronizationContext());
+
+         }
+
+      }
+
    }
 
-   public bool IsFocusable => false;
+
+
+   public static bool IsFocusable => false;
 
    internal void ClearSelection() { this.SelectionStartInBlock = 0; this.SelectionEndInBlock = 0; }
    internal void CollapseToStart() { if (SelectionStartInBlock != SelectionEndInBlock) SelectionEndInBlock = SelectionStartInBlock; }

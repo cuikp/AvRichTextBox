@@ -1,5 +1,10 @@
 ﻿using Avalonia.Media;
+using Avalonia.Media.Immutable;
+using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace AvRichTextBox;
 
@@ -27,7 +32,10 @@ public class Paragraph : Block
    private SolidColorBrush _Background = new (Colors.Transparent);
    public SolidColorBrush Background { get => _Background; set { _Background = value; NotifyPropertyChanged(nameof(Background)); } }
 
-   private FontFamily _FontFamily = new ("Times New Roman, ＭＳ 明朝");
+   //private FontFamily _FontFamily = new ("ＭＳ 明朝, Times New Roman");
+   //private FontFamily _FontFamily = new ("Courier New, Meiryo");
+   //private FontFamily _FontFamily = new ("Times New Roman");
+   private FontFamily _FontFamily = new ("Meiryo");
    public FontFamily FontFamily { get => _FontFamily; set { _FontFamily = value; NotifyPropertyChanged(nameof(FontFamily)); } }
 
    private double _FontSize = 16D;
@@ -44,6 +52,13 @@ public class Paragraph : Block
 
    private TextAlignment _TextAlignment = TextAlignment.Left;
    public TextAlignment TextAlignment { get => _TextAlignment; set { _TextAlignment = value; NotifyPropertyChanged(nameof(TextAlignment)); } }
+
+   //private SolidColorBrush _SelectionForegroundBrush = new (Colors.Black);  // in Avalonia > 11.1, setting this alters the selection font for some reason
+   //public SolidColorBrush SelectionForegroundBrush { get => _SelectionForegroundBrush; set { _SelectionForegroundBrush = value; NotifyPropertyChanged(nameof(SelectionForegroundBrush)); } }
+
+   private SolidColorBrush _SelectionBrush = LightBlueBrush;
+   public SolidColorBrush SelectionBrush { get => _SelectionBrush; set { _SelectionBrush = value; NotifyPropertyChanged(nameof(SelectionBrush)); } }
+   internal static SolidColorBrush LightBlueBrush = new(Colors.LightBlue);
 
 
    internal double DistanceSelectionEndFromLeft = 0;
@@ -79,9 +94,11 @@ public class Paragraph : Block
    //private int _RequestRectOfCharacterIndex;
    //public int RequestRectOfCharacterIndex { get => _RequestRectOfCharacterIndex; set { _RequestRectOfCharacterIndex = value; NotifyPropertyChanged(nameof(RequestRectOfCharacterIndex)); } }
 
-
-   internal void UpdateTextLayoutInfoStart() { RequestTextLayoutInfoStart = true; }
-   internal void UpdateTextLayoutInfoEnd() { RequestTextLayoutInfoEnd = true; }
+   internal void CallRequestTextBoxFocus() { RequestTextBoxFocus = true; RequestTextBoxFocus = false; }
+   internal void CallRequestInvalidateVisual() { RequestInvalidateVisual = true; RequestInvalidateVisual = false; }
+   internal void CallRequestInlinesUpdate() { RequestInlinesUpdate = true; RequestInlinesUpdate = false; }
+   internal void CallRequestTextLayoutInfoStart() { RequestTextLayoutInfoStart = true;RequestTextLayoutInfoStart = false; }
+   internal void CallRequestTextLayoutInfoEnd() { RequestTextLayoutInfoEnd = true; RequestTextLayoutInfoEnd = false; }
 
    internal void UpdateEditableRunPositions()
    {

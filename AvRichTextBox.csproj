@@ -10,7 +10,7 @@
 	  <Company>---</Company>
 	  <Product>AvRichTextBox</Product>
 	  <PackageId>Simplecto.Avalonia.RichTextBox</PackageId>
-	  <Version>1.0.13</Version>
+	  <Version>1.0.18</Version>
 	  <Description>A RichTextBox control to be used in Avalonia</Description>
 	  <PackageTags>Avalonia;UserControl;RichTextBox</PackageTags>
 	  <Title>A RichTextBox control for Avalonia</Title>
@@ -19,7 +19,9 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>In version 1.0.13, changed the internal binding from the RichTextBox (the UserControl) itself to an immediate child (DockPanel) in order to free it for external binding.  (Also, minor change to allow copying/pasting of paragraph breaks).</PackageReleaseNotes>
+	  <PackageReleaseNotes>ver 1.0.18 improves IME popup location and behavior (Hides on Esc key, or after backspacing to null entry).
+In addition, the RichTextBox content can now be saved as .rtf  (SaveRtfDoc(string fileName)).  As of now, not all attributes are honored in the save (only bold, fontsize, italic and underline).
+</PackageReleaseNotes>
 
       <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
       <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
@@ -27,6 +29,10 @@
 	  <PackageOutputPath>D:\PROG\LocalNuget\AvRichTextBox</PackageOutputPath>
   </PropertyGroup>
 
+
+	<!--<PropertyGroup>
+		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+	</PropertyGroup>-->
 
 
 	<ItemGroup>
@@ -46,19 +52,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.0.10" />
-    <PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="11.0.10" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.0.10" />
-    <PackageReference Include="Avalonia.Skia" Version="11.0.10" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.10" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.10" />
+    <PackageReference Include="Avalonia" Version="11.2.4" />
+    <PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="11.1.5" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.4" />
+    <PackageReference Include="Avalonia.Skia" Version="11.2.4" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.4" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="11.2.4" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.0.10" />
-    <PackageReference Include="DocumentFormat.OpenXml" Version="3.0.2" />
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.2.4" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="3.2.0" />
   </ItemGroup>
 
 
-
+	
   <ItemGroup>
 	
 	<None Include="..\..\..\__3rdPartyResources__\RtfDomParser-master\RtfDomParser-master\Source\RtfDomParser\bin\Debug\net8.0\RtfDomParser.dll">
@@ -73,6 +79,13 @@
 	</ItemGroup>
 
 	<ItemGroup>
+    <Compile Update="RtfImportExport\FlowDocument_Rtf.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+    <Compile Update="RichTextBox\RichTextBoxInputClient.cs">
+      <SubType>Code</SubType>
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
     <Compile Update="RichTextBox\RichTextBox_SelectionRect.cs">
       <DependentUpon>%(Filename)</DependentUpon>
     </Compile>

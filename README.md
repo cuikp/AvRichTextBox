@@ -1,7 +1,7 @@
 # A RichTextBox control for Avalonia
 [![NuGet version](https://img.shields.io/nuget/v/Simplecto.Avalonia.RichTextBox.svg?cachebuster=1)](https://www.nuget.org/packages/Simplecto.Avalonia.RichTextBox/)
 
-As of 2024, Avalonia doesn't yet come with a RichTextBox, and since I needed one I created a "poor-man's version" based on the existing control `SelectableTextBox`.
+As of 2024, Avalonia doesn't yet come with a RichTextBox, and since I needed one I created a "poor-man's version" based on the existing control `SelectableTextBlock`.
 
 Mirroring WPF, this `RichTextBox` control uses the concept of a `FlowDocument` (`FlowDoc`), which contains `Blocks` (at the current time, only `Paragraph` is available, although `Section` or `Table` could be added later). 
 `Paragraph` contains `IEditable` objects (`EditableRun` (from `Avalonia.Run`) and `EditableInlineUIContainer` (from `Avalonia.InlineUIContainer`)) and it is bound to an `EditableParagraph` (inheriting from `SelectableTextBlock`).
@@ -89,3 +89,11 @@ RtfDomParser can be found at https://github.com/SourceCodeBackup/RtfDomParser, b
 Internal binding was of the RTB itself to its viewmodel, which prevented external binding to UserControl properties (such as IsVisible).  Internal binding is now to the immediate child (DockPanel "MainDP"), freeing up the properties of the UserControl itself.
 
 Also upgraded copy/paste to allow copying and pasting of paragraph breaks (\r), which were ignored before.
+
+**Added 2025/02/25
+ver 1.0.16 now works with Avalonia 11.1.xx & 11.2.xx!  Binding update issues resolved.
+In addition, added IME support for Chinese/Japanese input.  Kanji and Hanzi can now be directly inputted in the RichTextBox.
+
+**Added 2025/02/26
+ver 1.0.17 improves IME popup location and behavior (Hides on Esc key, or after backspacing to null entry).
+In addition, the RichTextBox content can now be saved as .rtf  (SaveRtfDoc(string fileName)).  As of now, not all attributes are honored in the save (only bold, fontsize, italic and underline).

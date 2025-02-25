@@ -3,13 +3,12 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using System;
 using System.Diagnostics;
-using System.Linq;
 
 namespace AvRichTextBox;
 
 public partial class RichTextBox : UserControl
 {
-   private void SelectionStart_RectChanged(EditableParagraph edPar)
+   internal void SelectionStart_RectChanged(EditableParagraph edPar)
    {
       edPar.UpdateLayout();
 
@@ -48,12 +47,13 @@ public partial class RichTextBox : UserControl
       thisPar.FirstIndexStartLine = edPar.TextLayout.TextLines[lineNo].FirstTextSourceIndex;
       thisPar.FirstIndexLastLine = edPar.TextLayout.TextLines[^1].FirstTextSourceIndex;
 
+      //Debug.WriteLine("will update cursor: START rect changed, end-start = " + (FlowDoc.Selection.End - FlowDoc.Selection.Start));
 
       rtbVM.UpdateCursor();
 
    }
 
-   private void SelectionEnd_RectChanged(EditableParagraph edPar)
+   internal void SelectionEnd_RectChanged(EditableParagraph edPar)
    {
       edPar.UpdateLayout();
 
@@ -91,7 +91,7 @@ public partial class RichTextBox : UserControl
 
    }
 
-   private int GetClosestIndex(EditableParagraph edPar, int lineNo, double distanceFromLeft, int direction)
+   private static int GetClosestIndex(EditableParagraph edPar, int lineNo, double distanceFromLeft, int direction)
    {
       CharacterHit chit = edPar.TextLayout.TextLines[lineNo + direction].GetCharacterHitFromDistance(distanceFromLeft);
 

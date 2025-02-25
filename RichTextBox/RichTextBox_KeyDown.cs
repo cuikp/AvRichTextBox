@@ -5,13 +5,11 @@ using System.Diagnostics;
 namespace AvRichTextBox;
 
 public partial class RichTextBox
-{
-   //int CursorPosText = 0;
-
+{  
 
    private void RichTextBox_KeyDown(object? sender, KeyEventArgs e)
    {
-      
+
       if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
       {
          e.Handled = true;
@@ -77,7 +75,10 @@ public partial class RichTextBox
          switch (e.Key)
          {
             case Key.Escape:
-               //Do nothing
+
+               if (PreeditOverlay.IsVisible)
+                  HideIMEOverlay();
+
                break;
 
             case Key.Enter:
@@ -144,6 +145,11 @@ public partial class RichTextBox
                break;
 
          }
+
+         rtbVM.CursorVisible = (rtbVM.FlowDoc.Selection.Length == 0);
+         if (client != null)
+            UpdatePreeditOverlay();
+
       }
 
 

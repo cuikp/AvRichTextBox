@@ -3,15 +3,15 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" Background="WhiteSmoke"
-			 xmlns:local="using:AvRichTextBox" KeyDown="RichTextBox_KeyDown"  Focusable="True" 
+			 xmlns:local="using:AvRichTextBox" KeyDown="RichTextBox_KeyDown"  Focusable="True"
 	         x:Class="AvRichTextBox.RichTextBox" PointerReleased="RichTextBox_PointerReleased" PointerExited="RichTextBox_PointerExited"
 			  >
 
+		<!--<DockPanel x:Name="MainDP" x:DataType="local:RichTextBoxViewModel">-->
+		<DockPanel x:Name="MainDP">
 
-	<DockPanel x:Name="MainDP" >
-
-		<!--VISUAL DEBUGGER - Use this Grid for debugging, to show a right-docked panel with visualization of runs -->
-		<!--<Grid DockPanel.Dock="Right" Width="400" DataContext="{Binding FlowDoc}" >
+			<!--VISUAL DEBUGGER - Use this Grid for debugging, to show a right-docked panel with visualization of runs -->
+			<!--<Grid DockPanel.Dock="Right" Width="400" DataContext="{Binding FlowDoc}" >
 			<DockPanel x:Name="RunDebugger"  >
 				<DockPanel DockPanel.Dock="Top" Background="Coral">
 
@@ -49,11 +49,9 @@
 											<Border BorderBrush="Black" BorderThickness="{Binding InlineSelectedBorderThickness}" Background="{Binding BackBrush}">
 												<Grid ColumnDefinitions="50* 10* 10* 10*" HorizontalAlignment="Stretch" ShowGridLines="True" Margin="0" >
 													<TextBlock Margin="3, 0" Grid.Column="0" Text="{Binding DisplayInlineText}" TextWrapping="Wrap"
-															   FontWeight="{Binding FontWeight}" FontStyle="{Binding FontStyle}" 
-															   TextDecorations="{Binding TextDecorations}"/>
+															   FontWeight="{Binding FontWeight}" FontStyle="{Binding FontStyle}" />
 													<TextBlock  Grid.Column="1" Text="{Binding TextPositionOfInlineInParagraph}" TextAlignment="Center" />
 													<TextBlock  Grid.Column="2" Text="{Binding InlineText.Length}" TextAlignment="Center" />
-													<TextBlock  Grid.Column="3" Text="{Binding SSIRT}" TextAlignment="Center" />
 												</Grid>
 											</Border>
 										</DataTemplate>
@@ -73,54 +71,57 @@
 
 		</Grid>-->
 
-		<ScrollViewer x:Name="FlowDocSV"  HorizontalScrollBarVisibility="Disabled" Margin="1"
-					   Offset="{Binding RTBScrollOffset, Mode=OneWay}"  ScrollChanged="ScrollViewer_ScrollChanged"
-					  PointerPressed="FlowDocSV_PointerPressed" PointerMoved="FlowDocSV_PointerMoved" PointerReleased="FlowDocSV_PointerReleased" >
+			<ScrollViewer x:Name="FlowDocSV"  HorizontalScrollBarVisibility="Disabled" Margin="1"
+						   Offset="{Binding RTBScrollOffset, Mode=OneWay}"  ScrollChanged="ScrollViewer_ScrollChanged"
+						  PointerPressed="FlowDocSV_PointerPressed" PointerMoved="FlowDocSV_PointerMoved" PointerReleased="FlowDocSV_PointerReleased" >
 
 
-			<Grid VerticalAlignment="Top">
-								
-				<ItemsControl x:Name="DocIC"  DataContext="{Binding FlowDoc}" VerticalAlignment="Top" ItemsSource="{Binding Blocks}" Margin="8" Padding="{Binding PagePadding}"  >
+				<Grid VerticalAlignment="Top">
 
-					<ItemsControl.ItemsPanel>
-						<ItemsPanelTemplate>
-							<StackPanel Orientation="Vertical" />
-						</ItemsPanelTemplate>
-					</ItemsControl.ItemsPanel>
+					<ItemsControl x:Name="DocIC"  DataContext="{Binding FlowDoc}" VerticalAlignment="Top" ItemsSource="{Binding Blocks}" Margin="8" Padding="{Binding PagePadding}"  >
 
-					<ItemsControl.ItemTemplate>
-					
+						<ItemsControl.ItemsPanel>
+							<ItemsPanelTemplate>
+								<StackPanel Orientation="Vertical" />
+							</ItemsPanelTemplate>
+						</ItemsControl.ItemsPanel>
+
+						<ItemsControl.ItemTemplate>
+
 							<DataTemplate>
-								
+
 								<Border BorderThickness="1" BorderBrush="Transparent" CornerRadius="3" Margin="{Binding Margin}"
-									 VerticalAlignment="Top" HorizontalAlignment="Stretch" Padding="0">
-									
+									  VerticalAlignment="Top" HorizontalAlignment="Stretch" Padding="0">
+
 									<ContentControl Content="{Binding}" HorizontalAlignment="Stretch" >
 
 										<ContentControl.DataTemplates>
 											<DataTemplate DataType="local:Paragraph">
 
 												<!--LineHeight="{Binding LineHeight}"-->
-												
+
+
 												<local:EditableParagraph xml:space="preserve" TextWrapping="Wrap" Margin="0"
-														FontFamily="{Binding FontFamily}"
-														FontWeight="{Binding FontWeight}"
-														FontSize="{Binding FontSize}"
-														Background="{Binding Background}"
-														TextAlignment="{Binding TextAlignment}"
+															FontFamily="{Binding FontFamily}"
+															FontWeight="{Binding FontWeight}"
+															FontSize="{Binding FontSize}"
+															Background="{Binding Background}"
+															TextAlignment="{Binding TextAlignment}"
+															SelectionBrush="{Binding SelectionBrush}"
 																		 
-														SelectionStart="{Binding SelectionStartInBlock, Mode=TwoWay}"
-														SelectionEnd="{Binding SelectionEndInBlock, Mode=TwoWay}"
-														MouseMove="EditableParagraph_MouseMove"
-														LostFocus="EditableParagraph_LostFocus"
-														TextLayoutInfoStartRequested="{Binding RequestTextLayoutInfoStart}"
-														TextLayoutInfoEndRequested="{Binding RequestTextLayoutInfoEnd}"
+															SelectionStart="{Binding SelectionStartInBlock, Mode=TwoWay}"
+															SelectionEnd="{Binding SelectionEndInBlock, Mode=TwoWay}"
+														
+															MouseMove="EditableParagraph_MouseMove"
+															LostFocus="EditableParagraph_LostFocus"
+															TextLayoutInfoStartRequested="{Binding RequestTextLayoutInfoStart}"
+															TextLayoutInfoEndRequested="{Binding RequestTextLayoutInfoEnd}"
 														 
-														SelectionStartRect_Changed="SelectionStart_RectChanged"
-														SelectionEndRect_Changed="SelectionEnd_RectChanged"
-														local:RequestExtensions.TextBoxFocusRequested="{Binding RequestTextBoxFocus}"
-														local:RequestExtensions.IsInlineUpdateRequested="{Binding RequestInlinesUpdate}"
-														local:RequestExtensions.InvalidateVisualRequested="{Binding RequestInvalidateVisual}"		/>
+															SelectionStartRect_Changed="SelectionStart_RectChanged"
+															SelectionEndRect_Changed="SelectionEnd_RectChanged"
+															local:RequestExtensions.TextBoxFocusRequested="{Binding RequestTextBoxFocus}"
+															local:RequestExtensions.IsInlineUpdateRequested="{Binding RequestInlinesUpdate}"
+															local:RequestExtensions.InvalidateVisualRequested="{Binding RequestInvalidateVisual}" />
 
 											</DataTemplate>
 
@@ -131,23 +132,27 @@
 																		 ColDefs="{Binding ColDefs}" RowDefs="{Binding RowDefs}" />
 												</Border>
 											</DataTemplate>-->
-											
+
 										</ContentControl.DataTemplates>
 									</ContentControl>
 								</Border>
-						
-						</DataTemplate>
-					</ItemsControl.ItemTemplate>
-				</ItemsControl>
-		
-				<Polygon x:Name="selRect" Stroke="Red" StrokeThickness="2.5" HorizontalAlignment="Left" VerticalAlignment="Top"
-					 IsHitTestVisible="False" />
 
-				<!--<Button Content="UpdateStart" HorizontalAlignment="Left" VerticalAlignment="Top" Background="White" BorderBrush="Black" Click="UpdateStartBut_Click" />-->
-				
-			</Grid>
-		</ScrollViewer>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+
+					<Polygon x:Name="selRect" Stroke="Red" StrokeThickness="2.5" HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False" />
 
 
-	</DockPanel>
+					<TextBlock x:Name="PreeditOverlay" Padding="4, 0, 4, 2" Height="24" FontSize="15" HorizontalAlignment="Left" VerticalAlignment="Top"
+							 Foreground="Black" Background="#DDDDDD" IsHitTestVisible="False" IsVisible="False"/>
+
+
+				</Grid>
+			</ScrollViewer>
+
+
+		</DockPanel>
+
+
 </UserControl>

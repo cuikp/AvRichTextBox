@@ -1,6 +1,8 @@
 ﻿using Avalonia;
+using Avalonia.Threading;
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using static AvRichTextBox.FlowDocument;
 
@@ -11,17 +13,11 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
    public event PropertyChangedEventHandler? PropertyChanged;
    private void NotifyPropertyChanged([CallerMemberName] String propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
-   //public delegate void UpdateRTBLayout_Handler();
-   //public event UpdateRTBLayout_Handler? UpdateRTBLayout;
-
    private Vector _RTBScrollOffset = new (0, 0);
    public Vector RTBScrollOffset { get => _RTBScrollOffset; set { if (_RTBScrollOffset != value) _RTBScrollOffset = value; NotifyPropertyChanged(nameof(RTBScrollOffset)); } }
 
-   //private readonly FlowDocument _FlowDoc = new();
-   //public FlowDocument FlowDoc => _FlowDoc;
-
    private FlowDocument _FlowDoc = new();
-   public FlowDocument FlowDoc { get { return _FlowDoc; } set { _FlowDoc = value; NotifyPropertyChanged(nameof(FlowDoc)); } }
+   public FlowDocument FlowDoc { get => _FlowDoc;  set { _FlowDoc = value; NotifyPropertyChanged(nameof(FlowDoc)); } }
 
    public bool RunDebuggerVisible { get; set; } = false;
 
@@ -45,8 +41,6 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
    }
 
    internal double ScrollViewerHeight = 10;
-      
-
    
    private double _CursorHeight = 5;
    public double CursorHeight { get => _CursorHeight; set { _CursorHeight = value; NotifyPropertyChanged(nameof(CursorHeight)); } }
@@ -59,12 +53,23 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
 
    internal void UpdateCursor()
    {
+      //Debug.WriteLine("...and updating cursor");
+
       double cursorML = FlowDoc.Selection.IsAtEndOfLineSpace ? FlowDoc.Selection!.PrevCharRect!.Right : FlowDoc.Selection.StartRect!.Left;
       double cursorMT = FlowDoc.Selection.IsAtEndOfLineSpace ? FlowDoc.Selection!.PrevCharRect.Top + 2 : FlowDoc.Selection.StartRect.Top + 2;
       CursorHeight = FlowDoc.Selection.IsAtEndOfLineSpace ? FlowDoc.Selection.PrevCharRect.Height * 0.85 : FlowDoc.Selection.StartRect.Height * 0.85;
 
       CursorMargin = new Thickness(cursorML, cursorMT, 0, 0);
+
+      if (FlowDoc.Selection.StartParagraph != null) 
+         FlowDoc.Selection.StartParagraph.CallRequestInvalidateVisual();
+
+      //Debug.WriteLine("sel length = " + FlowDoc.Selection.Length);
+
       CursorVisible = FlowDoc.Selection.Length == 0;
+
+
+      //Debug.WriteLine("Cursormargin = " + cursorML);
 
    }
 

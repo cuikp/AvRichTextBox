@@ -360,7 +360,7 @@ public partial class FlowDocument
       }
       
       //Closing bracket
-      attSB.Append(">");
+      attSB.Append('>');
 
       return attSB.ToString();
    }

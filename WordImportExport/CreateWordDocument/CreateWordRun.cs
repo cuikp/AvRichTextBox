@@ -87,7 +87,7 @@ internal static partial class WordConversions
          if (!string.IsNullOrEmpty(runtext.Text))
          {
             //if (runtext.Text.Contains(Constants.vbLf))
-            if (runtext.Text.Contains("\n"))
+            if (runtext.Text.Contains('\n'))
                ParseRunText(ref newrun, runtext.Text);
             else
 
@@ -95,7 +95,7 @@ internal static partial class WordConversions
          }
 
       }
-      catch (Exception ex) { Debug.WriteLine("Failed to create run: " + edRun.Text + "\nexception: " + ex.Message); }
+      catch (Exception ex) { Debug.WriteLine($"Failed to create run: {edRun.Text}\nexception: {ex.Message}"); }
 
       return newrun;
    }
@@ -110,7 +110,7 @@ internal static partial class WordConversions
       {
          if (string.IsNullOrEmpty(line))
          {
-            if (!(r.LastChild is Break))
+            if (r.LastChild is not Break)
                r.AppendChild(new Break());
          }
          else

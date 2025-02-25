@@ -60,7 +60,7 @@ internal static partial class WordConversions
                   Bitmap? imgbitmap = (Bitmap)img.Source!;
 
                   string extension = "";
-                  ImagePart imagePart = mainPart.AddImagePart(ImagePartType.Jpeg);
+                  ImagePart imagePart = mainPart!.AddImagePart(ImagePartType.Jpeg);
                                                       
                   //Debug.WriteLine("Imagesource is null ? : " + (thisImg.Source == null));
                   if (imgbitmap != null)
@@ -73,7 +73,7 @@ internal static partial class WordConversions
                         extension = ".jpg";
                      }
 
-                     parg.AppendChild(new DOW.Run(CreateWordDocDrawing(mainPart.GetIdOfPart(imagePart), img.Width, img.Height, extension)));
+                     parg.AppendChild(new DOW.Run(CreateWordDocDrawing(mainPart!.GetIdOfPart(imagePart), img.Width, img.Height, extension)));
 
                   }
                   break;

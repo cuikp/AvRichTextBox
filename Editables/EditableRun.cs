@@ -16,7 +16,7 @@ public class EditableRun : Run, IEditable, INotifyPropertyChanged
    public EditableRun(string text)
    {
       this.Text = text;
-      FontFamily = "Inter";
+      //FontFamily = "Meiryo";
       FontSize = 16;
    }
 
@@ -37,7 +37,7 @@ public class EditableRun : Run, IEditable, INotifyPropertyChanged
    public bool IsLineBreak => this.Text == "\v";
    
    public Thickness InlineSelectedBorderThickness => (IsStartInline || IsEndInline) ? new Thickness(3) : new Thickness(0.7);
-   public bool IsFirstInlineOfParagraph { get; set; }
+   public bool IsLastInlineOfParagraph { get; set; }
 
    public IEditable Clone()
    {
