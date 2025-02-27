@@ -12,6 +12,7 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
 using System;
+using System.Diagnostics;
 using System.Linq;
 
 namespace AvRichTextBox;
@@ -175,11 +176,11 @@ public partial class RichTextBox : UserControl
    {
       this.Focus();
 
-      //#if DEBUG
-      //      RunDebugger.DataContext = FlowDoc;
-      //#else
-      //      RunDebugger.DataContext = null;
-      //#endif
+#if DEBUG
+      RunDebugger.DataContext = FlowDoc;
+#else
+      RunDebugger.DataContext = null;
+#endif
 
       FlowDoc.InitializeDocument();
 
@@ -253,10 +254,11 @@ public partial class RichTextBox : UserControl
       double newScrollY = rtbVM.RTBScrollOffset.Y + FlowDocSV.Bounds.Height * direction;
       rtbVM.RTBScrollOffset = rtbVM.RTBScrollOffset.WithY(newScrollY);
       double newCaretY = newScrollY + distanceFromTop;
-
       //Debug.WriteLine("\nnewCaretY = " + newCaretY + "\nnewscrollY= " + newScrollY + "\ndistanceTop=" + distanceFromTop);
 
-      EditableParagraph? thisEP = DocIC.GetVisualDescendants().OfType<EditableParagraph>().Where(ep => ep.TranslatePoint(ep.Bounds.Position, DocIC)!.Value.Y <= newCaretY).LastOrDefault();
+      //EditableParagraph? thisEP = DocIC.GetVisualDescendants().OfType<EditableParagraph>().Where(ep => ep.TranslatePoint(ep.Bounds.Position, DocIC)!.Value.Y <= newCaretY).LastOrDefault();
+      EditableParagraph? thisEP = DocIC.GetVisualDescendants().OfType<EditableParagraph>().Where(ep => ep.TranslatePoint(ep.Bounds.Position, DocIC)!.Value.Y <= newScrollY).LastOrDefault();
+      
 
       if (thisEP == null)
       {
@@ -268,7 +270,7 @@ public partial class RichTextBox : UserControl
          double relYInEP = newCaretY - thisEP!.TranslatePoint(thisEP!.Bounds.Position, DocIC)!.Value.Y + 18;
          TextHitTestResult tres = thisEP.TextLayout.HitTestPoint(new Point(distanceFromLeft, relYInEP));
          int newCharIndexInDoc = ((Paragraph)thisEP.DataContext!).StartInDoc + tres.CharacterHit.FirstCharacterIndex;
-         FlowDoc.MovePageSelection(direction, extend, newCharIndexInDoc);
+         FlowDoc.MovePageSelection(direction, extend, newCharIndexInDoc + (int)(FlowDocSV.Bounds.Height / 2));
       }
 
    }

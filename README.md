@@ -97,3 +97,6 @@ In addition, added IME support for Chinese/Japanese input.  Kanji and Hanzi can 
 **Added 2025/02/26
 ver 1.0.17 improves IME popup location and behavior (Hides on Esc key, or after backspacing to null entry).
 In addition, the RichTextBox content can now be saved as .rtf  (SaveRtfDoc(string fileName)).  As of now, not all attributes are honored in the save (only bold, fontsize, italic and underline).
+
+**Added 2025/02/27
+ver 1.2.0 - Copying of richtext content (rtf format) is now possible.  Some navigation and pasting fixes/improvements.  Also pasting of large-volume text is now much faster.

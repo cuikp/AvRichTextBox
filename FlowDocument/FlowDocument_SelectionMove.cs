@@ -26,7 +26,7 @@ public partial class FlowDocument
 
             break;
          case ExtendMode.ExtendModeRight:
-            Selection.End = Math.Min(Selection.End, this.Text.Length - 1);
+            Selection.End = Math.Min(Selection.End, this.DocEndPoint - 1);
             break;
          case ExtendMode.ExtendModeLeft:
             //Do nothing just collapse selection
@@ -233,7 +233,7 @@ public partial class FlowDocument
       Selection.Start = 0;
       Selection.End = 0;
       SelectionParagraphs.Clear();
-      Selection.End = this.Text.Length;
+      Selection.End = this.DocEndPoint - 1;
       EnsureSelectionContinuity();
       this.SelectionExtendMode = ExtendMode.ExtendModeRight;
    }
@@ -249,6 +249,7 @@ public partial class FlowDocument
       
       EnsureSelectionContinuity();
 
+      UpdateSelection();
 
    }
 
@@ -329,6 +330,9 @@ public partial class FlowDocument
 
    internal void MovePageSelection(int direction, bool extend, int newIndexInDoc)
    {
+
+      newIndexInDoc = Math.Min(newIndexInDoc, this.DocEndPoint - 1);
+
       switch (direction)
       {
          case 1:
@@ -370,9 +374,11 @@ public partial class FlowDocument
                      SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeLeft;
                      break;
                   case ExtendMode.ExtendModeRight:
+
                      if (newIndexInDoc < Selection.Start)
                         SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeLeft;
                      Selection.End = newIndexInDoc;
+                     //Debug.WriteLine("Extending back, page up, extend mode right : selection.end = " + Selection.End + " (" + newIndexInDoc);
                      break;
                }
                EnsureSelectionContinuity();
@@ -392,6 +398,13 @@ public partial class FlowDocument
       
    }
 
+   internal void UpdateCursor()
+   {
+      Selection.StartParagraph.CallRequestTextLayoutInfoStart();
+      Selection.StartParagraph.CallRequestTextLayoutInfoEnd();
+      Selection.EndParagraph.CallRequestTextLayoutInfoStart();
+      Selection.EndParagraph.CallRequestTextLayoutInfoEnd();
+   }
 
    internal void UpdateSelection()
    {

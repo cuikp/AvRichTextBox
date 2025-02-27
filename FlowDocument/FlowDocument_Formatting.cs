@@ -120,7 +120,7 @@ public partial class FlowDocument
       foreach (Paragraph p in GetRangeBlocks(textRange).Where(b=>b.IsParagraph))
          p.CallRequestInlinesUpdate();
 
-
+      
       Selection.BiasForward = true;
       Selection.StartParagraph = GetContainingParagraph(Selection.Start);
       Selection.StartParagraph.SelectionStartInBlock = Selection.Start - Selection.StartParagraph.StartInDoc;
@@ -197,13 +197,13 @@ public partial class FlowDocument
    private void ApplyBackgroundRuns(List<IEditable> ieds, object background)
    {
       foreach (IEditable ied in ieds)
-         if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).Background = (SolidColorBrush)background; }
+         if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).Background = (ImmutableSolidColorBrush)background; }
    }
 
    private void ApplyForegroundRuns(List<IEditable> ieds, object foreground)
    {
       foreach (IEditable ied in ieds)
-         if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).Foreground = (SolidColorBrush)foreground; }
+         if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).Foreground = (ImmutableSolidColorBrush)foreground; }
    }
 
    private void ApplyFontStretchRuns(List<IEditable> ieds, object fontstretch)

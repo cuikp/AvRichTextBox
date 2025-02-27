@@ -24,7 +24,10 @@ public class EditableRun : Run, IEditable, INotifyPropertyChanged
    public Paragraph? myParagraph { get; set; }
    public int TextPositionOfInlineInParagraph { get; set; }
    public string InlineText { get => Text!; set => Text = value; }
-   public string DisplayInlineText { get => Text!.Length == 0 ? "{>EMPTY<}" : (Text.Length == 1 ? Text.Replace(" ", "{>SPACE<}").Replace("\v", "{>LineFeed<}").Replace("\t", "{>TAB<}") : Text!.Replace("\t", "{>TAB<}").Replace("\v", "{>LineFeed<}")); }
+   public string DisplayInlineText { get => Text!.Length == 0 ? "{>EMPTY<}" : 
+         (Text.Length == 1 ? Text.Replace(" ", "{>SPACE<}").Replace("\v", "{>LineFeed<}").Replace("\t", "{>TAB<}") : 
+         Text!.Replace("\t", "{>TAB<}").Replace("\v", "{>LineFeed<}")); }
+
    public int InlineLength => InlineText == "\v" ? 1 : InlineText.Length;
 
    private bool _IsStartInline = false;
@@ -50,7 +53,10 @@ public class EditableRun : Run, IEditable, INotifyPropertyChanged
          FontFamily = this.FontFamily,
          Background = this.Background,
          myParagraph = this.myParagraph,
-         TextPositionOfInlineInParagraph = this.TextPositionOfInlineInParagraph  //necessary because clone is produced when calculating range inline positions
+         TextPositionOfInlineInParagraph = this.TextPositionOfInlineInParagraph,  //necessary because clone is produced when calculating range inline positions
+         IsLastInlineOfParagraph = this.IsLastInlineOfParagraph,
+         BaselineAlignment = this.BaselineAlignment,
+         Foreground = this.Foreground,
       };
    }
 

@@ -43,7 +43,7 @@ public partial class FlowDocument
    {
       try
       {
-         string rtfText = ConvertBlocksToRtf(this.Blocks);
+         string rtfText = GetRtfFromFlowDocumentBlocks(this.Blocks);
          File.WriteAllText(fileName, rtfText, Encoding.Default);
          //Debug.WriteLine(rtfText);
       }

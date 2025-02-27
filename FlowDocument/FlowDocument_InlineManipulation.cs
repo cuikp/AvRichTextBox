@@ -9,7 +9,7 @@ namespace AvRichTextBox;
 public partial class FlowDocument
 {
 
-   private List<IEditable> GetRangeInlines(TextRange trange)
+   internal List<IEditable> GetRangeInlines(TextRange trange)
    {
       Paragraph? startPar = trange.GetStartPar();
       Paragraph? endPar = trange.GetEndPar();
@@ -53,13 +53,13 @@ public partial class FlowDocument
          firstInline.InlineText = firstInline.InlineText[firstInlineSplitIndex ..];
          lastInline.InlineText = lastInline.InlineText[..lastInlineSplitIndex];
       }
+
       return AllSelectedInlines;
 
    }
 
    
-
-   private List<IEditable> CreateNewInlinesForRange(TextRange trange)
+   internal List<IEditable> CreateNewInlinesForRange(TextRange trange)
    {
       
       Paragraph? startPar = trange.GetStartPar();
@@ -158,14 +158,19 @@ public partial class FlowDocument
 
    }
 
-   internal void RemoveEmptyParagraphs(int upToParNo)
+   internal int RemoveEmptyParagraphs(int upToParNo)
    {
+      int removedParCount = 0;
       for (int idx = Blocks.Count - 1; idx >= upToParNo; idx--)
       {
          Paragraph p = (Paragraph)Blocks[idx];
          if (p.Inlines.Count == 0 || (p.Inlines.Count == 1 && p.Inlines[0].InlineLength == 0))
+         {
             Blocks.Remove(p);
+            removedParCount++;
+         }
       }
+      return removedParCount;
    }
 
    internal void RemoveEmptyInlines(List<int> processParIndexes)

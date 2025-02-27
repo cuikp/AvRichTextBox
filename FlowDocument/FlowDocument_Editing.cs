@@ -1,8 +1,11 @@
-﻿using DynamicData;
+﻿using DocumentFormat.OpenXml.InkML;
+using DynamicData;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
 
 namespace AvRichTextBox;
@@ -128,31 +131,115 @@ public partial class FlowDocument
 
    }
 
-   internal void SetText(TextRange tRange, string newText)
-   {  //The delete range and SetText should constitute one Undo operation
+   internal int SetRangeToInlines(TextRange tRange, List<IEditable> newInlines)
+   {  // All of this should constitute one Undo operation
+
+      //Debug.WriteLine("newinlines=\n" + string.Join("\n", newInlines.ConvertAll(il => il.InlineText)));
+
+      int addedCharCount = 0;
+
+      Paragraph startPar = tRange.StartParagraph;
+
+      int rangeStart = tRange.Start;
+      int deleteRangeLength = tRange.Length;
+      int parIndex = Blocks.IndexOf(startPar);
+
+      //Undos.Add(new PasteUndo(KeepParsAndInlines(tRange), parIndex, this, rangeStart, deleteRangeLength - newText.Length));
+
+      //Delete selected range first
+      if (tRange.Length > 0)
+         DeleteRange(tRange, false);
+
+      IEditable startInline = tRange.GetStartInline();
+      List<IEditable> splitInlines = SplitRunAtPos(tRange, startInline, startInline.GetRangeStartInInline(tRange));
+
+      int insertionPt = startPar.Inlines.IndexOf(splitInlines[0]) + 1;
+
+      int startInlineIndex = startPar.Inlines.IndexOf(splitInlines[0]) + 1;
+      Paragraph addPar = startPar;
+      int inlineno = 0;
+      foreach (IEditable newinline in newInlines)
+      {
+         inlineno++;
+
+         bool addnewpar = false;
+
+         if (newinline.InlineText.EndsWith('\r'))
+         {
+            newinline.InlineText = newinline.InlineText[..^1];
+            addnewpar = inlineno > 1;
+         }
+
+         if (inlineno == newInlines.Count)
+         {
+            startInlineIndex = insertionPt;
+         }
+         else
+         {
+            if (addnewpar)
+            {
+               List<IEditable> moveInlines = addPar.Inlines.Take(new Range(0, startInlineIndex)).ToList();  // create an independent new list
+               addPar.Inlines.RemoveMany(moveInlines);
+
+               //Create new paragraph to insert
+               addPar = new Paragraph();
+               addPar.Inlines.AddRange(moveInlines);
+               
+               startInlineIndex = addPar.Inlines.Count;
+
+               //foreach (IEditable ied in addPar.Inlines)
+               //   Debug.WriteLine("addPar inlines= " + ied.InlineText);
+
+               //startInlineIndex = addPar.Inlines.Count;
+               Blocks.Insert(parIndex, addPar);
+               addPar.CallRequestInlinesUpdate();
+               UpdateBlockAndInlineStarts(addPar);
+               addedCharCount += 1;
+            }
+         }
+         addPar.Inlines.Insert(startInlineIndex, newinline);
+         addPar.CallRequestInlinesUpdate();
+         UpdateBlockAndInlineStarts(addPar);
+         addedCharCount += newinline.InlineLength;
+  
+      }
+
+      if (splitInlines[0].InlineText == "")
+         startPar.Inlines.Remove(splitInlines[0]);
+
+      startPar.CallRequestInlinesUpdate();
+      UpdateBlockAndInlineStarts(startPar);
+
+      return addedCharCount;
+
+   }
+
+
+   internal void SetRangeToText(TextRange tRange, string newText)
+   {  //The delete range and SetRangeToText should constitute one Undo operation
 
       Paragraph startPar = tRange.StartParagraph;
       int rangeStart = tRange.Start;
       int deleteRangeLength = tRange.Length;
-      int parIndex = Blocks.IndexOf(startPar); 
+      int parIndex = Blocks.IndexOf(startPar);
 
       Undos.Add(new PasteUndo(KeepParsAndInlines(tRange), parIndex, this, rangeStart, deleteRangeLength - newText.Length));
 
       //Delete any selected text first
       if (tRange.Length > 0)
       {
-         DeleteRange(tRange, false); 
-         tRange.CollapseToStart(); 
+         DeleteRange(tRange, false);
+         tRange.CollapseToStart();
          SelectionExtendMode = ExtendMode.ExtendModeNone;
       }
-            
+
       IEditable startInline = tRange.GetStartInline();
       List<IEditable> splitInlines = SplitRunAtPos(tRange, startInline, startInline.GetRangeStartInInline(tRange));
-      
+
       int startInlineIndex = startPar.Inlines.IndexOf(splitInlines[0]) + 1;
 
       EditableRun? sRun = splitInlines[0] as EditableRun;
-      EditableRun newEditableRun = new (newText)
+      EditableRun newEditableRun = new(newText)
       {
          FontFamily = sRun!.FontFamily,
          FontWeight = sRun.FontWeight,
@@ -170,44 +257,9 @@ public partial class FlowDocument
       startPar.CallRequestInlinesUpdate();
       UpdateBlockAndInlineStarts(startPar);
 
-
-      //try to create paragraphs at line breaks
-      List<int> pargPoints = FindLineBreakCharsRegex().Matches(newText).Select(m => m.Index).ToList();
-      
-      List<Paragraph> addedPars = [];
-      for (int i = pargPoints.Count - 1; i >= 0; i--)
-      {
-         Select(rangeStart + pargPoints[i], 0);
-
-         Paragraph newPar = InsertParagraph(false);
-         if (newPar.Inlines[0].InlineText.StartsWith('\r'))
-            newPar.Inlines[0].InlineText = newPar.Inlines[0].InlineText[1..];
-         addedPars.Add(newPar);
-
-      }
-   
-      RemoveEmptyParagraphs(Blocks.IndexOf(startPar));
-
-      UpdateTextRanges(rangeStart, newText.Length);
-
-      startPar.CallRequestInlinesUpdate();
-      UpdateBlockAndInlineStarts(startPar);
- 
-      if (tRange.Equals(Selection))
-         UpdateSelection();
-
-      foreach (Paragraph p in addedPars)
-      {
-         p.CallRequestTextLayoutInfoStart();
-         p.CallRequestTextLayoutInfoEnd();
-         p.CallRequestInlinesUpdate();
-         p.CallRequestInvalidateVisual();
-      }
-
-
-
    }
-
+   
+   
    internal void DeleteSelection()
    {
       DeleteRange(Selection, true);
@@ -281,7 +333,10 @@ public partial class FlowDocument
 
 
       UpdateSelection();
-     
+
+      trange.CollapseToStart();
+      SelectionExtendMode = ExtendMode.ExtendModeNone;
+
 
    }
 
@@ -328,19 +383,12 @@ public partial class FlowDocument
       newPar.Inlines.AddRange(RunList2);
       Blocks.Insert(parIndex + 1, newPar);
 
-      if (originalPar.Inlines.Count > 1)
-      {
-         if (originalPar.Inlines.Last().InlineText == "")
-            originalPar.Inlines.Remove(originalPar.Inlines.Last());
-      }
-
       if (newPar.Inlines.Count == 0)
       {
          EditableRun erun = (EditableRun)originalPar.Inlines.Last().Clone();
          erun.Text = "";
          newPar.Inlines.Add(erun);
       }
-
       
       UpdateTextRanges(Selection.Start, 1);
 
@@ -351,7 +399,10 @@ public partial class FlowDocument
       Selection.BiasForward = true;
 
       Selection.End += 1;
+      
       Selection.CollapseToEnd();
+     
+
       SelectionExtendMode = ExtendMode.ExtendModeNone;
 
       originalPar.CallRequestTextLayoutInfoStart();

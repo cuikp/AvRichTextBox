@@ -1,6 +1,7 @@
 ﻿using Avalonia.Media;
 using Avalonia.Media.Immutable;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -34,8 +35,8 @@ public class Paragraph : Block
 
    //private FontFamily _FontFamily = new ("ＭＳ 明朝, Times New Roman");
    //private FontFamily _FontFamily = new ("Courier New, Meiryo");
-   //private FontFamily _FontFamily = new ("Times New Roman");
    private FontFamily _FontFamily = new ("Meiryo");
+   
    public FontFamily FontFamily { get => _FontFamily; set { _FontFamily = value; NotifyPropertyChanged(nameof(FontFamily)); } }
 
    private double _FontSize = 16D;
@@ -108,6 +109,16 @@ public class Paragraph : Block
          Inlines[edx].TextPositionOfInlineInParagraph = sum;
          sum += Inlines[edx].InlineLength;
       }
+   }
+
+   internal bool RemoveEmptyInlines()
+   {   
+      for (int iedno = this.Inlines.Count - 1; iedno >= 0; iedno -= 1)
+         if (this.Inlines[iedno].InlineText == "")
+            this.Inlines.RemoveAt(iedno);
+
+      return this.Inlines.Count == 0;
+        
    }
 
    internal Paragraph Clone()

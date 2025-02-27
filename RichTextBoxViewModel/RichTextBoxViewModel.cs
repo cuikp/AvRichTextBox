@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using Avalonia.Threading;
+using DocumentFormat.OpenXml.Spreadsheet;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -75,16 +76,18 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
 
    internal void FlowDoc_ScrollInDirection(int direction)
    {
+
       double scrollPadding = 30;
       if (direction == 1)
       {
          double checkPointY = FlowDoc.Selection!.EndRect!.Y;
+
          if (FlowDoc.SelectionExtendMode == ExtendMode.ExtendModeLeft)
             checkPointY = FlowDoc.Selection!.StartRect!.Y;
 
          if (checkPointY > RTBScrollOffset.Y + ScrollViewerHeight - scrollPadding)
-            RTBScrollOffset = RTBScrollOffset.WithY(checkPointY - ScrollViewerHeight + scrollPadding);
-
+            //RTBScrollOffset = RTBScrollOffset.WithY(checkPointY - ScrollViewerHeight + scrollPadding);
+            RTBScrollOffset = RTBScrollOffset.WithY(checkPointY + scrollPadding);
       }
       else
       {

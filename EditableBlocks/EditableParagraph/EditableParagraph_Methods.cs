@@ -15,10 +15,6 @@ public partial class EditableParagraph
       foreach (IEditable ied in ((Paragraph)this.DataContext!).Inlines)
          returnInlines.Add(ied.BaseInline);
 
-      //foreach (Inline iline in returnInlines)
-         //Debug.WriteLine("ilineFF=" + iline.FontFamily.Name);
-         //iline.FontFamily = new FontFamily("Meiryo");
-
       return returnInlines;
 
    }

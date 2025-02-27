@@ -168,7 +168,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
    public string Text
    {
       get => GetText();
-      set => myFlowDoc.SetText(this, value);
+      set => myFlowDoc.SetRangeToText(this, value);
    }
 
    public void Dispose()

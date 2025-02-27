@@ -10,8 +10,9 @@
 		<!--<DockPanel x:Name="MainDP" x:DataType="local:RichTextBoxViewModel">-->
 		<DockPanel x:Name="MainDP">
 
-			<!--VISUAL DEBUGGER - Use this Grid for debugging, to show a right-docked panel with visualization of runs -->
-			<!--<Grid DockPanel.Dock="Right" Width="400" DataContext="{Binding FlowDoc}" >
+			<!--VISUAL DEBUGGER - Use this Grid for debugging, to show a right-docked panel with visualization of runs--> 
+			<!--<Grid DockPanel.Dock="Right" Width="400" DataContext="{Binding FlowDoc}" IsVisible="{Binding RunDebuggerVisible}" >-->
+			<Grid DockPanel.Dock="Right" Width="400" IsVisible="{Binding RunDebuggerVisible}" >
 			<DockPanel x:Name="RunDebugger"  >
 				<DockPanel DockPanel.Dock="Top" Background="Coral">
 
@@ -69,7 +70,7 @@
 
 			</DockPanel>
 
-		</Grid>-->
+		</Grid>
 
 			<ScrollViewer x:Name="FlowDocSV"  HorizontalScrollBarVisibility="Disabled" Margin="1"
 						   Offset="{Binding RTBScrollOffset, Mode=OneWay}"  ScrollChanged="ScrollViewer_ScrollChanged"

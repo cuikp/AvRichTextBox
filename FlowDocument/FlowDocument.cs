@@ -35,11 +35,15 @@ public partial class FlowDocument : INotifyPropertyChanged
 
    internal List<TextRange> TextRanges = [];
 
+   public void ScrollFlowDocInDirection(int direction) { ScrollInDirection?.Invoke(direction); }
 
    public ObservableCollection<Block> Blocks { get; set; } = [];
    internal ObservableCollection<Paragraph> SelectionParagraphs { get; set; } = [];
 
    public string Text => string.Join("", Blocks.ToList().ConvertAll(b => string.Join("", b.Text + "\r")));
+   
+   public int DocEndPoint => ((Paragraph)Blocks.Last()).EndInDoc;
+
    public TextRange Selection { get; set; }
 
    readonly Dictionary<AvaloniaProperty, FormatRuns> formatRunsActions;
@@ -191,8 +195,6 @@ public partial class FlowDocument : INotifyPropertyChanged
    internal string GetText(TextRange tRange)
    {
       List<IEditable> rangeInlines = GetRangeInlines(tRange);
-      //return string.Join("", rangeInlines.ToList().ConvertAll(il=> il.myParagraph!.Inlines.IndexOf(il) == il.myParagraph.Inlines.Count - 1 ? il.InlineText + "\r" : il.InlineText));
-      //return string.Join("", rangeInlines.ToList().ConvertAll(il => (il.TextPositionOfInlineInParagraph + il.InlineLength == il.myParagraph!.BlockLength) ? il.InlineText + "\r" : il.InlineText));
       return string.Join("", rangeInlines.ToList().ConvertAll(il => il.InlineText));
 
    }
