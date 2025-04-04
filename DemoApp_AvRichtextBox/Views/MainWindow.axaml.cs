@@ -2,10 +2,8 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using AvRichTextBox;
-using DynamicData.Binding;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -134,6 +132,14 @@ public partial class MainWindow : Window
    {
       FontSizeNS.Value = Math.Round((double)(selection.GetFormatting(FontSizeProperty) ?? 14D));
 
+      object? selFFP = selection.GetFormatting(FontFamilyProperty);
+      if (selFFP != null)
+      {
+         FontFamily ffamily = (FontFamily)selFFP;
+         FontsCB.SelectedItem = ffamily.ToString();
+      }
+      
+
    }
 
    internal void FontSizeNS_UserValueChanged(double value)
@@ -177,5 +183,17 @@ public partial class MainWindow : Window
       if (thisCB != null && MainRTB != null)
          //MainRTB.ToggleDebuggerPanel((bool)thisCB.IsChecked!);
          MainRTB.ShowDebuggerPanelInDebugMode = (bool)thisCB.IsChecked!;
+   }
+
+   private void FontsComboBox_DropDownClosed(object? sender, System.EventArgs e)
+   {
+      ComboBox? comboBox = sender as ComboBox;
+      if (comboBox != null && comboBox.SelectedItem != null)
+      {
+         string? newFont = comboBox.SelectedItem.ToString();
+         if (newFont != null)
+            MainRTB.FlowDocument.Selection.ApplyFormatting(FontFamilyProperty, new FontFamily(newFont));
+      }
+
    }
 }

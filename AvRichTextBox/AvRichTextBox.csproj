@@ -121,4 +121,8 @@
       <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="SaveAndLoadFormats\HtmlConversions\" />
+  </ItemGroup>
 </Project>

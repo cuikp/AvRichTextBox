@@ -57,7 +57,7 @@
 
 							<DockPanel DockPanel.Dock="Top">
 								<TextBlock Text="Font:" Margin="3,0" VerticalAlignment="Center"/>
-								<ComboBox x:Name="FontsCB" Width="170" FontSize="16" >
+								<ComboBox x:Name="FontsCB" Width="170" FontSize="16" DropDownClosed="FontsComboBox_DropDownClosed" >
 								</ComboBox>
 							</DockPanel>
 
