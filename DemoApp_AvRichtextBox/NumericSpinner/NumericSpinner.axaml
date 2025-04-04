@@ -1,0 +1,80 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"  d:DesignHeight="22" d:DesignWidth="42"
+			 xmlns:local="using:CustomControls" Background="Transparent"
+             x:Class="CustomControls.NumericSpinner" 
+			 FontSize="20"  Focusable="False" IsTabStop="False">
+
+	<UserControl.Resources>
+		<local:DoubleToStringConverter x:Key="doubleToStringConverter"/>
+	</UserControl.Resources>
+	
+	<UserControl.Styles>
+		<Style Selector="Button">
+			<Setter Property="BorderThickness" Value="0.7, 0.7, 1.5, 1.5"/>
+			<Setter Property="BorderBrush" Value="Gray"/>
+			<Setter Property="Padding" Value="1,1,0,1"/>
+			<Setter Property="Margin" Value="7, 0, 7, 0"/>
+			<Setter Property="Foreground" Value="Black"/>
+			<Setter Property="Background" Value="Silver"/>
+			<Setter Property="Focusable" Value="False"/>
+		</Style>
+		<Style Selector = "Button:pointerover /template/ContentPresenter">
+			<Setter Property = "Background"  Value="LightGray" />
+			<Setter Property = "BorderBrush" Value="Gray" />
+			<Setter Property = "TextBlock.Foreground" Value="Black" />
+		</Style>
+	</UserControl.Styles>
+	
+	<Border BorderBrush="Gray" BorderThickness="1" Background="White" CornerRadius="4">
+		
+		<DockPanel ClipToBounds="True"  >
+
+			<DockPanel DockPanel.Dock="Right" Width="15" HorizontalAlignment="Right">
+				<Grid >
+					<Grid.RowDefinitions>
+						<RowDefinition />
+						<RowDefinition />
+					</Grid.RowDefinitions>
+					
+					<Button x:Name="CmdUp" DockPanel.Dock="Top" Margin="0, -1, -1, 0" Grid.Row="0" Padding="0" BorderBrush="Gray"
+							Click="CmdUp_Click" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Focusable="False" Background="DarkGray">
+						<Path HorizontalAlignment="Center" VerticalAlignment="Center" Fill="Black" Data="M4,0 L0,4 L8,4 z"/>
+						<Button.Styles>
+							<Style>
+								
+							</Style>
+						</Button.Styles>
+					</Button>
+					<Button x:Name="CmdDown" Grid.Row="1" Margin="0, 0, -1, -1"  Padding="0" BorderBrush="Gray"
+						Click="CmdDown_Click"	Focusable="False" Background="DarkGray" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<Path HorizontalAlignment="Center" VerticalAlignment="Center" Fill="Black" Data="M0,0 L8,0 L4,4 z"/>
+					</Button>
+				</Grid>
+			</DockPanel>
+
+			<Grid ClipToBounds="True" VerticalAlignment="Stretch" Background="White" HorizontalAlignment="Stretch" Margin="3, 0, 1, 0" >
+				<TextBox FontFamily="Times New Roman" Background="White"
+						 MinWidth="0"
+						 Focusable="True" 
+						 IsTabStop="False" 
+						 HorizontalContentAlignment="Right" 
+						 VerticalContentAlignment="Center" 
+						 Margin="0, 0, 1, 0"
+						 FontSize="{Binding FontSize, DataType={x:Type local:NumericSpinner}}" 
+						 FontWeight="{Binding FontWeight, DataType={x:Type local:NumericSpinner}}" 
+						 Padding="0, 0, 0, 0"
+						 BorderBrush="Transparent" 
+						 BorderThickness="0" 
+						 VerticalAlignment="Stretch" 
+						 HorizontalAlignment="Stretch"
+						 Text="{Binding Value, Converter={StaticResource doubleToStringConverter}, FallbackValue=10, DataType={x:Type local:NumericSpinner}}"
+						  />
+			</Grid>
+			
+		</DockPanel>
+	</Border>
+
+</UserControl>

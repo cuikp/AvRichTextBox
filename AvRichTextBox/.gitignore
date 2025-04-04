@@ -1,0 +1,5 @@
+﻿bin/
+obj/
+BatchFiles/
+Assets/
+AvRichTextBox.csproj.vscb.json

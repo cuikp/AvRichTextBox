@@ -1,0 +1,171 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:DemoApp_AvRichtextBox.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:avrtb="using:AvRichTextBox"
+		xmlns:cc="using:CustomControls"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="800" Height="800" Width="950" MinWidth="500"
+        x:Class="DemoApp_AvRichtextBox.Views.MainWindow" WindowStartupLocation="CenterScreen"
+        Icon="/Assets/avalonia-logo.ico"
+		Title="{Binding CurrentOpenFileNameExt, DataType={x:Type vm:MainWindowViewModel}}">
+
+
+	<DockPanel>
+
+		<DockPanel DockPanel.Dock="Top"  >
+			<DockPanel DockPanel.Dock="Left" Width="150" LastChildFill="False" >
+				<Menu DockPanel.Dock="Top" BorderBrush="Gray" BorderThickness="1">
+
+					<MenuItem Header="File">
+						<MenuItem Header="New document" Click="CreateNewDocumentMenuItem_Click"/>
+						<Separator/>
+						<MenuItem Header="Load XamlPackage" Click="LoadXamlPackageMenuItem_Click"/>
+						<MenuItem Header="Save XamlPackage" Click="SaveXamlPackageMenuItem_Click"/>
+						<Separator/>
+						<MenuItem Header="Load Rtf file" Click="LoadRtfFileMenuItem_Click"/>
+						<MenuItem Header="Save Rtf file" Click="SaveRtfFileMenuItem_Click"/>
+						<Separator/>
+						<MenuItem Header="Load Word file" Click="LoadWordFileMenuItem_Click"/>
+						<MenuItem Header="Save Word file" Click="SaveWordFileMenuItem_Click"/>
+					</MenuItem>
+
+				</Menu>
+
+
+				<DockPanel Margin="2, 10, 2, 5" DockPanel.Dock="Top">
+					<Button x:Name="FindBut" Content="Find" DockPanel.Dock="Top" Click="FindButton_Click" />
+
+					<TextBox x:Name="FindTB" Text="" GotFocus="FindTextBox_GotFocus" Background="White" KeyDown="FindTextBox_KeyDown" FontSize="16" Margin="2, 4" Focusable="True">
+						<TextBox.Styles>
+							<Style Selector="TextBox:pointerover /template/ Border">
+								<Setter Property="Background" Value="{TemplateBinding Background}" />
+							</Style>
+						</TextBox.Styles>
+					</TextBox>
+				</DockPanel>
+
+			</DockPanel>
+
+			<Border BorderThickness="1.5" BorderBrush="DarkBlue" Margin="15, 1, 5, 1" Padding="2">
+
+				<StackPanel   Background="LightGray" Spacing="8" HorizontalAlignment="Stretch" Orientation="Horizontal">
+
+					<Border BorderBrush="Brown" BorderThickness="3" Padding="5">
+						<DockPanel LastChildFill="False">
+
+
+							<DockPanel DockPanel.Dock="Top">
+								<TextBlock Text="Font:" Margin="3,0" VerticalAlignment="Center"/>
+								<ComboBox x:Name="FontsCB" Width="170" FontSize="16" >
+								</ComboBox>
+							</DockPanel>
+
+							<DockPanel DockPanel.Dock="Top" Margin="3, 5">
+								
+								<DockPanel DockPanel.Dock="Left" Width="50" HorizontalAlignment="Right" Margin="1" LastChildFill="False">
+									<cc:NumericSpinner x:Name="FontSizeNS" Width="52" Margin="1" MinValue="5" MaxValue="50"  Value="50" Height="30" FontSize="16"
+										   UserValueChanged="FontSizeNS_UserValueChanged" DockPanel.Dock="Bottom" />
+									<TextBlock Text="Font size:" FontSize="10" DockPanel.Dock="Bottom" Margin="2,0" VerticalAlignment="Center"/>
+									
+								</DockPanel>
+
+								<DockPanel>
+									<DockPanel DockPanel.Dock="Top" Margin="4">
+										<ColorPicker Color="Black" ColorChanged="FontCP_ColorChanged" DockPanel.Dock="Right" Width="70"  Height="25" Background="White"/>
+										<TextBlock Text="Font color:" HorizontalAlignment="Right" Margin="3,0" VerticalAlignment="Center"/>
+									</DockPanel>
+
+									<DockPanel Margin="4" DockPanel.Dock="Top">
+										<ColorPicker Color="White"  ColorChanged="HighlightCP_ColorChanged"  DockPanel.Dock="Right" Width="70"  Height="25" />
+										<TextBlock Text="Highlight:" HorizontalAlignment="Right" Margin="3,0" VerticalAlignment="Center" />
+
+									</DockPanel>
+
+								</DockPanel>
+
+							</DockPanel>
+							
+						</DockPanel>
+
+					</Border>
+
+					<Border BorderBrush="Brown" BorderThickness="3" Padding="5">
+						<DockPanel>
+							<TextBlock Text="Paragraph" DockPanel.Dock="Top" HorizontalAlignment="Center"/>
+							<DockPanel>
+								<DockPanel DockPanel.Dock="Top" >
+									<cc:NumericSpinner x:Name="LineSpacingNS" Width="42" Margin="3" MinValue="0" MaxValue="50" Value="0" Height="30" DockPanel.Dock="Right" FontSize="16"
+													 ValueChanged="LineSpacingNS_ValueChanged" />
+									<TextBlock Text="Line spacing" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+								</DockPanel>
+								<DockPanel>
+									<cc:NumericSpinner Width="42" Margin="3" MinValue="0" MaxValue="20" Value="0" Height="30" DockPanel.Dock="Right" FontSize="16"
+													   ValueChanged="ParagraphBorderNS_ValueChanged"/>
+									<TextBlock Text="Border" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+								</DockPanel>
+							</DockPanel>
+						</DockPanel>
+					</Border>
+
+					<Border BorderBrush="Brown" BorderThickness="3" Padding="5">
+						<DockPanel DockPanel.Dock="Top" Margin="0" >
+							<TextBlock Text="Page padding" HorizontalAlignment="Center" DockPanel.Dock="Top" VerticalAlignment="Top"  />
+
+							<DockPanel>
+							<DockPanel DockPanel.Dock="Top">
+								<TextBlock Text="L" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+								<cc:NumericSpinner x:Name="PagePaddingNSL" Width="50" MinValue="0" MaxValue="100" Margin="3" Value="50" Height="30" FontSize="16"
+												   ValueChanged="PagePaddingNSL_ValueChanged" />
+							</DockPanel>
+
+							<DockPanel DockPanel.Dock="Top">
+								<TextBlock Text="T" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+								<cc:NumericSpinner x:Name="PagePaddingNST" Width="50" MinValue="0" MaxValue="100" Margin="3" Value="50" Height="30" FontSize="16"
+												   ValueChanged="PagePaddingNST_ValueChanged" />
+							</DockPanel>
+
+							</DockPanel>
+							
+							<DockPanel DockPanel.Dock="Top">
+								<TextBlock Text="R" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+								<cc:NumericSpinner x:Name="PagePaddingNSR" Width="50" MinValue="0" MaxValue="100" Margin="3" Value="50" Height="30" FontSize="16"
+												   ValueChanged="PagePaddingNSR_ValueChanged" />
+							</DockPanel>
+
+							<DockPanel DockPanel.Dock="Top">
+								<TextBlock Text="B" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+								<cc:NumericSpinner x:Name="PagePaddingNSB" Width="50" MinValue="0" MaxValue="100" Margin="3" Value="50" Height="30" FontSize="16"
+												   ValueChanged="PagePaddingNSB_ValueChanged" />
+							</DockPanel>
+
+
+						</DockPanel>
+					</Border>
+
+					<DockPanel VerticalAlignment="Bottom">
+						<TextBlock Text="DebugPanel" DockPanel.Dock="Top"/>
+						<CheckBox Checked="DebugPanelCB_CheckedUnchecked" Unchecked="DebugPanelCB_CheckedUnchecked" IsChecked="True" />
+					</DockPanel>
+					
+					
+				</StackPanel>
+
+			</Border>
+
+		</DockPanel>
+
+		<!--<avrtb:RichTextBox x:Name="MainRTB"  ShowDebuggerPanelInDebugMode="True" FlowDocument="{Binding MyFlowDoc, DataType={x:Type vm:MainWindowViewModel}}" >
+		</avrtb:RichTextBox>-->
+
+		<avrtb:RichTextBox x:Name="MainRTB"  ShowDebuggerPanelInDebugMode="True"  >
+			<!--<avrtb:FlowDocument Blocks="{Binding MyBlocks, DataType={x:Type vm:MainWindowViewModel}}"  >
+				
+			</avrtb:FlowDocument>-->
+		</avrtb:RichTextBox>
+
+	</DockPanel>
+
+
+
+</Window>

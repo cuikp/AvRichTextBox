@@ -1,0 +1,124 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+
+	  <TargetFramework>net8.0</TargetFramework>
+	  <Nullable>enable</Nullable>
+	  <LangVersion>latest</LangVersion>
+
+	  <!--Nuget-->
+	  <Authors>Simplectoplasm</Authors>
+	  <Company>---</Company>
+	  <Product>AvRichTextBox</Product>
+	  <PackageId>Simplecto.Avalonia.RichTextBox</PackageId>
+	  <Version>1.2.7</Version>
+	  <Description>A RichTextBox control to be used in Avalonia</Description>
+	  <PackageTags>Avalonia;UserControl;RichTextBox</PackageTags>
+	  <Title>A RichTextBox control for Avalonia</Title>
+	  <PackageReadmeFile>README.md</PackageReadmeFile>
+	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
+	  
+	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
+	  <RepositoryType>git</RepositoryType>
+	  <PackageReleaseNotes>ver 1.2.7: fixed paragraph height with line spacing 
+</PackageReleaseNotes>
+
+      <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+      <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	  <PackageOutputPath>D:\PROG\LocalNuget\AvRichTextBox</PackageOutputPath>
+	  <AssemblyVersion>1.2.5</AssemblyVersion>
+  </PropertyGroup>
+
+
+	<!--<PropertyGroup>
+		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+	</PropertyGroup>-->
+
+
+	<ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  
+  <ItemGroup>
+    <None Remove="SaveAndLoadFormats\Xaml\XamlPackageData\.rels" />
+    <None Remove="SaveAndLoadFormats\Xaml\XamlPackageData\[Content_Types].xml" />
+  </ItemGroup>
+
+  
+  <ItemGroup>
+    <AvaloniaResource Include="SaveAndLoadFormats\Xaml\XamlPackageData\.rels" />
+    <AvaloniaResource Include="SaveAndLoadFormats\Xaml\XamlPackageData\[Content_Types].xml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.2.4" />
+    <PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="11.1.5" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.4" />
+    <PackageReference Include="Avalonia.Skia" Version="11.2.4" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.4" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="11.2.4" />
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.2.4" />
+    <PackageReference Include="DocumentFormat.OpenXml" Version="3.2.0" />
+  </ItemGroup>
+
+
+	
+  <ItemGroup>
+	
+	<None Include="..\..\..\__3rdPartyResources__\RtfDomParser-master\RtfDomParser-master\Source\RtfDomParser\bin\Debug\net8.0\RtfDomParser.dll">
+		<Pack>true</Pack>
+		<PackagePath>lib\$(TargetFramework)\</PackagePath>
+	</None>
+    
+	<Reference Include="RtfDomParser">
+		<HintPath>..\..\..\__3rdPartyResources__\RtfDomParser-master\RtfDomParser-master\Source\RtfDomParser\bin\Debug\net8.0\RtfDomParser.dll</HintPath>
+	</Reference>
+	  
+	</ItemGroup>
+
+	<ItemGroup>
+    <Compile Update="FlowDocument\FlowDocument_RangeXaml.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+    <Compile Update="RichTextBox\RichTextBoxInputClient.cs">
+      <SubType>Code</SubType>
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+    <Compile Update="RichTextBox\RichTextBox_SelectionRect.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+    <Compile Update="RichTextBox\RichTextBox_PointerEvents.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+    <Compile Update="SaveAndLoadFormats\Xaml\FlowDocFromXamlString.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+    <Compile Update="SaveAndLoadFormats\Xaml\XamlStringFromFlowDoc.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+    <Compile Update="FlowDocument\FlowDocument_LoadSave.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+    <Compile Update="VisualHelper.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+    <Compile Update="RichTextBox\RichTextBox_KeyDown.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+    <Compile Update="FlowDocument\FlowDocument_SelectionExtend.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+    <Compile Update="RichTextBox\RichTextBox.axaml.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+</Project>
