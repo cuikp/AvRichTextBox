@@ -49,7 +49,7 @@ public class Paragraph : Block
    public double LineHeight { get => _LineHeight; set { _LineHeight = value; NotifyPropertyChanged(nameof(LineHeight)); } }
 
    private double _LineSpacing = 0D;
-   public double LineSpacing { get => _LineSpacing; set { _LineSpacing = value; NotifyPropertyChanged(nameof(LineSpacing)); CallRequestInlinesUpdate(); } }
+   public double LineSpacing { get => _LineSpacing; set { _LineSpacing = value; NotifyPropertyChanged(nameof(LineSpacing)); CallRequestInlinesUpdate(); CallRequestTextLayoutInfoStart(); } }
 
    private FontWeight _FontWeight = FontWeight.Normal;
    public FontWeight FontWeight { get => _FontWeight; set { _FontWeight = value; NotifyPropertyChanged(nameof(FontWeight)); } }

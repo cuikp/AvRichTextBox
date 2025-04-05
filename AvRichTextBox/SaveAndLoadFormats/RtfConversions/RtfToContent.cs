@@ -152,6 +152,12 @@ internal static partial class RtfConversions
             returnList.Add(elinebreak);
          }
          
+         else if (domelm is RTFDomImage rtfImage)
+         {
+            //rtfImage.Data
+
+         }
+
          else if (domelm is RTFDomText rtftext2)
          {
             

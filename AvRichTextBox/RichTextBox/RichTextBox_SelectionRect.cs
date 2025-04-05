@@ -66,9 +66,14 @@ public partial class RichTextBox : UserControl
 
       //rtbVM.CursorHeight = selStartRect.Height;
       rtbVM.CursorHeight = tlayout.Baseline + 5;  //temporary
+      
 
-      double cursorML = selStartPoint!.Value.X; 
+
+      double cursorML = selStartPoint!.Value.X;
       double cursorMT = FlowDoc.Selection.StartRect.Top + 2;
+
+      //Debug.WriteLine("edparLH= " + edPar.LineSpacing + "\nthisparlH= " + thisPar.LineSpacing);
+
       
       if (FlowDoc.Selection.IsAtEndOfLineSpace)
       {
@@ -83,6 +88,9 @@ public partial class RichTextBox : UserControl
          //Debug.WriteLine("thisparlH= " + thisPar.LineSpacing);
       }
       
+      //Take into account linespacing
+      cursorMT -= thisPar.LineSpacing;
+
       rtbVM.CursorMargin = new Thickness(cursorML, cursorMT, 0, 0);
       rtbVM.UpdateCursorVisible();
 

@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using AvRichTextBox;
+using DemoApp_AvRichtextBox.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -35,12 +36,18 @@ public partial class MainWindow : Window
       Loaded += MainWindow_Loaded;
     
       FontsCB.ItemsSource = GetAllFonts;
-      
+
+
+
    }
 
    private void MainWindow_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
    {
       MainRTB.FlowDocument.Selection_Changed += FlowDocument_Selection_Changed;
+
+      //Test setting the RTB flow doc to the viewmodel flow doc:
+      //MainRTB.FlowDocument = ((MainWindowViewModel)DataContext!).MyFlowDoc;
+
    }
 
    private void CreateNewDocumentMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)

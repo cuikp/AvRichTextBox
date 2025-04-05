@@ -171,12 +171,6 @@ public partial class RichTextBox : UserControl
 
    }
 
-   //public void UpdateCursorVisible()
-   //{
-   //   rtbVM.UpdateCursorVisible();
-
-   //}
-
 
    internal void CreateClient()
    {

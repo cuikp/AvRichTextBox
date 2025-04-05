@@ -23,15 +23,16 @@ public partial class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
    public string CurrentOpenFileNameExt => "DemoApp_AvRichTextBox - " + CurrentOpenFileName + CurrentExt;
 
    public FlowDocument MyFlowDoc { get; set; } = new FlowDocument();
-   public ObservableCollection<Block> MyBlocks { get; set; } = [];
+   //public ObservableCollection<Block> MyBlocks { get; set; } = [];
 
    public MainWindowViewModel()
    {
-      Paragraph p = new();
-      p.Inlines.Add(new EditableRun("This is a fixxxxxrst inline"));
+      //Testing creation a flow doc for binding:
+      //Paragraph p = new();
+      //p.Inlines.Add(new EditableRun("This is a fixxxxxrst inline"));
 
-      MyFlowDoc.Blocks.Clear();
-      MyFlowDoc.Blocks.Add(p);
+      //MyFlowDoc.Blocks.Clear();
+      //MyFlowDoc.Blocks.Add(p);
 
       //MyBlocks.Add(p);
 
