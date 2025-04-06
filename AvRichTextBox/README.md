@@ -103,3 +103,5 @@ ver. 1.2.1 - FontFamily now included in rtf copy/paste, fixed Word reading error
 **Added 2025/04/05**
 ver. 1.2.6 - some minor fixes: run break errors, and better handling of Word colors.  Also setting ShowDebuggerPanelInDebugMode at runtime will now dynamically show/hide the Debugger panel.
 
+**Added 2025/04/06**
+ver. 1.3.0 - Can save/load as Html.  Rtf images/line spacing now saved.  Paragraph borders, colors and backgrounds.

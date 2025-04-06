@@ -15,14 +15,15 @@ namespace AvRichTextBox;
 internal static partial class HelperMethods
 {
    internal static AvColor ColorFromHex(string hex) => AvColor.Parse(hex);
-   internal static double TwipToPix(double unitTwip) => Convert.ToInt32(96.0 / 1440 * unitTwip);
-   internal static double PixToTwip(double unitPix) => Convert.ToInt32(15 * unitPix);
-   internal static double EMUToPix(double unitTwip) => Convert.ToInt32(96 / (double)914400 * unitTwip);
-   internal static double PixToEMU(double unitPix) => Convert.ToInt32(914400 / (double)96 * unitPix);
-   internal static double PointsToPixels(double pt) => Convert.ToDouble(pt * 96 / 72);
-   internal static double InchesToPixels(double inch) => Convert.ToDouble(inch * 96);  
+   internal static double TwipToPix(double unitTwip) => 96.0 / 1440D * unitTwip;
+   internal static double PixToTwip(double unitPix) => 15D * unitPix;
+   internal static double EMUToPix(double unitTwip) => 96 / (double)914400 * unitTwip;
+   internal static double PixToEMU(double unitPix) => 914400 / (double)96 * unitPix;
+   internal static double PointsToPixels(double pt) => pt * 96D / 72D;
+   internal static double InchesToPixels(double inch) => inch * 96D;  
    internal static double PixelsToPoints(double px) => px * 72 / 96;
-
+   internal static double TwipToDip(double twips) => twips * (96.0 / 1440.0);
+   internal static double DipToTwip(double dips) => dips * (1440.0 / 96.0);
 
    internal static void ResizeAndSaveBitmap(Bitmap originalBitmap, int newWidth, int newHeight, Stream memoryStream)
    {
@@ -59,13 +60,13 @@ internal static partial class HelperMethods
       };
 
       if (returnString != string.Empty) return returnString;
-      return hexColorRegex().Replace(hex, "") == "" ? hex : (isBackground ? "#FFFFFFFF" : "#FF000000"); // default white or black
+      return hexColorRegex().Replace(hex, "") == "" ? ("#" + hex) : (isBackground ? "#FFFFFFFF" : "#FF000000"); // default white or black
 
    }
 
    internal static HighlightColorValues BrushToHighlightColorValue(IBrush br)
    {
-      if (br is not SolidColorBrush solidColorBrush)
+      if (br is not SolidColorBrush solidColorBrush || br == Brushes.Transparent)
          return HighlightColorValues.None;
 
       var inputColor = solidColorBrush.Color;

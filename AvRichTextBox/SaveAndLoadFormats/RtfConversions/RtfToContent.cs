@@ -9,6 +9,9 @@ using Avalonia.Controls.Documents;
 using DynamicData;
 using DocumentFormat.OpenXml.Office2016.Excel;
 using System.Text.RegularExpressions;
+using System.Xml;
+using Avalonia.Media.Imaging;
+using System.IO;
 
 namespace AvRichTextBox;
 
@@ -64,10 +67,11 @@ internal static partial class RtfConversions
 
    internal static void GetFlowDocumentFromRtf(RTFDomDocument rtfdoc, FlowDocument fdoc)
    {
-      double leftMargin = TwipToPix(PixelsToPoints(rtfdoc.LeftMargin));
-      double topMargin = TwipToPix(PixelsToPoints(rtfdoc.TopMargin));
-      double rightMargin = TwipToPix(PixelsToPoints(rtfdoc.RightMargin));
-      double bottomMargin = TwipToPix(PixelsToPoints(rtfdoc.BottomMargin));
+      double leftMargin = Math.Round(TwipToPix(rtfdoc.LeftMargin));
+      double topMargin = Math.Round(TwipToPix(rtfdoc.TopMargin));
+      double rightMargin = Math.Round(TwipToPix(rtfdoc.RightMargin));
+      double bottomMargin = Math.Round(TwipToPix(rtfdoc.BottomMargin));
+
       fdoc.PagePadding = new Avalonia.Thickness(leftMargin, topMargin, rightMargin, bottomMargin);
 
       foreach (RTFDomElement rtfelm in rtfdoc.Elements)
@@ -87,8 +91,7 @@ internal static partial class RtfConversions
             }
 
             newpar.LineSpacing = TwipToPix(PixelsToPoints(rtfpar.Format.LineSpacing)) * 2D;
-            newpar.LineSpacing = 0;
-            newpar.LineHeight = 0;
+            //newpar.LineHeight = TwipToPix(PixelsToPoints(rtfpar.Format.LineSpacing)) * 2D;
 
             newpar.FontFamily = new FontFamily(rtfpar.Format.FontName);
             //newpar.Margin = new Thickness(rtfpar.Format.xxx);
@@ -154,13 +157,24 @@ internal static partial class RtfConversions
          
          else if (domelm is RTFDomImage rtfImage)
          {
-            //rtfImage.Data
+            EditableInlineUIContainer eIUC = new(null!);
+            eIUC.FontFamily = "Image"; //???
 
+            Avalonia.Controls.Image img = new()
+            {
+               Width = TwipToPix(rtfImage.Width),
+               Height = TwipToPix(rtfImage.Height),
+               Stretch = Stretch.Fill
+            };
+
+            MemoryStream memStream = new(rtfImage.Data) { Position = 0 };
+            img.Source = new Bitmap(memStream);
+            eIUC.Child = img;
+            returnList.Add(eIUC);
          }
 
          else if (domelm is RTFDomText rtftext2)
-         {
-            
+         {            
             //EditableRun erun = new(DecodeRtfUnicode(rtftext2.Text))
             EditableRun erun = new(rtftext2.Text)
             {

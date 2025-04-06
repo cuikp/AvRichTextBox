@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using DocumentFormat.OpenXml.Drawing;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -24,6 +25,8 @@ public class Paragraph : Block
             
    }
 
+   public string ParToolTip => $"Background: {Background}\nLineSpacing: {LineSpacing}\nLineHeight: {LineHeight}";
+   //public string ParToolTip => $"Background: {Background}\nLineHeight: {LineHeight}";
    
    //public string Text => string.Join("", Inlines.ToList().ConvertAll(ied => ied.InlineText));
 
@@ -37,16 +40,15 @@ public class Paragraph : Block
    public SolidColorBrush Background { get => _Background; set { _Background = value; NotifyPropertyChanged(nameof(Background)); } }
 
    //private FontFamily _FontFamily = new ("ＭＳ 明朝, Times New Roman");
-   //private FontFamily _FontFamily = new ("Courier New, Meiryo");
    private FontFamily _FontFamily = new ("Meiryo");
+   //private FontFamily _FontFamily = "Meiryo";
    public FontFamily FontFamily { get => _FontFamily; set { _FontFamily = value; NotifyPropertyChanged(nameof(FontFamily)); } }
 
    private double _FontSize = 16D;
    public double FontSize { get => _FontSize; set { _FontSize = value; NotifyPropertyChanged(nameof(FontSize)); } }
 
-   //private double _LineHeight = 18.666D;
-   private double _LineHeight = 0;
-   public double LineHeight { get => _LineHeight; set { _LineHeight = value; NotifyPropertyChanged(nameof(LineHeight)); } }
+   private double _LineHeight = 18.666D;  // fontsize normally
+   public double LineHeight { get => _LineHeight; set { _LineHeight = value; NotifyPropertyChanged(nameof(LineHeight)); CallRequestInlinesUpdate(); CallRequestTextLayoutInfoStart(); } }
 
    private double _LineSpacing = 0D;
    public double LineSpacing { get => _LineSpacing; set { _LineSpacing = value; NotifyPropertyChanged(nameof(LineSpacing)); CallRequestInlinesUpdate(); CallRequestTextLayoutInfoStart(); } }

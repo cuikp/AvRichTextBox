@@ -22,6 +22,7 @@ public interface IEditable : INotifyPropertyChanged
    public string InlineText { get; set; }
    public bool IsEmpty { get; }
    public int InlineLength { get; }
+   public double InlineHeight { get; }
    public IEditable Clone();
    public bool IsRun => this.GetType() == typeof(EditableRun);
    public bool IsUIContainer => this.GetType() == typeof(EditableInlineUIContainer);
@@ -31,6 +32,6 @@ public interface IEditable : INotifyPropertyChanged
    public SolidColorBrush BackBrush { get; }
    public string DisplayInlineText { get; }
    public string InlineToolTip { get; }
-
+   
 }
 

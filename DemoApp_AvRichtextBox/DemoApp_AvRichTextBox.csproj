@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="TestFiles\TestDocumentWord.html" />
     <None Remove="TestFiles\TestDocumentXamlPackage.xamlp" />
   </ItemGroup>
 
@@ -27,11 +28,11 @@
     <Content Include="TestFiles\TestDocumentRtf.rtf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestFiles\TestDocumentRtf_Short.rtf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="TestFiles\JumbledText.xamlp">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestFiles\TestDocumentWord.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="TestFiles\TestDocumentXamlPackage.xamlp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

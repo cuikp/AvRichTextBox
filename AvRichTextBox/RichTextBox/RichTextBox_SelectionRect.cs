@@ -82,7 +82,8 @@ public partial class RichTextBox : UserControl
       }
       else if (FlowDoc.Selection.GetStartInline() is EditableRun startRun)
       {
-         rtbVM.CursorHeight = startRun.FontSize  * 1.25;
+         //rtbVM.CursorHeight = startRun.FontSize  * 1.25;
+         rtbVM.CursorHeight = startRun.FontSize  * 1.25 + startRun.myParagraph!.LineSpacing;
          //cursorMT = FlowDoc.Selection.StartRect.Top + FlowDoc.Selection.StartRect.Height - rtbVM.CursorHeight;
          cursorMT = FlowDoc.Selection.StartRect.Bottom - rtbVM.CursorHeight - 4;
          //Debug.WriteLine("thisparlH= " + thisPar.LineSpacing);

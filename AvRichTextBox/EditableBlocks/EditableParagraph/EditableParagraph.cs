@@ -86,9 +86,17 @@ public partial class EditableParagraph : SelectableTextBlock
             //   UpdateVMFromEPStart();
             //   UpdateVMFromEPEnd();
             //   break;
-
+                    
             case "LineSpacing":
                this.UpdateLayout();
+
+               if (TextLayout != null && TextLayout.TextLines.Count > 0)
+               {
+                  double maxLineHeight = Math.Max(TextLayout.TextLines[0].Height, TextLayout.TextLines[^1].Height);
+                  thisPar.LineHeight = maxLineHeight;
+               }
+               //Debug.WriteLine("\nline spacing changed: LINESpacing = " + this.LineSpacing);
+
                break;
 
             case "SelectionStart":

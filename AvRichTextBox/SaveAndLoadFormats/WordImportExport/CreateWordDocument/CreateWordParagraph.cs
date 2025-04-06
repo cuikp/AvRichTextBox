@@ -40,19 +40,18 @@ internal static partial class WordConversions
 
       foreach (IEditable iline in p.Inlines)
       {
-         switch (iline.GetType())
+         switch (iline)
          {
-            case var @case when @case == typeof(EditableLineBreak):
+            //case var @case when @case == typeof(EditableLineBreak):
+            case EditableLineBreak elbreak:
                parg.AppendChild(new Break());
                break;
 
-            case var @case when @case == typeof(EditableInlineUIContainer):
+            case EditableInlineUIContainer edUIC:
 
-               EditableInlineUIContainer edUIC = (EditableInlineUIContainer)iline;
-        
                if (edUIC.Child.GetType() == typeof(Image))
                {
-                  string fontFamily = edUIC.FontFamily.ToString();
+                  //string fontFamily = edUIC.FontFamily.ToString();
 
                   Image img = (Image)edUIC.Child;
                   img.Width = img.Bounds.Width;
@@ -76,13 +75,12 @@ internal static partial class WordConversions
                      parg.AppendChild(new DOW.Run(CreateWordDocDrawing(mainPart!.GetIdOfPart(imagePart), img.Width, img.Height, extension)));
 
                   }
-                  break;
                }
 
                break;
 
-            case var @case when @case == typeof(EditableRun):
-               DOW.Run dRun = GetWordDocRun((EditableRun)iline!);
+            case EditableRun erun:
+               DOW.Run dRun = GetWordDocRun(erun);
                //if (dRun.InnerText == "\v")
                //   parg.AppendChild(new Break());
                //else

@@ -31,6 +31,7 @@ public class EditableRun : Run, IEditable, INotifyPropertyChanged
    }
 
    public int InlineLength => InlineText.Length;
+   public double InlineHeight => FontSize;
    public bool IsEmpty => InlineText.Length == 0;
    public string FontName => FontFamily?.Name == null ? "" : FontFamily?.Name!;
 

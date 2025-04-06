@@ -17,6 +17,7 @@ using static AvRichTextBox.XamlConversions;
 using RtfDomParser;
 using System.Text;
 using System.Threading.Tasks;
+using HtmlAgilityPack;
 
 namespace AvRichTextBox;
 
@@ -90,6 +91,37 @@ public partial class FlowDocument
       ProcessXamlString(xamlDocString, this);
       InitializeDocument();
    }
+
+   internal void SaveHtmlDoc(string fileName)
+   {
+      HtmlDocument hdoc = HtmlConversions.GetHtmlFromFlowDocument(this);
+      hdoc.Save(fileName);
+   }
+
+   internal void LoadHtmlDoc(string fileName)
+   {
+      try
+      {
+         try
+         {
+            ClearDocument();
+            HtmlDocument hdoc = new();
+            hdoc.Load(fileName);
+            HtmlConversions.GetFlowDocumentFromHtml(hdoc, this);
+            InitializeDocument();
+         }
+         catch (Exception ex2) { Debug.WriteLine("error getting flow doc:\n" + ex2.Message); }
+      }
+      catch (Exception ex3)
+      {
+         if (ex3.HResult == -2147024864)
+            throw new IOException("The file:\n" + fileName + "\ncannot be opened because it is currently in use by another application.", ex3);
+         else
+            Debug.WriteLine("Error trying to open file: " + ex3.Message);
+      }
+
+   }
+
 
    internal void SaveWordDoc(string fileName)
    {

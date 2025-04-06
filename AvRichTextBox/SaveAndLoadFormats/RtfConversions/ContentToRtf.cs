@@ -5,24 +5,24 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Collections.Generic;
-using System.Reactive.Subjects;
 using static AvRichTextBox.HelperMethods;
+using Avalonia.Media.Imaging;
+using Avalonia.Controls;
+using System.IO;
+using System.Threading.Tasks.Dataflow;
 
 namespace AvRichTextBox;
 
 internal static partial class RtfConversions
 {
-   //internal static string GetRtfFromFlowDocumentBlocks(IEnumerable<Block> blocks)
    internal static string GetRtfFromFlowDocument(FlowDocument fdoc)
    {
-
       var sb = new StringBuilder();
 
       //Build font map
       var fontMap = new Dictionary<string, int>();
       var colorMap = new Dictionary<Color, int>();
-      sb.Append(GetFontAndColorTables(fdoc.Blocks.SelectMany(b=> ((Paragraph)b).Inlines), ref fontMap, ref colorMap));
-
+      sb.Append(GetFontAndColorTables(fdoc.Blocks, ref fontMap, ref colorMap));
 
       string margl = PixToTwip(fdoc.PagePadding.Left).ToString();
       string margr = PixToTwip(fdoc.PagePadding.Right).ToString();
@@ -40,8 +40,48 @@ internal static partial class RtfConversions
          if (block.GetType() == typeof(Paragraph))
          {
             Paragraph p = (Paragraph)block;
+            sb.Append(@"\pard");
+            sb.Append(p.TextAlignment switch 
+            { 
+               TextAlignment.Center => @"\qc", 
+               TextAlignment.Left => @"\ql", 
+               TextAlignment.Right => @"\qr", 
+               TextAlignment.Justify => @"\qj", 
+               _=> @"\ql"
+            });
+
+
+            double maxHeight = p.Inlines.Max(il => il.IsRun ? ((EditableRun)il).FontSize : p.LineHeight);
+            double lineHeightPx = (int)(p.LineHeight / maxHeight * 2 * 240D);
+            sb.Append(@$"\sl{lineHeightPx}\slmult0");
+                       
+
+            if (p.BorderBrush != null && p.BorderBrush.Color != Colors.Transparent)
+            {
+               int brdrColIdx = 0;
+               if (p.BorderBrush is SolidColorBrush borderBrush && colorMap.TryGetValue(borderBrush.Color, out int colorIndexF))
+                  brdrColIdx = colorIndexF;
+
+               string leftBorderWidth = PixToTwip(p.BorderThickness.Left).ToString();
+               string rightBorderWidth = PixToTwip(p.BorderThickness.Right).ToString();
+               string topBorderWidth = PixToTwip(p.BorderThickness.Top).ToString();
+               string bottomBorderWidth = PixToTwip(p.BorderThickness.Bottom).ToString();
+               sb.Append(@$"\brdrt\brdrs\brdrw{topBorderWidth}\brdrcf{brdrColIdx}");
+               sb.Append(@$"\brdrl\brdrs\brdrw{leftBorderWidth}\brdrcf{brdrColIdx}");
+               sb.Append(@$"\brdrb\brdrs\brdrw{bottomBorderWidth}\brdrcf{brdrColIdx}");
+               sb.Append(@$"\brdrr\brdrs\brdrw{rightBorderWidth}\brdrcf{brdrColIdx}");
+            }
+
+            if (p.Background != null && p.Background.Color != Colors.Transparent)
+            {
+               int bkColIdx = 0;
+               if (p.Background is SolidColorBrush backgroundBrush && colorMap.TryGetValue(backgroundBrush.Color, out int colorIndexF))
+                  bkColIdx = colorIndexF;
+               sb.Append(@$"\cbpat{bkColIdx}");
+            }
+
             foreach (IEditable ied in p.Inlines)
-               sb.Append(GetIEditableRtf(ied, ref BoldOn, ref ItalicOn, ref UnderlineOn, ref CurrentLang, fontMap, colorMap));
+            sb.Append(GetIEditableRtf(ied, ref BoldOn, ref ItalicOn, ref UnderlineOn, ref CurrentLang, fontMap, colorMap));
 
             sb.Append(@"\par ");
          }
@@ -85,6 +125,46 @@ internal static partial class RtfConversions
 
       if (ied.GetType() == typeof(EditableLineBreak)) return @"\line";
 
+
+      if (ied.GetType() == typeof(EditableInlineUIContainer))
+      {
+         EditableInlineUIContainer eIUC = (EditableInlineUIContainer)ied;
+         if (eIUC.Child != null)
+         {
+            if (eIUC.Child.GetType() == typeof(Image))
+            {
+               Image? thisImg = eIUC.Child as Image;
+               Bitmap imgbitmap = (Bitmap)thisImg!.Source!;
+
+               int picw = imgbitmap.PixelSize.Width;
+               int pich = imgbitmap.PixelSize.Height;
+               int picwgoal = (int)PixToTwip(thisImg.Width);
+               int pichgoal = (int)PixToTwip(thisImg.Height);
+
+               using MemoryStream memoryStream = new();
+
+               var renderTarget = new RenderTargetBitmap(new PixelSize(picw, pich));
+               using (var context = renderTarget.CreateDrawingContext())
+                  context.DrawImage(imgbitmap, new Rect(0, 0, picw, pich));
+               
+               renderTarget.Save(memoryStream);  // png by default
+               memoryStream.Seek(0, SeekOrigin.Begin);
+
+               byte[] imgbytes = new byte[memoryStream.Length];
+               memoryStream.Read(imgbytes, 0, imgbytes.Length);
+
+               // add image to rtf code:
+               iedSB.AppendLine($@"{{\pict\pngblip\picw{picw}\pich{pich}\picwgoal{picwgoal}\pichgoal{pichgoal}");
+
+               foreach (byte b in imgbytes)
+                  iedSB.Append(b.ToString("x2"));  // hex encoding
+
+               iedSB.AppendLine("}");
+
+            }
+         }
+      }
+
       if (ied.GetType() == typeof(EditableRun))
       {
          EditableRun run = (EditableRun)ied;
@@ -119,11 +199,60 @@ internal static partial class RtfConversions
       return iedSB.ToString();
    }
 
- 
-   private static string GetFontAndColorTables(IEnumerable<IEditable> inlinesToMap, ref Dictionary<string, int> fontMap, ref Dictionary<Color, int> colorMap)
+
+   private static string GetFontAndColorTables(IEnumerable<Block> allBlocks, ref Dictionary<string, int> fontMap, ref Dictionary<Color, int> colorMap)
    {
       StringBuilder fontAndColorTableSB = new ();
 
+      int fontIndex = 0;
+      int colorIndex = 1;
+
+      foreach (Paragraph par in allBlocks.Where(b=>b.IsParagraph))
+      {
+         if (par.BorderBrush is SolidColorBrush borderBrush && par.BorderBrush.Color != Colors.Transparent)
+            if (!colorMap.ContainsKey(borderBrush.Color))
+               colorMap[borderBrush.Color] = colorIndex++;
+
+         if (par.Background is SolidColorBrush parBackground && par.Background.Color != Colors.Transparent)
+            if (!colorMap.ContainsKey(parBackground.Color))
+               colorMap[parBackground.Color] = colorIndex++;
+
+      }
+
+      foreach (IEditable ied in allBlocks.SelectMany(b => ((Paragraph)b).Inlines))
+      {
+         if (ied is EditableRun run)
+         {
+            if (run.FontFamily != null && !fontMap.ContainsKey(run.FontFamily.Name))
+               fontMap[run.FontFamily.Name] = fontIndex++;
+
+            if (run.Foreground is SolidColorBrush foregroundBrush)
+               if (!colorMap.ContainsKey(foregroundBrush.Color))
+                  colorMap[foregroundBrush.Color] = colorIndex++;
+
+            if (run.Background is SolidColorBrush backgroundBrush)
+               if (!colorMap.ContainsKey(backgroundBrush.Color))
+                  colorMap[backgroundBrush.Color] = colorIndex++;
+         }
+      }
+         
+      fontAndColorTableSB.Append(@"{\rtf1\ansi\deff0 {\fonttbl");
+      foreach (var kvp in fontMap)
+         fontAndColorTableSB.Append($@"{{\f{kvp.Value}\fnil {kvp.Key};}}");
+      fontAndColorTableSB.Append('}');
+
+      fontAndColorTableSB.Append(@"{\colortbl;");
+      foreach (var kvp in colorMap)
+         fontAndColorTableSB.Append($@"\red{kvp.Key.R}\green{kvp.Key.G}\blue{kvp.Key.B};");
+      fontAndColorTableSB.Append('}');
+
+      return fontAndColorTableSB.ToString();
+
+   }
+
+   private static string GetFontAndColorTables(IEnumerable<IEditable> inlinesToMap, ref Dictionary<string, int> fontMap, ref Dictionary<Color, int> colorMap)
+   {
+   
       int fontIndex = 0;
       int colorIndex = 1;
 
@@ -143,7 +272,9 @@ internal static partial class RtfConversions
                   colorMap[backgroundBrush.Color] = colorIndex++;
          }
       }
-         
+
+      StringBuilder fontAndColorTableSB = new();
+
       fontAndColorTableSB.Append(@"{\rtf1\ansi\deff0 {\fonttbl");
       foreach (var kvp in fontMap)
          fontAndColorTableSB.Append($@"{{\f{kvp.Value}\fnil {kvp.Key};}}");

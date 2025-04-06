@@ -23,7 +23,10 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable, INotifyPr
    public int InlineLength => 1;
    public bool IsEmpty => false;
    public bool IsLastInlineOfParagraph { get; set; }
-    
+   //public double InlineHeight => (this.Child != null && this.Child.GetType() == typeof(Image) ? : this.Child.Bounds.Height;
+   public double InlineHeight => Child == null ? 0 : this.Child.Bounds.Height;
+   
+
    public int ImageNo;
 
    public IEditable Clone() { return new EditableInlineUIContainer(this.Child){ myParagraph = this.myParagraph }; }

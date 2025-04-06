@@ -28,6 +28,9 @@
 						<Separator/>
 						<MenuItem Header="Load Word file" Click="LoadWordFileMenuItem_Click"/>
 						<MenuItem Header="Save Word file" Click="SaveWordFileMenuItem_Click"/>
+						<Separator/>
+						<MenuItem Header="Load Html file" Click="LoadHtmlFileMenuItem_Click"/>
+						<MenuItem Header="Save Html file" Click="SaveHtmlFileMenuItem_Click"/>
 					</MenuItem>
 
 				</Menu>
@@ -94,16 +97,30 @@
 						<DockPanel>
 							<TextBlock Text="Paragraph" DockPanel.Dock="Top" HorizontalAlignment="Center"/>
 							<DockPanel>
-								<DockPanel DockPanel.Dock="Top" >
-									<cc:NumericSpinner x:Name="LineSpacingNS" Width="42" Margin="3" MinValue="0" MaxValue="50" Value="0" Height="30" DockPanel.Dock="Right" FontSize="16"
-													 ValueChanged="LineSpacingNS_ValueChanged" />
-									<TextBlock Text="Line spacing" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+								<DockPanel DockPanel.Dock="Top">
+									<DockPanel DockPanel.Dock="Left" >
+										<TextBlock Text="Line spacing" TextWrapping="Wrap" DockPanel.Dock="Top"/>
+										<cc:NumericSpinner x:Name="LineSpacingNS" Width="42" Margin="3" MinValue="0" MaxValue="50" Value="0" Height="30" DockPanel.Dock="Top" FontSize="16"
+														 UserValueChanged="LineSpacingNS_UserValueChanged" />
+										
+									</DockPanel>
+
+									<DockPanel Margin="2">
+										<ColorPicker  x:Name="ParBackgroundCP" ColorChanged="ParBackground_ColorChanged" Color="Transparent" DockPanel.Dock="Right" Width="70"  Height="25" Background="White" VerticalAlignment="Center"/>
+										<TextBlock Text="Back-ground:" Width="52"  TextWrapping="Wrap"  HorizontalAlignment="Right" Margin="3,0" VerticalAlignment="Center"/>
+									</DockPanel>
+
 								</DockPanel>
 								<DockPanel>
-									<cc:NumericSpinner Width="42" Margin="3" MinValue="0" MaxValue="20" Value="0" Height="30" DockPanel.Dock="Right" FontSize="16"
-													   ValueChanged="ParagraphBorderNS_ValueChanged"/>
-									<TextBlock Text="Border" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+									<cc:NumericSpinner x:Name="ParagraphBorderNS" Width="42" Margin="3" MinValue="0" MaxValue="20" Value="0" Height="30" DockPanel.Dock="Right" 
+													   FontSize="16" UserValueChanged="ParagraphBorderNS_UserValueChanged"/>
+									<TextBlock Text="Border" VerticalAlignment="Center"  TextWrapping="Wrap" HorizontalAlignment="Right"/>
 								</DockPanel>
+								<DockPanel DockPanel.Dock="Top" Margin="4">
+									<ColorPicker Color="Black" x:Name="ParBorderCP" ColorChanged="ParBorder_ColorChanged" DockPanel.Dock="Right" Width="70"  Height="25" Background="White"/>
+									<TextBlock Text="Border color:" Width="50" TextAlignment="Right" TextWrapping="Wrap" HorizontalAlignment="Right" Margin="3,0" VerticalAlignment="Center"/>
+								</DockPanel>
+
 							</DockPanel>
 						</DockPanel>
 					</Border>
@@ -115,13 +132,13 @@
 							<DockPanel>
 							<DockPanel DockPanel.Dock="Top">
 								<TextBlock Text="L" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-								<cc:NumericSpinner x:Name="PagePaddingNSL" Width="50" MinValue="0" MaxValue="100" Margin="3" Value="50" Height="30" FontSize="16"
+								<cc:NumericSpinner x:Name="PagePaddingNSL" Width="50" MinValue="0" MaxValue="150" Margin="3" Value="50" Height="30" FontSize="16"
 												   ValueChanged="PagePaddingNSL_ValueChanged" />
 							</DockPanel>
 
 							<DockPanel DockPanel.Dock="Top">
 								<TextBlock Text="T" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-								<cc:NumericSpinner x:Name="PagePaddingNST" Width="50" MinValue="0" MaxValue="100" Margin="3" Value="50" Height="30" FontSize="16"
+								<cc:NumericSpinner x:Name="PagePaddingNST" Width="50" MinValue="0" MaxValue="150" Margin="3" Value="50" Height="30" FontSize="16"
 												   ValueChanged="PagePaddingNST_ValueChanged" />
 							</DockPanel>
 
@@ -129,13 +146,13 @@
 							
 							<DockPanel DockPanel.Dock="Top">
 								<TextBlock Text="R" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-								<cc:NumericSpinner x:Name="PagePaddingNSR" Width="50" MinValue="0" MaxValue="100" Margin="3" Value="50" Height="30" FontSize="16"
+								<cc:NumericSpinner x:Name="PagePaddingNSR" Width="50" MinValue="0" MaxValue="150" Margin="3" Value="50" Height="30" FontSize="16"
 												   ValueChanged="PagePaddingNSR_ValueChanged" />
 							</DockPanel>
 
 							<DockPanel DockPanel.Dock="Top">
 								<TextBlock Text="B" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-								<cc:NumericSpinner x:Name="PagePaddingNSB" Width="50" MinValue="0" MaxValue="100" Margin="3" Value="50" Height="30" FontSize="16"
+								<cc:NumericSpinner x:Name="PagePaddingNSB" Width="50" MinValue="0" MaxValue="150" Margin="3" Value="50" Height="30" FontSize="16"
 												   ValueChanged="PagePaddingNSB_ValueChanged" />
 							</DockPanel>
 

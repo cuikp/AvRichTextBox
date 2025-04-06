@@ -48,6 +48,8 @@ public partial class MainWindow : Window
       //Test setting the RTB flow doc to the viewmodel flow doc:
       //MainRTB.FlowDocument = ((MainWindowViewModel)DataContext!).MyFlowDoc;
 
+      progChange = false;
+
    }
 
    private void CreateNewDocumentMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -135,6 +137,8 @@ public partial class MainWindow : Window
    }
 
 
+   bool progChange = true;
+
    private void FlowDocument_Selection_Changed(TextRange selection)
    {
       FontSizeNS.Value = Math.Round((double)(selection.GetFormatting(FontSizeProperty) ?? 14D));
@@ -145,7 +149,17 @@ public partial class MainWindow : Window
          FontFamily ffamily = (FontFamily)selFFP;
          FontsCB.SelectedItem = ffamily.ToString();
       }
-      
+
+      Paragraph? selPar = selection.GetStartPar();
+      if (selPar != null && !progChange)
+      {
+         progChange = true;
+         LineSpacingNS.Value = selPar.LineSpacing;
+         ParagraphBorderNS.Value = selPar.BorderThickness.Left;
+         ParBorderCP.Color = selPar.BorderBrush.Color;
+         ParBackgroundCP.Color = selPar.Background.Color;
+         progChange = false;
+      }
 
    }
 
@@ -155,22 +169,37 @@ public partial class MainWindow : Window
 
    }
 
-   internal void LineSpacingNS_ValueChanged(double value)
+   internal void LineSpacingNS_UserValueChanged(double value)
    {
       foreach (Paragraph p in MainRTB.FlowDocument.GetSelectedParagraphs)
          p.LineSpacing = value;
-
    }
 
-   internal void ParagraphBorderNS_ValueChanged(double value)
+   internal void ParagraphBorderNS_UserValueChanged(double value)
    {
       foreach (Paragraph p in MainRTB.FlowDocument.GetSelectedParagraphs)
-      {
-         p.BorderBrush = new SolidColorBrush(Colors.Red);
          p.BorderThickness = new Thickness(value);
-      }
          
    }
+
+   private void ParBorder_ColorChanged(object? sender, ColorChangedEventArgs e)
+   {
+      if (progChange) return;
+      SolidColorBrush hBrush = new(e.NewColor);
+      foreach (Paragraph p in MainRTB.FlowDocument.GetSelectedParagraphs)
+         p.BorderBrush = hBrush;
+            
+   }
+
+   private void ParBackground_ColorChanged(object? sender, ColorChangedEventArgs e)
+   {
+      if (progChange) return;
+      SolidColorBrush hBrush = new(e.NewColor);
+      foreach (Paragraph p in MainRTB.FlowDocument.GetSelectedParagraphs)
+         p.Background = hBrush;
+      
+   }
+
 
    private void FontCP_ColorChanged(object? sender, ColorChangedEventArgs e)
    {

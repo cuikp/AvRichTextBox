@@ -14,7 +14,7 @@
 		<!--VISUAL DEBUGGER - Use this panel for debugging, to show a right-docked panel with visualization of runs.  It is 
 			auto hidden and inactive in Release mode, and default visible in Debug mode, but that can also be disabled by setting RunDebuggerVisible-->
 		<Border x:Name="RunDebugPanel" Width="400" BorderBrush="Gray" BorderThickness="1.5" IsVisible="{Binding RunDebuggerVisible}" DockPanel.Dock="Right">
-			<DockPanel x:Name="RunDebugger"  >
+			<DockPanel x:Name="RunDebugger" DataContext="{Binding FlowDoc}"  >
 				<DockPanel DockPanel.Dock="Top" Background="Coral">
 
 					<Border x:Name="DocSelPanel" DockPanel.Dock="Top" BorderBrush="Black" BorderThickness="0.8">
@@ -33,14 +33,13 @@
 					<TextBlock  Grid.Column="3" Text="Font" TextAlignment="Center" />
 				</Grid>
 
-				<ListBox DockPanel.Dock="Top" ItemsSource="{Binding SelectionParagraphs}" Background="Wheat" BorderBrush="Black" BorderThickness="1"
-						 Padding="0" >
+				<ListBox DockPanel.Dock="Top" ItemsSource="{Binding SelectionParagraphs}" Background="Wheat" BorderBrush="Black" BorderThickness="1" Padding="0" >
 					<ListBox.ItemTemplate>
 						<DataTemplate>
 							<DockPanel>
 								<DockPanel DockPanel.Dock="Top" Background="AliceBlue">
 									<TextBlock DockPanel.Dock="Left" Text="{Binding Inlines.Count, StringFormat='Inlines={0}'}"/>
-									<TextBlock Margin="20, 0, 0, 0" Text="{Binding StartInDoc, StringFormat='ParStartIdxInDoc={0}'}"/>
+									<TextBlock Margin="20, 0, 0, 0" Text="{Binding StartInDoc, StringFormat='ParStartIdxInDoc={0}'}" ToolTip.Tip="{Binding ParToolTip}" />
 								</DockPanel>
 
 
@@ -104,8 +103,9 @@
 										<Border BorderThickness="{Binding BorderThickness}" BorderBrush="{Binding BorderBrush}" CornerRadius="3" Margin="{Binding Margin}"
 											  VerticalAlignment="Top" HorizontalAlignment="Stretch" Padding="0">
 
+											<!--LineHeight="{Binding LineHeight}"-->
+
 											<local:EditableParagraph xml:space="preserve" TextWrapping="Wrap" Margin="0"
-													LineHeight="{Binding LineHeight}"
 													LineSpacing="{Binding LineSpacing}"
 													FontFamily="{Binding FontFamily}"
 													FontWeight="{Binding FontWeight}"

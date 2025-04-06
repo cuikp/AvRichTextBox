@@ -26,9 +26,6 @@ public partial class RichTextBox : UserControl
 
    private void ToggleDebuggerPanel (bool visible) { RunDebugPanel.IsVisible = visible; }
 
-   //public static readonly StyledProperty<FlowDocument> FlowDocumentProperty =
-   // AvaloniaProperty.Register<RichTextBox, FlowDocument>(nameof(FlowDocument), new FlowDocument(), defaultBindingMode: BindingMode.TwoWay);
-
    public static readonly StyledProperty<FlowDocument> FlowDocumentProperty =
     AvaloniaProperty.Register<RichTextBox, FlowDocument>(nameof(FlowDocument), defaultValue: new FlowDocument(), defaultBindingMode: BindingMode.TwoWay);
 
@@ -101,7 +98,7 @@ public partial class RichTextBox : UserControl
       {
 #if DEBUG
          rtbVM.RunDebuggerVisible = ShowDebuggerPanelInDebugMode;
-         RunDebugPanel.DataContext = FlowDoc;
+         //RunDebugger.DataContext = FlowDoc;  // binding set in Xaml
          this.Width = this.Width + (rtbVM.RunDebuggerVisible ? 400 : 0);
 #else
       RunDebugger.DataContext = null;
@@ -254,10 +251,14 @@ public partial class RichTextBox : UserControl
    public void InvalidateCursor() { rtbVM.CursorVisible = true;  }
    public void NewDocument() { FlowDoc.NewDocument(); }
    public void CloseDocument() { FlowDoc.NewDocument();  rtbVM.RTBScrollOffset = new Vector(0, 0);  }
+   //Load/save
    public void LoadRtfDoc(string fileName) { FlowDoc.LoadRtf(fileName);  }
    public void SaveRtfDoc(string fileName) { FlowDoc.SaveRtf(fileName);  }
    public void LoadWordDoc(string fileName) { FlowDoc.LoadWordDoc(fileName);  }
-   public void SaveAsWord(string filename) { FlowDoc.SaveWordDoc(filename); }
+   public void SaveWordDoc(string filename) { FlowDoc.SaveWordDoc(filename); }
+   public void LoadHtmlDoc(string fileName) { FlowDoc.LoadHtmlDoc(fileName);  }
+   public void SaveHtmlDoc(string filename) { FlowDoc.SaveHtmlDoc(filename); }
+
    public void LoadXaml (string fileName) { FlowDoc.LoadXaml(fileName); }
    public void SaveXamlPackage (string fileName) { FlowDoc.SaveXamlPackage(fileName); }
    public void SaveXaml (string fileName) { FlowDoc.SaveXaml(fileName); }

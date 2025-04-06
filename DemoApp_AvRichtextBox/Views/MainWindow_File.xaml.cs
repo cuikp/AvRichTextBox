@@ -112,8 +112,39 @@ public partial class MainWindow : Window
 
    private void SaveWordFileMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
    {
-      MainRTB.SaveAsWord(Path.Combine(Path.GetDirectoryName(openFilePath)!, openFileName + ".docx"));
+      MainRTB.SaveWordDoc(Path.Combine(Path.GetDirectoryName(openFilePath)!, openFileName + ".docx"));
    }
 
+   private void SaveHtmlFileMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+   {
+      MainRTB.SaveHtmlDoc(Path.Combine(Path.GetDirectoryName(openFilePath)!, openFileName + ".html"));
+   }
+   
+   private async void LoadHtmlFileMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+   {
+      FilePickerOpenOptions filePickerOptions = new()
+      {
+         Title = "Open Html file",
+         SuggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync(Path.Combine(AppContext.BaseDirectory, "TestFiles")),
+         FileTypeFilter = [new("Html files") { Patterns = ["*.html"], }],
+         AllowMultiple = false
+      };
+
+      var topLevel = TopLevel.GetTopLevel(this);
+      var files = await topLevel!.StorageProvider.OpenFilePickerAsync(filePickerOptions);
+
+      if (files.Count == 1)
+      {
+         string? f = files[0].TryGetLocalPath();
+         if (f != null)
+         {
+            openFilePath = f;
+            MainRTB.LoadHtmlDoc(f);
+            ShowPagePaddingValue();
+         }
+
+      }
+
+   }
 
 }
