@@ -76,14 +76,22 @@ public partial class FlowDocument
                return;  // last line of document
             
             Paragraph origEndPar = Selection.EndParagraph;
+            
             int nextEnd = Selection.EndParagraph.StartInDoc + Selection.EndParagraph.CharNextLineEnd;
-            if (Blocks.IndexOf(origEndPar) < Blocks.Count - 1)
+   
+            if (Selection.EndParagraph.IsEndAtLastLine)
             {
-               Paragraph nextParRight = (Paragraph)Blocks[Blocks.IndexOf(origEndPar) + 1];
-               nextEnd = Math.Min(nextParRight.StartInDoc + nextParRight.BlockLength - 2, Selection.EndParagraph.StartInDoc + Selection.EndParagraph.CharNextLineEnd);
+               if (Selection.EndParagraph != Blocks[^1])
+               {
+                  int nextParIndex = Blocks.IndexOf(Selection.EndParagraph) + 1;
+                  Paragraph nextPar = (Paragraph)Blocks[nextParIndex];
+                  int oldSE = Selection.End;
+                  Selection.End = Math.Min(nextPar.StartInDoc + nextPar.BlockLength - 1, nextEnd);
+               }
             }
+            else
+               Selection.End = nextEnd;
 
-            Selection.End = nextEnd;
 
             //for selection continuity
             if (Selection.EndParagraph != origEndPar)

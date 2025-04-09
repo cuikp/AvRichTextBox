@@ -26,12 +26,6 @@ public partial class RichTextBox
 
    }
 
-   private void DeleteChar()
-   {
-      FlowDoc.DeleteChar(FlowDoc.Selection.Start);
-      UpdateCurrentParagraphLayout();
-   }
-
    internal void UpdateCurrentParagraphLayout()
    {
       this.UpdateLayout();
@@ -40,7 +34,7 @@ public partial class RichTextBox
 
    internal void InsertParagraph()
    {
-      FlowDoc.InsertParagraph(true);
+      FlowDoc.InsertParagraph(true, FlowDoc.Selection.Start);
       UpdateCurrentParagraphLayout();
 
    }
@@ -71,26 +65,26 @@ public partial class RichTextBox
 
 
    }
-    
-   private void Backspace()
+
+
+   private void PerformDelete(bool backspace)
    {
+
       if (FlowDoc.Selection!.Length > 0)
          FlowDoc.DeleteSelection();
       else
       {
-         if (FlowDoc.Selection.Start == 0) return;
-
-         if (FlowDoc.Selection.StartParagraph.SelectionStartInBlock == 0)
-         { //at start of paragraph 
-            FlowDoc.MoveSelectionLeft(true);
-            FlowDoc.MergeParagraphForward(FlowDoc.Selection.StartParagraph, true);
-         }
+         if (backspace)
+            if (FlowDoc.Selection.Start == 0) return;
          else
-         {
-            FlowDoc.MoveSelectionLeft(true);
-            DeleteChar();
-         }
+            if (FlowDoc.Selection.Start >= FlowDoc.Selection.StartParagraph.StartInDoc + FlowDoc.Selection.StartParagraph.BlockLength)
+               return;
+
+         FlowDoc.DeleteChar(backspace);
       }
 
+      UpdateCurrentParagraphLayout();
    }
+
+   
 }

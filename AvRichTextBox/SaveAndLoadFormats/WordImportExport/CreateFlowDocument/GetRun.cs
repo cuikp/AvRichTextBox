@@ -331,6 +331,7 @@ internal static partial class WordConversions
                                     "auto" => "#FF000000"!,
                                     _ => WordColorValueToHexString(rprsection.GetAttributes()[0].Value!, false),
                                  };
+                                 if (!brushString.StartsWith('#')) brushString = "#" + brushString;
                                  thisRun.Foreground = (ImmutableSolidColorBrush)BConverter.ConvertFromString(brushString)!;
                                  //thisRun.Foreground = (SolidColorBrush)BConverter.ConvertFromString(brushString)!;
                               }

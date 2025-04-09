@@ -172,28 +172,28 @@ public partial class FlowDocument
    internal void MoveSelectionDown(bool biasForward)
    {
 
-      Selection!.BiasForwardStart = biasForward;
+      Selection.BiasForwardStart = biasForward;
 
-      if (Selection!.Length > 0)
+      if (Selection.Length > 0)
       {
          ResetSelectionLengthZero(Selection.EndParagraph);
          Selection.CollapseToEnd();
       }
 
+
+      int nextEnd = Selection.EndParagraph.StartInDoc + Selection.EndParagraph.CharNextLineEnd;
       if (Selection.EndParagraph.IsEndAtLastLine)
       {
-         if (Selection!.EndParagraph != Blocks[^1])
+         if (Selection.EndParagraph != Blocks[^1])
          {
             int nextParIndex = Blocks.IndexOf(Selection.EndParagraph) + 1;
             Paragraph nextPar = (Paragraph)Blocks[nextParIndex];
-
             int oldSE = Selection.End;
-            Selection.End = Math.Min(nextPar.StartInDoc + nextPar.BlockLength - 1, Selection.EndParagraph.StartInDoc + Selection.EndParagraph.CharNextLineEnd);
-            //Debug.WriteLine("Old selectionEnd = " + oldSE + " ::: New Selection end: " + Selection.End);
+            Selection.End = Math.Min(nextPar.StartInDoc + nextPar.BlockLength - 1, nextEnd);
          }
       }
       else
-         Selection.End = Selection.EndParagraph.StartInDoc + Selection.EndParagraph.CharNextLineEnd;
+         Selection.End = nextEnd;
          
 
       Selection.CollapseToEnd();

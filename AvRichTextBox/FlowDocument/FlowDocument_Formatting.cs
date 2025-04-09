@@ -67,7 +67,7 @@ public partial class FlowDocument
          toggleFormatRun = ToggleApplyItalic;
          InsertRunMode = true;
          IEditable startInline = Selection.GetStartInline();
-         if (startInline != Selection.StartParagraph.Inlines.Last() && startInline.GetRangeStartInInline(Selection) == startInline.InlineText.Length)
+         if (startInline != Selection.StartParagraph.Inlines.Last() && startInline.GetCharPosInInline(Selection.Start) == startInline.InlineText.Length)
          {
             IEditable nextInline = Selection.StartParagraph.Inlines[Selection.StartParagraph.Inlines.IndexOf(startInline) + 1];
             bool nextRunItalic = nextInline.GetType() == typeof(EditableRun) && ((EditableRun)nextInline).FontStyle == FontStyle.Italic;
@@ -89,7 +89,7 @@ public partial class FlowDocument
          InsertRunMode = true;
          IEditable startInline = Selection.GetStartInline();
 
-         if (startInline != Selection.StartParagraph.Inlines.Last() && startInline.GetRangeStartInInline(Selection) == startInline.InlineText.Length)
+         if (startInline != Selection.StartParagraph.Inlines.Last() && startInline.GetCharPosInInline(Selection.Start) == startInline.InlineText.Length)
          {
             IEditable nextInline = Selection.StartParagraph.Inlines[Selection.StartParagraph.Inlines.IndexOf(startInline) + 1];
             bool nextRunBold = nextInline.GetType() == typeof(EditableRun) && ((EditableRun)nextInline).FontWeight == FontWeight.Bold;
@@ -112,7 +112,7 @@ public partial class FlowDocument
 
          IEditable startInline = Selection.GetStartInline();
 
-         if (startInline != Selection.StartParagraph.Inlines.Last() && startInline.GetRangeStartInInline(Selection) == startInline.InlineText.Length)
+         if (startInline != Selection.StartParagraph.Inlines.Last() && startInline.GetCharPosInInline(Selection.Start) == startInline.InlineText.Length)
          {
             IEditable nextInline = Selection.StartParagraph.Inlines[Selection.StartParagraph.Inlines.IndexOf(startInline) + 1];
             bool nextRunUnderlined = nextInline.GetType() == typeof(EditableRun) && ((EditableRun)nextInline).TextDecorations == TextDecorations.Underline;

@@ -50,7 +50,7 @@ public partial class FlowDocument
             GetFlowDocumentFromRtf(rtfdom!, this);
             InitializeDocument();
          }
-         catch (Exception ex2) { Debug.WriteLine("error getting flow doc:\n" + ex2.Message); }
+         catch (Exception ex2) { Debug.WriteLine($"error getting flow doc:\n{ex2.Message}"); }
 
       }
 
@@ -58,9 +58,9 @@ public partial class FlowDocument
       catch (Exception ex3)
       {
          if (ex3.HResult == -2147024864)
-            throw new IOException("The file:\n" + fileName + "\ncannot be opened because it is currently in use by another application.", ex3);
+            throw new IOException($"The file:\n{fileName}\ncannot be opened because it is currently in use by another application.", ex3);
          else
-            Debug.WriteLine("Error trying to open file: " + ex3.Message);
+            Debug.WriteLine($"Error trying to open file: {ex3.Message}");
       }
 
    }
@@ -74,7 +74,7 @@ public partial class FlowDocument
          File.WriteAllText(fileName, rtfText, Encoding.Default);
          //Debug.WriteLine(rtfText);
       }
-      catch (Exception ex2) { Debug.WriteLine("error getting flow doc:\n" + ex2.Message); }
+      catch (Exception ex2) { Debug.WriteLine($"error getting flow doc:\n{ex2.Message}"); }
 
 
    }
@@ -115,9 +115,9 @@ public partial class FlowDocument
       catch (Exception ex3)
       {
          if (ex3.HResult == -2147024864)
-            throw new IOException("The file:\n" + fileName + "\ncannot be opened because it is currently in use by another application.", ex3);
+            throw new IOException($"The file:\n{fileName}\ncannot be opened because it is currently in use by another application.\n{ex3.Message}");
          else
-            Debug.WriteLine("Error trying to open file: " + ex3.Message);
+            Debug.WriteLine($"Error trying to open file: {ex3.Message}");
       }
 
    }
@@ -144,9 +144,9 @@ public partial class FlowDocument
       catch (Exception ex3)
       {
          if (ex3.HResult == -2147024864)
-            throw new IOException("The file:\n" + fileName + "\ncannot be opened because it is currently in use by another application.", ex3);
+            throw new IOException($"The file:\n{fileName}\ncannot be opened because it is currently in use by another application.", ex3);
          else
-            Debug.WriteLine("Error trying to open file: " + ex3.Message);
+            Debug.WriteLine($"Error trying to open file: {ex3.Message}");
       }
 
    }

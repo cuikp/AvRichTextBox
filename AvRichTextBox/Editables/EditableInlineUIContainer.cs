@@ -43,7 +43,7 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable, INotifyPr
    public SolidColorBrush BackBrush
    {
       get
-      {
+      {         
          if (IsStartInline) return new SolidColorBrush(Colors.LawnGreen);
          else if (IsEndInline) return new SolidColorBrush(Colors.Pink);
          else if (IsWithinSelectionInline) return new SolidColorBrush(Colors.LightGray);
@@ -52,6 +52,9 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable, INotifyPr
    }
 
    public string InlineToolTip => "";
+
+   private bool _IsSelected = false;
+   public bool IsSelected { get => _IsSelected; set { _IsSelected = value; this.Child.Opacity = value ? 0.2 : 1; } }
 
 }
 

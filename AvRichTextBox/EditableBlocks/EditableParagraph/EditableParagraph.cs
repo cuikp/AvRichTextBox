@@ -106,7 +106,12 @@ public partial class EditableParagraph : SelectableTextBlock
             case "SelectionEnd":
                UpdateVMFromEPEnd();
                break;
-               
+
+            case "SelectedText":
+               thisPar.UpdateUIContainersSelected();
+
+               break;
+
             case "TextLayoutInfoStartRequested":
                this.SetValue(TextLayoutInfoStartRequestedProperty, false);
                if (thisPar == null)

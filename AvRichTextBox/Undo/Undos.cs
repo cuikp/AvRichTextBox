@@ -6,81 +6,82 @@ using System.Linq;
 
 namespace AvRichTextBox;
 
-internal class InsertCharUndo (Paragraph charParagraph, int insertInlineIdx, int insertPos, FlowDocument flowDoc, int origSelectionStart) : IUndo
+internal class InsertCharUndo (int insertParIndex, int insertInlineIdx, int insertPos, FlowDocument flowDoc, int origSelectionStart) : IUndo
 {
-   internal Paragraph CharParagraph => charParagraph;
-   internal int InsertInlineIdx =>insertInlineIdx;
-   internal int InsertPos => insertPos;
-   internal FlowDocument FlowDoc => flowDoc;
    public int UndoEditOffset => -1;
    public bool UpdateTextRanges => true;
 
-   internal int OrigSelectionStart = origSelectionStart;
+   public void PerformUndo()
+   {
+      try
+      {
+         Paragraph thisPar = (Paragraph)flowDoc.Blocks[insertParIndex];
+         Run? thisRun = thisPar.Inlines[insertInlineIdx] as Run;
+         thisRun!.Text = thisRun.Text!.Remove(insertPos, 1);
+         thisPar.CallRequestInlinesUpdate();
+         flowDoc.UpdateBlockAndInlineStarts(insertParIndex);
+         flowDoc.Selection.Start = origSelectionStart;
+         flowDoc.Selection.End = flowDoc.Selection.Start;
+      }
+      catch { Debug.WriteLine("Failed InsertCharUndo at inline idx: " + insertInlineIdx); }
+
+   }
+}
+
+internal class DeleteCharUndo(int deleteParIndex, int deleteInlineIdx, IEditable deletedRun, string deleteChar, int deletePos, FlowDocument flowDoc, int origSelectionStart) : IUndo
+{  
+   public int UndoEditOffset => 1;
+   public bool UpdateTextRanges => true;
+   internal int DeleteInlineIdx => deleteInlineIdx;
+
+   public void PerformUndo()
+   {
+      try
+      {
+         Paragraph thisPar = (Paragraph)flowDoc.Blocks[deleteParIndex];
+         if (deletedRun != null)
+            thisPar.Inlines.Insert(deleteInlineIdx, deletedRun);
+         else
+         {
+            Run? thisRun = thisPar.Inlines[deleteInlineIdx] as Run;
+            thisRun!.Text = thisRun.Text!.Insert(deletePos, deleteChar);
+         }
+         
+         thisPar.CallRequestInlinesUpdate();
+         flowDoc.UpdateBlockAndInlineStarts(deleteParIndex);
+         flowDoc.Selection.Start = origSelectionStart;
+         flowDoc.Selection.End = flowDoc.Selection.Start;
+      }
+      catch { Debug.WriteLine("Failed DeleteCharUndo at delete pos: " + deletePos); }
+   }
+      
+}
+
+internal class DeleteImageUndo(int deleteParIndex, IEditable deletedIUC, int deletedInlineIdx, FlowDocument flowDoc, int origSelectionStart, bool emptyRunAdded) : IUndo
+{
+   public int UndoEditOffset => 1;
+   public bool UpdateTextRanges => true;
    
    public void PerformUndo()
    {
       try
       {
-         Run? thisRun = CharParagraph.Inlines[InsertInlineIdx] as Run;
-         thisRun!.Text = thisRun.Text!.Remove(InsertPos, 1);
-         CharParagraph.CallRequestInlinesUpdate();
-         FlowDoc.UpdateBlockAndInlineStarts(CharParagraph);
-         FlowDoc.Selection.Start = OrigSelectionStart;
-         FlowDoc.Selection.End = FlowDoc.Selection.Start;
+         Paragraph thisPar = (Paragraph)flowDoc.Blocks[deleteParIndex];
+         if (emptyRunAdded)
+            thisPar.Inlines.RemoveAt(deletedInlineIdx);
+         thisPar.Inlines.Insert(deletedInlineIdx, deletedIUC);
+         thisPar.CallRequestInlinesUpdate();
+         flowDoc.UpdateBlockAndInlineStarts(deleteParIndex);
+         flowDoc.Selection.Start = origSelectionStart;
+         flowDoc.Selection.End = flowDoc.Selection.Start;
       }
-      catch { Debug.WriteLine("Failed InsertCharUndo at inline idx: " + InsertInlineIdx); }
-
-   }
-}
-
-internal class DeleteCharUndo(Paragraph charParagraph, IEditable deleteInline, int deleteInlineIdx, string deleteChar, int deletePos, FlowDocument flowDoc, int origSelectionStart, bool createInline) : IUndo
-{
-   internal Paragraph CharParagraph = charParagraph;
-   internal string DeleteChar = deleteChar;
-   internal IEditable DeleteInline = deleteInline;
-   internal int DeletePos = deletePos;
-   internal FlowDocument FlowDoc = flowDoc;
-   internal int OrigSelectionStart = origSelectionStart;
-   public int UndoEditOffset => 1;
-   public bool UpdateTextRanges => true;
-   internal bool CreateInline = createInline;
-   internal int DeleteInlineIdx = deleteInlineIdx;
-
-   public void PerformUndo()
-   {
-      try
-      {
-         IEditable? thisInline = null;
-         if (CreateInline)
-         {
-            thisInline = DeleteInline;
-            CharParagraph.Inlines.Insert(DeleteInlineIdx, thisInline);
-         }
-         else
-            thisInline = CharParagraph.Inlines[DeleteInlineIdx];
-
-         if (thisInline.IsRun)
-         {
-            EditableRun? thisRun = thisInline as EditableRun;
-            thisRun!.Text = thisRun.Text!.Insert(DeletePos, DeleteChar);
-         }
-
-         CharParagraph.CallRequestInlinesUpdate();
-         FlowDoc.UpdateBlockAndInlineStarts(CharParagraph);
-         FlowDoc.Selection.Start = OrigSelectionStart;
-         FlowDoc.Selection.End = FlowDoc.Selection.Start;
-      }
-      catch { Debug.WriteLine("Failed DeleteCharUndo at delete pos: " + DeletePos); }
+      catch { Debug.WriteLine("Failed DeleteImageUndo at delete pos: " + origSelectionStart); }
    }
       
 }
 
 internal class PasteUndo(Dictionary<Block, List<IEditable>> keptParsAndInlines, int parIndex, FlowDocument flowDoc, int origSelectionStart, int undoEditOffset) : IUndo
 {
-   internal Dictionary<Block, List<IEditable>> KeptParsAndInlines => keptParsAndInlines;
-   internal int ParIndex => parIndex;
-   internal FlowDocument FlowDoc => flowDoc;
-   internal int OrigSelectionStart => origSelectionStart;
    public int UndoEditOffset => undoEditOffset;
    public bool UpdateTextRanges => true;
 
@@ -88,27 +89,21 @@ internal class PasteUndo(Dictionary<Block, List<IEditable>> keptParsAndInlines, 
    {
       try
       {
+         flowDoc.RestoreDeletedBlocks(keptParsAndInlines, parIndex);
 
-         FlowDoc.RestoreDeletedBlocks(KeptParsAndInlines, ParIndex);
-
-         FlowDoc.Selection.Start = 0;  //??? why necessary for cursor?
-         FlowDoc.Selection.End = 0;
-         FlowDoc.Selection.Start = OrigSelectionStart;
-         FlowDoc.Selection.End = OrigSelectionStart;
-         FlowDoc.UpdateSelection();
+         flowDoc.Selection.Start = 0;  //??? why necessary for cursor?
+         flowDoc.Selection.End = 0;
+         flowDoc.Selection.Start = origSelectionStart;
+         flowDoc.Selection.End = origSelectionStart;
+         flowDoc.UpdateSelection();
       }
-      catch { Debug.WriteLine("Failed PasteUndo at OrigSelectionStart: " + OrigSelectionStart); }
+      catch { Debug.WriteLine("Failed PasteUndo at OrigSelectionStart: " + origSelectionStart); }
    }
 }
 
 internal class DeleteRangeUndo (Dictionary<Block, List<IEditable>> keptParsAndInlines, int parIndex, FlowDocument flowDoc, int origSelectionStart, int undoEditOffset) : IUndo
 {  //parInlines are cloned inlines
 
-   internal Dictionary<Block, List<IEditable>> KeptParsAndInlines => keptParsAndInlines;
-   internal int ParIndex => parIndex;
-   internal FlowDocument FlowDoc => flowDoc;
-   internal int OrigSelectionStart = origSelectionStart;
-   
    public int UndoEditOffset => undoEditOffset;
    public bool UpdateTextRanges => true;
 
@@ -116,27 +111,23 @@ internal class DeleteRangeUndo (Dictionary<Block, List<IEditable>> keptParsAndIn
    {
       try
       {
-         FlowDoc.RestoreDeletedBlocks(KeptParsAndInlines, ParIndex);
+         flowDoc.RestoreDeletedBlocks(keptParsAndInlines, parIndex);
 
-         FlowDoc.Selection.Start = 0;  //??? why necessary for cursor?
-         FlowDoc.Selection.End = 0;
-         FlowDoc.Selection.Start = OrigSelectionStart;
-         FlowDoc.Selection.End = OrigSelectionStart;
+         flowDoc.Selection.Start = 0;  //??? why necessary for cursor?
+         flowDoc.Selection.End = 0;
+         flowDoc.Selection.Start = origSelectionStart;
+         flowDoc.Selection.End = origSelectionStart;
 
-         FlowDoc.UpdateSelection();
+         flowDoc.UpdateSelection();
       }
-      catch { Debug.WriteLine("Failed DeleteRangeUndo at ParIndex: " + ParIndex); }
+      catch { Debug.WriteLine("Failed DeleteRangeUndo at ParIndex: " + parIndex); }
    }
 
 }
 
 
-internal class InsertParagraphUndo (Dictionary<Block, List<IEditable>> keptParsAndInlines, int insertedParIndex, FlowDocument flowDoc, int origSelectionStart, int undoEditOffset) : IUndo
-{
-   internal int InsertedParIndex => insertedParIndex;
-   Dictionary<Block, List<IEditable>> KeptParsAndInlines => keptParsAndInlines;
-   internal FlowDocument FlowDoc => flowDoc;
-   internal int OrigSelectionStart = origSelectionStart;
+internal class InsertParagraphUndo (FlowDocument flowDoc, int insertedParIndex, List<IEditable> keepParInlines, int origSelectionStart, int undoEditOffset) : IUndo
+{  
    public int UndoEditOffset => undoEditOffset;
    public bool UpdateTextRanges => true;
 
@@ -144,79 +135,66 @@ internal class InsertParagraphUndo (Dictionary<Block, List<IEditable>> keptParsA
    {
       try
       {
-         Block addedBlock = FlowDoc.Blocks[InsertedParIndex];
-         if (addedBlock.IsParagraph)
-         {
-            ((Paragraph)addedBlock).Inlines.Clear();
-            ((Paragraph)addedBlock).CallRequestInlinesUpdate();
-         }
-         FlowDoc.Blocks.Remove(addedBlock);
-                  
-         Block thisBlock = FlowDoc.Blocks[InsertedParIndex];
-         if (thisBlock.IsParagraph)
-         {
-            Paragraph? thisPar = (Paragraph)thisBlock;
-            thisPar.Inlines.Clear();
-            thisPar.CallRequestInlinesUpdate();
-         }
-
-         FlowDoc.RestoreDeletedBlocks(KeptParsAndInlines, InsertedParIndex);
-
-         FlowDoc.Selection.Start = 0;         
-         FlowDoc.Selection.End = 0;         
-         FlowDoc.Selection.Start = OrigSelectionStart;
-         FlowDoc.Selection.CollapseToStart();
-
-         FlowDoc.UpdateSelection();
-
+         Paragraph insertedPar = (Paragraph)flowDoc.Blocks[insertedParIndex];
+         insertedPar.Inlines.Clear();
+         insertedPar.Inlines.AddRange(keepParInlines);
+         flowDoc.Blocks.RemoveAt(insertedParIndex + 1);
+         flowDoc.UpdateBlockAndInlineStarts(insertedParIndex);
+         //flowDoc.MergeParagraphForward(insertedIndex, false, origSelectionStart);
+         flowDoc.Selection.Start = origSelectionStart;
+         flowDoc.Selection.End = flowDoc.Selection.Start;
       }
-      catch { Debug.WriteLine("Failed InsertParagraphUndo at InsertedIndex: " + InsertedParIndex); }
+      catch { Debug.WriteLine("Failed InsertParagraphUndo at InsertedIndex: " + insertedParIndex); }
 
    }
 }
 
-internal class MergeParagraphUndo (int mergedCharIndex, FlowDocument flowDoc) : IUndo 
-{
-   internal int MergedCharIndex => mergedCharIndex;
-   internal FlowDocument FlowDoc => flowDoc;
-   public int UndoEditOffset => 0;
+internal class MergeParagraphUndo (int origMergedParInlinesCount, int mergedParIndex, Paragraph removedPar, FlowDocument flowDoc, int originalSelectionStart) : IUndo 
+{ //removedPar is a clone
+
+   public int UndoEditOffset => 1;
    public bool UpdateTextRanges => false;
 
    public void PerformUndo()
    {
       try
       {
-         FlowDoc.Selection.Start = MergedCharIndex;
-         FlowDoc.Selection.End = MergedCharIndex;
-         FlowDoc.InsertParagraph(false);
-         FlowDoc.UpdateBlockAndInlineStarts(FlowDoc.GetContainingParagraph(mergedCharIndex));
+         //flowDoc.InsertParagraph(false, mergedCharIndex);
+
+         Paragraph mergedPar = (Paragraph)flowDoc.Blocks[mergedParIndex];
+
+         for (int rno = mergedPar.Inlines.Count - 1; rno >= origMergedParInlinesCount; rno--)
+            mergedPar.Inlines.RemoveAt(rno);
+
+         flowDoc.Blocks.Insert(mergedParIndex + 1, removedPar);
+
+         flowDoc.UpdateBlockAndInlineStarts(mergedParIndex);
+         flowDoc.Selection.End = originalSelectionStart;
+         flowDoc.Selection.Start = originalSelectionStart;
+                  
       }
-      catch { Debug.WriteLine("Failed MergeParagraphUndo at MergedCharIndex: " + MergedCharIndex); }
+      catch { Debug.WriteLine("Failed MergeParagraphUndo at MergedParIndex: " + mergedParIndex); }
    }
 }
 
 
 internal class ApplyFormattingUndo (FlowDocument flowDoc, List<IEditablePropertyAssociation> propertyAssociations, int originalSelection, TextRange tRange) : IUndo 
 {
-   internal TextRange TRange => tRange;
-   internal FlowDocument FlowDoc => flowDoc;
-   List<IEditablePropertyAssociation>  PropertyAssociations => propertyAssociations;
-   int OriginalSelection => originalSelection;
    public int UndoEditOffset => 0;
    public bool UpdateTextRanges => false;
 
    public void PerformUndo()
    {
 
-      foreach (IEditablePropertyAssociation propassoc in PropertyAssociations)
+      foreach (IEditablePropertyAssociation propassoc in propertyAssociations)
          if (propassoc.FormatRun != null)
-            FlowDoc.ApplyFormattingInline(propassoc.FormatRun, propassoc.InlineItem, propassoc.PropertyValue);
+            flowDoc.ApplyFormattingInline(propassoc.FormatRun, propassoc.InlineItem, propassoc.PropertyValue);
 
-      foreach (Paragraph p in FlowDoc.GetRangeBlocks(TRange).Where(b=>b.IsParagraph))
+      foreach (Paragraph p in flowDoc.GetRangeBlocks(tRange).Where(b=>b.IsParagraph))
          p.CallRequestInlinesUpdate();
       
-      FlowDoc.Selection.Start = OriginalSelection;
-      FlowDoc.Selection.End = OriginalSelection;
+      flowDoc.Selection.Start = originalSelection;
+      flowDoc.Selection.End = originalSelection;
 
    }
 }

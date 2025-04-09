@@ -105,3 +105,6 @@ ver. 1.2.6 - some minor fixes: run break errors, and better handling of Word col
 
 **Added 2025/04/06**
 ver. 1.3.0 - Can save/load as Html.  Rtf images/line spacing now saved.  Paragraph borders, colors and backgrounds.
+
+**Added 2025/04/09**
+ver. 1.3.2 - Changed the strategy for Undo. Undo now creates clones instead of retaining objects, which was causing problems during complex Undo sequences.

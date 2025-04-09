@@ -54,11 +54,11 @@ public partial class RichTextBox
                break;
 
             case Key.Delete:
-               FlowDoc.DeleteWord();
+               FlowDoc.DeleteWord(false);
                break;
 
             case Key.Back:
-               FlowDoc.BackWord();
+               FlowDoc.DeleteWord(true);
                break;
 
             case Key.Right:
@@ -127,14 +127,11 @@ public partial class RichTextBox
                break;
 
             case Key.Back:
-               Backspace();
+               PerformDelete(true);
                break;
 
             case Key.Delete:
-               if (FlowDoc.Selection!.Length > 0)
-                  FlowDoc.DeleteSelection();
-               else
-                  DeleteChar();
+               PerformDelete(false);
                break;
 
             case Key.PageDown:

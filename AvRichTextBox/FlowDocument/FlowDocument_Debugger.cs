@@ -25,20 +25,15 @@ public partial class FlowDocument
       {
          foreach (IEditable ied in p.Inlines)
          {
-            if (ied.IsRun)
-            {
-               EditableRun thisRun = (EditableRun)ied;
-               IEditable startInline = Selection.GetStartInline();
-               IEditable endInline = Selection.GetEndInline();
-               int thisRunIndex = p.Inlines.IndexOf(thisRun);
-               thisRun.IsStartInline = ied == startInline;
-               thisRun.IsEndInline = ied == endInline;
-               thisRun.IsWithinSelectionInline =
-                  startInline != null && endInline != null && thisRunIndex > p.Inlines.IndexOf(startInline) && thisRunIndex < p.Inlines.IndexOf(endInline);
-            }
+            IEditable startInline = Selection.GetStartInline();
+            IEditable endInline = Selection.GetEndInline();
+            int thisRunIndex = p.Inlines.IndexOf(ied);
+            ied.IsStartInline = ied == startInline;
+            ied.IsEndInline = ied == endInline;
+            ied.IsWithinSelectionInline =
+            startInline != null && endInline != null && thisRunIndex > p.Inlines.IndexOf(startInline) && thisRunIndex < p.Inlines.IndexOf(endInline);
          }
       }
-
 
 #endif
 

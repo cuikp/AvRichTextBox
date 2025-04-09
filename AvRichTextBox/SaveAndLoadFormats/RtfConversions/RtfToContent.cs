@@ -7,7 +7,6 @@ using RtfDomParser;
 using System.Collections.Generic;
 using Avalonia.Controls.Documents;
 using DynamicData;
-using DocumentFormat.OpenXml.Office2016.Excel;
 using System.Text.RegularExpressions;
 using System.Xml;
 using Avalonia.Media.Imaging;
@@ -90,8 +89,11 @@ internal static partial class RtfConversions
                case RTFAlignment.Justify: newpar.TextAlignment = TextAlignment.Justify; break;
             }
 
-            newpar.LineSpacing = TwipToPix(PixelsToPoints(rtfpar.Format.LineSpacing)) * 2D;
-            //newpar.LineHeight = TwipToPix(PixelsToPoints(rtfpar.Format.LineSpacing)) * 2D;
+            
+            
+            newpar.Background = new SolidColorBrush(rtfpar.Format.BackColor);
+            newpar.BorderBrush = new SolidColorBrush(rtfpar.Format.BorderColor);
+            newpar.BorderThickness = new Avalonia.Thickness(TwipToPix(rtfpar.Format.BorderWidth));
 
             newpar.FontFamily = new FontFamily(rtfpar.Format.FontName);
             //newpar.Margin = new Thickness(rtfpar.Format.xxx);
@@ -102,6 +104,25 @@ internal static partial class RtfConversions
 
             newpar.Inlines.AddRange(addInlines);
 
+
+            if (newpar.Inlines.Count == 0) newpar.Inlines.Add(new EditableRun(""));
+
+            //if (newpar.Inlines.Count > 0)
+            //{
+            //double rtfLineHeight = TwipToPix(rtfpar.Format.LineSpacing);
+            double rtfLineHeightUnits = (double)rtfpar.Format.LineSpacing / 240;
+
+            //Debug.WriteLine("rtfparlinespacing = " + rtfpar.Format.LineSpacing);
+            double ilineH = newpar.Inlines.First().InlineHeight;
+            //double spacing = rtfLineHeight - ilineH;
+
+            double lheight = ilineH * rtfLineHeightUnits * 1.25;
+            newpar.LineHeight = lheight;
+            //newpar.LineSpacing = spacing;
+            //}
+            // else
+            //    newpar.LineHeight = TwipToPix(rtfpar.Format.LineSpacing);
+
          }
          else
          {
@@ -109,12 +130,10 @@ internal static partial class RtfConversions
          }
       }
 
-      //fdoc.PagePadding = PageMargin? pMarg = mainDocPart.Document.Descendants<DocumentFormat.OpenXml.Wordprocessing.PageMargin>().FirstOrDefault()!;
-      //Page size
-      //   fdoc.PageWidth = TwipToPix(Convert.ToDouble((uint)pSize.Width));
-      //   fdoc.PageHeight = TwipToPix(Convert.ToDouble((uint)pSize.Height));
+      fdoc.PagePadding = new Avalonia.Thickness(TwipToPix(rtfdoc.LeftMargin), TwipToPix(rtfdoc.TopMargin), TwipToPix(rtfdoc.RightMargin), TwipToPix(rtfdoc.BottomMargin));
       
-          
+
+
    }
 
    private static List<IEditable> GetRtfTextElementsAsInlines(RTFDomElementList elements)

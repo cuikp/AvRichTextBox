@@ -24,6 +24,10 @@ public partial class RichTextBox : UserControl
       Point? selStartPoint = edPar.TranslatePoint(selStartRect.Position, DocIC);
       Point? prevCharPoint = edPar.TranslatePoint(prevCharRect.Position, DocIC);
 
+      if (selStartPoint == null || prevCharPoint == null) return;
+
+      //Debug.WriteLine("selstartpoint= " + selStartPoint!.Value.Y);
+
       if (selStartPoint != null)
          FlowDoc.Selection.StartRect = new Rect((Point)selStartPoint!, selStartRect.Size);
 
@@ -37,7 +41,6 @@ public partial class RichTextBox : UserControl
 
       int lineNo = tlayout.GetLineIndexFromCharacterIndex(edPar.SelectionStart, false);
       thisPar.IsStartAtFirstLine = lineNo == 0;
-
       thisPar.IsStartAtLastLine = (lineNo == tlayout.TextLines.Count - 1);
 
       if (thisPar.IsStartAtFirstLine)
@@ -62,36 +65,27 @@ public partial class RichTextBox : UserControl
 
       thisPar.FirstIndexStartLine = tlayout.TextLines[lineNo].FirstTextSourceIndex;
       thisPar.FirstIndexLastLine = tlayout.TextLines[^1].FirstTextSourceIndex;
-           
 
-      //rtbVM.CursorHeight = selStartRect.Height;
-      rtbVM.CursorHeight = tlayout.Baseline + 5;  //temporary
-      
+
+      //**********Fix cursor height and position*********:
+      int lineIndex = tlayout.GetLineIndexFromCharacterIndex(edPar.SelectionStart, false);
+      rtbVM.CursorHeight = tlayout.TextLines[lineIndex].Extent;
+      if (rtbVM.CursorHeight == 0)
+         rtbVM.CursorHeight = tlayout.TextLines[lineIndex].Height;
+      rtbVM.CursorHeight += 5; // give it an extra bit
 
 
       double cursorML = selStartPoint!.Value.X;
-      double cursorMT = FlowDoc.Selection.StartRect.Top + 2;
+      double cursorMT = tlayout.TextLines[lineIndex].Start;
 
-      //Debug.WriteLine("edparLH= " + edPar.LineSpacing + "\nthisparlH= " + thisPar.LineSpacing);
-
-      
       if (FlowDoc.Selection.IsAtEndOfLineSpace)
       {
          cursorML = FlowDoc.Selection!.PrevCharRect!.Right;
-         cursorMT = FlowDoc.Selection!.PrevCharRect.Top + 2;
+         cursorMT = FlowDoc.Selection!.PrevCharRect.Top + 1;
       }
-      else if (FlowDoc.Selection.GetStartInline() is EditableRun startRun)
-      {
-         //rtbVM.CursorHeight = startRun.FontSize  * 1.25;
-         rtbVM.CursorHeight = startRun.FontSize  * 1.25 + startRun.myParagraph!.LineSpacing;
-         //cursorMT = FlowDoc.Selection.StartRect.Top + FlowDoc.Selection.StartRect.Height - rtbVM.CursorHeight;
-         cursorMT = FlowDoc.Selection.StartRect.Bottom - rtbVM.CursorHeight - 4;
-         //Debug.WriteLine("thisparlH= " + thisPar.LineSpacing);
-      }
+      else
+         cursorMT = selStartPoint.Value.Y;
       
-      //Take into account linespacing
-      cursorMT -= thisPar.LineSpacing;
-
       rtbVM.CursorMargin = new Thickness(cursorML, cursorMT, 0, 0);
       rtbVM.UpdateCursorVisible();
 

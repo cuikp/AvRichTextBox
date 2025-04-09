@@ -5,10 +5,9 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" Background="WhiteSmoke"
 			 xmlns:local="using:AvRichTextBox" KeyDown="RichTextBox_KeyDown"  Focusable="True"
 	         x:Class="AvRichTextBox.RichTextBox" PointerReleased="RichTextBox_PointerReleased" PointerExited="RichTextBox_PointerExited"
-			 BorderBrush="Black" BorderThickness="1"
+			 BorderBrush="Black" BorderThickness="1" Padding="2"
 			  >
 
-	<!--<DockPanel x:Name="MainDP" x:DataType="local:RichTextBoxViewModel">-->
 	<DockPanel x:Name="MainDP" MinWidth="{Binding MinWidth}">
 
 		<!--VISUAL DEBUGGER - Use this panel for debugging, to show a right-docked panel with visualization of runs.  It is 

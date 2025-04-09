@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Platform.Storage;
 using AvRichTextBox;
 using DemoApp_AvRichtextBox.ViewModels;
 using System;
@@ -49,6 +50,10 @@ public partial class MainWindow : Window
       //MainRTB.FlowDocument = ((MainWindowViewModel)DataContext!).MyFlowDoc;
 
       progChange = false;
+
+      ////Temp debugging
+      //string testLocation = Path.Combine(AppContext.BaseDirectory, "TestFiles");
+      //MainRTB.LoadWordDoc(Path.Combine(testLocation, "TestDocumentWord.docx"));
 
    }
 

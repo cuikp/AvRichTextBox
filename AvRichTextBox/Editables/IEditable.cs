@@ -17,8 +17,7 @@ public interface IEditable : INotifyPropertyChanged
    internal bool IsWithinSelectionInline { get; set; }
    internal bool IsLastInlineOfParagraph { get; set; }
    internal int TextPositionOfInlineInParagraph { get; set; }
-   internal int GetRangeStartInInline(TextRange trange) => trange.Start - myParagraph!.StartInDoc - TextPositionOfInlineInParagraph;
-   internal int GetRangeEndInInline(TextRange trange) => trange.End - myParagraph!.StartInDoc - TextPositionOfInlineInParagraph;
+   internal int GetCharPosInInline(int charPos) => charPos - myParagraph!.StartInDoc - TextPositionOfInlineInParagraph;
    public string InlineText { get; set; }
    public bool IsEmpty { get; }
    public int InlineLength { get; }

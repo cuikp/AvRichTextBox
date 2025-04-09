@@ -19,22 +19,35 @@ internal static partial class WordConversions
 
       var parg = new DOW.Paragraph();
       var pPr = new ParagraphProperties();
-      var nj = new Justification();
       Paragraph? p = b as Paragraph;
-      
-      switch (p!.TextAlignment)
+
+      pPr.Justification = new()
       {
-         case Avalonia.Media.TextAlignment.Left: { nj.Val = JustificationValues.Left; break; }
-         case Avalonia.Media.TextAlignment.Center: { nj.Val = JustificationValues.Center; break; }
-         case Avalonia.Media.TextAlignment.Right: { nj.Val = JustificationValues.Right; break; }
-         case Avalonia.Media.TextAlignment.Justify: { nj.Val = JustificationValues.Both; break; }
+         Val = p!.TextAlignment switch
+         {
+            Avalonia.Media.TextAlignment.Left => JustificationValues.Left,
+            Avalonia.Media.TextAlignment.Center => JustificationValues.Center,
+            Avalonia.Media.TextAlignment.Right => JustificationValues.Right,
+            Avalonia.Media.TextAlignment.Justify => JustificationValues.Both,
+            _ => JustificationValues.Left
+         }
+      };
+      
+      if (p.Background!= null && p.Background.Color != Avalonia.Media.Colors.Transparent)
+         pPr.Shading = new() { Val = ShadingPatternValues.Clear, Color = "auto", Fill = ToOpenXmlColor(p.Background.Color) };
+      
+      if (p.BorderBrush != null && p.BorderBrush.Color != Avalonia.Media.Colors.Transparent)
+      {
+         pPr.ParagraphBorders = new()
+         {
+            LeftBorder = new() { Val = BorderValues.Single, Color = ToOpenXmlColor(p.BorderBrush.Color), Size = (uint)(p.BorderThickness.Left * 6), Space = 0 },
+            TopBorder = new() { Val = BorderValues.Single, Color = ToOpenXmlColor(p.BorderBrush.Color), Size = (uint)(p.BorderThickness.Top * 6), Space = 0 },
+            RightBorder = new() { Val = BorderValues.Single, Color = ToOpenXmlColor(p.BorderBrush.Color), Size = (uint)(p.BorderThickness.Right * 6), Space = 0 },
+            BottomBorder = new() { Val = BorderValues.Single, Color = ToOpenXmlColor(p.BorderBrush.Color), Size = (uint)(p.BorderThickness.Bottom * 6), Space = 0 },
+         };
       }
 
-      pPr.Justification = nj;
-
       pPr.SpacingBetweenLines = new SpacingBetweenLines() { Before = "0", After = "0", LineRule = LineSpacingRuleValues.Auto, Line = "240" };
-
-
       pPr.SnapToGrid = new SnapToGrid() { Val = new OnOffValue(false) };
       parg.AppendChild(pPr);
 

@@ -2,9 +2,11 @@
 using Avalonia.Controls;
 using Avalonia.Media;
 using DocumentFormat.OpenXml.Drawing;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 
 namespace AvRichTextBox;
 
@@ -120,6 +122,24 @@ public class Paragraph : Block
       }
    }
 
+   internal void UpdateUIContainersSelected()
+   {
+      if (this.Inlines != null)
+      {
+         IEditable? startInline = Inlines.FirstOrDefault(il => il.IsStartInline);
+         IEditable? endInline = Inlines.FirstOrDefault(il => il.IsEndInline);
+         foreach (EditableInlineUIContainer iuc  in this.Inlines.OfType<EditableInlineUIContainer>())
+         {
+            int stidx = startInline == null ? -1 : this.Inlines.IndexOf(startInline);
+            int edidx = endInline == null ? Int32.MaxValue : this.Inlines.IndexOf(endInline);
+            int thisidx = this.Inlines.IndexOf(iuc);
+            iuc.IsSelected = (thisidx > stidx && thisidx < edidx);
+            
+         }
+      }
+
+   }
+
    internal bool RemoveEmptyInlines()
    {
       for (int iedno = this.Inlines.Count - 1; iedno >= 0; iedno -= 1)
@@ -130,7 +150,7 @@ public class Paragraph : Block
 
    }
 
-   internal Paragraph Clone()
+   internal Paragraph PropertyClone()
    {
       return new Paragraph() 
       { 
@@ -139,7 +159,31 @@ public class Paragraph : Block
          BorderBrush = this.BorderBrush,
          BorderThickness = this.BorderThickness,
          LineHeight = this.LineHeight,
-         Margin= this.Margin
+         Margin= this.Margin,
+         Background = this.Background,
+         FontFamily = this.FontFamily,
+         FontSize = this.FontSize,
+         FontStyle = this.FontStyle,
+         FontWeight = this.FontWeight
+      }; 
+   }
+
+   internal Paragraph FullClone()
+   {
+      return new Paragraph() 
+      { 
+         TextAlignment = this.TextAlignment,
+         LineSpacing = this.LineSpacing,
+         BorderBrush = this.BorderBrush,
+         BorderThickness = this.BorderThickness,
+         LineHeight = this.LineHeight,
+         Margin= this.Margin,
+         Background = this.Background,
+         FontFamily = this.FontFamily,
+         FontSize = this.FontSize,
+         FontStyle = this.FontStyle,
+         FontWeight = this.FontWeight,
+         Inlines = new ObservableCollection<IEditable>(this.Inlines.Select(il=>il.Clone()))
       }; 
    }
 

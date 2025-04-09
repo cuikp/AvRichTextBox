@@ -35,7 +35,7 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
 
    readonly SolidColorBrush cursorBrush = new(Colors.Cyan, 0.55);
 
-   internal List<IUndo> Undos { get; set; } = [];
+   internal ObservableCollection<IUndo> Undos { get; set; } = [];
 
    internal List<TextRange> TextRanges = [];
 
@@ -121,7 +121,7 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
 
       if (e.PropertyName == "Blocks")
       {
-         Debug.WriteLine("blocks changed");
+         Debug.WriteLine("FlowDoc property changed: Blocks changed");
       }
    }
 

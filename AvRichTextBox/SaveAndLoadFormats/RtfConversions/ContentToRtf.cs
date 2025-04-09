@@ -9,7 +9,6 @@ using static AvRichTextBox.HelperMethods;
 using Avalonia.Media.Imaging;
 using Avalonia.Controls;
 using System.IO;
-using System.Threading.Tasks.Dataflow;
 
 namespace AvRichTextBox;
 
@@ -24,10 +23,10 @@ internal static partial class RtfConversions
       var colorMap = new Dictionary<Color, int>();
       sb.Append(GetFontAndColorTables(fdoc.Blocks, ref fontMap, ref colorMap));
 
-      string margl = PixToTwip(fdoc.PagePadding.Left).ToString();
-      string margr = PixToTwip(fdoc.PagePadding.Right).ToString();
-      string margt = PixToTwip(fdoc.PagePadding.Top).ToString();
-      string margb = PixToTwip(fdoc.PagePadding.Bottom).ToString();
+      string margl = Math.Round(PixToTwip(fdoc.PagePadding.Left)).ToString();
+      string margr = Math.Round(PixToTwip(fdoc.PagePadding.Right)).ToString();
+      string margt = Math.Round(PixToTwip(fdoc.PagePadding.Top)).ToString();
+      string margb = Math.Round(PixToTwip(fdoc.PagePadding.Bottom)).ToString();
       sb.Append(@$"\margl{margl}\margr{margr}\margt{margt}\margb{margb}");
 
       bool BoldOn = false;
@@ -54,7 +53,7 @@ internal static partial class RtfConversions
             double maxHeight = p.Inlines.Max(il => il.IsRun ? ((EditableRun)il).FontSize : p.LineHeight);
             double lineHeightPx = (int)(p.LineHeight / maxHeight * 2 * 240D);
             sb.Append(@$"\sl{lineHeightPx}\slmult0");
-                       
+
 
             if (p.BorderBrush != null && p.BorderBrush.Color != Colors.Transparent)
             {

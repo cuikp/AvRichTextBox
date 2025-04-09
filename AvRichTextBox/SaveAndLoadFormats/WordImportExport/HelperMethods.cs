@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Media.Immutable;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System;
 using System.Collections.Generic;
@@ -60,7 +61,8 @@ internal static partial class HelperMethods
       };
 
       if (returnString != string.Empty) return returnString;
-      return hexColorRegex().Replace(hex, "") == "" ? ("#" + hex) : (isBackground ? "#FFFFFFFF" : "#FF000000"); // default white or black
+      //return hexColorRegex().Replace(hex, "") == "" ? ("#" + hex) : (isBackground ? "#FFFFFFFF" : "#FF000000"); // default white or black
+      return hexColorRegex().Replace(hex, "") == "" ? (hex) : (isBackground ? "#FFFFFFFF" : "#FF000000"); // default white or black
 
    }
 
@@ -105,6 +107,15 @@ internal static partial class HelperMethods
         { HighlightColorValues.None, Colors.Transparent }
     };
 
+   internal static string ToOpenXmlColor(AvColor color) => $"{color.R:X2}{color.G:X2}{color.B:X2}";
+
+   internal static SolidColorBrush FromOpenXmlColor(string openxmlhex)
+   {
+      BrushConverter BConverter = new();
+      ImmutableSolidColorBrush? iSCB = (ImmutableSolidColorBrush)BConverter.ConvertFromString("#" + openxmlhex)!;
+      return new SolidColorBrush(iSCB.Color);
+      
+   }
 
    private static HighlightColorValues FindClosestHighlightColor(AvColor color)
    {

@@ -41,6 +41,55 @@ internal static partial class WordConversions
                               }
                               break;
 
+                           case "shd":
+                              
+                              OpenXmlAttribute fillAttr = pps.GetAttributes().Where(att => att.LocalName == "fill").FirstOrDefault();
+                              if (fillAttr.Value != null)
+                                 para.Background = FromOpenXmlColor(fillAttr.Value);
+                              break;
+
+                           case "pBdr":
+
+                              foreach (var border in pps.Elements())
+                              {  
+                                 string? color = null;
+                                 double thickness = 0;
+                                 string side = border.LocalName;
+                                 OpenXmlAttribute colorAttr = border.GetAttributes().Where(att=> att.LocalName == "color").FirstOrDefault();
+                                 if (!string.IsNullOrEmpty(colorAttr.Value))
+                                    color = colorAttr.Value;
+
+                                 var sizeAttr = border.GetAttributes().FirstOrDefault(att => att.LocalName == "sz");
+                                 if (!string.IsNullOrEmpty(sizeAttr.Value) && uint.TryParse(sizeAttr.Value, out uint size))
+                                    thickness = size / 6.0;
+
+                                 if (color != null)
+                                 {
+                                    var brush = FromOpenXmlColor(color);
+
+                                    switch (side)
+                                    {
+                                       case "left":
+                                          para.BorderBrush = brush;
+                                          para.BorderThickness = new Thickness(thickness, para.BorderThickness.Top, para.BorderThickness.Right, para.BorderThickness.Bottom);
+                                          break;
+                                       case "top":
+                                          para.BorderBrush = brush;
+                                          para.BorderThickness = new Thickness(para.BorderThickness.Left, thickness, para.BorderThickness.Right, para.BorderThickness.Bottom);
+                                          break;
+                                       case "right":
+                                          para.BorderBrush = brush;
+                                          para.BorderThickness = new Thickness(para.BorderThickness.Left, para.BorderThickness.Top, thickness, para.BorderThickness.Bottom);
+                                          break;
+                                       case "bottom":
+                                          para.BorderBrush = brush;
+                                          para.BorderThickness = new Thickness(para.BorderThickness.Left, para.BorderThickness.Top, para.BorderThickness.Right, thickness);
+                                          break;
+                                    }
+                                 }
+                              }
+
+                              break;
 
                            case "spacing":
 
