@@ -10,7 +10,7 @@
 	  <Company>---</Company>
 	  <Product>AvRichTextBox</Product>
 	  <PackageId>Simplecto.Avalonia.RichTextBox</PackageId>
-	  <Version>1.3.2</Version>
+	  <Version>1.3.3</Version>
 	  <Description>A RichTextBox control to be used in Avalonia</Description>
 	  <PackageTags>Avalonia;UserControl;RichTextBox</PackageTags>
 	  <Title>A RichTextBox control for Avalonia</Title>
@@ -19,7 +19,7 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>ver 1.3.2: Changed Undo strategy, better undo behavior</PackageReleaseNotes>
+	  <PackageReleaseNotes>ver 1.3.3: Made ShowDebuggerPanelInDebugMode false for default</PackageReleaseNotes>
 
       <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
       <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>

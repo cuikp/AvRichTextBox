@@ -35,7 +35,7 @@ public partial class RichTextBox : UserControl
       set => SetValue(FlowDocumentProperty, value); 
    }
 
-   public static readonly StyledProperty<bool> ShowDebuggerPanelInDebugModeProperty = AvaloniaProperty.Register<RichTextBox, bool>(nameof(ShowDebuggerPanelInDebugMode), true);
+   public static readonly StyledProperty<bool> ShowDebuggerPanelInDebugModeProperty = AvaloniaProperty.Register<RichTextBox, bool>(nameof(ShowDebuggerPanelInDebugMode), false);
    public bool ShowDebuggerPanelInDebugMode
    {
       
