@@ -3,7 +3,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using static AvRichTextBox.HelperMethods;
-using RtfDomParser;
+using RtfDomParserAv;
 using System.Collections.Generic;
 using Avalonia.Controls.Documents;
 using DynamicData;

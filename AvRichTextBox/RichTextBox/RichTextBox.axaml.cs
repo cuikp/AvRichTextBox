@@ -155,7 +155,7 @@ public partial class RichTextBox : UserControl
    }
 
 
-   public void UpdateAllInlines()
+   internal void UpdateAllInlines()
    {
       
       foreach (Paragraph p in FlowDoc.Blocks.Where(b => b.IsParagraph))

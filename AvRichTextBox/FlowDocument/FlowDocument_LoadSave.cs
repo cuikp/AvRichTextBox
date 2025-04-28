@@ -1,22 +1,13 @@
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using DocumentFormat.OpenXml.Packaging;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
-using System.Linq;
 using System.Text.RegularExpressions;
-using static AvRichTextBox.HelperMethods;
 using static AvRichTextBox.WordConversions;
 using static AvRichTextBox.RtfConversions;
 using static AvRichTextBox.XamlConversions;
-using RtfDomParser;
+using RtfDomParserAv;
 using System.Text;
-using System.Threading.Tasks;
 using HtmlAgilityPack;
 
 namespace AvRichTextBox;

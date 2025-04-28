@@ -51,9 +51,10 @@ internal static partial class RtfConversions
 
 
             double maxHeight = p.Inlines.Max(il => il.IsRun ? ((EditableRun)il).FontSize : p.LineHeight);
-            double lineHeightPx = (int)(p.LineHeight / maxHeight * 2 * 240D);
-            sb.Append(@$"\sl{lineHeightPx}\slmult0");
+            double lineHeightPx = maxHeight == 0 ? 0 : (int)(p.LineHeight / maxHeight * 2 * 240D);
+            //Debug.WriteLine("\nlineheightPx = " + lineHeightPx + "\nmaxHeight= " + maxHeight + "\nlineHeight = " + p.LineHeight);
 
+            sb.Append(@$"\sl{lineHeightPx}\slmult0");
 
             if (p.BorderBrush != null && p.BorderBrush.Color != Colors.Transparent)
             {

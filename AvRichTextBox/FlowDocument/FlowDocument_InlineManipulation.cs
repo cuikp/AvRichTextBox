@@ -246,7 +246,7 @@ public partial class FlowDocument
       return returnIED;
    }
 
-   public IEditable GetPreviousInline(IEditable inline) 
+   internal IEditable GetPreviousInline(IEditable inline) 
    {
       IEditable returnIED = null!;
       int myindex = inline.myParagraph!.Inlines.IndexOf(inline);

@@ -4,6 +4,7 @@ using DocumentFormat.OpenXml.VariantTypes;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using RtfDomParserAv;
 using System.Linq;
 using System.Threading.Tasks;
 using static AvRichTextBox.FlowDocument;
@@ -64,7 +65,7 @@ public partial class RichTextBox
             byte[] rtfbytes = (byte[])rtfobj;
             string rtfstring = System.Text.Encoding.Default.GetString(rtfbytes!);
 
-            RtfDomParser.RTFDomDocument dom = new();
+            RTFDomDocument dom = new();
             dom.LoadRTFText(rtfstring);
             List<IEditable> insertInlines = RtfConversions.GetInlinesFromRtf(dom);
             insertInlines.Reverse();

@@ -1,9 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using Avalonia.Platform.Storage;
 using AvRichTextBox;
-using DemoApp_AvRichtextBox.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,15 +14,13 @@ namespace DemoApp_AvRichtextBox.Views;
 public partial class MainWindow : Window
 {
 
-   public List<string> GetAllFonts 
+   public static List<string> GetAllFonts 
    {
       get
       {
          List<string> returnList = [];
          foreach (var font in FontManager.Current.SystemFonts)
-         {
             returnList.Add(font.Name);
-         }
          return returnList;
       }
       
@@ -38,16 +34,11 @@ public partial class MainWindow : Window
     
       FontsCB.ItemsSource = GetAllFonts;
 
-
-
    }
 
    private void MainWindow_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
    {
       MainRTB.FlowDocument.Selection_Changed += FlowDocument_Selection_Changed;
-
-      //Test setting the RTB flow doc to the viewmodel flow doc:
-      //MainRTB.FlowDocument = ((MainWindowViewModel)DataContext!).MyFlowDoc;
 
       progChange = false;
 
