@@ -252,16 +252,24 @@ public partial class RichTextBox : UserControl
    public void NewDocument() { FlowDoc.NewDocument(); }
    public void CloseDocument() { FlowDoc.NewDocument();  rtbVM.RTBScrollOffset = new Vector(0, 0);  }
    //Load/save
-   public void LoadRtfDoc(string fileName) { FlowDoc.LoadRtf(fileName);  }
-   public void SaveRtfDoc(string fileName) { FlowDoc.SaveRtf(fileName);  }
-   public void LoadWordDoc(string fileName) { FlowDoc.LoadWordDoc(fileName);  }
-   public void SaveWordDoc(string filename) { FlowDoc.SaveWordDoc(filename); }
-   public void LoadHtmlDoc(string fileName) { FlowDoc.LoadHtmlDoc(fileName);  }
-   public void SaveHtmlDoc(string filename) { FlowDoc.SaveHtmlDoc(filename); }
+	public void LoadRtf(string rtf) { FlowDoc.LoadRtf(rtf); }
+   public void LoadRtfDoc(string fileName) { FlowDoc.LoadRtfFromFile(fileName);  }
 
-   public void LoadXaml (string fileName) { FlowDoc.LoadXaml(fileName); }
+	public string SaveRtf() { return FlowDoc.SaveRtf(); }
+   public void SaveRtfDoc(string fileName) { FlowDoc.SaveRtfToFile(fileName);  }
+   public void LoadWordDoc(string fileName) { FlowDoc.LoadWordDocFromFile(fileName);  }
+   public void SaveWordDoc(string filename) { FlowDoc.SaveWordDocToFile(filename); }
+	public void LoadHtml(string html) { FlowDoc.LoadHtml(html); }
+
+	public string SaveHtml() { return FlowDoc.SaveHtml(); }
+   public void LoadHtmlDoc(string fileName) { FlowDoc.LoadHtmlDocFromFile(fileName);  }
+   public void SaveHtmlDoc(string filename) { FlowDoc.SaveHtmlDocToFile(filename); }
+	
+   public void LoadXaml (string fileName) { FlowDoc.LoadXamlFromFile(fileName); }
    public void SaveXamlPackage (string fileName) { FlowDoc.SaveXamlPackage(fileName); }
-   public void SaveXaml (string fileName) { FlowDoc.SaveXaml(fileName); }
+	public void LoadXamlString(string xaml) { FlowDoc.LoadXaml(xaml); }
+	public string SaveXamlString() { return FlowDoc.SaveXaml(); }
+   public void SaveXaml (string fileName) { FlowDoc.SaveXamlToFile(fileName); }
    public void LoadXamlPackage (string fileName) { FlowDoc.LoadXamlPackage(fileName);  }
 
    private void MovePage(int direction, bool extend)
