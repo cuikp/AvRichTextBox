@@ -91,7 +91,7 @@ internal class PasteUndo(Dictionary<Block, List<IEditable>> keptParsAndInlines, 
       {
          flowDoc.RestoreDeletedBlocks(keptParsAndInlines, parIndex);
 
-         flowDoc.Selection.Start = 0;  //??? why necessary for cursor?
+         flowDoc.Selection.Start = 0;  //??? why necessary for caret?
          flowDoc.Selection.End = 0;
          flowDoc.Selection.Start = origSelectionStart;
          flowDoc.Selection.End = origSelectionStart;
@@ -113,7 +113,7 @@ internal class DeleteRangeUndo (Dictionary<Block, List<IEditable>> keptParsAndIn
       {
          flowDoc.RestoreDeletedBlocks(keptParsAndInlines, parIndex);
 
-         flowDoc.Selection.Start = 0;  //??? why necessary for cursor?
+         flowDoc.Selection.Start = 0;  //??? why necessary for caret?
          flowDoc.Selection.End = 0;
          flowDoc.Selection.Start = origSelectionStart;
          flowDoc.Selection.End = origSelectionStart;

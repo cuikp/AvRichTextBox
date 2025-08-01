@@ -26,15 +26,15 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
    public delegate void SelectionChanged_Handler(TextRange selection);
    public event SelectionChanged_Handler? Selection_Changed;
 
-   public delegate void UpdateRTBCursor_Handler();
-   internal event UpdateRTBCursor_Handler? UpdateRTBCursor;
+   public delegate void UpdateRTBCaret_Handler();
+   internal event UpdateRTBCaret_Handler? UpdateRTBCaret;
    
    private Thickness _PagePadding = new (0);
    public Thickness PagePadding { get => _PagePadding; set {  _PagePadding = value; NotifyPropertyChanged(nameof(PagePadding)); } }
 
    internal bool IsEditable { get; set; } = true;
 
-   readonly SolidColorBrush cursorBrush = new(Colors.Cyan, 0.55);
+   readonly SolidColorBrush caretBrush = new(Colors.Cyan, 0.55);
 
    internal ObservableCollection<IUndo> Undos { get; set; } = [];
 
@@ -163,7 +163,7 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
 
       InitializeParagraphs();
 
-      UpdateRTBCursor?.Invoke();
+      UpdateRTBCaret?.Invoke();
 
 
    }
@@ -181,7 +181,7 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
       Selection.UpdateStart();
       Selection.UpdateEnd();
 
-      await Task.Delay(70);  // For cursor 
+      await Task.Delay(70);  // For caret
 
       Paragraph firstPar = (Paragraph)Blocks[0];
       firstPar.CallRequestTextBoxFocus();

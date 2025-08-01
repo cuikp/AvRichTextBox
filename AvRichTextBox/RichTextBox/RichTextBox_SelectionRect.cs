@@ -67,27 +67,27 @@ public partial class RichTextBox : UserControl
       thisPar.FirstIndexLastLine = tlayout.TextLines[^1].FirstTextSourceIndex;
 
 
-      //**********Fix cursor height and position*********:
+      //**********Fix caret height and position*********:
       int lineIndex = tlayout.GetLineIndexFromCharacterIndex(edPar.SelectionStart, false);
-      rtbVM.CursorHeight = tlayout.TextLines[lineIndex].Extent;
-      if (rtbVM.CursorHeight == 0)
-         rtbVM.CursorHeight = tlayout.TextLines[lineIndex].Height;
-      rtbVM.CursorHeight += 5; // give it an extra bit
+      rtbVM.CaretHeight = tlayout.TextLines[lineIndex].Extent;
+      if (rtbVM.CaretHeight == 0)
+         rtbVM.CaretHeight = tlayout.TextLines[lineIndex].Height;
+      rtbVM.CaretHeight += 5; // give it an extra bit
 
 
-      double cursorML = selStartPoint!.Value.X;
-      double cursorMT = tlayout.TextLines[lineIndex].Start;
+      double caretML = selStartPoint!.Value.X;
+      double caretMT = tlayout.TextLines[lineIndex].Start;
 
       if (FlowDoc.Selection.IsAtEndOfLineSpace)
       {
-         cursorML = FlowDoc.Selection!.PrevCharRect!.Right;
-         cursorMT = FlowDoc.Selection!.PrevCharRect.Top + 1;
+         caretML = FlowDoc.Selection!.PrevCharRect!.Right;
+         caretMT = FlowDoc.Selection!.PrevCharRect.Top + 1;
       }
       else
-         cursorMT = selStartPoint.Value.Y;
+         caretMT = selStartPoint.Value.Y;
       
-      rtbVM.CursorMargin = new Thickness(cursorML, cursorMT, 0, 0);
-      rtbVM.UpdateCursorVisible();
+      rtbVM.CaretMargin = new Thickness(caretML, caretMT, 0, 0);
+      rtbVM.UpdateCaretVisible();
 
    }
 
@@ -148,7 +148,7 @@ public partial class RichTextBox : UserControl
 
       thisPar.FirstIndexLastLine = edPar.TextLayout.TextLines[^1].FirstTextSourceIndex;
 
-      rtbVM.UpdateCursorVisible();
+      rtbVM.UpdateCaretVisible();
 
    }
 

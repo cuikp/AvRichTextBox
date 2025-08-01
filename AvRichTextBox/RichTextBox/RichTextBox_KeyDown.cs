@@ -146,7 +146,7 @@ public partial class RichTextBox
 
          }
 
-         rtbVM.CursorVisible = (rtbVM.FlowDoc.Selection.Length == 0);
+         rtbVM.CaretVisible = (rtbVM.FlowDoc.Selection.Length == 0);
          if (client != null)
             UpdatePreeditOverlay();
 

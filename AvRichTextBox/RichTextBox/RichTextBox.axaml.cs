@@ -68,15 +68,15 @@ public partial class RichTextBox : UserControl
       
       FlowDocSV.SizeChanged += FlowDocSV_SizeChanged;
 
-      AdornerLayer.SetAdorner(DocIC, _CursorRect);
+      AdornerLayer.SetAdorner(DocIC, _CaretRect);
 
       InitializeBlinkAnimation();
 
-      blinkAnimation!.RunAsync(_CursorRect);
-      _CursorRect.Bind(IsVisibleProperty, new Binding("CursorVisible"));
-      _CursorRect.Bind(MarginProperty, new Binding("CursorMargin"));
-      _CursorRect.Bind(HeightProperty, new Binding("CursorHeight"));
-      _CursorRect.DataContext = rtbVM;
+      blinkAnimation!.RunAsync(_CaretRect);
+      _CaretRect.Bind(IsVisibleProperty, new Binding("CaretVisible"));
+      _CaretRect.Bind(MarginProperty, new Binding("CaretMargin"));
+      _CaretRect.Bind(HeightProperty, new Binding("CaretHeight"));
+      _CaretRect.DataContext = rtbVM;
 
       this.TextInput += RichTextBox_TextInput;
 
@@ -130,13 +130,13 @@ public partial class RichTextBox : UserControl
          if (FlowDoc != null)
          {
             FlowDoc.ScrollInDirection -= rtbVM.FlowDoc_ScrollInDirection;
-            FlowDoc.UpdateRTBCursor -= rtbVM.FlowDoc_UpdateRTBCursor;
+            FlowDoc.UpdateRTBCaret -= rtbVM.FlowDoc_UpdateRTBCaret;
          }
 
          rtbVM.FlowDoc = FlowDocument;
 
          rtbVM.FlowDoc.ScrollInDirection += rtbVM.FlowDoc_ScrollInDirection;
-         rtbVM.FlowDoc.UpdateRTBCursor += rtbVM.FlowDoc_UpdateRTBCursor;
+         rtbVM.FlowDoc.UpdateRTBCaret += rtbVM.FlowDoc_UpdateRTBCaret;
          rtbVM.FlowDoc.InitializeDocument();
          CreateClient();
 
@@ -209,8 +209,8 @@ public partial class RichTextBox : UserControl
       
    }
 
-   internal Point CursorPosition { get; set; }
-   public Point GetCurrentPosition() => CursorPosition;
+   internal Point CaretPosition { get; set; }
+   public Point GetCurrentPosition() => CaretPosition;
 
 
    private void UpdatePreeditOverlay()
@@ -218,14 +218,14 @@ public partial class RichTextBox : UserControl
 
       if (!string.IsNullOrEmpty(_preeditText))
       {
-         double cX = _CursorRect!.Margin.Left - 2;
-         double cY = _CursorRect!.Margin.Top - 2;
+         double cX = _CaretRect!.Margin.Left - 2;
+         double cY = _CaretRect!.Margin.Top - 2;
 
          PreeditOverlay.Text = _preeditText;
          PreeditOverlay.Margin = new Thickness(cX, cY, 0, 0);
          PreeditOverlay.IsVisible = true;
-         CursorPosition = new Point(cX, cY - rtbVM.RTBScrollOffset.Y);
-         client.UpdateCursorPosition();
+         CaretPosition = new Point(cX, cY - rtbVM.RTBScrollOffset.Y);
+         client.UpdateCaretPosition();
 
       }
       else
@@ -236,7 +236,7 @@ public partial class RichTextBox : UserControl
 
    
    
-   private readonly Rectangle? _CursorRect = new()
+   private readonly Rectangle? _CaretRect = new()
    {
       StrokeThickness = 2,
       Stroke = Brushes.Black,
@@ -249,7 +249,7 @@ public partial class RichTextBox : UserControl
    };
 
 
-   public void InvalidateCursor() { rtbVM.CursorVisible = true;  }
+   public void InvalidateCaret() { rtbVM.CaretVisible = true;  }
    public void NewDocument() { FlowDoc.NewDocument(); }
    public void CloseDocument() { FlowDoc.NewDocument();  rtbVM.RTBScrollOffset = new Vector(0, 0);  }
    //Load/save

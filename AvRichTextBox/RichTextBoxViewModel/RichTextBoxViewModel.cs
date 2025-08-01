@@ -31,31 +31,31 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
    public RichTextBoxViewModel()
    {
       //FlowDoc.ScrollInDirection += FlowDoc_ScrollInDirection;
-      //FlowDoc.UpdateRTBCursor += FlowDoc_UpdateRTBCursor;
+      //FlowDoc.UpdateRTBCaret += FlowDoc_UpdateRTBCaret;
    }
 
-   internal void FlowDoc_UpdateRTBCursor()
+   internal void FlowDoc_UpdateRTBCaret()
    {
-      UpdateCursorVisible();
+      UpdateCaretVisible();
    }
 
    internal double ScrollViewerHeight = 10;
    
-   private double _CursorHeight = 5;
-   public double CursorHeight { get => _CursorHeight; set { _CursorHeight = value; NotifyPropertyChanged(nameof(CursorHeight)); } }
+   private double _CaretHeight = 5;
+   public double CaretHeight { get => _CaretHeight; set { _CaretHeight = value; NotifyPropertyChanged(nameof(CaretHeight)); } }
 
-   private Thickness _CursorMargin = new (0);
-   public Thickness CursorMargin { get => _CursorMargin; set { _CursorMargin = value; NotifyPropertyChanged(nameof(CursorMargin)); } }
+   private Thickness _CaretMargin = new (0);
+   public Thickness CaretMargin { get => _CaretMargin; set { _CaretMargin = value; NotifyPropertyChanged(nameof(CaretMargin)); } }
 
-   private bool _CursorVisible = true;
-   public bool CursorVisible { get => _CursorVisible; set { _CursorVisible = value; NotifyPropertyChanged(nameof(CursorVisible)); } }
+   private bool _CaretVisible = true;
+   public bool CaretVisible { get => _CaretVisible; set { _CaretVisible = value; NotifyPropertyChanged(nameof(CaretVisible)); } }
 
-   internal void UpdateCursorVisible()
+   internal void UpdateCaretVisible()
    {
 
       FlowDoc.Selection.StartParagraph?.CallRequestInvalidateVisual();
 
-      CursorVisible = FlowDoc.Selection.Length == 0;
+      CaretVisible = FlowDoc.Selection.Length == 0;
 
    }
 

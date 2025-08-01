@@ -9,7 +9,7 @@ namespace AvRichTextBox;
 public partial class EditableTable : Grid, IEditableBlock
 {
    ////public bool IsEditable { get; set; } = true;
-   ////SolidColorBrush cursorBrush = new SolidColorBrush(Colors.Cyan, 0.55);
+   ////SolidColorBrush caretBrush = new SolidColorBrush(Colors.Cyan, 0.55);
 
    //public static readonly StyledProperty<ObservableCollection<Border>> CellsProperty = AvaloniaProperty.Register<EditableTable, ObservableCollection<Border>>(nameof(Cells));
    //public static readonly StyledProperty<ColumnDefinitions> ColDefsProperty = AvaloniaProperty.Register<EditableTable, ColumnDefinitions>(nameof(ColDefs));

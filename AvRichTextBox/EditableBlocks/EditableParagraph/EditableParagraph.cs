@@ -17,13 +17,13 @@ public partial class EditableParagraph : SelectableTextBlock
 
    public bool IsEditable { get; set; } = true;
 
-   private readonly SolidColorBrush cursorBrush = new (Colors.Cyan, 0.55);
+   private readonly SolidColorBrush caretBrush = new (Colors.Cyan, 0.55);
 
    public int RectCharacterIndex = 0;
    
    public EditableParagraph()
    {
-      this.SelectionBrush = cursorBrush;
+      this.SelectionBrush = caretBrush;
 
       this.Loaded += EditableParagraph_Loaded;
 

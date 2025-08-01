@@ -271,14 +271,14 @@ public partial class FlowDocument
       Blocks[^1].SelectionStartInBlock = Blocks[^1].BlockLength - 1;
       Blocks[^1].SelectionEndInBlock = Blocks[^1].BlockLength - 1;
 
-      //Necessary for cursor movement
+      //Necessary for caret movement
       Selection.Start = 0;
       Selection.CollapseToStart();
       ///////////////////////////////
       
       Select(DocEndPoint - 1, 0);
       
-      UpdateRTBCursor?.Invoke();
+      UpdateRTBCaret?.Invoke();
 
    }
 
@@ -419,7 +419,7 @@ public partial class FlowDocument
       
    }
 
-   internal void UpdateCursor()
+   internal void UpdateCaret()
    {
       Selection.StartParagraph.CallRequestTextLayoutInfoStart();
       Selection.StartParagraph.CallRequestTextLayoutInfoEnd();

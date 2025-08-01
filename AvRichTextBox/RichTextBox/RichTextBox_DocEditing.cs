@@ -29,7 +29,7 @@ public partial class RichTextBox
    internal void UpdateCurrentParagraphLayout()
    {
       this.UpdateLayout();
-      rtbVM.UpdateCursorVisible();
+      rtbVM.UpdateCaretVisible();
    }
 
    internal void InsertParagraph()

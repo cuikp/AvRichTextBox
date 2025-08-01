@@ -35,15 +35,15 @@ public partial class RichTextBox
          //Debug.WriteLine("selection changed");
       }
 
-      private double GetAdjustedCursorY (double yval) 
+      private double GetAdjustedCaretY (double yval) 
       {
          //Debug.WriteLine("ownerbounds bottom=" + _owner.Bounds.Bottom + " // yval= " + yval);  
          return (yval > _owner.Bounds.Bottom - 200) ? yval - 200 : yval + 22; 
       }
 
-      public override Rect CursorRectangle => new(_owner.CursorPosition.X + 12, GetAdjustedCursorY(_owner.CursorPosition.Y),  1, 0);
+      public override Rect CursorRectangle => new(_owner.CaretPosition.X + 12, GetAdjustedCaretY(_owner.CaretPosition.Y),  1, 0);
       
-      public void UpdateCursorPosition()
+      public void UpdateCaretPosition()
       {
          RaiseCursorRectangleChanged();
       }
