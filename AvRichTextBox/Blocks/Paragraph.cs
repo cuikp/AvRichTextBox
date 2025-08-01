@@ -126,6 +126,7 @@ public class Paragraph : Block
    {
       if (this.Inlines != null)
       {
+
          IEditable? startInline = Inlines.FirstOrDefault(il => il.IsStartInline);
          IEditable? endInline = Inlines.FirstOrDefault(il => il.IsEndInline);
          foreach (EditableInlineUIContainer iuc  in this.Inlines.OfType<EditableInlineUIContainer>())
@@ -134,7 +135,6 @@ public class Paragraph : Block
             int edidx = endInline == null ? Int32.MaxValue : this.Inlines.IndexOf(endInline);
             int thisidx = this.Inlines.IndexOf(iuc);
             iuc.IsSelected = (thisidx > stidx && thisidx < edidx);
-            
          }
       }
 

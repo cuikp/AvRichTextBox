@@ -78,7 +78,18 @@ public class Block : INotifyPropertyChanged
 
    public static bool IsFocusable => false;
 
-   internal void ClearSelection() { this.SelectionStartInBlock = 0; this.SelectionEndInBlock = 0; }
+   internal void ClearSelection()
+   {
+      this.SelectionStartInBlock = 0;
+      this.SelectionEndInBlock = 0;
+      if (this is Paragraph p)
+      {
+         foreach (EditableInlineUIContainer iuc in p.Inlines.OfType<EditableInlineUIContainer>())
+            iuc.IsSelected = false;
+      }
+      
+   }
+
    internal void CollapseToStart() { if (SelectionStartInBlock != SelectionEndInBlock) SelectionEndInBlock = SelectionStartInBlock; }
    internal void CollapseToEnd() { if (SelectionStartInBlock != SelectionEndInBlock) SelectionStartInBlock = SelectionEndInBlock; }
 

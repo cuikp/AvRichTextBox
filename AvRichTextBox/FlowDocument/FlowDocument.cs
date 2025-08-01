@@ -307,6 +307,7 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
       {
          if (p != currPar)
             p.ClearSelection();
+            
       }
 
    }

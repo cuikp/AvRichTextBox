@@ -46,7 +46,7 @@ public partial class RichTextBox
       SelectionOrigin = thisPar.StartInDoc + hitCarIndex.TextPosition;
 
       //Clear all selections in all paragraphs      
-      foreach (Paragraph p in FlowDoc.Blocks.Where(pp => pp.SelectionLength != 0)) { p.ClearSelection(); }
+      foreach (Paragraph p in FlowDoc.Blocks.Where(pp => pp.SelectionLength != 0)) { p.ClearSelection();  }
 
       int sel_start_idx = SelectionOrigin;
       int sel_end_idx = SelectionOrigin;
@@ -54,7 +54,7 @@ public partial class RichTextBox
       if(e.ClickCount > 1 &&
          e.Source is Visual source_visual &&
          e.GetCurrentPoint(source_visual).Properties.PointerUpdateKind == PointerUpdateKind.LeftButtonPressed) 
-      {
+      { // word/paragraph selection added by tkefauver
          if(e.ClickCount == 2) 
          {
             // dbl click, select word
