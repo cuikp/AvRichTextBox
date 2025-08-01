@@ -8,6 +8,7 @@ using DynamicData;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace AvRichTextBox;
 
@@ -47,8 +48,39 @@ public partial class RichTextBox
       //Clear all selections in all paragraphs      
       foreach (Paragraph p in FlowDoc.Blocks.Where(pp => pp.SelectionLength != 0)) { p.ClearSelection(); }
 
-      FlowDoc.Selection.Start = SelectionOrigin;
-      FlowDoc.Selection.CollapseToStart();
+      int sel_start_idx = SelectionOrigin;
+      int sel_end_idx = SelectionOrigin;
+
+      if(e.ClickCount > 1 &&
+         e.Source is Visual source_visual &&
+         e.GetCurrentPoint(source_visual).Properties.PointerUpdateKind == PointerUpdateKind.LeftButtonPressed) 
+      {
+         if(e.ClickCount == 2) 
+         {
+            // dbl click, select word
+            var word_matches = Regex.Matches(thisPar.Text, "\\w+");
+            foreach(Match wm in word_matches) 
+            {
+               int wm_start_idx = thisPar.StartInDoc + wm.Index;
+               int wm_end_idx = wm_start_idx + wm.Length;
+               if(SelectionOrigin >= wm_start_idx && SelectionOrigin <= wm_end_idx) 
+               {
+                  sel_start_idx = wm_start_idx;
+                  sel_end_idx = wm_end_idx;
+                  break;
+               }
+            }
+         } 
+         else if(e.ClickCount == 3) 
+         {
+            // triple click select block
+            sel_start_idx = thisPar.StartInDoc;
+            sel_end_idx = sel_start_idx + thisPar.Text.Length;
+         } 
+      }
+
+      FlowDoc.Selection.Start = sel_start_idx;
+      FlowDoc.Selection.End = sel_end_idx;
 
       //e.Pointer.Capture(null);
       //e.Pointer.Capture(this);
