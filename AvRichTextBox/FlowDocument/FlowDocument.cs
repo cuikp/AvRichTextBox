@@ -2,6 +2,7 @@
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Media;
+using DynamicData;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -117,11 +118,11 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
 
    private void FlowDocument_PropertyChanged(object? sender, PropertyChangedEventArgs e)
    {
-      Debug.WriteLine("property name = " + e.PropertyName);
+      //Debug.WriteLine("property name = " + e.PropertyName);
 
       if (e.PropertyName == "Blocks")
       {
-         Debug.WriteLine("FlowDoc property changed: Blocks changed");
+         //Debug.WriteLine("FlowDoc property changed: Blocks changed");
       }
    }
 
@@ -198,6 +199,8 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
       startPar.CallRequestTextLayoutInfoStart();
       IEditable startInline = selRange.GetStartInline();
 
+      UpdateSelectedParagraphs();
+
       if (ShowDebugger)
          UpdateDebuggerSelectionParagraphs();
 
@@ -227,10 +230,11 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
     
       selRange.EndParagraph.CallRequestTextLayoutInfoEnd();
       selRange.GetEndInline();
-      
+
+      UpdateSelectedParagraphs();
+
       if (ShowDebugger)
          UpdateDebuggerSelectionParagraphs();
-            
 
       //Make sure end is not less than start
       if (Selection.Length > 0)
@@ -243,6 +247,12 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
       Selection.EndParagraph.CallRequestTextLayoutInfoEnd();
       Selection_Changed?.Invoke(Selection);
 
+   }
+
+   internal void UpdateSelectedParagraphs()
+   {
+      SelectionParagraphs.Clear();
+      SelectionParagraphs.AddRange(Blocks.Where(p => p.StartInDoc + p.BlockLength > Selection.Start && p.StartInDoc <= Selection.End).ToList().ConvertAll(bb => (Paragraph)bb));
    }
 
    internal string GetText(TextRange tRange)

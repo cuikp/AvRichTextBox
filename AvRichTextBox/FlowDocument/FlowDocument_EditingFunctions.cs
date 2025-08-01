@@ -157,6 +157,8 @@ public partial class FlowDocument
 
          Undos.RemoveAt(Undos.Count - 1);
 
+         UpdateSelectedParagraphs();
+         
          if (ShowDebugger)
             UpdateDebuggerSelectionParagraphs();
 

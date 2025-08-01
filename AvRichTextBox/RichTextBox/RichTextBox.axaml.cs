@@ -244,7 +244,8 @@ public partial class RichTextBox : UserControl
       Width = 1.5,
       IsVisible = false,
       HorizontalAlignment = HorizontalAlignment.Left,
-      VerticalAlignment = VerticalAlignment.Top
+      VerticalAlignment = VerticalAlignment.Top,
+      IsHitTestVisible = false
    };
 
 

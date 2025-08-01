@@ -111,6 +111,7 @@ public partial class RichTextBox
 
          if (overEP != null)
          {
+
             TextHitTestResult hitCharIndex = overEP.TextLayout.HitTestPoint(e.GetPosition(overEP));
             int charIndex = hitCharIndex.TextPosition;
 

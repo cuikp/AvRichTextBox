@@ -17,7 +17,6 @@ public partial class FlowDocument
 	internal void LoadRtf(string rtfContent)
 	{
 		RTFDomDocument rtfdom = new();
-		//rtfdom.Load(fileName);
 
 		// Do this to fix malformed `\o "` and orphaned quotes
 		if (rtfContent.Contains("\\o "))
@@ -38,6 +37,7 @@ public partial class FlowDocument
 		}
 		catch (Exception ex2) { Debug.WriteLine($"error getting flow doc:\n{ex2.Message}"); }
 	}
+	
 	internal void LoadRtfFromFile(string fileName)
 	{
 		try
@@ -58,13 +58,13 @@ public partial class FlowDocument
 	{
 		try
 		{
-			//string rtfText = GetRtfFromFlowDocumentBlocks(this.Blocks);
 			string rtfText = SaveRtf();
 			File.WriteAllText(fileName, rtfText, Encoding.Default);
 			//Debug.WriteLine(rtfText);
 		}
 		catch (Exception ex2) { Debug.WriteLine($"error getting flow doc:\n{ex2.Message}"); }
 	}
+	
 	internal string SaveRtf()
 	{
 		return GetRtfFromFlowDocument(this);
@@ -98,6 +98,7 @@ public partial class FlowDocument
 		HtmlDocument hdoc = HtmlConversions.GetHtmlFromFlowDocument(this);
 		hdoc.Save(fileName);
 	}
+	
 	internal string SaveHtml()
 	{
 		HtmlDocument hdoc = HtmlConversions.GetHtmlFromFlowDocument(this);
@@ -119,6 +120,7 @@ public partial class FlowDocument
 		}
 
 	}
+	
 	internal void LoadHtml(string htmlContent)
 	{
 		try

@@ -17,8 +17,8 @@ public partial class FlowDocument
 
 #if DEBUG
 
-      SelectionParagraphs.Clear();
-      SelectionParagraphs.AddRange(Blocks.Where(p => p.StartInDoc + p.BlockLength > Selection.Start && p.StartInDoc <= Selection.End).ToList().ConvertAll(bb => (Paragraph)bb));
+      //SelectionParagraphs.Clear();
+      //SelectionParagraphs.AddRange(Blocks.Where(p => p.StartInDoc + p.BlockLength > Selection.Start && p.StartInDoc <= Selection.End).ToList().ConvertAll(bb => (Paragraph)bb));
 
       //Visuals for DebuggerPanel
       foreach (Paragraph p in SelectionParagraphs)

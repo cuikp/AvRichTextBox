@@ -148,12 +148,12 @@ public partial class XamlConversions
 
          StringBuilder ParagraphHeader = new ("<Paragraph ");
          ParagraphHeader.Append(
-            "FontFamily=\"" + paragraph.FontFamily.Name +
-            "\" FontWeight=\"" + paragraph.FontWeight.ToString() + 
-            "\" FontStyle=\"" + paragraph.FontStyle.ToString() + 
-            "\" FontSize=\"" + paragraph.FontSize.ToString() + 
-            "\" Margin=\"" + paragraph.Margin.ToString() + 
-            "\" Background=\"" + paragraph.Background.ToString() + 
+            $"FontFamily=\"{paragraph.FontFamily.Name}" +
+            $"\" FontWeight=\"{paragraph.FontWeight}" + 
+            $"\" FontStyle=\"{paragraph.FontStyle}" + 
+            $"\" FontSize=\"{paragraph.FontSize}" + 
+            $"\" Margin=\"{paragraph.Margin}" + 
+            $"\" Background=\"{paragraph.Background}" + 
             "\">");
          selXaml.Append(ParagraphHeader);
 
@@ -197,22 +197,18 @@ public partial class XamlConversions
                if (isXamlPackage)
                {
                   EditableInlineUIContainer eIUC = (EditableInlineUIContainer)ied;
-                  string InlineUIHeader = "<InlineUIContainer FontFamily=\"" + eIUC.FontFamily.Name + "\" BaselineAlignment=\"" + eIUC.BaselineAlignment.ToString() + "\">";
+                  string InlineUIHeader = $"<InlineUIContainer FontFamily=\"{eIUC.FontFamily.Name}\" BaselineAlignment=\"{eIUC.BaselineAlignment}\">";
                   runXamlBuilder.Append(InlineUIHeader);
 
                   if (eIUC.Child.GetType() == typeof(Image))
                   {
                      Image childImage = (Image)eIUC.Child;
-                     string ImageHeader =
-                         "<Image Stretch=\"Fill\" " +
-                         "Width=\"" + childImage.Width +
-                         "\" Height=\"" + childImage.Height +
-                         "\">";
+                     string ImageHeader = $"<Image Stretch=\"Fill\" Width=\"{childImage.Width}\" Height=\"{childImage.Height}\">";
                      runXamlBuilder.Append(ImageHeader);
 
                      runXamlBuilder.Append(
                          "<Image.Source>" +
-                         "<BitmapImage UriSource=\"./Image" + eIUC.ImageNo + ".png" + "\" CacheOption=\"OnLoad\" />" +
+                         $"<BitmapImage UriSource=\"./Image{eIUC.ImageNo}.png\" CacheOption=\"OnLoad\" />" +
                          "</Image.Source>"
                      );
 
@@ -233,16 +229,18 @@ public partial class XamlConversions
    internal static string GetRunAttributesString(EditableRun erun)
    {
       StringBuilder attSB = new ();
-      attSB.Append("FontFamily=\"" + erun.FontFamily.ToString() + "\"");
-      attSB.Append(" FontWeight=\"" + erun.FontWeight.ToString() + "\"");
-      attSB.Append(" FontSize=\"" + erun.FontSize.ToString() + "\"");
-      attSB.Append(" FontStyle=\"" + erun.FontStyle.ToString() + "\"");
-      attSB.Append(" FontStretch=\"" + erun.FontStretch.ToString() + "\"");
-      attSB.Append(" BaselineAlignment=\"" + erun.BaselineAlignment.ToString() + "\"");
+
+      attSB.Append($"FontFamily=\"{erun.FontFamily}\"");
+      attSB.Append($" FontWeight=\"{erun.FontWeight}\"");
+      attSB.Append($" FontSize=\"{erun.FontSize}\"");
+      attSB.Append($" FontStyle=\"{erun.FontStyle}\"");
+      attSB.Append($" FontStretch=\"{erun.FontStretch}\"");
+      attSB.Append($" BaselineAlignment=\"{erun.BaselineAlignment}\"");
+
       if (erun.Foreground != null)
-         attSB.Append(" Foreground=\"" + erun.Foreground.ToString() + "\"");
+         attSB.Append($" Foreground=\"{erun.Foreground}\"");
       if (erun.Background != null)
-         attSB.Append(" Background=\"" + erun.Background.ToString() + "\"");
+         attSB.Append($" Background=\"{erun.Background}\"");
 
       if (erun.TextDecorations != null)
       {

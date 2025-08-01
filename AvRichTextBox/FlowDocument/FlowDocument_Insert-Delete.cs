@@ -381,6 +381,8 @@ public partial class FlowDocument
 
       thisPar.CallRequestTextBoxFocus();
 
+      UpdateSelectedParagraphs();
+
 #if DEBUG
       UpdateDebuggerSelectionParagraphs();
 #endif
