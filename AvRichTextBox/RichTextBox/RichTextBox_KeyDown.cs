@@ -46,6 +46,7 @@ public partial class RichTextBox
                break;
 
             case Key.Z:
+               if (IsReadOnly) return;
                FlowDoc.Undo();
                break;
 
@@ -54,6 +55,7 @@ public partial class RichTextBox
                break;
 
             case Key.Delete:
+               if (IsReadOnly) return;
                FlowDoc.DeleteWord(false);
                break;
 
@@ -76,10 +78,8 @@ public partial class RichTextBox
          switch (e.Key)
          {
             case Key.Escape:
-
                if (PreeditOverlay.IsVisible)
                   HideIMEOverlay();
-
                break;
 
             case Key.Enter:
@@ -139,9 +139,7 @@ public partial class RichTextBox
                break;
 
             case Key.PageUp:
-               
                MovePage(-1, e.KeyModifiers.HasFlag(KeyModifiers.Shift));
-
                break;
 
          }

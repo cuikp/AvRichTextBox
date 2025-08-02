@@ -11,6 +11,8 @@ public partial class RichTextBox
 
    private void RichTextBox_TextInput(object? sender, Avalonia.Input.TextInputEventArgs e)
    {
+      if (IsReadOnly) return;
+
       FlowDoc.InsertText(e.Text);
       UpdateCurrentParagraphLayout();
       
@@ -34,6 +36,8 @@ public partial class RichTextBox
 
    internal void InsertParagraph()
    {
+      if (IsReadOnly) return;
+
       FlowDoc.InsertParagraph(true, FlowDoc.Selection.Start);
       UpdateCurrentParagraphLayout();
 
@@ -41,6 +45,8 @@ public partial class RichTextBox
 
    internal void InsertLineBreak()
    {
+      if (IsReadOnly) return;
+
       FlowDoc.InsertLineBreak();
       UpdateCurrentParagraphLayout();
 
@@ -69,6 +75,7 @@ public partial class RichTextBox
 
    private void PerformDelete(bool backspace)
    {
+      if (IsReadOnly) return;
 
       if (FlowDoc.Selection!.Length > 0)
          FlowDoc.DeleteSelection();

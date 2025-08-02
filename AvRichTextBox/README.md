@@ -106,3 +106,6 @@ ver. 1.3.0 - Can save/load as Html.  Rtf images/line spacing now saved.  Paragra
 **Added 2025/04/09**
 ver. 1.3.2 - Changed the underlying strategy for Undo. Undo now creates clones instead of retaining objects, which was causing problems during complex Undo sequences.
 Also made ShowDebuggerPanelInDebugMode default to False. 
+
+**Added 2025/08/02**
+ver. 1.3.8 - Includes changes such as fix to mouse selection (wasn't working in Release mode), double/triple clicking to select word/paragraph, and IsReadOnly property for the RichTextBox.

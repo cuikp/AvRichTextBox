@@ -12,10 +12,7 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
 using System;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace AvRichTextBox;
 
@@ -26,23 +23,7 @@ public partial class RichTextBox : UserControl
 
    private void ToggleDebuggerPanel (bool visible) { RunDebugPanel.IsVisible = visible; }
 
-   public static readonly StyledProperty<FlowDocument> FlowDocumentProperty =
-    AvaloniaProperty.Register<RichTextBox, FlowDocument>(nameof(FlowDocument), defaultValue: new FlowDocument(), defaultBindingMode: BindingMode.TwoWay);
-
-   public FlowDocument FlowDocument
-   {
-      get => GetValue(FlowDocumentProperty);
-      set => SetValue(FlowDocumentProperty, value); 
-   }
-
-   public static readonly StyledProperty<bool> ShowDebuggerPanelInDebugModeProperty = AvaloniaProperty.Register<RichTextBox, bool>(nameof(ShowDebuggerPanelInDebugMode), false);
-   public bool ShowDebuggerPanelInDebugMode
-   {
-      
-      get => GetValue(ShowDebuggerPanelInDebugModeProperty);
-      set { SetValue(ShowDebuggerPanelInDebugModeProperty, value); ToggleDebuggerPanel(value); }
-   }
-
+  
    public void ScrollToSelection()
    {
       rtbVM.RTBScrollOffset = rtbVM.RTBScrollOffset.WithY(FlowDoc.Selection.StartRect.Y - 50);

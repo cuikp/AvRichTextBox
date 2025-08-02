@@ -16,18 +16,21 @@ public partial class RichTextBox
     
    private void ToggleItalics()
    {
+      if (IsReadOnly) return;
       FlowDoc.ToggleItalic();
 
    }
 
    private void ToggleBold()
    {
+      if (IsReadOnly) return;
       FlowDoc.ToggleBold();
 
    }
 
    private void ToggleUnderlining()
    {
+      if (IsReadOnly) return;
       FlowDoc.ToggleUnderlining();
 
    }
@@ -52,6 +55,8 @@ public partial class RichTextBox
    
    private async void PasteFromClipboard()
    {
+      if (IsReadOnly) return;
+
       bool TextPasted = false;
       int originalSelectionStart = FlowDoc.Selection.Start;
       int newSelPoint = originalSelectionStart;
