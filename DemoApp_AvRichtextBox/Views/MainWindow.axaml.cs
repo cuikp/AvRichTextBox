@@ -219,13 +219,32 @@ public partial class MainWindow : Window
 
    private void FontsComboBox_DropDownClosed(object? sender, System.EventArgs e)
    {
-      ComboBox? comboBox = sender as ComboBox;
-      if (comboBox != null && comboBox.SelectedItem != null)
+      if (sender is ComboBox comboBox && comboBox.SelectedItem != null)
       {
          string? newFont = comboBox.SelectedItem.ToString();
          if (newFont != null)
             MainRTB.FlowDocument.Selection.ApplyFormatting(FontFamilyProperty, new FontFamily(newFont));
       }
+
+   }
+
+   private void JustificationComboBox_DropDownClosed(object? sender, System.EventArgs e)
+   {
+      if (sender is ComboBox cbox && cbox.SelectedItem is ComboBoxItem cbitem)
+      {
+         if (cbitem.Content is string selJust && MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph p)
+         {
+            p.TextAlignment = selJust switch
+            {
+               "Left" => TextAlignment.Left,
+               "Center" => TextAlignment.Center,
+               "Right" => TextAlignment.Right,
+               "Justified" => TextAlignment.Justify,
+               _ => TextAlignment.Left
+            };
+         }
+      }
+      
 
    }
 }

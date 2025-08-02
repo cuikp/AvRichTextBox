@@ -1,4 +1,5 @@
-﻿using DynamicData;
+﻿using DocumentFormat.OpenXml.Wordprocessing;
+using DynamicData;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,13 +12,8 @@ public partial class FlowDocument
 {
    internal void InsertText(string? insertText)
    {
-      IEditable startInline = Selection.GetStartInline();
-            
-      if (startInline == null) return;
+      if (Selection.GetStartInline() is not IEditable startInline || startInline.GetType() == typeof(EditableInlineUIContainer)) return;
 
-      if (startInline.GetType() == typeof(EditableInlineUIContainer))
-         return;
-      
       if (insertText != null)
       {
          if (Selection!.Length > 0)
@@ -45,7 +41,7 @@ public partial class FlowDocument
          else
          {  //Debug.WriteLine("starinlinetext = " + startInline.InlineText);
             insertIdx = startInline.GetCharPosInInline(Selection.Start); 
-            startInline.InlineText = startInline.InlineText!.Insert(insertIdx, insertText);
+            startInline.InlineText = startInline.InlineText.Insert(insertIdx, insertText);
          }
 
          Undos.Add(new InsertCharUndo(Blocks.IndexOf(Selection.StartParagraph), Selection.StartParagraph.Inlines.IndexOf(startInline!), insertIdx, this, Selection.Start));
@@ -155,13 +151,18 @@ public partial class FlowDocument
    internal void InsertLineBreak()
    {
       Paragraph startPar = Selection.StartParagraph;
-      IEditable startInline = Selection.GetStartInline();
+      if (Selection.GetStartInline() is not IEditable startInline) { Debug.WriteLine("skipping"); return; }
+
       int runIdx = startPar.Inlines.IndexOf(startInline);
 
       SplitRunAtPos(Selection.Start, startInline, startInline.GetCharPosInInline(Selection.Start)); // creates an empty inline
-
       startPar.Inlines.Insert(runIdx + 1, new EditableLineBreak());
 
+
+      Undos.Add(new InsertLineBreakUndo(Blocks.IndexOf(Selection.StartParagraph), runIdx + 1, this, Selection.Start));
+      UpdateTextRanges(Selection.Start, 1); 
+     
+      
       SelectionExtendMode = ExtendMode.ExtendModeNone;
 
       startPar.UpdateEditableRunPositions();
@@ -286,17 +287,22 @@ public partial class FlowDocument
       List<IEditable> parSplitRuns = SplitRunAtPos(insertCharIndex, startInline, startInline.GetCharPosInInline(insertCharIndex));
 
 
-      List<IEditable> RunList1 = new(insertPar.Inlines.Take(new Range(0, StartRunIdx)).ToList().ConvertAll(r => r));
+      List<IEditable> RunList1 = [.. insertPar.Inlines.Take(new Range(0, StartRunIdx)).ToList().ConvertAll(r => r)];
       if (parSplitRuns[0].InlineText != "" || RunList1.Count == 0)
          RunList1.Add(parSplitRuns[0]);
-      List<IEditable> RunList2 = new(insertPar.Inlines.Take(new Range(StartRunIdx + 1, insertPar.Inlines.Count)).ToList().ConvertAll(r => r as IEditable));
+      List<IEditable> RunList2 = [.. insertPar.Inlines.Take(new Range(StartRunIdx + 1, insertPar.Inlines.Count)).ToList().ConvertAll(r => r as IEditable)];
       
-      Paragraph? originalPar = insertPar;
+      Paragraph originalPar = insertPar;
       
       originalPar.Inlines.Clear();
       originalPar.Inlines.AddRange(RunList1);
       originalPar.SelectionStartInBlock = 0;
       originalPar.CollapseToStart();
+
+      if (originalPar.Inlines.Last() is EditableLineBreak elb)
+      {
+         originalPar.Inlines.Insert(originalPar.Inlines.Count, new EditableRun(""));
+      }
 
       Paragraph parToInsert = originalPar.PropertyClone();
 

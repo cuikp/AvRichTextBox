@@ -98,19 +98,37 @@
 							<TextBlock Text="Paragraph" DockPanel.Dock="Top" HorizontalAlignment="Center"/>
 							<DockPanel>
 								<DockPanel DockPanel.Dock="Top">
-									<DockPanel DockPanel.Dock="Left" >
-										<TextBlock Text="Line spacing" TextWrapping="Wrap" DockPanel.Dock="Top"/>
+									
+									<DockPanel DockPanel.Dock="Left" LastChildFill="False" >
+										<TextBlock Text="Line spacing"  TextWrapping="Wrap" DockPanel.Dock="Top"/>
 										<cc:NumericSpinner x:Name="LineSpacingNS" Width="42" Margin="3" MinValue="0" MaxValue="50" Value="0" Height="30" DockPanel.Dock="Top" FontSize="16"
 														 UserValueChanged="LineSpacingNS_UserValueChanged" />
-										
 									</DockPanel>
 
 									<DockPanel Margin="2">
+										<DockPanel DockPanel.Dock="Top">
+											<ComboBox x:Name="JustificationCB" DropDownClosed="JustificationComboBox_DropDownClosed" Margin="3" Width="95" MinHeight="15" Height="27" DockPanel.Dock="Right" FontSize="12">
+												<ComboBox.Styles>
+													<Style Selector="ComboBoxItem">
+														<Setter Property="Padding" Value="5, 0"/>
+														<Setter Property="Height" Value="20"/>
+														<Setter Property="MinHeight" Value="12"/>
+														<Setter Property="Foreground" Value="Black"/>
+													</Style>
+												</ComboBox.Styles>
+												<ComboBoxItem Content="Left"/>
+												<ComboBoxItem Content="Center"/>
+												<ComboBoxItem Content="Right"/>
+												<ComboBoxItem Content="Justified" />
+											</ComboBox>
+											<TextBlock  Text="Just." VerticalAlignment="Center" HorizontalAlignment="Right"/>
+										</DockPanel>
 										<ColorPicker  x:Name="ParBackgroundCP" ColorChanged="ParBackground_ColorChanged" Color="Transparent" DockPanel.Dock="Right" Width="70"  Height="25" Background="White" VerticalAlignment="Center"/>
 										<TextBlock Text="Back-ground:" Width="52"  TextWrapping="Wrap"  HorizontalAlignment="Right" Margin="3,0" VerticalAlignment="Center"/>
 									</DockPanel>
 
 								</DockPanel>
+								
 								<DockPanel>
 									<cc:NumericSpinner x:Name="ParagraphBorderNS" Width="42" Margin="3" MinValue="0" MaxValue="20" Value="0" Height="30" DockPanel.Dock="Right" 
 													   FontSize="16" UserValueChanged="ParagraphBorderNS_UserValueChanged"/>

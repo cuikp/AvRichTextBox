@@ -287,11 +287,11 @@ public partial class FlowDocument
 
       Selection.BiasForwardStart = true;
       Selection.BiasForwardEnd = true;
-      Selection!.Start = Selection.StartParagraph.StartInDoc + Selection.StartParagraph.FirstIndexStartLine;
+      Selection.Start = Selection.StartParagraph.StartInDoc + Selection.StartParagraph.FirstIndexStartLine;
 
       if (!selExtend)
       {
-         if (Selection!.Length > 0)
+         if (Selection.Length > 0)
             ResetSelectionLengthZero(Selection.StartParagraph);
          Selection.CollapseToStart();
       }

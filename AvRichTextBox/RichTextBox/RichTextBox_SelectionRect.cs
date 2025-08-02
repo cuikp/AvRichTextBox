@@ -29,12 +29,12 @@ public partial class RichTextBox : UserControl
       //Debug.WriteLine("selstartpoint= " + selStartPoint!.Value.Y);
 
       if (selStartPoint != null)
-         FlowDoc.Selection.StartRect = new Rect((Point)selStartPoint!, selStartRect.Size);
+         FlowDoc.Selection.StartRect = new Rect((Point)selStartPoint, selStartRect.Size);
 
       if (prevCharPoint != null)
-         FlowDoc.Selection.PrevCharRect = new Rect((Point)prevCharPoint!, prevCharRect.Size);
+         FlowDoc.Selection.PrevCharRect = new Rect((Point)prevCharPoint, prevCharRect.Size);
 
-      Paragraph thisPar = (Paragraph)edPar.DataContext!;
+      if (edPar.DataContext is not Paragraph thisPar) return;
       //if (thisPar == null) return;
 
       thisPar.DistanceSelectionStartFromLeft = selStartRect.Left;
@@ -48,27 +48,25 @@ public partial class RichTextBox : UserControl
       else
       {  // get index of first char on previous line
          thisPar.CharPrevLineStart = GetClosestIndex(edPar, lineNo, thisPar.DistanceSelectionStartFromLeft, -1);
-         //IEditable? nextInline = FlowDoc.GetNextInline(FlowDoc.Selection.GetStartInline());
-         //if (nextInline != null && nextInline.IsLineBreak)
-         //{
-         //   Debug.WriteLine("thisinlinetext=" + FlowDoc.Selection.GetStartInline().InlineText);
-         //   Debug.WriteLine("nextinlinetext=" + nextInline.InlineText);
-         //}
-         //   //thisPar.CharPrevLineStart += 1;
       }
-
 
       if (thisPar.IsStartAtLastLine)
          thisPar.CharNextLineStart = edPar.SelectionEnd - tlayout.TextLines[lineNo].FirstTextSourceIndex;
       else
          thisPar.CharNextLineStart = GetClosestIndex(edPar, lineNo, thisPar.DistanceSelectionStartFromLeft, 1);
 
-      thisPar.FirstIndexStartLine = tlayout.TextLines[lineNo].FirstTextSourceIndex;
+      //thisPar.FirstIndexStartLine = tlayout.TextLines[lineNo].FirstTextSourceIndex;
+      thisPar.FirstIndexStartLine = FlowDoc.Selection.IsAtEndOfLineSpace ? 
+         tlayout.TextLines[Math.Max(0, lineNo -1)].FirstTextSourceIndex : 
+         tlayout.TextLines[lineNo].FirstTextSourceIndex;
       thisPar.FirstIndexLastLine = tlayout.TextLines[^1].FirstTextSourceIndex;
 
 
       //**********Fix caret height and position*********:
       int lineIndex = tlayout.GetLineIndexFromCharacterIndex(edPar.SelectionStart, false);
+
+      //Debug.WriteLine("Fixing caret height & position\nLineHeight = " + tlayout.TextLines[lineIndex].Height + ", Extent = " + tlayout.TextLines[lineIndex].Extent);
+
       rtbVM.CaretHeight = tlayout.TextLines[lineIndex].Extent;
       if (rtbVM.CaretHeight == 0)
          rtbVM.CaretHeight = tlayout.TextLines[lineIndex].Height;
@@ -85,7 +83,10 @@ public partial class RichTextBox : UserControl
       }
       else
          caretMT = selStartPoint.Value.Y;
-      
+         //caretMT = FlowDoc.Selection.StartRect.Top; 
+         //caretMT = FlowDoc.Selection.StartRect.Top + (tlayout.TextLines[lineIndex].Height - FlowDoc.Selection.StartRect.Height);
+         
+
       rtbVM.CaretMargin = new Thickness(caretML, caretMT, 0, 0);
       rtbVM.UpdateCaretVisible();
 

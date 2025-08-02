@@ -15,8 +15,8 @@ internal class InsertCharUndo (int insertParIndex, int insertInlineIdx, int inse
    {
       try
       {
-         Paragraph thisPar = (Paragraph)flowDoc.Blocks[insertParIndex];
-         Run? thisRun = thisPar.Inlines[insertInlineIdx] as Run;
+         if (flowDoc.Blocks[insertParIndex] is not Paragraph thisPar) return;
+         if (thisPar.Inlines[insertInlineIdx] is not Run thisRun) return;
          thisRun!.Text = thisRun.Text!.Remove(insertPos, 1);
          thisPar.CallRequestInlinesUpdate();
          flowDoc.UpdateBlockAndInlineStarts(insertParIndex);
@@ -149,6 +149,7 @@ internal class InsertParagraphUndo (FlowDocument flowDoc, int insertedParIndex, 
    }
 }
 
+
 internal class MergeParagraphUndo (int origMergedParInlinesCount, int mergedParIndex, Paragraph removedPar, FlowDocument flowDoc, int originalSelectionStart) : IUndo 
 { //removedPar is a clone
 
@@ -199,4 +200,26 @@ internal class ApplyFormattingUndo (FlowDocument flowDoc, List<IEditableProperty
    }
 }
 
+
+internal class InsertLineBreakUndo(int insertParIndex, int insertInlineIdx, FlowDocument flowDoc, int origSelectionStart) : IUndo
+{
+   public int UndoEditOffset => -1;
+   public bool UpdateTextRanges => true;
+
+   public void PerformUndo()
+   {
+      try
+      {
+         if (flowDoc.Blocks[insertParIndex] is not Paragraph thisPar) return;
+         if (thisPar.Inlines[insertInlineIdx] is not EditableLineBreak thisELB) return;
+         thisPar.Inlines.Remove(thisELB);
+         thisPar.CallRequestInlinesUpdate();
+         flowDoc.UpdateBlockAndInlineStarts(insertParIndex);
+         flowDoc.Selection.Start = origSelectionStart;
+         flowDoc.Selection.End = flowDoc.Selection.Start;
+      }
+      catch { Debug.WriteLine("Failed InsertCharUndo at inline idx: " + insertInlineIdx); }
+
+   }
+}
 
