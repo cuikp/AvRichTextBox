@@ -1,6 +1,8 @@
 ﻿using Avalonia.Controls;
+using DynamicData;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;
@@ -245,8 +247,6 @@ public partial class FlowDocument
       Selection.CollapseToStart();
       SelectionExtendMode = ExtendMode.ExtendModeNone;
       ScrollInDirection!(-1);
-      
-      
 
       foreach (Paragraph p in Blocks)
          p.ClearSelection();

@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -35,13 +36,14 @@ public partial class RichTextBox : UserControl
          FlowDoc.Selection.PrevCharRect = new Rect((Point)prevCharPoint, prevCharRect.Size);
 
       if (edPar.DataContext is not Paragraph thisPar) return;
-      //if (thisPar == null) return;
 
       thisPar.DistanceSelectionStartFromLeft = selStartRect.Left;
 
+      List<TextLine> textLines = tlayout.TextLines.ToList();
+
       int lineNo = tlayout.GetLineIndexFromCharacterIndex(edPar.SelectionStart, false);
       thisPar.IsStartAtFirstLine = lineNo == 0;
-      thisPar.IsStartAtLastLine = (lineNo == tlayout.TextLines.Count - 1);
+      thisPar.IsStartAtLastLine = (lineNo == textLines.Count - 1);
 
       if (thisPar.IsStartAtFirstLine)
          thisPar.CharPrevLineStart = edPar.SelectionStart;
@@ -51,44 +53,49 @@ public partial class RichTextBox : UserControl
       }
 
       if (thisPar.IsStartAtLastLine)
-         thisPar.CharNextLineStart = edPar.SelectionEnd - tlayout.TextLines[lineNo].FirstTextSourceIndex;
+         thisPar.CharNextLineStart = edPar.SelectionEnd - textLines[lineNo].FirstTextSourceIndex;
       else
          thisPar.CharNextLineStart = GetClosestIndex(edPar, lineNo, thisPar.DistanceSelectionStartFromLeft, 1);
 
       //thisPar.FirstIndexStartLine = tlayout.TextLines[lineNo].FirstTextSourceIndex;
       thisPar.FirstIndexStartLine = FlowDoc.Selection.IsAtEndOfLineSpace ? 
-         tlayout.TextLines[Math.Max(0, lineNo -1)].FirstTextSourceIndex : 
-         tlayout.TextLines[lineNo].FirstTextSourceIndex;
-      thisPar.FirstIndexLastLine = tlayout.TextLines[^1].FirstTextSourceIndex;
+         textLines[Math.Max(0, lineNo -1)].FirstTextSourceIndex : 
+         textLines[lineNo].FirstTextSourceIndex;
+      thisPar.FirstIndexLastLine = textLines[^1].FirstTextSourceIndex;
 
 
       //**********Fix caret height and position*********:
       int lineIndex = tlayout.GetLineIndexFromCharacterIndex(edPar.SelectionStart, false);
 
-      //Debug.WriteLine("Fixing caret height & position\nLineHeight = " + tlayout.TextLines[lineIndex].Height + ", Extent = " + tlayout.TextLines[lineIndex].Extent);
-
-      rtbVM.CaretHeight = tlayout.TextLines[lineIndex].Extent;
+      rtbVM.CaretHeight = textLines[lineIndex].Extent;
       if (rtbVM.CaretHeight == 0)
-         rtbVM.CaretHeight = tlayout.TextLines[lineIndex].Height;
-      rtbVM.CaretHeight += 5; // give it an extra bit
+         rtbVM.CaretHeight = textLines[lineIndex].Height;
+      rtbVM.CaretHeight += 4; // give it an extra bit
 
 
-      double caretML = selStartPoint!.Value.X;
-      double caretMT = tlayout.TextLines[lineIndex].Start;
+      double caretMLeft = selStartPoint!.Value.X;
+      double caretMTop = textLines[lineIndex].Start;
+
+      double textTopY = FlowDoc.Selection.StartRect.Top + (textLines[lineIndex].Extent == 0 ? 0 : Math.Max(0, textLines[lineIndex].Baseline - textLines[lineIndex].Extent));
+      //Debug.WriteLine("baseline = " + textLines[lineIndex].Baseline + "\nextent = " + textLines[lineIndex].Extent + "\ntextopY = " + textTopY);
 
       if (FlowDoc.Selection.IsAtEndOfLineSpace)
       {
-         caretML = FlowDoc.Selection!.PrevCharRect!.Right;
-         caretMT = FlowDoc.Selection!.PrevCharRect.Top + 1;
+         caretMLeft = FlowDoc.Selection!.PrevCharRect!.Right;
+         caretMTop = FlowDoc.Selection!.PrevCharRect.Top + 1;
       }
       else
-         caretMT = selStartPoint.Value.Y;
-         //caretMT = FlowDoc.Selection.StartRect.Top; 
-         //caretMT = FlowDoc.Selection.StartRect.Top + (tlayout.TextLines[lineIndex].Height - FlowDoc.Selection.StartRect.Height);
-         
+         //caretMTop = selStartPoint.Value.Y;
+         caretMTop = textTopY;
 
-      rtbVM.CaretMargin = new Thickness(caretML, caretMT, 0, 0);
+      rtbVM.CaretMargin = new Thickness(caretMLeft, caretMTop, 0, 0);
       rtbVM.UpdateCaretVisible();
+
+      // Visualization rectangles:
+      //rtbVM.LineHeightRectMargin = new Thickness(caretMLeft + 3, FlowDoc.Selection.StartRect.Top, 0, 0);
+      //rtbVM.LineHeightRectHeight = textLines[lineIndex].Height; //selStartRect.Size.Height
+      //rtbVM.BaseLineRectMargin = new Thickness(caretMLeft + 5, FlowDoc.Selection.StartRect.Top + textLines[lineIndex].Baseline - textLines[lineIndex].Extent, 0, 0);
+      //rtbVM.BaseLineRectHeight = textLines[lineIndex].Baseline; //selStartRect.Size.Height
 
    }
 
@@ -96,38 +103,33 @@ public partial class RichTextBox : UserControl
    {
       edPar.UpdateLayout();
 
-      Rect selEndRect = edPar.TextLayout.HitTestTextPosition(edPar.SelectionEnd);
+      TextLayout tlayout = edPar.TextLayout;
+
+      Rect selEndRect = tlayout.HitTestTextPosition(edPar.SelectionEnd);
 
       Point? selEndPoint = edPar.TranslatePoint(selEndRect.Position, DocIC);
       if (selEndPoint != null)
          FlowDoc.Selection.EndRect = new Rect((Point)selEndPoint!, selEndRect.Size);
 
-      Paragraph thisPar = (Paragraph)edPar.DataContext!;
-      //if (thisPar == null) return;
+      //Paragraph thisPar = (Paragraph)edPar.DataContext!;
+      if (edPar.DataContext is not Paragraph thisPar) return;
 
-      thisPar.DistanceSelectionEndFromLeft = edPar.TextLayout.HitTestTextPosition(edPar.SelectionEnd).Left;
-      int lineNo = edPar.TextLayout.GetLineIndexFromCharacterIndex(edPar.SelectionEnd, false);
-      thisPar.IsEndAtLastLine = lineNo == edPar.TextLayout.TextLines.Count - 1;
+      thisPar.DistanceSelectionEndFromLeft = tlayout.HitTestTextPosition(edPar.SelectionEnd).Left;
+      int lineNo = tlayout.GetLineIndexFromCharacterIndex(edPar.SelectionEnd, false);
+      
+      List<TextLine> textLines = tlayout.TextLines.ToList();
+
+      thisPar.IsEndAtLastLine = lineNo == textLines.Count - 1;
 
       thisPar.IsEndAtFirstLine = (lineNo == 0);
       if (thisPar.IsEndAtLastLine)
       {
          thisPar.LastIndexEndLine = thisPar.BlockLength;
-         thisPar.CharNextLineEnd = edPar.Text!.Length + 1 + edPar.SelectionEnd - edPar.TextLayout.TextLines[lineNo].FirstTextSourceIndex;
+         thisPar.CharNextLineEnd = edPar.Text!.Length + 1 + edPar.SelectionEnd - textLines[lineNo].FirstTextSourceIndex;
       }
       else
       {
-         //Debug.WriteLine("partext = " + thisPar.Text);
-         //Debug.WriteLine("partext = " + thisPar.Inlines.Count);
-
-         //IEditable ied = FlowDoc.Selection.GetStartInline();
-         //Debug.WriteLine("ied.= " + ied.DisplayInlineText);
-
-         //Debug.WriteLine("count = " + FlowDoc.GetRangeInlines(FlowDoc.Selection).Count);
-         //if (FlowDoc.GetRangeInlines(FlowDoc.Selection).Count > 0)
-         //   Debug.WriteLine("count = *" + FlowDoc.GetRangeInlines(FlowDoc.Selection)[0].InlineText + "*");
-
-         TextLine tline = edPar.TextLayout.TextLines[lineNo];
+         TextLine tline = textLines[lineNo];
          //Debug.WriteLine("textstring ="  + string.Join("\r", (tline.TextRuns.Select(tr=>tr.Text))));
          //Debug.WriteLine("lastis rn? "  + (tline.TextRuns.Last().Text.ToString() == "\r\n"));
          
@@ -136,10 +138,9 @@ public partial class RichTextBox : UserControl
          {
             if (tline.TextRuns[tline.TextRuns.Count - 1].Text.ToString() == "\r\n")
                goBackNo++;
-               
          }
          
-         thisPar.LastIndexEndLine = edPar.TextLayout.TextLines[lineNo + 1].FirstTextSourceIndex - goBackNo;
+         thisPar.LastIndexEndLine = textLines[lineNo + 1].FirstTextSourceIndex - goBackNo;
          thisPar.CharNextLineEnd = GetClosestIndex(edPar, lineNo, thisPar.DistanceSelectionEndFromLeft, 1);
       }
 
@@ -147,7 +148,7 @@ public partial class RichTextBox : UserControl
          thisPar.CharPrevLineEnd = GetClosestIndex(edPar, lineNo, thisPar.DistanceSelectionEndFromLeft, -1);
 
 
-      thisPar.FirstIndexLastLine = edPar.TextLayout.TextLines[^1].FirstTextSourceIndex;
+      thisPar.FirstIndexLastLine = textLines[^1].FirstTextSourceIndex;
 
       rtbVM.UpdateCaretVisible();
 

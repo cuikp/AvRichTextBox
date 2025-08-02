@@ -1,20 +1,16 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Documents;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
 using System;
-using System.Diagnostics;
 using System.Linq;
 
 namespace AvRichTextBox;
 
 public partial class EditableParagraph : SelectableTextBlock
 {
-      
-
    public bool IsEditable { get; set; } = true;
 
    private readonly SolidColorBrush caretBrush = new (Colors.Cyan, 0.55);

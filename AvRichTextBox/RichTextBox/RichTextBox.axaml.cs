@@ -11,6 +11,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
+using DynamicData;
 using System;
 using System.Linq;
 
@@ -70,7 +71,7 @@ public partial class RichTextBox : UserControl
 
    private void RichTextBox_Initialized(object? sender, EventArgs e)
    {
-      //selRect.Points = RecreatePolygonPoints();
+
    }
 
    private void RichTextBox_Loaded(object? sender, RoutedEventArgs e)
@@ -138,15 +139,12 @@ public partial class RichTextBox : UserControl
 
    internal void UpdateAllInlines()
    {
-      
       foreach (Paragraph p in FlowDoc.Blocks.Where(b => b.IsParagraph))
       {
          p.CallRequestInlinesUpdate();
          p.CallRequestInvalidateVisual();
 
       }
-         
-
    }
 
 
@@ -214,8 +212,6 @@ public partial class RichTextBox : UserControl
          PreeditOverlay.IsVisible = false;
       }
    }
-
-   
    
    private readonly Rectangle? _CaretRect = new()
    {

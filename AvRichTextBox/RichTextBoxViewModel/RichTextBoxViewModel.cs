@@ -50,6 +50,19 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
    private bool _CaretVisible = true;
    public bool CaretVisible { get => _CaretVisible; set { _CaretVisible = value; NotifyPropertyChanged(nameof(CaretVisible)); } }
 
+   
+   // FOR VISUAL CARET TESTING////////////////////////////////////////
+   private double _LineHeightRectHeight = 5;
+   public double LineHeightRectHeight { get => _LineHeightRectHeight; set { _LineHeightRectHeight = value; NotifyPropertyChanged(nameof(LineHeightRectHeight)); } }
+   private Thickness _LineHeightRectMargin = new(0);
+   public Thickness LineHeightRectMargin { get => _LineHeightRectMargin; set { _LineHeightRectMargin = value; NotifyPropertyChanged(nameof(LineHeightRectMargin)); } }
+   private double _BaseLineRectHeight = 5;
+   public double BaseLineRectHeight { get => _BaseLineRectHeight; set { _BaseLineRectHeight = value; NotifyPropertyChanged(nameof(BaseLineRectHeight)); } }
+   private Thickness _BaseLineRectMargin = new(0);
+   public Thickness BaseLineRectMargin { get => _BaseLineRectMargin; set { _BaseLineRectMargin = value; NotifyPropertyChanged(nameof(BaseLineRectMargin)); } }
+   //////////////////////////////////////////////////////////////////
+
+
    internal void UpdateCaretVisible()
    {
 

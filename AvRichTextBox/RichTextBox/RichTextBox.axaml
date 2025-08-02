@@ -81,8 +81,7 @@
 
 			<Grid VerticalAlignment="Top">
 
-				<ItemsControl x:Name="DocIC" DataContext="{Binding FlowDoc}" VerticalAlignment="Top" ItemsSource="{Binding Blocks}" Margin="0"
-							  Padding="{Binding PagePadding}"  >
+				<ItemsControl x:Name="DocIC" DataContext="{Binding FlowDoc}" VerticalAlignment="Top" ItemsSource="{Binding Blocks}" Margin="0" Padding="{Binding PagePadding}" >
 
 					<ItemsControl.ItemsPanel>
 						<ItemsPanelTemplate>
@@ -146,12 +145,13 @@
 					</ItemsControl.ItemTemplate>
 				</ItemsControl>
 
-				<Polygon x:Name="selRect" Stroke="Red" StrokeThickness="2.5" HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False" />
-
-
 				<TextBlock x:Name="PreeditOverlay" Padding="4, 0, 4, 2" Height="24" FontSize="15" HorizontalAlignment="Left" VerticalAlignment="Top"
 						 Foreground="Black" Background="#DDDDDD" IsHitTestVisible="False" IsVisible="False"/>
 
+				<!--test lines for caret measurement --><!--
+				<Rectangle Stroke="Red" StrokeThickness="2" Width="10" HorizontalAlignment="Left" VerticalAlignment="Top"  Margin="{Binding LineHeightRectMargin}" Height="{Binding LineHeightRectHeight}"/>
+				<Rectangle Stroke="Blue" StrokeThickness="2" Width="15" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="{Binding BaseLineRectMargin}" Height="{Binding BaseLineRectHeight}"/>-->
+				
 			</Grid>
 		</ScrollViewer>
 
