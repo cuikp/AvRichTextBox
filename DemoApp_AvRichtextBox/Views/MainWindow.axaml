@@ -175,7 +175,7 @@
 		<!--<avrtb:RichTextBox x:Name="MainRTB"  ShowDebuggerPanelInDebugMode="True" FlowDocument="{Binding MyFlowDoc, DataType={x:Type vm:MainWindowViewModel}}" >
 		</avrtb:RichTextBox>-->
 
-		<avrtb:RichTextBox x:Name="MainRTB"  ShowDebuggerPanelInDebugMode="True" IsReadOnly="True"  >
+		<avrtb:RichTextBox x:Name="MainRTB"  ShowDebuggerPanelInDebugMode="True" IsReadOnly="False"  >
 			<!--<avrtb:FlowDocument Blocks="{Binding MyBlocks, DataType={x:Type vm:MainWindowViewModel}}"  >
 				
 			</avrtb:FlowDocument>-->
