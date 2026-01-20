@@ -29,17 +29,14 @@ public partial class RichTextBox : UserControl
 
       //Debug.WriteLine("selstartpoint= " + selStartPoint!.Value.Y);
 
-      if (selStartPoint != null)
-         FlowDoc.Selection.StartRect = new Rect((Point)selStartPoint, selStartRect.Size);
-
-      if (prevCharPoint != null)
-         FlowDoc.Selection.PrevCharRect = new Rect((Point)prevCharPoint, prevCharRect.Size);
+      FlowDoc.Selection.StartRect = new Rect((Point)selStartPoint, selStartRect.Size);
+      FlowDoc.Selection.PrevCharRect = new Rect((Point)prevCharPoint, prevCharRect.Size);
 
       if (edPar.DataContext is not Paragraph thisPar) return;
 
       thisPar.DistanceSelectionStartFromLeft = selStartRect.Left;
 
-      List<TextLine> textLines = tlayout.TextLines.ToList();
+      List<TextLine> textLines = [.. tlayout.TextLines];
 
       int lineNo = tlayout.GetLineIndexFromCharacterIndex(edPar.SelectionStart, false);
       thisPar.IsStartAtFirstLine = lineNo == 0;
@@ -57,7 +54,7 @@ public partial class RichTextBox : UserControl
       else
          thisPar.CharNextLineStart = GetClosestIndex(edPar, lineNo, thisPar.DistanceSelectionStartFromLeft, 1);
 
-      //thisPar.FirstIndexStartLine = tlayout.TextLines[lineNo].FirstTextSourceIndex;
+      //ThisPar.FirstIndexStartLine = tlayout.TextLines[lineNo].FirstTextSourceIndex;
       thisPar.FirstIndexStartLine = FlowDoc.Selection.IsAtEndOfLineSpace ? 
          textLines[Math.Max(0, lineNo -1)].FirstTextSourceIndex : 
          textLines[lineNo].FirstTextSourceIndex;
@@ -73,7 +70,7 @@ public partial class RichTextBox : UserControl
       rtbVM.CaretHeight += 4; // give it an extra bit
 
 
-      double caretMLeft = selStartPoint!.Value.X;
+      double caretMLeft = selStartPoint.Value.X;
       double caretMTop = textLines[lineIndex].Start;
 
       double textTopY = FlowDoc.Selection.StartRect.Top + (textLines[lineIndex].Extent == 0 ? 0 : Math.Max(0, textLines[lineIndex].Baseline - textLines[lineIndex].Extent));
@@ -81,8 +78,8 @@ public partial class RichTextBox : UserControl
 
       if (FlowDoc.Selection.IsAtEndOfLineSpace)
       {
-         caretMLeft = FlowDoc.Selection!.PrevCharRect!.Right;
-         caretMTop = FlowDoc.Selection!.PrevCharRect.Top + 1;
+         caretMLeft = FlowDoc.Selection.PrevCharRect!.Right;
+         caretMTop = FlowDoc.Selection.PrevCharRect.Top + 1;
       }
       else
          //caretMTop = selStartPoint.Value.Y;
@@ -111,13 +108,13 @@ public partial class RichTextBox : UserControl
       if (selEndPoint != null)
          FlowDoc.Selection.EndRect = new Rect((Point)selEndPoint!, selEndRect.Size);
 
-      //Paragraph thisPar = (Paragraph)edPar.DataContext!;
+      //Paragraph ThisPar = (Paragraph)edPar.DataContext!;
       if (edPar.DataContext is not Paragraph thisPar) return;
 
       thisPar.DistanceSelectionEndFromLeft = tlayout.HitTestTextPosition(edPar.SelectionEnd).Left;
       int lineNo = tlayout.GetLineIndexFromCharacterIndex(edPar.SelectionEnd, false);
       
-      List<TextLine> textLines = tlayout.TextLines.ToList();
+      List<TextLine> textLines = [.. tlayout.TextLines];
 
       thisPar.IsEndAtLastLine = lineNo == textLines.Count - 1;
 
@@ -125,7 +122,7 @@ public partial class RichTextBox : UserControl
       if (thisPar.IsEndAtLastLine)
       {
          thisPar.LastIndexEndLine = thisPar.BlockLength;
-         thisPar.CharNextLineEnd = edPar.Text!.Length + 1 + edPar.SelectionEnd - textLines[lineNo].FirstTextSourceIndex;
+         thisPar.CharNextLineEnd = edPar.TextLength + 1 + edPar.SelectionEnd - textLines[lineNo].FirstTextSourceIndex;
       }
       else
       {
@@ -170,13 +167,13 @@ public partial class RichTextBox : UserControl
 
    }
 
-   private void EditableParagraph_CharIndexRect_Notified(EditableParagraph edPar, Rect selStartRect)
-   {
-      //Point? selStartPoint = edPar.TranslatePoint(selStartRect.Position, DocIC);
-      //if (selStartPoint != null)
-      //   FlowDoc.Selection.StartRect = new Rect((Point)selStartPoint!, selStartRect.Size);
+   //private void EditableParagraph_CharIndexRect_Notified(EditableParagraph edPar, Rect selStartRect)
+   //{
+   //   //Point? selStartPoint = edPar.TranslatePoint(selStartRect.Position, DocIC);
+   //   //if (selStartPoint != null)
+   //   //   FlowDoc.Selection.StartRect = new Rect((Point)selStartPoint!, selStartRect.Size);
 
-   }
+   //}
 
 
 }

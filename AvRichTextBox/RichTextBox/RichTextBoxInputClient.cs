@@ -12,18 +12,9 @@ namespace AvRichTextBox;
 public partial class RichTextBox
 {
 
-   public class RichTextBoxTextInputClient : TextInputMethodClient
+   public class RichTextBoxTextInputClient(RichTextBox owner) : TextInputMethodClient
    {
-      private readonly RichTextBox _owner;
-
-      public RichTextBoxTextInputClient(RichTextBox owner)
-      {
-         _owner = owner;
-         //this.SelectionChanged += RichTextBoxTextInputClient_SelectionChanged;
-         //this.TextViewVisualChanged += RichTextBoxTextInputClient_TextViewVisualChanged;
-         //this.ShowInputPanel();
-         
-      }
+      private readonly RichTextBox _owner = owner;
 
       private void RichTextBoxTextInputClient_TextViewVisualChanged(object? sender, EventArgs e)
       {

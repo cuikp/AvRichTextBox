@@ -49,8 +49,7 @@ internal static partial class HtmlConversions
                switch (inlineNode.Name)
                {
                   case "span":
-                     EditableRun erun = new();
-                     erun.Text = inlineNode.InnerText;
+                     EditableRun erun = new() { Text = inlineNode.InnerText };
 
                      foreach (KeyValuePair<string, string> kvp in ParseStyleAttribute(inlineNode.GetAttributeValue("style", "")))
                      {
@@ -79,7 +78,7 @@ internal static partial class HtmlConversions
 
                               var hashIndex = fontName.IndexOf('#');
                               if (hashIndex >= 0)
-                                 fontName = fontName.Substring(hashIndex + 1);
+                                 fontName = fontName[(hashIndex + 1)..];
 
                               erun.FontFamily = new FontFamily(fontName.Trim());
 

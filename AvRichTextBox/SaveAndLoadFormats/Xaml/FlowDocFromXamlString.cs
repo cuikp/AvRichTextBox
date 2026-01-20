@@ -1,12 +1,8 @@
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Compression;
-using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -16,7 +12,7 @@ namespace AvRichTextBox;
 public partial class XamlConversions
 {
    
-   static List<Bitmap> consecutiveImageBitmaps = [];
+   readonly static List<Bitmap> consecutiveImageBitmaps = [];
 
    [GeneratedRegex(@"Xaml/Image[0-9]{1,}\.png")]
    public static partial Regex FindXamlImageEntriesRegex();
@@ -45,10 +41,10 @@ public partial class XamlConversions
          if (EntryXamlDocumentName != "")
          {
 
-            List<ZipArchiveEntry> imageEntries = zipArchive.Entries.Where(ent => FindXamlImageEntriesRegex().IsMatch(ent.FullName)).ToList();
+            List<ZipArchiveEntry> imageEntries = [.. zipArchive.Entries.Where(ent => FindXamlImageEntriesRegex().IsMatch(ent.FullName))];
             for (int i = 1; i <= imageEntries.Count; i++)
             {
-               ZipArchiveEntry? imageEntry = zipArchive.GetEntry("Xaml/Image" + i.ToString() + ".png");
+               ZipArchiveEntry? imageEntry = zipArchive.GetEntry($"Xaml/Image{i}.png");
                if (imageEntry != null)
                {
                   try

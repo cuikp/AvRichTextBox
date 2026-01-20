@@ -176,8 +176,10 @@ internal static partial class RtfConversions
          
          else if (domelm is RTFDomImage rtfImage)
          {
-            EditableInlineUIContainer eIUC = new(null!);
-            eIUC.FontFamily = "Image"; //???
+            EditableInlineUIContainer eIUC = new(null!)
+            {
+               FontFamily = "Image" //???
+            };
 
             Avalonia.Controls.Image img = new()
             {
@@ -244,13 +246,15 @@ internal static partial class RtfConversions
 
    private static string DecodeRtfUnicode(string rtfText)
    {
-      return Regex.Replace(rtfText, @"\\u(-?\d+)\?", match =>
+      return RtfUnicodeRegex().Replace(rtfText, match =>
       {
          int unicodeValue = int.Parse(match.Groups[1].Value);
          return char.ConvertFromUtf32(unicodeValue);
       });
    }
 
+   [GeneratedRegex(@"\\u(-?\d+)\?")]
+   private static partial Regex RtfUnicodeRegex();
 }
 
 

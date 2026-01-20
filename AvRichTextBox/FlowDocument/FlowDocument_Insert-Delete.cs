@@ -1,10 +1,5 @@
-﻿using DocumentFormat.OpenXml.Wordprocessing;
-using DynamicData;
-using System;
-using System.Collections.Generic;
+﻿using DynamicData;
 using System.Diagnostics;
-using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace AvRichTextBox;
 
@@ -16,7 +11,7 @@ public partial class FlowDocument
 
       if (insertText != null)
       {
-         if (Selection!.Length > 0)
+         if (Selection.Length > 0)
          {
             DeleteRange(Selection, true);
             Selection.CollapseToStart();
@@ -68,15 +63,15 @@ public partial class FlowDocument
       if (backspace)
          MoveSelectionLeft(true);
 
-      Selection!.BiasForwardStart = true;
-      Selection!.BiasForwardEnd = true;
+      Selection.BiasForwardStart = true;
+      Selection.BiasForwardEnd = true;
 
       IEditable startInline = Selection.GetStartInline();
       if (startInline == null) return;
 
       Paragraph startP = (Paragraph)Selection.StartParagraph;
 
-      if (startP.SelectionStartInBlock == startP.Text.Length)
+      if (startP.SelectionStartInBlock == startP.TextLength)
          MergeParagraphForward(Selection.Start, true, originalSelectionStart);
       else
       {  //Delete one unit
@@ -234,13 +229,15 @@ public partial class FlowDocument
       //Merge inlines of last paragraph with first
       if (allBlocks.Count > 1)
       {
-         Paragraph? lastPar = allBlocks[^1] as Paragraph;
-         List<IEditable> moveInlines = new(lastPar!.Inlines);
-         lastPar.Inlines.RemoveMany(moveInlines);
-         lastPar.CallRequestInlinesUpdate();
-         ((Paragraph)Blocks[idxStartPar]).Inlines.AddRange(moveInlines);
-         ((Paragraph)Blocks[idxStartPar]).CallRequestInlinesUpdate(); // ensure any image containers are updated
-         Blocks.Remove(lastPar);
+         if (allBlocks[^1] is Paragraph lastPar)
+         {
+            List<IEditable> moveInlines = [.. lastPar.Inlines];
+            lastPar.Inlines.RemoveMany(moveInlines);
+            lastPar.CallRequestInlinesUpdate();
+            ((Paragraph)Blocks[idxStartPar]).Inlines.AddRange(moveInlines);
+            ((Paragraph)Blocks[idxStartPar]).CallRequestInlinesUpdate(); // ensure any image containers are updated
+            Blocks.Remove(lastPar);
+         }
       }
 
       //Special case where all content was deleted leaving one empty block
@@ -263,7 +260,7 @@ public partial class FlowDocument
    {  //The delete range and InsertParagraph should constitute one Undo operation
 
       Paragraph insertPar = GetContainingParagraph(insertCharIndex);
-      List<IEditable> keepParInlines = insertPar.Inlines.Select(il=>il.Clone()).ToList(); 
+      List<IEditable> keepParInlines = [.. insertPar.Inlines.Select(il=>il.Clone())]; 
 
       int originalSelStart = insertCharIndex;
       int parIndex = Blocks.IndexOf(insertPar);
@@ -369,7 +366,7 @@ public partial class FlowDocument
       }
       else
       {
-         List<IEditable> inlinesToMove = new(nextPar.Inlines);
+         List<IEditable> inlinesToMove = [.. nextPar.Inlines];
          nextPar.Inlines.Clear();
          nextPar.CallRequestInlinesUpdate(); // ensure image containers are updated
          thisPar.Inlines.AddRange(inlinesToMove);
@@ -377,8 +374,8 @@ public partial class FlowDocument
            
       Blocks.Remove(nextPar);
 
-      Selection!.BiasForwardStart = true;
-      Selection!.BiasForwardEnd = true;
+      Selection.BiasForwardStart = true;
+      Selection.BiasForwardEnd = true;
 
       UpdateTextRanges(mergeCharIndex, -1);
 
@@ -411,12 +408,12 @@ public partial class FlowDocument
       if (backspace)
          MoveLeftWord();
       
-      Selection!.BiasForwardStart = true;
-      Selection!.BiasForwardEnd = true;
+      Selection.BiasForwardStart = true;
+      Selection.BiasForwardEnd = true;
 
       Paragraph startP = Selection.StartParagraph;
 
-      if (startP.SelectionStartInBlock == startP.Text.Length)
+      if (startP.SelectionStartInBlock == startP.TextLength)
          MergeParagraphForward(Selection.Start, true, originalSelectionStart); //updates text ranges and adds undo
       else
       {
@@ -428,7 +425,7 @@ public partial class FlowDocument
          {
             int IndexNextSpace = Selection.StartParagraph.Text.IndexOf(' ', Selection.Start - Selection.StartParagraph.StartInDoc);
             if (IndexNextSpace == -1)
-               IndexNextSpace = Selection.StartParagraph.Text.Length;
+               IndexNextSpace = Selection.StartParagraph.TextLength;
             else
                IndexNextSpace += 1;
             NextWordEndPoint = Selection.StartParagraph.StartInDoc + IndexNextSpace;

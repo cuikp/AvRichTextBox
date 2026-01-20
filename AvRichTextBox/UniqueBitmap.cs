@@ -1,9 +1,4 @@
-﻿using Avalonia;
-using Avalonia.Controls.Documents;
-using Avalonia.Media.Imaging;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+﻿using Avalonia.Media.Imaging;
 
 namespace AvRichTextBox;
 

@@ -17,7 +17,7 @@ public partial class FlowDocument
 
    }
 
-   internal void LoadXamlStreamIntoRange (Stream stream, TextRange trange)
+   internal static void LoadXamlStreamIntoRange (Stream stream, TextRange trange)
    {
       byte[] streamBytes = new byte[stream.Length];
       stream.Read(streamBytes, 0, streamBytes.Length);

@@ -205,7 +205,7 @@ public partial class FlowDocument
    {
       FontWeight applyFontWeight = FontWeight.Normal;
       if (fontweight is FontWeight.Bold)
-         applyFontWeight = (ieds.Where(ar => ar.GetType() == typeof(EditableRun) && ((EditableRun)ar).FontWeight == FontWeight.Normal).Count() == 0) ?
+         applyFontWeight = (!ieds.Where(ar => ar.GetType() == typeof(EditableRun) && ((EditableRun)ar).FontWeight == FontWeight.Normal).Any()) ?
             FontWeight.Normal : FontWeight.Bold;
       foreach (IEditable ied in ieds)
          if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).FontWeight = applyFontWeight; }
@@ -215,7 +215,7 @@ public partial class FlowDocument
    {
       FontStyle applyFontStyle = FontStyle.Normal;
       if (fontstyle is FontStyle.Italic)
-         applyFontStyle = (ieds.Where(ar => ar.GetType() == typeof(EditableRun) && ((EditableRun)ar).FontStyle == FontStyle.Normal).Count() == 0) ? FontStyle.Normal : FontStyle.Italic;
+         applyFontStyle = (!ieds.Where(ar => ar.GetType() == typeof(EditableRun) && ((EditableRun)ar).FontStyle == FontStyle.Normal).Any()) ? FontStyle.Normal : FontStyle.Italic;
       foreach (IEditable ied in ieds)
          if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).FontStyle = applyFontStyle; }
    }
@@ -224,7 +224,7 @@ public partial class FlowDocument
    {
       TextDecorationCollection applyTextDecs = null!;
       if (textdecoration == TextDecorations.Underline)
-         applyTextDecs = (ieds.Where(ar => ar.GetType() == typeof(EditableRun) && ((EditableRun)ar).TextDecorations == null).Count() == 0) ? null! : TextDecorations.Underline;
+         applyTextDecs = (!ieds.Where(ar => ar.GetType() == typeof(EditableRun) && ((EditableRun)ar).TextDecorations == null).Any()) ? null! : TextDecorations.Underline;
       foreach (IEditable ied in ieds)
          if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).TextDecorations = applyTextDecs; }
    }
@@ -273,30 +273,6 @@ public partial class FlowDocument
       UnderliningOn = false;
 
    }
-
-   internal object? GetFormattingInline(AvaloniaProperty avProperty, IEditable inline)
-   {
-      object? returnValue = null!;
-
-      if (inline is EditableRun run)
-      {
-         switch (avProperty.Name)
-         {
-            case "Bold": returnValue = run.FontWeight; break;
-            case "FontFamily": returnValue = run.FontFamily; break;
-            case "FontStyle": returnValue = run.FontStyle; break;
-            case "TextDecorations": returnValue = run.TextDecorations; break;
-            case "FontSize": returnValue = run.FontSize; break;
-            case "Background": returnValue = run.Background; break;
-            case "Foreground": returnValue = run.Foreground; break;
-            case "FontStretch": returnValue = run.FontStretch; break;
-            case "BaselineAlignment": returnValue = run.BaselineAlignment; break;
-         }
-      }
-
-      return returnValue;
-   }
-
 
 
 }

@@ -22,7 +22,7 @@ public class EditableRun : Run, IEditable, INotifyPropertyChanged
    }
 
    public Inline BaseInline => this;
-   public Paragraph? myParagraph { get; set; }
+   public Paragraph? MyParagraph { get; set; }
    public int TextPositionOfInlineInParagraph { get; set; }
    public string InlineText { get => Text!; set => Text = value; }
    public string DisplayInlineText
@@ -47,7 +47,7 @@ public class EditableRun : Run, IEditable, INotifyPropertyChanged
          FontSize = this.FontSize,
          FontFamily = this.FontFamily,
          Background = this.Background,
-         myParagraph = this.myParagraph,
+         MyParagraph = this.MyParagraph,
          TextPositionOfInlineInParagraph = this.TextPositionOfInlineInParagraph,  //necessary because clone is produced when calculating range inline positions
          IsLastInlineOfParagraph = this.IsLastInlineOfParagraph,
          BaselineAlignment = this.BaselineAlignment,
@@ -56,12 +56,9 @@ public class EditableRun : Run, IEditable, INotifyPropertyChanged
    }
 
    //For DebuggerPanel
-   private bool _IsStartInline = false;
-   public bool IsStartInline { get => _IsStartInline; set { _IsStartInline = value; NotifyPropertyChanged(nameof(BackBrush)); NotifyPropertyChanged(nameof(InlineSelectedBorderThickness)); } }
-   private bool _IsEndInline = false;
-   public bool IsEndInline { get => _IsEndInline; set { _IsEndInline = value; NotifyPropertyChanged(nameof(BackBrush)); NotifyPropertyChanged(nameof(InlineSelectedBorderThickness)); } }
-   private bool _IsWithinSelectionInline = false;
-   public bool IsWithinSelectionInline { get => _IsWithinSelectionInline; set { _IsWithinSelectionInline = value; NotifyPropertyChanged(nameof(BackBrush)); } }
+   public bool IsStartInline { get; set { field = value; NotifyPropertyChanged(nameof(BackBrush)); NotifyPropertyChanged(nameof(InlineSelectedBorderThickness)); } }
+   public bool IsEndInline { get; set { field = value; NotifyPropertyChanged(nameof(BackBrush)); NotifyPropertyChanged(nameof(InlineSelectedBorderThickness)); } }
+   public bool IsWithinSelectionInline { get; set { field = value; NotifyPropertyChanged(nameof(BackBrush)); } }
    public Thickness InlineSelectedBorderThickness => (IsStartInline || IsEndInline) ? new Thickness(3) : new Thickness(0.7);
 
    public SolidColorBrush BackBrush

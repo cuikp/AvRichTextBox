@@ -8,13 +8,13 @@ namespace DemoApp_AvRichtextBox.Views;
 
 public partial class MainWindow : Window
 {
-   string openFilePath
+   string OpenFilePath
    {
-      get { return ((MainWindowViewModel)DataContext!).CurrentOpenFilePath; }
+      get => ((MainWindowViewModel)DataContext!).CurrentOpenFilePath;
       set { ((MainWindowViewModel)DataContext!).CurrentOpenFilePath = value; }
    }
 
-   string openFileName => ((MainWindowViewModel)DataContext!).CurrentOpenFileName;
+   string OpenFileName => ((MainWindowViewModel)DataContext!).CurrentOpenFileName;
 
    private async void LoadXamlPackageMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
    {
@@ -35,7 +35,7 @@ public partial class MainWindow : Window
          string? f = files[0].TryGetLocalPath();
          if (f != null)
          {
-            openFilePath = f;
+            OpenFilePath = f;
             MainRTB.LoadXamlPackage(f);
             ShowPagePaddingValue();
          }
@@ -47,7 +47,7 @@ public partial class MainWindow : Window
 
    private void SaveXamlPackageMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
    {
-      MainRTB.SaveXamlPackage(Path.Combine(Path.GetDirectoryName(openFilePath)!, openFileName + ".xamlp"));
+      MainRTB.SaveXamlPackage(Path.Combine(Path.GetDirectoryName(OpenFilePath)!, OpenFileName + ".xamlp"));
    }
 
    private async void LoadRtfFileMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -68,7 +68,7 @@ public partial class MainWindow : Window
          string? f = files[0].TryGetLocalPath();
          if (f != null)
          {
-            openFilePath = f;
+            OpenFilePath = f;
             MainRTB.LoadRtfDoc(f);
             ShowPagePaddingValue();
          }
@@ -77,7 +77,7 @@ public partial class MainWindow : Window
 
    private void SaveRtfFileMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
    {
-      MainRTB.SaveRtfDoc(Path.Combine(Path.GetDirectoryName(openFilePath)!, openFileName + ".rtf"));
+      MainRTB.SaveRtfDoc(Path.Combine(Path.GetDirectoryName(OpenFilePath)!, OpenFileName + ".rtf"));
    }
 
 
@@ -101,7 +101,7 @@ public partial class MainWindow : Window
          string? f = files[0].TryGetLocalPath();
          if (f != null)
          {
-            openFilePath = f;
+            OpenFilePath = f;
             MainRTB.LoadWordDoc(f);
             ShowPagePaddingValue();
          }
@@ -112,12 +112,12 @@ public partial class MainWindow : Window
 
    private void SaveWordFileMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
    {
-      MainRTB.SaveWordDoc(Path.Combine(Path.GetDirectoryName(openFilePath)!, openFileName + ".docx"));
+      MainRTB.SaveWordDoc(Path.Combine(Path.GetDirectoryName(OpenFilePath)!, OpenFileName + ".docx"));
    }
 
    private void SaveHtmlFileMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
    {
-      MainRTB.SaveHtmlDoc(Path.Combine(Path.GetDirectoryName(openFilePath)!, openFileName + ".html"));
+      MainRTB.SaveHtmlDoc(Path.Combine(Path.GetDirectoryName(OpenFilePath)!, OpenFileName + ".html"));
    }
    
    private async void LoadHtmlFileMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -138,7 +138,7 @@ public partial class MainWindow : Window
          string? f = files[0].TryGetLocalPath();
          if (f != null)
          {
-            openFilePath = f;
+            OpenFilePath = f;
             MainRTB.LoadHtmlDoc(f);
             ShowPagePaddingValue();
          }

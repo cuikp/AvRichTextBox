@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-
 namespace AvRichTextBox;
 
 public partial class FlowDocument
@@ -17,16 +14,16 @@ public partial class FlowDocument
 
             SelectionExtendMode = ExtendMode.ExtendModeRight;
 
-            if (Selection.EndParagraph == Blocks[^1] && Selection.EndParagraph.SelectionEndInBlock == Selection.EndParagraph.Text.Length)
+            if (Selection.EndParagraph == Blocks[^1] && Selection.EndParagraph.SelectionEndInBlock == Selection.EndParagraph.TextLength)
                return;  // End of document
 
-            Selection!.End += 1;
+            Selection.End += 1;
 
             break;
 
          case ExtendMode.ExtendModeLeft:
 
-            Selection!.Start += 1;
+            Selection.Start += 1;
             if (Selection.Start == Selection.End)
                SelectionExtendMode = ExtendMode.ExtendModeRight;
 
@@ -45,14 +42,14 @@ public partial class FlowDocument
       {
          case ExtendMode.ExtendModeNone:
          case ExtendMode.ExtendModeLeft:
-            if (Selection!.Start == 0) return;
+            if (Selection.Start == 0) return;
             Selection.Start -= 1;
             SelectionExtendMode = ExtendMode.ExtendModeLeft;
             break;
 
          case ExtendMode.ExtendModeRight:
-            if (Selection!.End == 0) return;
-            Selection!.End -= 1;
+            if (Selection.End == 0) return;
+            Selection.End -= 1;
             if (Selection.Start == Selection.End)
                SelectionExtendMode = ExtendMode.ExtendModeLeft;
             break;
@@ -72,7 +69,7 @@ public partial class FlowDocument
 
             SelectionExtendMode = ExtendMode.ExtendModeRight;
 
-            if (Selection!.EndParagraph == Blocks[^1] && Selection.End == Text.Length)
+            if (Selection.EndParagraph == Blocks[^1] && Selection.End == Text.Length)
                return;  // last line of document
             
             Paragraph origEndPar = Selection.EndParagraph;
@@ -96,7 +93,7 @@ public partial class FlowDocument
             //for selection continuity
             if (Selection.EndParagraph != origEndPar)
             {
-               origEndPar.SelectionEndInBlock = origEndPar.Text.Length;
+               origEndPar.SelectionEndInBlock = origEndPar.TextLength;
                Selection.EndParagraph.SelectionStartInBlock = 0;
             }
 
@@ -165,7 +162,7 @@ public partial class FlowDocument
             if (Selection.StartParagraph != origStartPar)
             {
                origStartPar.SelectionStartInBlock = 0;
-               Selection.StartParagraph.SelectionEndInBlock = Selection.StartParagraph.Text.Length;
+               Selection.StartParagraph.SelectionEndInBlock = Selection.StartParagraph.TextLength;
             }
 
             break;

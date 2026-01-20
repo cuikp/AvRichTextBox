@@ -1,9 +1,4 @@
-﻿using Avalonia.Controls;
-using DynamicData;
-using System;
-using System.Diagnostics;
-using System.Linq;
-using static AvRichTextBox.HelperMethods;
+﻿using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;
 
@@ -15,7 +10,7 @@ public partial class FlowDocument
       if (Selection.Length > 0)
          ResetSelectionLengthZero(Selection.EndParagraph);
 
-      Selection!.BiasForwardStart = isTextInsertion ? false : true;
+      Selection.BiasForwardStart = !isTextInsertion;
 
       switch (SelectionExtendMode)
       {
@@ -29,8 +24,8 @@ public partial class FlowDocument
             {
                Selection.End += 1;
                Selection.CollapseToEnd();
-               Selection!.BiasForwardStart = isTextInsertion ? false : true;
-               Selection!.BiasForwardEnd = Selection.BiasForwardStart;
+               Selection.BiasForwardStart = !isTextInsertion;
+               Selection.BiasForwardEnd = Selection.BiasForwardStart;
             }
 
             Selection.End += 1;
@@ -48,8 +43,8 @@ public partial class FlowDocument
       SelectionExtendMode = ExtendMode.ExtendModeNone;
       ScrollInDirection!(1);
 
-      Selection!.BiasForwardStart = isTextInsertion ? false : true;
-      Selection!.BiasForwardEnd = Selection.BiasForwardStart;
+      Selection.BiasForwardStart = !isTextInsertion;
+      Selection.BiasForwardEnd = Selection.BiasForwardStart;
 
 
    }
@@ -57,8 +52,8 @@ public partial class FlowDocument
    internal void MoveSelectionLeft(bool biasForward)
    {
 
-      //Selection!.BiasForwardStart = biasForward;
-      Selection!.BiasForwardStart = true;
+      //Selection.BiasForwardStart = biasForward;
+      Selection.BiasForwardStart = true;
 
       if (Selection!.Length > 0)
          ResetSelectionLengthZero(Selection.StartParagraph);
@@ -86,7 +81,7 @@ public partial class FlowDocument
             break;
       }
 
-      Selection!.BiasForwardEnd = Selection!.BiasForwardStart;
+      Selection.BiasForwardEnd = Selection.BiasForwardStart;
       Selection.CollapseToStart();
       SelectionExtendMode = ExtendMode.ExtendModeNone;
       ScrollInDirection!(-1);
@@ -105,7 +100,7 @@ public partial class FlowDocument
       Paragraph startP = (Paragraph)Selection.StartParagraph;
 
       int IndexNext = -1; 
-      if (startP.SelectionStartInBlock == startP.Text.Length)
+      if (startP.SelectionStartInBlock == startP.TextLength)
          Selection.End += 1;
       else
       {
@@ -116,7 +111,7 @@ public partial class FlowDocument
          {
             IndexNext = startP.Text.IndexOfAny(" \v".ToCharArray(), startP.SelectionStartInBlock);
             if (IndexNext == -1)
-               IndexNext = startP.Text.Length;
+               IndexNext = startP.TextLength;
             else
                IndexNext += 1;  // go beyond the space
 
@@ -135,8 +130,8 @@ public partial class FlowDocument
       if (Selection.Start <= 0)
          return;
 
-      Selection!.BiasForwardStart = false;
-      Selection!.BiasForwardEnd = false;
+      Selection.BiasForwardStart = false;
+      Selection.BiasForwardEnd = false;
 
       int IndexNext = -1;
       Paragraph startP = (Paragraph)Selection.StartParagraph;
@@ -208,9 +203,9 @@ public partial class FlowDocument
    internal void MoveSelectionUp(bool biasForward)
    {
 
-      Selection!.BiasForwardStart = biasForward;
+      Selection.BiasForwardStart = biasForward;
 
-      if (Selection!.Length > 0)
+      if (Selection.Length > 0)
       {
          ResetSelectionLengthZero(Selection.StartParagraph);
          Selection.CollapseToStart();
@@ -218,7 +213,7 @@ public partial class FlowDocument
 
       if (Selection.StartParagraph.IsStartAtFirstLine)
       {
-         if (Selection!.StartParagraph != Blocks[0])
+         if (Selection.StartParagraph != Blocks[0])
          {
             int prevParIndex = Blocks.IndexOf(Selection.StartParagraph) - 1;
             Paragraph prevPar = (Paragraph)Blocks[prevParIndex];
@@ -243,7 +238,7 @@ public partial class FlowDocument
    {
       Selection.BiasForwardStart = true;
       Selection.BiasForwardEnd = true;
-      Selection!.Start = 0;
+      Selection.Start = 0;
       Selection.CollapseToStart();
       SelectionExtendMode = ExtendMode.ExtendModeNone;
       ScrollInDirection!(-1);
@@ -260,7 +255,7 @@ public partial class FlowDocument
    {
       Selection.BiasForwardStart = false;
       Selection.BiasForwardEnd = false;
-      Selection!.End = Blocks[^1].StartInDoc + Blocks[^1].BlockLength - 1;
+      Selection.End = Blocks[^1].StartInDoc + Blocks[^1].BlockLength - 1;
       Selection.CollapseToEnd();
       SelectionExtendMode = ExtendMode.ExtendModeNone;
       ScrollInDirection!(1);
@@ -305,18 +300,18 @@ public partial class FlowDocument
    internal void MoveToEndOfLine(bool selExtend)
    {
 
-      Selection!.BiasForwardStart = false;
-      Selection!.BiasForwardEnd = false;
+      Selection.BiasForwardStart = false;
+      Selection.BiasForwardEnd = false;
 
-      if (Selection!.StartParagraph.Text == "") return;
+      if (Selection.StartParagraph.TextLength == 0) return;
 
       Paragraph thisEndPar = Selection.EndParagraph;
 
       if (thisEndPar.IsEndAtLastLine)
-         //Selection!.End = Selection.EndParagraph.StartInDoc + thisEndPar.BlockLength - (Blocks.IndexOf(thisEndPar) == Blocks.Count - 1 ? 2 : 1);
-         Selection!.End = Selection.EndParagraph.StartInDoc + thisEndPar.BlockLength - 1;
+         //Selection.End = Selection.EndParagraph.StartInDoc + thisEndPar.BlockLength - (Blocks.IndexOf(thisEndPar) == Blocks.Count - 1 ? 2 : 1);
+         Selection.End = Selection.EndParagraph.StartInDoc + thisEndPar.BlockLength - 1;
       else
-         Selection!.End = Selection.EndParagraph.StartInDoc + thisEndPar.LastIndexEndLine;
+         Selection.End = Selection.EndParagraph.StartInDoc + thisEndPar.LastIndexEndLine;
 
       string parText = thisEndPar.Text;
       if (thisEndPar.LastIndexEndLine <= parText.Length && (parText[thisEndPar.LastIndexEndLine] == ' ' || IsCJKChar(parText[thisEndPar.LastIndexEndLine])))
@@ -329,7 +324,7 @@ public partial class FlowDocument
       
       if (!selExtend)
       {
-         if (Selection!.Length > 0)
+         if (Selection.Length > 0)
             ResetSelectionLengthZero(Selection.EndParagraph);
          Selection.CollapseToEnd();
       }

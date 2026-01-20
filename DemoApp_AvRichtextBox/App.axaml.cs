@@ -32,7 +32,7 @@ public partial class App : Application
       base.OnFrameworkInitializationCompleted();
    }
 
-   private void DisableAvaloniaDataAnnotationValidation()
+   private static void DisableAvaloniaDataAnnotationValidation()
    {
       // Get an array of plugins to remove
       var dataValidationPluginsToRemove =

@@ -211,8 +211,7 @@ public partial class MainWindow : Window
 
    private void DebugPanelCB_CheckedUnchecked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
    {
-      CheckBox? thisCB = sender as CheckBox;
-      if (thisCB != null && MainRTB != null)
+      if (sender is CheckBox thisCB && MainRTB != null)
          //MainRTB.ToggleDebuggerPanel((bool)thisCB.IsChecked!);
          MainRTB.ShowDebuggerPanelInDebugMode = (bool)thisCB.IsChecked!;
    }

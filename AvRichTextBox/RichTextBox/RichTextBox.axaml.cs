@@ -1,19 +1,14 @@
-using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Data;
-using Avalonia.Input;
 using Avalonia.Input.TextInput;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
-using DynamicData;
-using System;
-using System.Linq;
 
 namespace AvRichTextBox;
 
@@ -81,7 +76,7 @@ public partial class RichTextBox : UserControl
 #if DEBUG
          rtbVM.RunDebuggerVisible = ShowDebuggerPanelInDebugMode;
          //RunDebugger.DataContext = FlowDoc;  // binding set in Xaml
-         this.Width = this.Width + (rtbVM.RunDebuggerVisible ? 400 : 0);
+         this.Width += (rtbVM.RunDebuggerVisible ? 400 : 0);
 #else
       RunDebugger.DataContext = null;
 #endif
@@ -167,8 +162,7 @@ public partial class RichTextBox : UserControl
      
       if (e.GetType() == typeof(TextInputMethodClientRequestedEventArgs))
       {
-         if (client == null)
-            client = new RichTextBoxTextInputClient(this);
+         client ??= new RichTextBoxTextInputClient(this);
         
          e.Client = client;
 
@@ -195,10 +189,10 @@ public partial class RichTextBox : UserControl
    private void UpdatePreeditOverlay()
    {
 
-      if (!string.IsNullOrEmpty(_preeditText))
+      if (!string.IsNullOrEmpty(_preeditText) && _CaretRect != null)
       {
-         double cX = _CaretRect!.Margin.Left - 2;
-         double cY = _CaretRect!.Margin.Top - 2;
+         double cX = _CaretRect.Margin.Left - 2;
+         double cY = _CaretRect.Margin.Top - 2;
 
          PreeditOverlay.Text = _preeditText;
          PreeditOverlay.Margin = new Thickness(cX, cY, 0, 0);
@@ -258,16 +252,16 @@ public partial class RichTextBox : UserControl
       {
          case FlowDocument.ExtendMode.ExtendModeRight:
          case FlowDocument.ExtendMode.ExtendModeNone:
-            currentY = FlowDoc.Selection!.EndRect!.Y;
+            currentY = FlowDoc.Selection.EndRect.Y;
             break;
 
          case FlowDocument.ExtendMode.ExtendModeLeft:
-            currentY = FlowDoc.Selection!.StartRect!.Y;
+            currentY = FlowDoc.Selection.StartRect.Y;
             break;
       }
 
       double distanceFromTop = currentY - rtbVM.RTBScrollOffset.Y;
-      double distanceFromLeft = FlowDoc.Selection!.StartRect!.X + FlowDocSV.Margin.Left;
+      double distanceFromLeft = FlowDoc.Selection.StartRect.X + FlowDocSV.Margin.Left;
       double newScrollY = rtbVM.RTBScrollOffset.Y + FlowDocSV.Bounds.Height * direction;
       rtbVM.RTBScrollOffset = rtbVM.RTBScrollOffset.WithY(newScrollY);
       double newCaretY = newScrollY + distanceFromTop;

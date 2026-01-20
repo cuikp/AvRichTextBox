@@ -29,5 +29,12 @@ public partial class RichTextBox
       set { SetValue(IsReadOnlyProperty, value);  }
    }
 
+   public static readonly StyledProperty<bool> LineBreakOnShiftEnterProperty = AvaloniaProperty.Register<RichTextBox, bool>(nameof(LineBreakOnShiftEnter), false);
+   public bool LineBreakOnShiftEnter
+   {
+      get => GetValue(LineBreakOnShiftEnterProperty);
+      set { SetValue(LineBreakOnShiftEnterProperty, value);  }
+   }
+
 
 }

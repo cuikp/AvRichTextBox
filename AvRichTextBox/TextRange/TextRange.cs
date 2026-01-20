@@ -1,15 +1,5 @@
-﻿using Avalonia;
-using Avalonia.Input;
-using DocumentFormat.OpenXml.Drawing.Charts;
-using System;
-using System.ComponentModel;
-using System.Data.SqlTypes;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
+﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AvRichTextBox;
 
@@ -23,7 +13,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
    internal delegate void End_ChangedHandler(TextRange sender, int newEnd);
    internal event End_ChangedHandler? End_Changed;
 
-   public override string ToString() => this.Start + " → " + this.End;
+   public override string ToString() => $"{Start} → {End}";
 
    public TextRange(FlowDocument flowdoc, int start, int end)
    {
@@ -38,11 +28,8 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 
    internal FlowDocument myFlowDoc;
    public int Length  => End - Start;
-   private int _Start;
-   public int Start { get => _Start; set { if (_Start != value) { _Start = value;  Start_Changed?.Invoke(this, value); NotifyPropertyChanged(nameof(Start)); } } }
-      
-   private int _End;
-   public int End { get => _End; set { if (_End != value) { _End = value; End_Changed?.Invoke(this, value); NotifyPropertyChanged(nameof(End)); } } }
+   public int Start { get;  set { if (field != value) { field = value; Start_Changed?.Invoke(this, value); NotifyPropertyChanged(nameof(Start)); } } }
+   public int End { get; set { if (field != value) { field = value; End_Changed?.Invoke(this, value); NotifyPropertyChanged(nameof(End)); } } }
 
    internal void UpdateStart() { NotifyPropertyChanged(nameof(Start)); }
    internal void UpdateEnd() { NotifyPropertyChanged(nameof(End)); }
@@ -142,12 +129,36 @@ public class TextRange : INotifyPropertyChanged, IDisposable
       if (myFlowDoc == null) return null!;
       IEditable currentInline = GetStartInline();
       if (currentInline != null)
-         formatting = myFlowDoc.GetFormattingInline(avProp, currentInline);
+         formatting = GetFormattingInline(avProp, currentInline);
       
       return formatting;
    }
 
-   bool isFormatting = false;
+
+   internal static object? GetFormattingInline(AvaloniaProperty avProperty, IEditable inline)
+   {
+      object? returnValue = null!;
+
+      if (inline is EditableRun run)
+      {
+         switch (avProperty.Name)
+         {
+            case "Bold": returnValue = run.FontWeight; break;
+            case "FontFamily": returnValue = run.FontFamily; break;
+            case "FontStyle": returnValue = run.FontStyle; break;
+            case "TextDecorations": returnValue = run.TextDecorations; break;
+            case "FontSize": returnValue = run.FontSize; break;
+            case "Background": returnValue = run.Background; break;
+            case "Foreground": returnValue = run.Foreground; break;
+            case "FontStretch": returnValue = run.FontStretch; break;
+            case "BaselineAlignment": returnValue = run.BaselineAlignment; break;
+         }
+      }
+
+      return returnValue;
+   }
+
+
    public void ApplyFormatting(AvaloniaProperty avProp, object value)
    {
       if (myFlowDoc == null) return;

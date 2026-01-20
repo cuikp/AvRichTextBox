@@ -1,17 +1,9 @@
-﻿using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Controls.Documents;
-using Avalonia.Media;
+﻿using Avalonia.Media;
 using DynamicData;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 
 namespace AvRichTextBox;
 
@@ -29,8 +21,7 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
    public delegate void UpdateRTBCaret_Handler();
    internal event UpdateRTBCaret_Handler? UpdateRTBCaret;
    
-   private Thickness _PagePadding = new (0);
-   public Thickness PagePadding { get => _PagePadding; set {  _PagePadding = value; NotifyPropertyChanged(nameof(PagePadding)); } }
+   public Thickness PagePadding { get; set { field = value; NotifyPropertyChanged(nameof(PagePadding)); } } = new(0);
 
    internal bool IsEditable { get; set; } = true;
 
@@ -42,7 +33,7 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
 
    public void ScrollFlowDocInDirection(int direction) { ScrollInDirection?.Invoke(direction); }
 
-   public List<Paragraph> GetSelectedParagraphs => Blocks.Where(b=> b.StartInDoc <= Selection.Start && b.EndInDoc >= Selection.End).Select(b=>(Paragraph)b).ToList();
+   public List<Paragraph> GetSelectedParagraphs => [.. Blocks.Where(b=> b.StartInDoc <= Selection.Start && b.EndInDoc >= Selection.End).Select(b=>(Paragraph)b)];
 
    public ObservableCollection<Block> Blocks { get; set; } = [];
 
@@ -265,8 +256,7 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
 
    internal List<Block> GetRangeBlocks(TextRange trange)
    {
-      //return Blocks.Where(b => b.IsParagraph && ((Paragraph)b).StartInDoc <= trange.End && b.StartInDoc + b.BlockLength - 1 >= trange.Start).ToList().ConvertAll(bb=>(Paragraph)bb);
-      return Blocks.Where(b=> b.StartInDoc <= trange.End && b.StartInDoc + b.BlockLength - 1 >= trange.Start).ToList();
+      return [.. Blocks.Where(b=> b.StartInDoc <= trange.End && b.StartInDoc + b.BlockLength - 1 >= trange.Start)];
    }
 
    internal Paragraph GetContainingParagraph(int charIndex) => (Paragraph)Blocks.LastOrDefault(b => b.IsParagraph && ((Paragraph)b).StartInDoc <= charIndex)!;
@@ -301,13 +291,13 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
 
    internal void ResetSelectionLengthZero(Paragraph currPar)
    {
-      int StartParIndex = Blocks.IndexOf(Selection!.StartParagraph);
-      int EndParIndex = Blocks.IndexOf(Selection!.EndParagraph);
+      if (Selection == null) return;
+      int StartParIndex = Blocks.IndexOf(Selection.StartParagraph);
+      int EndParIndex = Blocks.IndexOf(Selection.EndParagraph);
       foreach (Paragraph p in Blocks.Where(pp => { int pindex = Blocks.IndexOf(pp); return pindex >= StartParIndex && pindex <= EndParIndex; }))
       {
          if (p != currPar)
             p.ClearSelection();
-            
       }
 
    }

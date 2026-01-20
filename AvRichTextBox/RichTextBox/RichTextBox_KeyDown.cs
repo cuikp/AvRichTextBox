@@ -84,7 +84,12 @@ public partial class RichTextBox
 
             case Key.Enter:
                if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
-                  InsertLineBreak();
+               {
+                  if (LineBreakOnShiftEnter)
+                     InsertLineBreak();
+                  else
+                     InsertParagraph();
+               }
                else
                   InsertParagraph();
                break;

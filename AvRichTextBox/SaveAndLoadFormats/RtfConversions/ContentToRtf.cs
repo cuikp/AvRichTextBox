@@ -133,34 +133,36 @@ internal static partial class RtfConversions
          {
             if (eIUC.Child.GetType() == typeof(Image))
             {
-               Image? thisImg = eIUC.Child as Image;
-               Bitmap imgbitmap = (Bitmap)thisImg!.Source!;
+               if (eIUC.Child is Image thisImg)
+               {
+                  Bitmap imgbitmap = (Bitmap)thisImg.Source!;
 
-               int picw = imgbitmap.PixelSize.Width;
-               int pich = imgbitmap.PixelSize.Height;
-               int picwgoal = (int)PixToTwip(thisImg.Width);
-               int pichgoal = (int)PixToTwip(thisImg.Height);
+                  int picw = imgbitmap.PixelSize.Width;
+                  int pich = imgbitmap.PixelSize.Height;
+                  int picwgoal = (int)PixToTwip(thisImg.Width);
+                  int pichgoal = (int)PixToTwip(thisImg.Height);
 
-               using MemoryStream memoryStream = new();
+                  using MemoryStream memoryStream = new();
 
-               var renderTarget = new RenderTargetBitmap(new PixelSize(picw, pich));
-               using (var context = renderTarget.CreateDrawingContext())
-                  context.DrawImage(imgbitmap, new Rect(0, 0, picw, pich));
-               
-               renderTarget.Save(memoryStream);  // png by default
-               memoryStream.Seek(0, SeekOrigin.Begin);
+                  var renderTarget = new RenderTargetBitmap(new PixelSize(picw, pich));
+                  using (var context = renderTarget.CreateDrawingContext())
+                     context.DrawImage(imgbitmap, new Rect(0, 0, picw, pich));
 
-               byte[] imgbytes = new byte[memoryStream.Length];
-               memoryStream.Read(imgbytes, 0, imgbytes.Length);
+                  renderTarget.Save(memoryStream);  // png by default
+                  memoryStream.Seek(0, SeekOrigin.Begin);
 
-               // add image to rtf code:
-               iedSB.AppendLine($@"{{\pict\pngblip\picw{picw}\pich{pich}\picwgoal{picwgoal}\pichgoal{pichgoal}");
+                  byte[] imgbytes = new byte[memoryStream.Length];
+                  memoryStream.Read(imgbytes, 0, imgbytes.Length);
 
-               foreach (byte b in imgbytes)
-                  iedSB.Append(b.ToString("x2"));  // hex encoding
+                  // add image to rtf code:
+                  iedSB.AppendLine($@"{{\pict\pngblip\picw{picw}\pich{pich}\picwgoal{picwgoal}\pichgoal{pichgoal}");
 
-               iedSB.AppendLine("}");
+                  foreach (byte b in imgbytes)
+                     iedSB.Append(b.ToString("x2"));  // hex encoding
 
+                  iedSB.AppendLine("}");
+
+               }
             }
          }
       }

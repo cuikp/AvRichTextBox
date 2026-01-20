@@ -1,11 +1,7 @@
-﻿using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Input;
+﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
-using System;
-using System.Linq;
 
 namespace AvRichTextBox;
 
@@ -67,15 +63,14 @@ public partial class EditableParagraph : SelectableTextBlock
       
       //Debug.WriteLine("e.propertyName = " + e.Property.Name);
 
-      if (thisPar != null)  //because this may be called right after paragraph has been deleted
+      if (ThisPar != null)  //because this may be called right after paragraph has been deleted
       {
 
          switch (e.Property.Name)
          {
             case "Bounds":
                //Necessary for initial setting for each created paragraph
-               if (thisPar != null)
-                  thisPar.FirstIndexLastLine = this.TextLayout.TextLines[^1].FirstTextSourceIndex;
+               ThisPar?.FirstIndexLastLine = this.TextLayout.TextLines[^1].FirstTextSourceIndex;
                break;
 
             //case "Inlines":
@@ -89,7 +84,7 @@ public partial class EditableParagraph : SelectableTextBlock
                if (TextLayout != null && TextLayout.TextLines.Count > 0)
                {
                   double maxLineHeight = Math.Max(TextLayout.TextLines[0].Height, TextLayout.TextLines[^1].Height);
-                  thisPar.LineHeight = maxLineHeight;
+                  ThisPar.LineHeight = maxLineHeight;
                }
                //Debug.WriteLine("\nline spacing changed: LINESpacing = " + this.LineSpacing);
 
@@ -104,13 +99,13 @@ public partial class EditableParagraph : SelectableTextBlock
                break;
 
             case "SelectedText":
-               thisPar.UpdateUIContainersSelected();
+               ThisPar.UpdateUIContainersSelected();
 
                break;
 
             case "TextLayoutInfoStartRequested":
                this.SetValue(TextLayoutInfoStartRequestedProperty, false);
-               if (thisPar == null)
+               if (ThisPar == null)
                   Dispatcher.UIThread.Post(() => UpdateVMFromEPStart(), DispatcherPriority.Background);
                 else
                   UpdateVMFromEPStart();
@@ -118,7 +113,7 @@ public partial class EditableParagraph : SelectableTextBlock
 
             case "TextLayoutInfoEndRequested":
                this.SetValue(TextLayoutInfoEndRequestedProperty, false);
-               if (thisPar == null)
+               if (ThisPar == null)
                   Dispatcher.UIThread.Post(() => UpdateVMFromEPEnd(), DispatcherPriority.Background);
                else   
                   UpdateVMFromEPEnd();
@@ -193,11 +188,23 @@ public partial class EditableParagraph : SelectableTextBlock
 
    public int SelectionLength => SelectionEnd - SelectionStart;
 
-   Paragraph? thisPar => this.DataContext as Paragraph;
-
-  
+   Paragraph? ThisPar => this.DataContext as Paragraph;
+     
    public new string Text => string.Join("", ((Paragraph)this.DataContext!).Inlines.ToList().ConvertAll(edinline => edinline.InlineText));
 
+   public int TextLength
+   {
+      get
+      {
+         int len = 0;
+         if (this.DataContext is Paragraph p)
+         {
+            foreach (var i in p.Inlines)
+               len += i.InlineText?.Length ?? 0;
+         }
+         return len;
+      }
+   }
 
 }
 

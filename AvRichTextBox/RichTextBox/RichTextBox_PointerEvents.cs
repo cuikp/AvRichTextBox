@@ -1,13 +1,5 @@
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Data.Core;
-using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.VisualTree;
-using DynamicData;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace AvRichTextBox;
@@ -58,7 +50,7 @@ public partial class RichTextBox
          if(e.ClickCount == 2) 
          {
             // dbl click, select word
-            var word_matches = Regex.Matches(thisPar.Text, "\\w+");
+            var word_matches = WordMatchesRegex().Matches(thisPar.Text);
             foreach(Match wm in word_matches) 
             {
                int wm_start_idx = thisPar.StartInDoc + wm.Index;
@@ -75,7 +67,7 @@ public partial class RichTextBox
          {
             // triple click select block
             sel_start_idx = thisPar.StartInDoc;
-            sel_end_idx = sel_start_idx + thisPar.Text.Length;
+            sel_end_idx = sel_start_idx + thisPar.TextLength;
          } 
       }
 
@@ -118,7 +110,7 @@ public partial class RichTextBox
             Paragraph thisPar = (Paragraph)overEP.DataContext!;
          
             if (thisPar.StartInDoc + charIndex < SelectionOrigin)
-            {  //Debug.WriteLine("startindoc = " + thisPar.StartInDoc + " :::charindex = " +  charIndex + " :::selectionorigin= " + SelectionOrigin);
+            {  //Debug.WriteLine("startindoc = " + ThisPar.StartInDoc + " :::charindex = " +  charIndex + " :::selectionorigin= " + SelectionOrigin);
                FlowDoc.SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeLeft;
                FlowDoc.Selection.End = SelectionOrigin;
                FlowDoc.Selection.Start = thisPar.StartInDoc + charIndex;
@@ -155,6 +147,8 @@ public partial class RichTextBox
 
    }
 
+   [GeneratedRegex("\\w+")]
+   private static partial Regex WordMatchesRegex();
 }
 
 

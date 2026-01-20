@@ -1,20 +1,11 @@
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Documents;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO.Compression;
-using System.IO;
-using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
-using static AvRichTextBox.HelperMethods;
 using System.Xml;
+using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;
 
@@ -60,37 +51,38 @@ public partial class XamlConversions
             foreach (EditableInlineUIContainer imageUIContainer in p.Inlines.Where(iline => iline.GetType() == typeof(EditableInlineUIContainer) &&
                        ((EditableInlineUIContainer)iline).Child.GetType() == typeof(Image)))
             {
-               Image? thisImg = imageUIContainer.Child as Image;
-
-               Bitmap imgbitmap = (Bitmap)thisImg!.Source!;
-
-               //Debug.WriteLine("Imagesource is null ? : " + (thisImg.Source == null));
-               if (imgbitmap == null)
+               if (imageUIContainer.Child is Image thisImg)
                {
-                  //Create dummy bitmap to maintain doc/image structure
-                  imageNo += 1;
-                  Bitmap dummyBMP = new RenderTargetBitmap(new PixelSize(10, 10));
-                  uniqueBitmaps.Add(new UniqueBitmap(dummyBMP, (int)thisImg.Width, (int)thisImg.Height, imageNo));
-                  imageUIContainer.ImageNo = imageNo;
-               }
-               else
-               {
-                  UniqueBitmap foundUniqueBitmap = uniqueBitmaps.Where(bmp => bmp.uBitmap == imgbitmap).FirstOrDefault()!;
-                  if (foundUniqueBitmap == null)
-                  {  //add as new unique bitmap
+
+                  Bitmap imgbitmap = (Bitmap)thisImg.Source!;
+
+                  //Debug.WriteLine("Imagesource is null ? : " + (thisImg.Source == null));
+                  if (imgbitmap == null)
+                  {
+                     //Create dummy bitmap to maintain doc/image structure
                      imageNo += 1;
-                     uniqueBitmaps.Add(new UniqueBitmap(imgbitmap, (int)thisImg.Width, (int)thisImg.Height, imageNo));
+                     Bitmap dummyBMP = new RenderTargetBitmap(new PixelSize(10, 10));
+                     uniqueBitmaps.Add(new UniqueBitmap(dummyBMP, (int)thisImg.Width, (int)thisImg.Height, imageNo));
                      imageUIContainer.ImageNo = imageNo;
                   }
                   else
                   {
-                     if (foundUniqueBitmap.maxWidth < thisImg.Width)
-                        foundUniqueBitmap.maxWidth = (int)thisImg.Width;
-                     if (foundUniqueBitmap.maxHeight < thisImg.Height)
-                        foundUniqueBitmap.maxHeight = (int)thisImg.Height;
-                     imageUIContainer.ImageNo = foundUniqueBitmap.consecutiveIndex;
+                     UniqueBitmap foundUniqueBitmap = uniqueBitmaps.Where(bmp => bmp.uBitmap == imgbitmap).FirstOrDefault()!;
+                     if (foundUniqueBitmap == null)
+                     {  //add as new unique bitmap
+                        imageNo += 1;
+                        uniqueBitmaps.Add(new UniqueBitmap(imgbitmap, (int)thisImg.Width, (int)thisImg.Height, imageNo));
+                        imageUIContainer.ImageNo = imageNo;
+                     }
+                     else
+                     {
+                        if (foundUniqueBitmap.maxWidth < thisImg.Width)
+                           foundUniqueBitmap.maxWidth = (int)thisImg.Width;
+                        if (foundUniqueBitmap.maxHeight < thisImg.Height)
+                           foundUniqueBitmap.maxHeight = (int)thisImg.Height;
+                        imageUIContainer.ImageNo = foundUniqueBitmap.consecutiveIndex;
+                     }
                   }
-
                }
             }
          }

@@ -77,7 +77,7 @@ public partial class RichTextBox
    {
       if (IsReadOnly) return;
 
-      if (FlowDoc.Selection!.Length > 0)
+      if (FlowDoc.Selection.Length > 0)
          FlowDoc.DeleteSelection();
       else
       {

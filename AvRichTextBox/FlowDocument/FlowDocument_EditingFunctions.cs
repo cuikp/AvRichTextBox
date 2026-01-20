@@ -1,8 +1,4 @@
 ﻿using DynamicData;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace AvRichTextBox;
@@ -69,7 +65,7 @@ public partial class FlowDocument
 
          if (addnewpar)
          {
-            List<IEditable> moveInlines = addPar.Inlines.Take(new Range(0, startInlineIndex)).ToList();  // create an independent new list
+            List<IEditable> moveInlines = [.. addPar.Inlines.Take(new Range(0, startInlineIndex))];  // create an independent new list
             addPar.Inlines.RemoveMany(moveInlines);
 
             //Create new paragraph to insert
@@ -122,24 +118,27 @@ public partial class FlowDocument
 
       int startInlineIndex = startPar.Inlines.IndexOf(splitInlines[0]) + 1;
 
-      EditableRun? sRun = splitInlines[0] as EditableRun;
-      EditableRun newEditableRun = new(newText)
+      if (splitInlines[0] is EditableRun sRun)
       {
-         FontFamily = sRun!.FontFamily,
-         FontWeight = sRun.FontWeight,
-         FontStyle = sRun.FontStyle,
-         FontSize = sRun.FontSize,
-         TextDecorations = sRun.TextDecorations,
-         Background = sRun.Background
-      };
+         EditableRun newEditableRun = new(newText)
+         {
+            FontFamily = sRun.FontFamily,
+            FontWeight = sRun.FontWeight,
+            FontStyle = sRun.FontStyle,
+            FontSize = sRun.FontSize,
+            TextDecorations = sRun.TextDecorations,
+            Background = sRun.Background
+         };
 
-      startPar.Inlines.Insert(startInlineIndex, newEditableRun);
+         startPar.Inlines.Insert(startInlineIndex, newEditableRun);
 
-      if (splitInlines[0].InlineText == "")
-         startPar.Inlines.Remove(splitInlines[0]);
+         if (splitInlines[0].InlineText == "")
+            startPar.Inlines.Remove(splitInlines[0]);
 
-      startPar.CallRequestInlinesUpdate();
-      UpdateBlockAndInlineStarts(startPar);
+         startPar.CallRequestInlinesUpdate();
+         UpdateBlockAndInlineStarts(startPar);
+
+      }
 
    }
 
@@ -188,9 +187,11 @@ public partial class FlowDocument
       foreach (KeyValuePair<Block, List<IEditable>> restorePar in parsAndInlines)
          if (restorePar.Key.IsParagraph)
          {
-            Paragraph? p = restorePar.Key as Paragraph;
-            p!.CallRequestInlinesUpdate();
-            p.ClearSelection();
+            if (restorePar.Key is Paragraph p)
+            {
+               p.CallRequestInlinesUpdate();
+               p.ClearSelection();
+            }
          }
 
       UpdateBlockAndInlineStarts(blockIndex);
