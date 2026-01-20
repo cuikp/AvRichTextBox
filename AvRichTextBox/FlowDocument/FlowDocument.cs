@@ -46,7 +46,7 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
    //   set { SetValue(BlocksProperty, value); }
    //}
 
-   public string Text => string.Join("", Blocks.ToList().ConvertAll(b => string.Join("", b.Text + "\r")));
+   public string Text => string.Join("", Blocks.ToList().ConvertAll(b => string.Join("", b.Text + Environment.NewLine)));
    
    public int DocEndPoint => ((Paragraph)Blocks.Last()).EndInDoc;
 

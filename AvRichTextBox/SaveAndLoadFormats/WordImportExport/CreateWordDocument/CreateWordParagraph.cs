@@ -94,7 +94,7 @@ internal static partial class WordConversions
 
             case EditableRun erun:
                DOW.Run dRun = GetWordDocRun(erun);
-               //if (dRun.InnerText == "\v")
+               //if (dRun.InnerText == "\n")
                //   parg.AppendChild(new Break());
                //else
                parg.AppendChild(dRun);

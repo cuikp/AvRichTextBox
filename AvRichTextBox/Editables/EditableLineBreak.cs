@@ -15,7 +15,7 @@ public class EditableLineBreak : LineBreak, IEditable, INotifyPropertyChanged
    public Inline BaseInline => this;
    public Paragraph? MyParagraph { get; set; }
    public int TextPositionOfInlineInParagraph { get; set; }
-   public string InlineText { get; set; } = @"\v"; //make literal to count as 2 characters
+   public string InlineText { get; set; } = @"\n"; //make literal to count as 2 characters
    public string DisplayInlineText => "{>LINEBREAK<}";
    public int InlineLength => 2;  //because LineBreak acts as a double character in TextBlock? - anyway don't use LineBreak, use \v instead
    public double InlineHeight => FontSize;

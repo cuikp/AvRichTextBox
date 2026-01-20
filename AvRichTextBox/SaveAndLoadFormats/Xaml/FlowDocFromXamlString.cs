@@ -265,7 +265,7 @@ public partial class XamlConversions
                         break;
 
                      case "LineBreak":
-                        //EditableRun eLineBreak = new(@"\v");
+                        //EditableRun eLineBreak = new(@"\n");
                         EditableLineBreak eLineBreak = new();
                         newIED = eLineBreak;
                         break;

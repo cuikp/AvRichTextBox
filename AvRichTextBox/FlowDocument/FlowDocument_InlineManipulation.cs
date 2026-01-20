@@ -27,8 +27,8 @@ public partial class FlowDocument
       ).ToList().ConvertAll(il => 
       {
          IEditable clonedInline = il.Clone();
-         if (il.IsLastInlineOfParagraph)  //replace paragraph ends with \r char
-            clonedInline.InlineText += "\r";
+         if (il.IsLastInlineOfParagraph)  //replace paragraph ends with \r\n sequence
+            clonedInline.InlineText += Environment.NewLine;
          return clonedInline; 
       });
 

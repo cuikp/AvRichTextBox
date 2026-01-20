@@ -127,13 +127,13 @@ public partial class RichTextBox : UserControl
       else
       {
          TextLine tline = textLines[lineNo];
-         //Debug.WriteLine("textstring ="  + string.Join("\r", (tline.TextRuns.Select(tr=>tr.Text))));
-         //Debug.WriteLine("lastis rn? "  + (tline.TextRuns.Last().Text.ToString() == "\r\n"));
+         //Debug.WriteLine("textstring ="  + string.Join(Environment.NewLine, (tline.TextRuns.Select(tr=>tr.Text))));
+         //Debug.WriteLine("lastis rn? "  + (tline.TextRuns.Last().Text.ToString() == Environment.NewLine));
          
          int goBackNo = 1;
          if (tline.TextRuns.Count > 0)
          {
-            if (tline.TextRuns[tline.TextRuns.Count - 1].Text.ToString() == "\r\n")
+            if (tline.TextRuns[tline.TextRuns.Count - 1].Text.ToString() == Environment.NewLine)
                goBackNo++;
          }
          

@@ -53,7 +53,7 @@ internal static partial class RtfConversions
             {
                List<IEditable> addInlines = GetRtfTextElementsAsInlines(rtfpar.Elements);
                //if (parno != domParCount)  // Don't add \r at the last run as it's unnecessary???
-                addInlines.Last().InlineText += "\r";
+                addInlines.Last().InlineText += Environment.NewLine;
                returnList.AddRange(addInlines);
             }
             
