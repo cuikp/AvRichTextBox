@@ -33,7 +33,7 @@
 //         for (int colno = 0; colno < noCols; colno++)
 //         {
 //            Border cellborder = new() { BorderBrush = Brushes.Black, BorderThickness = new Thickness(0.5) };
-//            SelectableTextBlock seltb = new() { Text = "this is some text, with wrapping as well." };
+//            SelectableTextBlock seltb = new() { GetText = "this is some text, with wrapping as well." };
 //            seltb.Background = Brushes.White;
 //            seltb.TextWrapping = TextWrapping.Wrap;
 //            cellborder.Child = seltb;

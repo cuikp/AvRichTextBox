@@ -94,7 +94,7 @@ internal static partial class WordConversions
          // Must parse line breaks
          if (!string.IsNullOrEmpty(runtext.Text))
          {
-            //if (runtext.Text.Contains(Constants.vbLf))
+            //if (runtext.GetText.Contains(Constants.vbLf))
             if (runtext.Text.Contains('\n'))
                ParseRunText(ref newrun, runtext.Text);
             else

@@ -12,13 +12,14 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable, INotifyPr
    public new event PropertyChangedEventHandler? PropertyChanged;
    private void NotifyPropertyChanged([CallerMemberName] string propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
-   public EditableInlineUIContainer(Control c) { Child = c; }
+   public EditableInlineUIContainer(Control c) { Child = c; Id = ++FlowDocument.InlineIdCounter; }
 
+   public int Id { get; set; }
    public Inline BaseInline => this;
    public Paragraph? MyParagraph { get; set; }
    public int TextPositionOfInlineInParagraph { get; set; }
    public string InlineText { get; set; } = "@";
-   public string DisplayInlineText { get => "<UICONTAINER> => " + (this.Child != null && this.Child.GetType() == typeof(Image) ? "Image" : "NoChild"); }
+   public string DisplayInlineText { get => $"<UICONTAINER> => {(this.Child != null && this.Child.GetType() == typeof(Image) ? "Image" : "NoChild")}"; }
    public string FontName => "---";
    public int InlineLength => 1;
    public bool IsEmpty => false;
@@ -29,7 +30,7 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable, INotifyPr
 
    public int ImageNo;
 
-   public IEditable Clone() { return new EditableInlineUIContainer(this.Child){ MyParagraph = this.MyParagraph }; }
+   public IEditable Clone() { return new EditableInlineUIContainer(this.Child){ MyParagraph = this.MyParagraph, Id = this.Id }; }
 
    //for DebuggerPanel 
    public bool IsStartInline { get; set { field= value; NotifyPropertyChanged(nameof(BackBrush)); NotifyPropertyChanged(nameof(InlineSelectedBorderThickness)); } } = false;

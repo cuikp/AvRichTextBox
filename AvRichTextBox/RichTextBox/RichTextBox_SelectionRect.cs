@@ -108,7 +108,6 @@ public partial class RichTextBox : UserControl
       if (selEndPoint != null)
          FlowDoc.Selection.EndRect = new Rect((Point)selEndPoint!, selEndRect.Size);
 
-      //Paragraph ThisPar = (Paragraph)edPar.DataContext!;
       if (edPar.DataContext is not Paragraph thisPar) return;
 
       thisPar.DistanceSelectionEndFromLeft = tlayout.HitTestTextPosition(edPar.SelectionEnd).Left;
@@ -127,8 +126,8 @@ public partial class RichTextBox : UserControl
       else
       {
          TextLine tline = textLines[lineNo];
-         //Debug.WriteLine("textstring ="  + string.Join(Environment.NewLine, (tline.TextRuns.Select(tr=>tr.Text))));
-         //Debug.WriteLine("lastis rn? "  + (tline.TextRuns.Last().Text.ToString() == Environment.NewLine));
+         //Debug.WriteLine("textstring ="  + string.Join(Environment.NewLine, (tline.TextRuns.Select(tr=>tr.GetText))));
+         //Debug.WriteLine("lastis rn? "  + (tline.TextRuns.Last().GetText.ToString() == Environment.NewLine));
          
          int goBackNo = 1;
          if (tline.TextRuns.Count > 0)
@@ -166,14 +165,6 @@ public partial class RichTextBox : UserControl
 
 
    }
-
-   //private void EditableParagraph_CharIndexRect_Notified(EditableParagraph edPar, Rect selStartRect)
-   //{
-   //   //Point? selStartPoint = edPar.TranslatePoint(selStartRect.Position, DocIC);
-   //   //if (selStartPoint != null)
-   //   //   FlowDoc.Selection.StartRect = new Rect((Point)selStartPoint!, selStartRect.Size);
-
-   //}
 
 
 }

@@ -42,7 +42,8 @@ public partial class FlowDocument
       if (tRange.Length > 0)
          DeleteRange(tRange, false);
 
-      IEditable startInline = tRange.GetStartInline();
+      if (tRange.GetStartInline() is not IEditable startInline) return 0;
+
       List<IEditable> splitInlines = SplitRunAtPos(tRange.Start, startInline, startInline.GetCharPosInInline(tRange.Start));
 
       int insertionPt = startPar.Inlines.IndexOf(splitInlines[0]) + 1;
@@ -113,7 +114,8 @@ public partial class FlowDocument
          SelectionExtendMode = ExtendMode.ExtendModeNone;
       }
 
-      IEditable startInline = tRange.GetStartInline();
+      if (tRange.GetStartInline() is not IEditable startInline) return;
+
       List<IEditable> splitInlines = SplitRunAtPos(tRange.Start, startInline, startInline.GetCharPosInInline(tRange.Start));
 
       int startInlineIndex = startPar.Inlines.IndexOf(splitInlines[0]) + 1;
@@ -161,8 +163,8 @@ public partial class FlowDocument
          if (ShowDebugger)
             UpdateDebuggerSelectionParagraphs();
 
-         ScrollInDirection!(1);
-         ScrollInDirection!(-1);
+         ScrollInDirection?.Invoke(1);
+         ScrollInDirection?.Invoke(-1);
       }
    }
 
@@ -202,28 +204,32 @@ public partial class FlowDocument
    internal static partial Regex FindLineBreakCharsRegex();
 
 
-   internal IEditable GetStartInline(int charIndex)
+   internal IEditable? GetStartInline(int charIndex)
    {
 
-      Paragraph? startPar = Blocks.LastOrDefault(b => b.IsParagraph && (b.StartInDoc <= charIndex))! as Paragraph;
-
-      if (startPar != null)
+      if (Blocks.LastOrDefault(b => b.IsParagraph && (b.StartInDoc <= charIndex)) is Paragraph startPar)
       {
-         //Check if start at end of last paragraph (cannot span from end of a paragraph)
-         if (startPar != Blocks.Where(b => b.IsParagraph).Last() && startPar!.EndInDoc == charIndex)
-            startPar = Blocks.FirstOrDefault(b => b.IsParagraph && Blocks.IndexOf(b) > Blocks.IndexOf(startPar))! as Paragraph;
+         //Check if start is at end of last paragraph (cannot span from end of a paragraph)
+         if (startPar != Blocks.Where(b => b.IsParagraph).Last() && startPar.EndInDoc == charIndex)
+         {
+            return null;
+            //if (Blocks.FirstOrDefault(b => b.IsParagraph && Blocks.IndexOf(b) > Blocks.IndexOf(startPar)) is Paragraph lastPar)
+            //   startPar = lastPar;
+         }
+
+         IEditable? startInline = null;
+         bool IsAtLineBreak = false;
+         if (startPar.Inlines.LastOrDefault(ied => startPar.StartInDoc + ied.TextPositionOfInlineInParagraph <= charIndex) is IEditable startInlineReal)
+         {
+            if (startPar.Inlines.LastOrDefault(ied => !ied.IsLineBreak && startPar.StartInDoc + ied.TextPositionOfInlineInParagraph <= charIndex) is IEditable lastInline)
+               startInline = lastInline;
+            IsAtLineBreak = startInline != startInlineReal;
+         }
+         return startInline;
+
       }
-
-      if (startPar == null) return null!;
-
-      IEditable startInline = null!;
-      bool IsAtLineBreak = false;
-
-      IEditable startInlineReal = startPar.Inlines.LastOrDefault(ied => startPar.StartInDoc + ied.TextPositionOfInlineInParagraph <= charIndex)!;
-      startInline = startPar.Inlines.LastOrDefault(ied => !ied.IsLineBreak && startPar.StartInDoc + ied.TextPositionOfInlineInParagraph <= charIndex)!;
-      IsAtLineBreak = startInline != startInlineReal;
-
-      return startInline!;
+      else
+         return null;
 
    }
 

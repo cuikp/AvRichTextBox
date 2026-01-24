@@ -29,7 +29,7 @@ public partial class XamlConversions
          {
             using Stream s = relsEntry.Open();
             byte[] relsBytes = new byte[(int)relsEntry.Length];
-            s.Read(relsBytes, 0, relsBytes.Length);
+            s.ReadExactly(relsBytes);
             string relString = Encoding.UTF8.GetString(relsBytes);
             string RelationshipEntryLine = @"<Relationship Type=.*?/xaml/entry.*?/>";
             Match relLine = Regex.Match(relString, RelationshipEntryLine);
@@ -308,26 +308,17 @@ public partial class XamlConversions
                                  }
                               }
 
-                              if (controlNode.ChildNodes.Count == 1)
+                              if (controlNode.ChildNodes.Count == 1 && controlNode.ChildNodes[0] is XmlNode sourceNode && sourceNode.Name == "Image.Source")
                               {
-                                 XmlNode sourceNode = controlNode.ChildNodes[0]!;
-                                 if (sourceNode.Name == "Image.Source")
+                                 if (sourceNode.ChildNodes.Count == 1 && sourceNode.ChildNodes[0] is XmlNode bitmapNode && bitmapNode.Name == "BitmapImage")
                                  {
-                                    if (sourceNode.ChildNodes.Count == 1)
+                                    if (bitmapNode.Attributes?.OfType<XmlAttribute>().Where(batt => batt.Name == "UriSource").FirstOrDefault() is XmlAttribute uriSourceAtt)
                                     {
-                                       XmlNode bitmapNode = sourceNode.ChildNodes[0]!;
-                                       if (bitmapNode.Name == "BitmapImage")
+                                       Match imgNoMatch = Regex.Match(uriSourceAtt.Value, "(?<=Image)[0-9]{1,}");
+                                       if (imgNoMatch.Success)
                                        {
-                                          XmlAttribute? uriSourceAtt = bitmapNode.Attributes?.OfType<XmlAttribute>().Where(batt => batt.Name == "UriSource").FirstOrDefault();
-                                          if (uriSourceAtt != null)
-                                          {
-                                             Match imgNoMatch = Regex.Match(uriSourceAtt.Value, "(?<=Image)[0-9]{1,}");
-                                             if (imgNoMatch.Success)
-                                             {
-                                                int ImageNo = int.Parse(imgNoMatch.Value);
-                                                img.Source = consecutiveImageBitmaps[ImageNo - 1];
-                                             }
-                                          }
+                                          int ImageNo = int.Parse(imgNoMatch.Value);
+                                          img.Source = consecutiveImageBitmaps[ImageNo - 1];
                                        }
                                     }
                                  }

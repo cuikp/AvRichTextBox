@@ -21,6 +21,8 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
    public delegate void UpdateRTBCaret_Handler();
    internal event UpdateRTBCaret_Handler? UpdateRTBCaret;
    
+   internal static int InlineIdCounter { get; set => field = (value == int.MaxValue) ? 0 : value; }
+
    public Thickness PagePadding { get; set { field = value; NotifyPropertyChanged(nameof(PagePadding)); } } = new(0);
 
    internal bool IsEditable { get; set; } = true;
@@ -80,11 +82,12 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
       UpdateBlockAndInlineStarts(Selection.StartParagraph);
 
       Selection.StartParagraph.CallRequestInlinesUpdate();
-      Selection.GetStartInline();
+      //Selection.GetStartInline();
+      Selection.CheckLineBreaks();
       Selection.StartParagraph.CallRequestTextLayoutInfoStart();
 
       Selection.EndParagraph.CallRequestInlinesUpdate();
-      Selection.GetEndInline();
+      //Selection.GetEndInline();
       Selection.EndParagraph.CallRequestTextLayoutInfoEnd();
 
       //Selection.StartParagraph.CallRequestTextBoxFocus();
@@ -104,6 +107,8 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
       DefineFormatRunActions();
 
       //this.PropertyChanged += FlowDocument_PropertyChanged;
+
+      InlineIdCounter = 0; //reset on new flowdoc
 
    }
 
@@ -188,7 +193,7 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
       selRange.StartParagraph = startPar;
       startPar.SelectionStartInBlock = newStart - startPar.StartInDoc;
       startPar.CallRequestTextLayoutInfoStart();
-      IEditable startInline = selRange.GetStartInline();
+      selRange.CheckLineBreaks();
 
       UpdateSelectedParagraphs();
 
@@ -203,10 +208,10 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
       //if (selRange.StartParagraph != null)
       //   selRange.StartParagraph.CallRequestTextLayoutInfoStart();
 
-      //Debug.WriteLine("startpar text? = " + selRange.StartParagraph?.Text + "\n________________");
+      //Debug.WriteLine("startpar text? = " + selRange.StartParagraph?.GetText + "\n________________");
 
-      //Selection.StartParagraph.CallRequestInlinesUpdate();
-      Selection.GetStartInline();
+      //Selection.GetStartInline();
+      Selection.CheckLineBreaks();
       Selection.StartParagraph.CallRequestTextLayoutInfoStart();
       Selection_Changed?.Invoke(Selection);
 
@@ -220,7 +225,7 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
       selRange.EndParagraph.SelectionEndInBlock = newEnd - selRange.EndParagraph.StartInDoc;
     
       selRange.EndParagraph.CallRequestTextLayoutInfoEnd();
-      selRange.GetEndInline();
+      //selRange.GetEndInline();
 
       UpdateSelectedParagraphs();
 
@@ -233,8 +238,7 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
             selRange.EndParagraph.SelectionStartInBlock = selRange.EndParagraph.SelectionEndInBlock;
 
 
-      //Selection.EndParagraph.CallRequestInlinesUpdate();
-      Selection.GetEndInline();
+      //Selection.CheckLineBreaks();
       Selection.EndParagraph.CallRequestTextLayoutInfoEnd();
       Selection_Changed?.Invoke(Selection);
 
@@ -259,7 +263,7 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
       return [.. Blocks.Where(b=> b.StartInDoc <= trange.End && b.StartInDoc + b.BlockLength - 1 >= trange.Start)];
    }
 
-   internal Paragraph GetContainingParagraph(int charIndex) => (Paragraph)Blocks.LastOrDefault(b => b.IsParagraph && ((Paragraph)b).StartInDoc <= charIndex)!;
+   internal Paragraph GetContainingParagraph(int charIndex) => Blocks.LastOrDefault(b => b is Paragraph p && p.StartInDoc <= charIndex) as Paragraph ?? null!;
 
    internal void UpdateBlockAndInlineStarts(int fromBlockIndex)
    {

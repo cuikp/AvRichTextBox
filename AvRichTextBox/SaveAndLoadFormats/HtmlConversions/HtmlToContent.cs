@@ -228,7 +228,8 @@ internal static partial class HtmlConversions
       return dict;
    }
 
-   private static IBrush? ParseCssColor(string cssColor)
+   //private static IBrush? ParseCssColor(string cssColor)
+   private static SolidColorBrush? ParseCssColor(string cssColor)
    {
       try
       {

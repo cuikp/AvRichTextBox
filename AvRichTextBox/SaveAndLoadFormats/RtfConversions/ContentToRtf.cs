@@ -133,10 +133,8 @@ internal static partial class RtfConversions
          {
             if (eIUC.Child.GetType() == typeof(Image))
             {
-               if (eIUC.Child is Image thisImg)
+               if (eIUC.Child is Image thisImg && thisImg.Source is Bitmap imgbitmap)
                {
-                  Bitmap imgbitmap = (Bitmap)thisImg.Source!;
-
                   int picw = imgbitmap.PixelSize.Width;
                   int pich = imgbitmap.PixelSize.Height;
                   int picwgoal = (int)PixToTwip(thisImg.Width);

@@ -385,7 +385,7 @@ internal static partial class WordConversions
                   break;
 
                case "t": {  thisrun.Text += rsection.InnerText; break; }
-               //case "t": { thisrun.Text += rsection.InnerText; lastRunText = thisrun.Text; break; }  //For debugging purposes
+               //case "t": { thisrun.GetText += rsection.InnerText; lastRunText = thisrun.GetText; break; }  //For debugging purposes
 
                case "delText": { thisrun.Text += rsection.InnerText; thisrun.TextDecorations = TextDecorations.Strikethrough; thisrun.Foreground = Brushes.Red; break; }
 
@@ -397,7 +397,7 @@ internal static partial class WordConversions
             }
 
          }
-         catch (Exception ex) { Debug.WriteLine("Error getting run:\nLocalName=" + rsection.LocalName + "\n" + ex.Message); }
+         catch (Exception ex) { Debug.WriteLine($"Error getting run:\nLocalName={rsection.LocalName}\n{ex.Message}"); }
 
       }
 

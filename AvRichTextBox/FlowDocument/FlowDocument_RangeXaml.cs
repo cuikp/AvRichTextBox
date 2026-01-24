@@ -20,7 +20,7 @@ public partial class FlowDocument
    internal static void LoadXamlStreamIntoRange (Stream stream, TextRange trange)
    {
       byte[] streamBytes = new byte[stream.Length];
-      stream.Read(streamBytes, 0, streamBytes.Length);
+      stream.ReadExactly(streamBytes);
       string xamlString = Encoding.UTF8.GetString(streamBytes, 0, streamBytes.Length);
       //ProcessXamlString(xamlString);
 

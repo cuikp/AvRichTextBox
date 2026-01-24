@@ -39,7 +39,7 @@
 				<DockPanel Margin="2, 10, 2, 5" DockPanel.Dock="Top">
 					<Button x:Name="FindBut" Content="Find" DockPanel.Dock="Top" Click="FindButton_Click" />
 
-					<TextBox x:Name="FindTB" Text="" GotFocus="FindTextBox_GotFocus" Background="White" KeyDown="FindTextBox_KeyDown" FontSize="16" Margin="2, 4" Focusable="True">
+					<TextBox x:Name="FindTB" Text="" GotFocus="FindTextBox_GotFocus" Background="LightGray" KeyDown="FindTextBox_KeyDown" FontSize="16" Margin="2, 4" Focusable="True">
 						<TextBox.Styles>
 							<Style Selector="TextBox:pointerover /template/ Border">
 								<Setter Property="Background" Value="{TemplateBinding Background}" />

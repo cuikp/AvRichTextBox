@@ -227,7 +227,7 @@ public partial class FlowDocument
 
    internal IEditable? GetNextInline(IEditable inline)
    {
-      IEditable returnIED = null!;
+      IEditable? returnIED = null;
 
       int myindex = inline.MyParagraph!.Inlines.IndexOf(inline);
      
@@ -237,7 +237,7 @@ public partial class FlowDocument
       {
          Paragraph? nextPar = GetNextParagraph(inline.MyParagraph);
          if (nextPar == null)
-            return null!;
+            return null;
          else
             if (nextPar.Inlines.Count > 0)
                returnIED = nextPar.Inlines[0];
@@ -245,9 +245,9 @@ public partial class FlowDocument
       return returnIED;
    }
 
-   internal IEditable GetPreviousInline(IEditable inline) 
+   internal IEditable? GetPreviousInline(IEditable inline) 
    {
-      IEditable returnIED = null!;
+      IEditable? returnIED = null;
       int myindex = inline.MyParagraph!.Inlines.IndexOf(inline);
 
       if (myindex > 0)
@@ -256,16 +256,14 @@ public partial class FlowDocument
       {
          Paragraph? prevPar = GetPreviousParagraph(inline.MyParagraph);
          if (prevPar == null)
-            return null!;
+            return null;
          else
          {
             if (prevPar.Inlines.Count > 0)
                returnIED = prevPar.Inlines.Last();
          }
-            
       }
       return returnIED;
-
    }
 
 

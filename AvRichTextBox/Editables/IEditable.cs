@@ -12,6 +12,7 @@ public interface IEditable : INotifyPropertyChanged
 
    internal Paragraph? MyParagraph { get; set; }
 
+   internal int Id { get; set; }
    internal bool IsStartInline { get; set; }
    internal bool IsEndInline { get; set; }
    internal bool IsWithinSelectionInline { get; set; }

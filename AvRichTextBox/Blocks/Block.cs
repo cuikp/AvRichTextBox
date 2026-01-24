@@ -12,26 +12,6 @@ public class Block : INotifyPropertyChanged
 
    public Thickness Margin { get; set { field = value; NotifyPropertyChanged(nameof(Margin)); } }
 
-   //public string TextOLD
-   //{
-   //   get
-   //   {
-                  
-   //      string returnText = "";
-
-   //      switch (this.GetType())
-   //      {
-   //         case Type t when t == typeof(Paragraph):
-   //            returnText = string.Join("", ((Paragraph)this).Inlines.ToList().ConvertAll(ied => ied.InlineText));
-   //            break;
-   //            //case Type t when t == typeof(Table):
-   //            //   returnText = "$";
-   //            //   break;
-   //      }
-   //      return returnText;
-   //   }
-   //}
-
    public string Text
    {
       get

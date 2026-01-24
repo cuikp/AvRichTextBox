@@ -52,26 +52,6 @@ public partial class RichTextBox
 
    }
 
-   public void SearchText(string searchText)
-   {        
-      MatchCollection matches = Regex.Matches(FlowDoc.Text, searchText);
-
-      if (matches.Count > 0)
-         FlowDoc.Select(matches[0].Index, matches[0].Length);
-
-      
-      foreach (Match m in matches)
-      {
-         TextRange trange = new (FlowDoc, m.Index, m.Index + m.Length);
-         FlowDoc.ApplyFormattingRange(Inline.FontStretchProperty, FontStretch.UltraCondensed, trange);
-         FlowDoc.ApplyFormattingRange(Inline.ForegroundProperty, new SolidColorBrush(Colors.BlueViolet), trange);
-         FlowDoc.ApplyFormattingRange(Inline.BackgroundProperty, new SolidColorBrush(Colors.Wheat), trange);
-      }
-         
-
-
-   }
-
 
    private void PerformDelete(bool backspace)
    {

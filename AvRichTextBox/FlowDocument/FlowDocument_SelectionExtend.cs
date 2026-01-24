@@ -30,7 +30,7 @@ public partial class FlowDocument
             break;
       }
 
-      ScrollInDirection!(1);
+      ScrollInDirection?.Invoke(1);
 
    }
 
@@ -55,7 +55,7 @@ public partial class FlowDocument
             break;
       }
 
-      ScrollInDirection!(-1);
+      ScrollInDirection?.Invoke(-1);
    }
 
    internal void ExtendSelectionDown()
@@ -131,7 +131,7 @@ public partial class FlowDocument
             break;
       }
 
-      ScrollInDirection!(1);
+      ScrollInDirection?.Invoke(1);
       
    }
 
@@ -197,7 +197,7 @@ public partial class FlowDocument
             break;
       }
 
-      ScrollInDirection!(-1);
+      ScrollInDirection?.Invoke(-1);
       
 
    }

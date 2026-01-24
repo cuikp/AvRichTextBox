@@ -196,7 +196,7 @@ internal static partial class RtfConversions
 
          else if (domelm is RTFDomText rtftext2)
          {            
-            //EditableRun erun = new(DecodeRtfUnicode(rtftext2.Text))
+            //EditableRun erun = new(DecodeRtfUnicode(rtftext2.GetText))
             EditableRun erun = new(rtftext2.Text)
             {
                FontSize = rtftext2.Format.FontSize
@@ -230,7 +230,7 @@ internal static partial class RtfConversions
             erun.Background = new SolidColorBrush(rtftext2.Format.BackColor);
             erun.FontFamily = new FontFamily(rtftext2.Format.FontName);
             //erun.FontFamily = new FontFamily("Meiryo");
-            //Debug.WriteLine("erun: " + erun.FontFamily + "  (" + erun.Text + ")");
+            //Debug.WriteLine("erun: " + erun.FontFamily + "  (" + erun.GetText + ")");
 
             returnList.Add(erun);
 

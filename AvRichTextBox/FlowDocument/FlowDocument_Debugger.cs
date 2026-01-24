@@ -21,13 +21,15 @@ public partial class FlowDocument
       {
          foreach (IEditable ied in p.Inlines)
          {
-            IEditable startInline = Selection.GetStartInline();
-            IEditable endInline = Selection.GetEndInline();
+            IEditable? startInline = Selection.GetStartInline();
+            IEditable? endInline = Selection.GetEndInline();
             int thisRunIndex = p.Inlines.IndexOf(ied);
             ied.IsStartInline = ied == startInline;
             ied.IsEndInline = ied == endInline;
-            ied.IsWithinSelectionInline =
-            startInline != null && endInline != null && thisRunIndex > p.Inlines.IndexOf(startInline) && thisRunIndex < p.Inlines.IndexOf(endInline);
+            ied.IsWithinSelectionInline = 
+               startInline != null && 
+               endInline != null && 
+               thisRunIndex > p.Inlines.IndexOf(startInline) && thisRunIndex < p.Inlines.IndexOf(endInline);
          }
       }
 

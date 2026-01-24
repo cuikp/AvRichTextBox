@@ -10,8 +10,9 @@ public class EditableLineBreak : LineBreak, IEditable, INotifyPropertyChanged
    public new event PropertyChangedEventHandler? PropertyChanged;
    private void NotifyPropertyChanged([CallerMemberName] string propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
-   public EditableLineBreak() { }
-
+   public EditableLineBreak() { Id = ++FlowDocument.InlineIdCounter; }
+   
+   public int Id { get; set; }
    public Inline BaseInline => this;
    public Paragraph? MyParagraph { get; set; }
    public int TextPositionOfInlineInParagraph { get; set; }
@@ -23,7 +24,7 @@ public class EditableLineBreak : LineBreak, IEditable, INotifyPropertyChanged
    public bool IsEmpty => false;
    public bool IsLastInlineOfParagraph { get; set; }
  
-   public IEditable Clone() => new EditableLineBreak() { MyParagraph = this.MyParagraph };
+   public IEditable Clone() => new EditableLineBreak() { MyParagraph = this.MyParagraph, Id = this.Id };
 
 
    //for DebuggerPanel 

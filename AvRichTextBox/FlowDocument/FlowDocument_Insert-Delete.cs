@@ -1,4 +1,5 @@
-﻿using DynamicData;
+﻿using Avalonia.Controls.Documents;
+using DynamicData;
 using System.Diagnostics;
 
 namespace AvRichTextBox;
@@ -16,7 +17,7 @@ public partial class FlowDocument
             DeleteRange(Selection, true);
             Selection.CollapseToStart();
             SelectionExtendMode = ExtendMode.ExtendModeNone;
-            startInline = Selection.GetStartInline();
+            startInline = Selection.GetStartInline() ?? startInline;
          }
 
          int insertIdx = 0;
@@ -49,7 +50,8 @@ public partial class FlowDocument
          for (int i = 0; i < insertText.Length; i++) 
             MoveSelectionRight(true);
 
-         IEditable nextInline = GetNextInline(Selection.GetStartInline())!;
+         IEditable? newStartInline = Selection.GetStartInline();
+         IEditable? nextInline = newStartInline == null ? null : GetNextInline(newStartInline);
          Selection.IsAtLineBreak = nextInline != null && nextInline.IsLineBreak;
 
       }
@@ -66,8 +68,7 @@ public partial class FlowDocument
       Selection.BiasForwardStart = true;
       Selection.BiasForwardEnd = true;
 
-      IEditable startInline = Selection.GetStartInline();
-      if (startInline == null) return;
+      if (Selection.GetStartInline() is not IEditable startInline) return;
 
       Paragraph startP = (Paragraph)Selection.StartParagraph;
 
@@ -96,9 +97,9 @@ public partial class FlowDocument
          {
             IEditable? nextInline = GetNextInline(startInline);
             bool isSelectionAtInlineEnd = startInline.GetCharPosInInline(Selection.End) == startInline.InlineLength;
-            IEditable keepInline = null!;
+            IEditable? keepInline = null;
 
-            if (nextInline != null && nextInline.IsLineBreak && isSelectionAtInlineEnd)
+            if (nextInline != null && nextInline is EditableLineBreak lbreak && isSelectionAtInlineEnd)
             {  //Delete linebreak
                IEditable? lbnext = GetNextInline(nextInline);
                startP.Inlines.Remove(nextInline);
@@ -106,6 +107,9 @@ public partial class FlowDocument
                   startP.Inlines.Remove(lbnext);
                else if (startInline.IsEmpty)
                   startP.Inlines.Remove(startInline);
+               
+               Undos.Add(new DeleteLineBreakUndo(Blocks.IndexOf(startP), lbreak.Id, this, originalSelectionStart));
+
             }
             else
             {  // delete normal run char
@@ -124,9 +128,10 @@ public partial class FlowDocument
                //Paragraph must always have at least an empty run
                if (startP.Inlines.Count == 0)
                   startP.Inlines.Add(new EditableRun(""));
+
+               Undos.Add(new DeleteCharUndo(Blocks.IndexOf(startP), startInlineIdx, keepInline, deletedChar, selectionStartInInline, this, originalSelectionStart));
             }
 
-            Undos.Add(new DeleteCharUndo(Blocks.IndexOf(startP), startInlineIdx, keepInline, deletedChar, selectionStartInInline, this, originalSelectionStart));
 
          }
 
@@ -146,15 +151,20 @@ public partial class FlowDocument
    internal void InsertLineBreak()
    {
       Paragraph startPar = Selection.StartParagraph;
-      if (Selection.GetStartInline() is not IEditable startInline) { Debug.WriteLine("skipping"); return; }
+      if (Selection.GetStartInline() is not IEditable startInline) 
+         return; 
 
       int runIdx = startPar.Inlines.IndexOf(startInline);
+      int charPosInInline = startInline.GetCharPosInInline(Selection.Start);
+      if (charPosInInline > 0)
+      {
+         List<IEditable> newRuns = SplitRunAtPos(Selection.Start, startInline, charPosInInline);
+         runIdx += 1;
+      }
 
-      SplitRunAtPos(Selection.Start, startInline, startInline.GetCharPosInInline(Selection.Start)); // creates an empty inline
-      startPar.Inlines.Insert(runIdx + 1, new EditableLineBreak());
+      startPar.Inlines.Insert(runIdx, new EditableLineBreak());
 
-
-      Undos.Add(new InsertLineBreakUndo(Blocks.IndexOf(Selection.StartParagraph), runIdx + 1, this, Selection.Start));
+      Undos.Add(new InsertLineBreakUndo(Blocks.IndexOf(Selection.StartParagraph), runIdx, this, Selection.Start));
       UpdateTextRanges(Selection.Start, 1); 
      
       
@@ -169,7 +179,7 @@ public partial class FlowDocument
       Selection.BiasForwardStart = true;
       Selection.BiasForwardEnd = true;
 
-      ScrollInDirection!(1);
+      ScrollInDirection?.Invoke(1);
 
    }
 
@@ -277,7 +287,8 @@ public partial class FlowDocument
          }
       }
 
-      IEditable startInline = GetStartInline(insertCharIndex);
+      if (GetStartInline(insertCharIndex) is not IEditable startInline) return;
+
       int StartRunIdx = insertPar.Inlines.IndexOf(startInline);
 
       //Split at selection
@@ -334,7 +345,7 @@ public partial class FlowDocument
       originalPar.CallRequestTextLayoutInfoEnd();
       parToInsert.CallRequestTextLayoutInfoEnd();
 
-      ScrollInDirection!(1);
+      ScrollInDirection?.Invoke(1);
 
    }
 
@@ -418,8 +429,7 @@ public partial class FlowDocument
       else
       {
          int NextWordEndPoint = -1;
-         IEditable startInline = Selection.GetStartInline();
-         if (startInline.IsUIContainer || startInline.IsLineBreak)
+         if (Selection.GetStartInline() is IEditable startInline && (startInline.IsUIContainer || startInline.IsLineBreak))
             NextWordEndPoint = Selection.Start + 1;
          else
          {

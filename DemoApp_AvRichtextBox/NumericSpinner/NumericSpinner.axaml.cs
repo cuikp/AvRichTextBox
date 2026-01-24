@@ -57,7 +57,6 @@ public partial class NumericSpinner : UserControl
    internal DispatcherTimer DownKeyTimer = new();
 
    bool ControlIsDown = false;
-   bool UpKeyDown = false;
    bool DownKeyDown = false;
 
    private void DownKeyTimer_Tick(object? sender, EventArgs e) 
@@ -76,13 +75,12 @@ public partial class NumericSpinner : UserControl
    
    private void CmdUp_PointerPressed(object? sender, PointerPressedEventArgs e) 
    { 
-      UpKeyDown = true; 
       ControlIsDown = e.KeyModifiers.HasFlag(KeyModifiers.Control); 
       DownKeyTimer.Start();
    }
 
    private void CmdDown_PointerReleased(object? sender, PointerReleasedEventArgs e) { DownKeyDown = false; DownKeyTimer.Stop();  }
-   private void CmdUp_PointerReleased(object? sender, PointerReleasedEventArgs e) { UpKeyDown = false; DownKeyTimer.Stop(); ;  }
+   private void CmdUp_PointerReleased(object? sender, PointerReleasedEventArgs e) { DownKeyTimer.Stop(); ;  }
 
    public static readonly StyledProperty<ISolidColorBrush> TextBackgroundProperty = AvaloniaProperty.Register<NumericSpinner, ISolidColorBrush>(nameof(TextBackground));
 

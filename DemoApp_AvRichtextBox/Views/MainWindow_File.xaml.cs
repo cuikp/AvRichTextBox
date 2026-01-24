@@ -39,8 +39,8 @@ public partial class MainWindow : Window
             MainRTB.LoadXamlPackage(f);
             ShowPagePaddingValue();
          }
-            
-      
+
+
       }
    }
 
@@ -91,7 +91,7 @@ public partial class MainWindow : Window
          FileTypeFilter = [new("Word doc files") { Patterns = ["*.docx"], }],
          AllowMultiple = false
       };
-      
+
 
       var topLevel = TopLevel.GetTopLevel(this);
       var files = await topLevel!.StorageProvider.OpenFilePickerAsync(filePickerOptions);
@@ -105,7 +105,7 @@ public partial class MainWindow : Window
             MainRTB.LoadWordDoc(f);
             ShowPagePaddingValue();
          }
-            
+
       }
 
    }
@@ -119,7 +119,7 @@ public partial class MainWindow : Window
    {
       MainRTB.SaveHtmlDoc(Path.Combine(Path.GetDirectoryName(OpenFilePath)!, OpenFileName + ".html"));
    }
-   
+
    private async void LoadHtmlFileMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
    {
       FilePickerOpenOptions filePickerOptions = new()
@@ -146,5 +146,7 @@ public partial class MainWindow : Window
       }
 
    }
+
+   
 
 }

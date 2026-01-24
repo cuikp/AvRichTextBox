@@ -41,7 +41,7 @@ public partial class FlowDocument
 
       Selection.CollapseToEnd();
       SelectionExtendMode = ExtendMode.ExtendModeNone;
-      ScrollInDirection!(1);
+      ScrollInDirection?.Invoke(1);
 
       Selection.BiasForwardStart = !isTextInsertion;
       Selection.BiasForwardEnd = Selection.BiasForwardStart;
@@ -84,7 +84,7 @@ public partial class FlowDocument
       Selection.BiasForwardEnd = Selection.BiasForwardStart;
       Selection.CollapseToStart();
       SelectionExtendMode = ExtendMode.ExtendModeNone;
-      ScrollInDirection!(-1);
+      ScrollInDirection?.Invoke(-1);
 
    }
 
@@ -104,8 +104,7 @@ public partial class FlowDocument
          Selection.End += 1;
       else
       {
-         IEditable startInline = Selection.GetStartInline();
-         if (startInline.IsUIContainer || startInline.IsLineBreak)
+         if (Selection.GetStartInline() is IEditable startInline && (startInline.IsUIContainer || startInline.IsLineBreak))
             Selection.End += 1;
          else
          {
@@ -121,7 +120,7 @@ public partial class FlowDocument
       }
 
       Selection.CollapseToEnd();
-      ScrollInDirection!(1);
+      ScrollInDirection?.Invoke(1);
 
    }
     
@@ -144,9 +143,8 @@ public partial class FlowDocument
          Selection.CollapseToStart();
          
          startP = (Paragraph)Selection.StartParagraph;
-         IEditable startInline = Selection.GetStartInline();
 
-         if (!startInline.IsUIContainer)
+         if (Selection.GetStartInline() is IEditable startInline && !startInline.IsUIContainer)
          {
            IndexNext = startP.Text.LastIndexOfAny(" \v".ToCharArray(), startP.SelectionStartInBlock - 1);
             if (IndexNext == -1)
@@ -161,7 +159,7 @@ public partial class FlowDocument
       }
 
       Selection.CollapseToStart();
-      ScrollInDirection!(-1);
+      ScrollInDirection?.Invoke(-1);
 
    }
    
@@ -196,7 +194,7 @@ public partial class FlowDocument
       Selection.CollapseToEnd();
       SelectionExtendMode = ExtendMode.ExtendModeNone;
       
-      ScrollInDirection!(1);
+      ScrollInDirection?.Invoke(1);
 
    }
 
@@ -229,7 +227,7 @@ public partial class FlowDocument
       Selection.CollapseToStart();
       
       SelectionExtendMode = ExtendMode.ExtendModeNone;
-      ScrollInDirection!(-1);
+      ScrollInDirection?.Invoke(-1);
       
    }
 
@@ -241,7 +239,7 @@ public partial class FlowDocument
       Selection.Start = 0;
       Selection.CollapseToStart();
       SelectionExtendMode = ExtendMode.ExtendModeNone;
-      ScrollInDirection!(-1);
+      ScrollInDirection?.Invoke(-1);
 
       foreach (Paragraph p in Blocks)
          p.ClearSelection();
@@ -258,7 +256,7 @@ public partial class FlowDocument
       Selection.End = Blocks[^1].StartInDoc + Blocks[^1].BlockLength - 1;
       Selection.CollapseToEnd();
       SelectionExtendMode = ExtendMode.ExtendModeNone;
-      ScrollInDirection!(1);
+      ScrollInDirection?.Invoke(1);
 
       foreach (Paragraph p in Blocks)
          p.ClearSelection();
@@ -293,7 +291,7 @@ public partial class FlowDocument
       else
          SelectionExtendMode = ExtendMode.ExtendModeLeft;
 
-      ScrollInDirection!(-1);
+      ScrollInDirection?.Invoke(-1);
 
    }
 
@@ -331,15 +329,15 @@ public partial class FlowDocument
       else
          SelectionExtendMode = ExtendMode.ExtendModeRight;
 
-      ScrollInDirection!(1);
+      ScrollInDirection?.Invoke(1);
 
       Selection.BiasForwardStart = false;
       Selection.BiasForwardEnd = Selection.BiasForwardStart;
 
       Selection.IsAtEndOfLineSpace = false;
 
-      IEditable startInline = Selection.GetStartInline();
-      IEditable? nextInline = GetNextInline(startInline);
+      IEditable? startInline = Selection.GetStartInline();
+      IEditable? nextInline = startInline == null ? null : GetNextInline(startInline);
       Selection.IsAtLineBreak = nextInline != null && nextInline.IsLineBreak;
 
    }

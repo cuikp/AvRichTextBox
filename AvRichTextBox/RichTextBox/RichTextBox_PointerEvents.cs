@@ -33,8 +33,7 @@ public partial class RichTextBox
       PointerDownOverRTB = true;
 
       TextHitTestResult hitCarIndex = currentMouseOverEP.TextLayout.HitTestPoint(e.GetPosition(currentMouseOverEP));
-      Paragraph thisPar = (Paragraph)currentMouseOverEP.DataContext!;
-      if (thisPar == null) return;
+      if (currentMouseOverEP.DataContext is not Paragraph thisPar) return;
       SelectionOrigin = thisPar.StartInDoc + hitCarIndex.TextPosition;
 
       //Clear all selections in all paragraphs      
@@ -89,7 +88,7 @@ public partial class RichTextBox
          double RTBTransformedY = this.GetTransformedBounds()!.Value.Clip.Y;
 
          foreach (KeyValuePair<EditableParagraph, Rect> kvp in VisualHelper.GetVisibleEditableParagraphs(FlowDocSV))
-         {  //Debug.WriteLine("visiPar = " + kvp.Key.Text);
+         {  //Debug.WriteLine("visiPar = " + kvp.Key.GetText);
 
             Point ePoint = e.GetCurrentPoint(FlowDocSV).Position;
             Rect thisEPRect = new(kvp.Value.X - DocIC.Margin.Left, kvp.Value.Y, kvp.Value.Width, kvp.Value.Height);
@@ -107,7 +106,7 @@ public partial class RichTextBox
             TextHitTestResult hitCharIndex = overEP.TextLayout.HitTestPoint(e.GetPosition(overEP));
             int charIndex = hitCharIndex.TextPosition;
 
-            Paragraph thisPar = (Paragraph)overEP.DataContext!;
+            if (overEP.DataContext is not Paragraph thisPar) return;
          
             if (thisPar.StartInDoc + charIndex < SelectionOrigin)
             {  //Debug.WriteLine("startindoc = " + ThisPar.StartInDoc + " :::charindex = " +  charIndex + " :::selectionorigin= " + SelectionOrigin);

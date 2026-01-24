@@ -2,9 +2,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:system="using:System"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" Background="WhiteSmoke"
-			 xmlns:local="using:AvRichTextBox" KeyDown="RichTextBox_KeyDown"  Focusable="True"
-	         x:Class="AvRichTextBox.RichTextBox" PointerReleased="RichTextBox_PointerReleased" PointerExited="RichTextBox_PointerExited"
+			 xmlns:local="using:AvRichTextBox" 
+			 x:Class="AvRichTextBox.RichTextBox" 
+			 PointerReleased="RichTextBox_PointerReleased" PointerExited="RichTextBox_PointerExited" KeyDown="RichTextBox_KeyDown"  Focusable="True"
 			 BorderBrush="Black" BorderThickness="1" Padding="2" 
 			  >
 
@@ -12,7 +14,7 @@
 
 		<!--VISUAL DEBUGGER - Use this panel for debugging, to show a right-docked panel with visualization of runs.  It is 
 			auto hidden and inactive in Release mode, and default hidden in Debug mode but can be set by setting RunDebuggerVisible-->
-		<Border x:Name="RunDebugPanel" Width="400" BorderBrush="Gray" BorderThickness="1.5" IsVisible="{Binding RunDebuggerVisible}" DockPanel.Dock="Right">
+		<Border x:Name="RunDebugPanel" Width="400" BorderBrush="Gray" BorderThickness="1.5" IsVisible="True" DockPanel.Dock="Right">  <!--{Binding RunDebuggerVisible}"-->
 			<DockPanel x:Name="RunDebugger" DataContext="{Binding FlowDoc}"  >
 				<DockPanel DockPanel.Dock="Top" Background="Coral">
 
@@ -24,17 +26,18 @@
 					</Border>
 				</DockPanel>
 
-				<Grid Margin="10, 1, 10, 1" ColumnDefinitions="50* 10* 10* 10*" HorizontalAlignment="Stretch" ShowGridLines="True" DockPanel.Dock="Top">
+				<Grid Margin="10, 1, 5, 1" ColumnDefinitions="50* 10* 10* 10*" HorizontalAlignment="Stretch" ShowGridLines="True" DockPanel.Dock="Top">
 
 					<TextBlock Grid.Column="0" Text="Text" TextAlignment="Center" />
 					<TextBlock  Grid.Column="1" Text="Idx" TextAlignment="Center" />
 					<TextBlock  Grid.Column="2" Text="Len" TextAlignment="Center" />
-					<TextBlock  Grid.Column="3" Text="Font" TextAlignment="Center" />
+					<!--<TextBlock  Grid.Column="3" Text="Font" TextAlignment="Center" />-->
+					<TextBlock  Grid.Column="3" Text="Inl_Id" TextAlignment="Center" />
 				</Grid>
 
 				<ListBox DockPanel.Dock="Top" ItemsSource="{Binding SelectionParagraphs}" Background="Wheat" BorderBrush="Black" BorderThickness="1" Padding="0" >
 					<ListBox.ItemTemplate>
-						<DataTemplate>
+						<DataTemplate x:DataType="{x:Type local:Paragraph}">
 							<DockPanel>
 								<DockPanel DockPanel.Dock="Top" Background="AliceBlue">
 									<TextBlock DockPanel.Dock="Left" Text="{Binding Inlines.Count, StringFormat='Inlines={0}'}"/>
@@ -45,15 +48,16 @@
 								<ItemsControl  ItemsSource="{Binding Inlines}" Margin="-5, 2, -5, 20"  BorderBrush="DarkBlue" BorderThickness="0.7" >
 
 									<ItemsControl.ItemTemplate>
-										<DataTemplate>
+										<DataTemplate x:DataType="{x:Type local:IEditable}">
 											<Border BorderBrush="Black" BorderThickness="{Binding InlineSelectedBorderThickness}" Background="{Binding BackBrush}">
 												<Grid ColumnDefinitions="50* 10* 10* 10*" HorizontalAlignment="Stretch" ShowGridLines="True" Margin="0" >
-													<TextBlock Margin="3, 0" Grid.Column="0" Text="{Binding DisplayInlineText}" TextWrapping="Wrap"
+													<TextBlock Margin="3, 0" Grid.Column="0" Text="{Binding DisplayInlineText}" TextWrapping="Wrap"  x:DataType="{x:Type local:EditableRun}"
 															   FontWeight="{Binding FontWeight}" FontStyle="{Binding FontStyle}"
 															   TextDecorations="{Binding TextDecorations}" ToolTip.Tip="{Binding InlineToolTip}" />
 													<TextBlock  Grid.Column="1" Text="{Binding TextPositionOfInlineInParagraph}" TextAlignment="Center" />
 													<TextBlock  Grid.Column="2" Text="{Binding InlineText.Length}" TextAlignment="Center" />
-													<TextBlock  Grid.Column="3" Text="{Binding FontName}" TextAlignment="Center" />
+													<!--<TextBlock  Grid.Column="3" Text="{Binding FontName}" TextAlignment="Center" x:DataType="{x:Type local:EditableRun}"/>-->
+													<TextBlock  Grid.Column="3" Text="{Binding Id}" TextAlignment="Center" />
 												</Grid>
 											</Border>
 										</DataTemplate>

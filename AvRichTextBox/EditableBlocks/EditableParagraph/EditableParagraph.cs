@@ -176,7 +176,7 @@ public partial class EditableParagraph : SelectableTextBlock
          this.Inlines = GetFormattedInlines();
 
       //foreach (Inline thisIL in this.Inlines!)
-      //   Debug.WriteLine("1:\n" + ((Run)thisIL).Text + " ::: " + thisIL.FontWeight);
+      //   Debug.WriteLine("1:\n" + ((Run)thisIL).GetText + " ::: " + thisIL.FontWeight);
 
       //this.Height = this.Inlines[0].get
 
@@ -189,8 +189,8 @@ public partial class EditableParagraph : SelectableTextBlock
    public int SelectionLength => SelectionEnd - SelectionStart;
 
    Paragraph? ThisPar => this.DataContext as Paragraph;
-     
-   public new string Text => string.Join("", ((Paragraph)this.DataContext!).Inlines.ToList().ConvertAll(edinline => edinline.InlineText));
+
+   public new string Text => this.DataContext is Paragraph p ? string.Join("", p.Inlines.ToList().ConvertAll(edinline => edinline.InlineText)) : "";
 
    public int TextLength
    {

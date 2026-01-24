@@ -11,7 +11,7 @@ public class EditableRun : Run, IEditable, INotifyPropertyChanged
    public new event PropertyChangedEventHandler? PropertyChanged;
    private void NotifyPropertyChanged([CallerMemberName] string propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
-   public EditableRun() { }
+   public EditableRun() { Id = ++FlowDocument.InlineIdCounter; }
 
    public EditableRun(string text)
    {
@@ -19,8 +19,11 @@ public class EditableRun : Run, IEditable, INotifyPropertyChanged
       //FontFamily = "Meiryo";
       FontSize = 16;
       BaselineAlignment = BaselineAlignment.Baseline;
+      Id = ++FlowDocument.InlineIdCounter;
+
    }
 
+   public int Id { get; set; }
    public Inline BaseInline => this;
    public Paragraph? MyParagraph { get; set; }
    public int TextPositionOfInlineInParagraph { get; set; }
@@ -41,6 +44,7 @@ public class EditableRun : Run, IEditable, INotifyPropertyChanged
    {
       return new EditableRun(this.Text!)
       {
+         Id = this.Id,
          FontStyle = this.FontStyle,
          FontWeight = this.FontWeight,
          TextDecorations = this.TextDecorations,

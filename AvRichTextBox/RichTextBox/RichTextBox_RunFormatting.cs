@@ -83,16 +83,14 @@ public partial class RichTextBox
       }
       else if (formats.Contains("Text"))
       {
-         object? textobj = await TopLevel.GetTopLevel(this)!.Clipboard!.GetDataAsync("Text");
-
-         if (textobj != null)
+         if (await TopLevel.GetTopLevel(this)!.Clipboard!.GetDataAsync("Text") is object textobj)
          {
-            string pasteText = textobj.ToString()!;
-            FlowDoc.SetRangeToText(FlowDoc.Selection, pasteText);
-
-            newSelPoint = Math.Min(newSelPoint + pasteText.Length, FlowDoc.DocEndPoint - 1);
-
-            TextPasted = true;
+            if (textobj.ToString() is string pasteText)
+            {
+               FlowDoc.SetRangeToText(FlowDoc.Selection, pasteText);
+               newSelPoint = Math.Min(newSelPoint + pasteText.Length, FlowDoc.DocEndPoint - 1);
+               TextPasted = true;
+            }
          }
       }
       

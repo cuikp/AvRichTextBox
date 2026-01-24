@@ -1,21 +1,16 @@
-﻿using Avalonia;
-using Avalonia.Controls.Documents;
+﻿using Avalonia.Controls.Documents;
 using Avalonia.Media;
-using Avalonia.Media.Immutable;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace AvRichTextBox;
 
 public partial class FlowDocument
 {
-   Dictionary<AvaloniaProperty, FormatRuns> formatRunsActions = null!;
-   Dictionary<AvaloniaProperty, FormatRun> formatRunActions = null!;
+   Dictionary<AvaloniaProperty, FormatRunsAction> formatRunsActions = [];
+   Dictionary<AvaloniaProperty, FormatRunAction> formatRunActions = [];
 
    private void DefineFormatRunActions()
    {
-      formatRunsActions = new Dictionary<AvaloniaProperty, FormatRuns>
+      formatRunsActions = new Dictionary<AvaloniaProperty, FormatRunsAction>
        {
            { Inline.FontFamilyProperty, ApplyFontFamilyRuns },
            { Inline.FontWeightProperty, ApplyBoldRuns },
@@ -29,7 +24,7 @@ public partial class FlowDocument
        };
 
 
-      formatRunActions = new Dictionary<AvaloniaProperty, FormatRun>
+      formatRunActions = new Dictionary<AvaloniaProperty, FormatRunAction>
        {
            { Inline.FontFamilyProperty, ApplyFontFamilyRun },
            { Inline.FontWeightProperty, ApplyBoldRun },
@@ -62,17 +57,18 @@ public partial class FlowDocument
    {
       if (Selection.Length == 0)
       {
-         
          ItalicOn = !ItalicOn;
          toggleFormatRun = ToggleApplyItalic;
          InsertRunMode = true;
-         IEditable startInline = Selection.GetStartInline();
-         if (startInline != Selection.StartParagraph.Inlines.Last() && startInline.GetCharPosInInline(Selection.Start) == startInline.InlineText.Length)
+         if (Selection.GetStartInline() is IEditable startInline)
          {
-            IEditable nextInline = Selection.StartParagraph.Inlines[Selection.StartParagraph.Inlines.IndexOf(startInline) + 1];
-            bool nextRunItalic = nextInline.GetType() == typeof(EditableRun) && ((EditableRun)nextInline).FontStyle == FontStyle.Italic;
-            InsertRunMode = (ItalicOn != nextRunItalic);
-            Selection.BiasForwardStart = !InsertRunMode;
+            if (startInline != Selection.StartParagraph.Inlines.Last() && startInline.GetCharPosInInline(Selection.Start) == startInline.InlineText.Length)
+            {
+               IEditable nextInline = Selection.StartParagraph.Inlines[Selection.StartParagraph.Inlines.IndexOf(startInline) + 1];
+               bool nextRunItalic = nextInline.GetType() == typeof(EditableRun) && ((EditableRun)nextInline).FontStyle == FontStyle.Italic;
+               InsertRunMode = (ItalicOn != nextRunItalic);
+               Selection.BiasForwardStart = !InsertRunMode;
+            }
          }
       }
       else
@@ -87,14 +83,15 @@ public partial class FlowDocument
          toggleFormatRun = ToggleApplyBold;
          BoldOn = !BoldOn;
          InsertRunMode = true;
-         IEditable startInline = Selection.GetStartInline();
-
-         if (startInline != Selection.StartParagraph.Inlines.Last() && startInline.GetCharPosInInline(Selection.Start) == startInline.InlineText.Length)
+         if (Selection.GetStartInline() is IEditable startInline)
          {
-            IEditable nextInline = Selection.StartParagraph.Inlines[Selection.StartParagraph.Inlines.IndexOf(startInline) + 1];
-            bool nextRunBold = nextInline.GetType() == typeof(EditableRun) && ((EditableRun)nextInline).FontWeight == FontWeight.Bold;
-            InsertRunMode = (BoldOn != nextRunBold);
-            Selection.BiasForwardStart = !InsertRunMode;
+            if (startInline != Selection.StartParagraph.Inlines.Last() && startInline.GetCharPosInInline(Selection.Start) == startInline.InlineText.Length)
+            {
+               IEditable nextInline = Selection.StartParagraph.Inlines[Selection.StartParagraph.Inlines.IndexOf(startInline) + 1];
+               bool nextRunBold = nextInline.GetType() == typeof(EditableRun) && ((EditableRun)nextInline).FontWeight == FontWeight.Bold;
+               InsertRunMode = (BoldOn != nextRunBold);
+               Selection.BiasForwardStart = !InsertRunMode;
+            }
          }
       }
       else
@@ -110,14 +107,15 @@ public partial class FlowDocument
          UnderliningOn = !UnderliningOn;
          InsertRunMode = true;
 
-         IEditable startInline = Selection.GetStartInline();
-
-         if (startInline != Selection.StartParagraph.Inlines.Last() && startInline.GetCharPosInInline(Selection.Start) == startInline.InlineText.Length)
+         if (Selection.GetStartInline() is IEditable startInline)
          {
-            IEditable nextInline = Selection.StartParagraph.Inlines[Selection.StartParagraph.Inlines.IndexOf(startInline) + 1];
-            bool nextRunUnderlined = nextInline.GetType() == typeof(EditableRun) && ((EditableRun)nextInline).TextDecorations == TextDecorations.Underline;
-            InsertRunMode = (UnderliningOn != nextRunUnderlined);
-            Selection.BiasForwardStart = !InsertRunMode;
+            if (startInline != Selection.StartParagraph.Inlines.Last() && startInline.GetCharPosInInline(Selection.Start) == startInline.InlineText.Length)
+            {
+               IEditable nextInline = Selection.StartParagraph.Inlines[Selection.StartParagraph.Inlines.IndexOf(startInline) + 1];
+               bool nextRunUnderlined = nextInline.GetType() == typeof(EditableRun) && ((EditableRun)nextInline).TextDecorations == TextDecorations.Underline;
+               InsertRunMode = (UnderliningOn != nextRunUnderlined);
+               Selection.BiasForwardStart = !InsertRunMode;
+            }
          }
       }
       else
@@ -129,24 +127,26 @@ public partial class FlowDocument
    {
       List<IEditable> newInlines = CreateNewInlinesForRange(textRange);
 
+
+      //create property association for undo
       List<IEditablePropertyAssociation> propertyAssociations = [];
-         
       foreach (IEditable inline in newInlines)
       {
-         IEditablePropertyAssociation iedPropAssoc = new(inline, null!, null!);
+         IEditablePropertyAssociation iedPropAssoc = new(inline.Id, null!, null!);
          propertyAssociations.Add(iedPropAssoc);
-         if (inline.GetType() == typeof(EditableRun))
+         if (inline is EditableRun erun)
          {
             if (formatRunActions.TryGetValue(avProperty, out var runAction))
                iedPropAssoc.FormatRun = runAction;
-            iedPropAssoc.PropertyValue = ((EditableRun)inline).GetValue(avProperty)!;
+            if (erun.GetValue(avProperty) is object o)
+               iedPropAssoc.PropertyValue = o;
          }
       }
-      
+
       Undos.Add(new ApplyFormattingUndo(this, propertyAssociations, Selection.Start, textRange));
 
-      if (formatRunsActions.TryGetValue(avProperty, out var runsAction))
-         runsAction(newInlines, value);
+      if (formatRunsActions.TryGetValue(avProperty, out var applyToRunsAction))
+         applyToRunsAction(newInlines, value);
       else
          throw new NotSupportedException($"Formatting for {avProperty.Name} is not supported.");
 
@@ -161,9 +161,7 @@ public partial class FlowDocument
       Selection.StartParagraph = GetContainingParagraph(Selection.Start);
       Selection.StartParagraph.SelectionStartInBlock = Selection.Start - Selection.StartParagraph.StartInDoc;
       Selection.EndParagraph.SelectionEndInBlock = Selection.End - Selection.EndParagraph.StartInDoc;
-      Selection.GetEndInline();
-      Selection.GetEndInline();
-
+    
       UpdateSelectedParagraphs();
 
       if (ShowDebugger)
@@ -173,7 +171,7 @@ public partial class FlowDocument
    }
   
    
-   internal void ApplyFormattingInline(FormatRun formatRun, IEditable inlineItem, object value)
+   internal void ApplyFormattingInline(FormatRunAction formatRun, IEditable inlineItem, object value)
    {
       formatRun(inlineItem, value);
       Selection.BiasForwardStart = true;
@@ -181,58 +179,57 @@ public partial class FlowDocument
 
    }
 
-   internal delegate void FormatRun(IEditable ied, object value);
-   private void ApplyFontFamilyRun(IEditable ied, object fontfamily ) { if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).FontFamily = (FontFamily)fontfamily; } }
-   private void ApplyBoldRun(IEditable ied, object fontWeight) { if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).FontWeight = (FontWeight)fontWeight; } }
-   private void ApplyItalicRun(IEditable ied, object fontStyle) { if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).FontStyle = (FontStyle)fontStyle; } }
-   private void ApplyTextDecorationRun(IEditable ied, object textDecoration) { if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).TextDecorations = (TextDecorationCollection)textDecoration; } }
-   private void ApplyFontSizeRun(IEditable ied, object fontsize) { if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).FontSize = (double)fontsize; } }
-   private void ApplyBackgroundRun(IEditable ied, object background) { if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).Background = (SolidColorBrush)background; } }
-   private void ApplyForegroundRun(IEditable ied, object foreground) { if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).Foreground = (SolidColorBrush)foreground; } }
-   private void ApplyFontStretchRun(IEditable ied, object fontstretch) { if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).FontStretch = (FontStretch)fontstretch; } }
-   private void ApplyBaselineAlignmentRun(IEditable ied, object baselinealignment) { if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).BaselineAlignment = (BaselineAlignment)baselinealignment ; } }
+   internal delegate void FormatRunAction(IEditable ied, object value);
+   private void ApplyFontFamilyRun(IEditable ied, object fontfamily ) { if (ied is EditableRun edrun) { edrun.FontFamily = (FontFamily)fontfamily; } }
+   private void ApplyBoldRun(IEditable ied, object fontWeight) { if (ied is EditableRun edrun) { edrun.FontWeight = (FontWeight)fontWeight; } }
+   private void ApplyItalicRun(IEditable ied, object fontStyle) { if (ied is EditableRun edrun) { edrun.FontStyle = (FontStyle)fontStyle; } }
+   private void ApplyTextDecorationRun(IEditable ied, object textDecoration) { if (ied is EditableRun edrun) { edrun.TextDecorations = (TextDecorationCollection)textDecoration; } }
+   private void ApplyFontSizeRun(IEditable ied, object fontsize) { if (ied is EditableRun edrun) { edrun.FontSize = (double)fontsize; } }
+   private void ApplyBackgroundRun(IEditable ied, object background) { if (ied is EditableRun edrun) { edrun.Background = (SolidColorBrush)background; } }
+   private void ApplyForegroundRun(IEditable ied, object foreground) { if (ied is EditableRun edrun) { edrun.Foreground = (SolidColorBrush)foreground; } }
+   private void ApplyFontStretchRun(IEditable ied, object fontstretch) { if (ied is EditableRun edrun) { edrun.FontStretch = (FontStretch)fontstretch; } }
+   private void ApplyBaselineAlignmentRun(IEditable ied, object baselinealignment) { if (ied is EditableRun edrun) { edrun.BaselineAlignment = (BaselineAlignment)baselinealignment ; } }
 
 
-   internal delegate void FormatRuns(List<IEditable> ieds, object value);
+   internal delegate void FormatRunsAction(List<IEditable> ieds, object value);
    
    private void ApplyFontFamilyRuns(List<IEditable> ieds, object fontfamily)
    {
       foreach (IEditable ied in ieds)
-         if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).FontFamily = (FontFamily)fontfamily; }
+         if (ied is EditableRun edrun) { edrun.FontFamily = (FontFamily)fontfamily; }
    }
       
    private void ApplyBoldRuns(List<IEditable> ieds, object fontweight)
    {
       FontWeight applyFontWeight = FontWeight.Normal;
       if (fontweight is FontWeight.Bold)
-         applyFontWeight = (!ieds.Where(ar => ar.GetType() == typeof(EditableRun) && ((EditableRun)ar).FontWeight == FontWeight.Normal).Any()) ?
-            FontWeight.Normal : FontWeight.Bold;
+         applyFontWeight = (!ieds.Where(ar => ar is EditableRun edrun && edrun.FontWeight == FontWeight.Normal).Any()) ? FontWeight.Normal : FontWeight.Bold;
       foreach (IEditable ied in ieds)
-         if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).FontWeight = applyFontWeight; }
+         if (ied is EditableRun edrun) { edrun.FontWeight = applyFontWeight; }
    }
 
    private void ApplyItalicRuns(List<IEditable> ieds, object fontstyle)
    {
       FontStyle applyFontStyle = FontStyle.Normal;
       if (fontstyle is FontStyle.Italic)
-         applyFontStyle = (!ieds.Where(ar => ar.GetType() == typeof(EditableRun) && ((EditableRun)ar).FontStyle == FontStyle.Normal).Any()) ? FontStyle.Normal : FontStyle.Italic;
+         applyFontStyle = (!ieds.Where(ar => ar is EditableRun edrun && edrun.FontStyle == FontStyle.Normal).Any()) ? FontStyle.Normal : FontStyle.Italic;
       foreach (IEditable ied in ieds)
-         if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).FontStyle = applyFontStyle; }
+         if (ied is EditableRun edrun) { edrun.FontStyle = applyFontStyle; }
    }
 
    private void ApplyTextDecorationRuns(List<IEditable> ieds, object textdecoration)
    {
-      TextDecorationCollection applyTextDecs = null!;
+      TextDecorationCollection? applyTextDecs = null;
       if (textdecoration == TextDecorations.Underline)
-         applyTextDecs = (!ieds.Where(ar => ar.GetType() == typeof(EditableRun) && ((EditableRun)ar).TextDecorations == null).Any()) ? null! : TextDecorations.Underline;
+         applyTextDecs = (!ieds.Where(ar => ar is EditableRun edrun && edrun.TextDecorations == null).Any()) ? null! : TextDecorations.Underline;
       foreach (IEditable ied in ieds)
-         if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).TextDecorations = applyTextDecs; }
+         if (ied is EditableRun edrun) { edrun.TextDecorations = applyTextDecs; }
    }
    
    private void ApplyFontSizeRuns(List<IEditable> ieds, object fontsize)
    {
       foreach (IEditable ied in ieds)
-         if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).FontSize = (double)fontsize; }
+         if (ied is EditableRun edrun) { edrun.FontSize = (double)fontsize; }
    }
       
    private void ApplyBackgroundRuns(List<IEditable> ieds, object background)
@@ -241,7 +238,7 @@ public partial class FlowDocument
          throw new Exception("Background must be set with a SolidColorBrush");
 
       foreach (IEditable ied in ieds)
-         if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).Background = (SolidColorBrush)background; }
+         if (ied is EditableRun edrun) { edrun.Background = (SolidColorBrush)background; }
    }
 
    private void ApplyForegroundRuns(List<IEditable> ieds, object foreground)
@@ -250,19 +247,19 @@ public partial class FlowDocument
          throw new Exception("Foreground must be set with a SolidColorBrush");
 
       foreach (IEditable ied in ieds)
-         if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).Foreground = (SolidColorBrush)foreground; }
+         if (ied is EditableRun edrun) { edrun.Foreground = (SolidColorBrush)foreground; }
    }
 
    private void ApplyFontStretchRuns(List<IEditable> ieds, object fontstretch)
    {
       foreach (IEditable ied in ieds)
-         if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).FontStretch = (FontStretch)fontstretch; }
+         if (ied is EditableRun edrun) { edrun.FontStretch = (FontStretch)fontstretch; }
    }
 
    private void ApplyBaselineAlignmentRuns(List<IEditable> ieds, object baselinealignment)
    {
       foreach (IEditable ied in ieds)
-         if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).BaselineAlignment = (BaselineAlignment)baselinealignment; }
+         if (ied is EditableRun edrun) { edrun.BaselineAlignment = (BaselineAlignment)baselinealignment; }
    }
 
    internal void ResetInsertFormatting()

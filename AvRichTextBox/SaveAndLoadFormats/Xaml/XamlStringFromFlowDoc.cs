@@ -54,7 +54,7 @@ public partial class XamlConversions
                if (imageUIContainer.Child is Image thisImg)
                {
 
-                  Bitmap imgbitmap = (Bitmap)thisImg.Source!;
+                  Bitmap? imgbitmap = (Bitmap)thisImg.Source!;
 
                   //Debug.WriteLine("Imagesource is null ? : " + (thisImg.Source == null));
                   if (imgbitmap == null)

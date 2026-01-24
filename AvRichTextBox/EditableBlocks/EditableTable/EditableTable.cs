@@ -83,7 +83,7 @@ public partial class EditableTable : Grid, IEditableBlock
    //   this.UpdateLayout();
    //}
 
-   ////public string Text => string.Join("", ((Table)this.DataContext).Inlines.ToList().ConvertAll(edinline => edinline.InlineText));
+   ////public string GetText => string.Join("", ((Table)this.DataContext).Inlines.ToList().ConvertAll(edinline => edinline.InlineText));
 
 
 
