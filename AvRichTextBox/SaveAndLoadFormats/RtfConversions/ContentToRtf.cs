@@ -110,7 +110,7 @@ internal static partial class RtfConversions
 
          sb.Append(GetIEditableRtf(ied, ref BoldOn, ref ItalicOn, ref UnderlineOn, ref CurrentLang, fontMap, colorMap));
          
-         if (ied.InlineText.EndsWith('\r'))
+         if (ied.InlineText.EndsWith("\r\n"))
             sb.Append(@"\par ");
       }
       
@@ -123,77 +123,72 @@ internal static partial class RtfConversions
    {
       StringBuilder iedSB = new();
 
-      if (ied.GetType() == typeof(EditableLineBreak)) return @"\line";
-
-
-      if (ied.GetType() == typeof(EditableInlineUIContainer))
+      switch (ied)
       {
-         EditableInlineUIContainer eIUC = (EditableInlineUIContainer)ied;
-         if (eIUC.Child != null)
-         {
-            if (eIUC.Child.GetType() == typeof(Image))
+         case EditableLineBreak:
+            return @"\line";
+
+         case EditableInlineUIContainer eIUC:
+
+            if (eIUC.Child is Image thisImg && thisImg.Source is Bitmap imgbitmap)
             {
-               if (eIUC.Child is Image thisImg && thisImg.Source is Bitmap imgbitmap)
-               {
-                  int picw = imgbitmap.PixelSize.Width;
-                  int pich = imgbitmap.PixelSize.Height;
-                  int picwgoal = (int)PixToTwip(thisImg.Width);
-                  int pichgoal = (int)PixToTwip(thisImg.Height);
+               int picw = imgbitmap.PixelSize.Width;
+               int pich = imgbitmap.PixelSize.Height;
+               int picwgoal = (int)PixToTwip(thisImg.Width);
+               int pichgoal = (int)PixToTwip(thisImg.Height);
 
-                  using MemoryStream memoryStream = new();
+               using MemoryStream memoryStream = new();
 
-                  var renderTarget = new RenderTargetBitmap(new PixelSize(picw, pich));
-                  using (var context = renderTarget.CreateDrawingContext())
-                     context.DrawImage(imgbitmap, new Rect(0, 0, picw, pich));
+               var renderTarget = new RenderTargetBitmap(new PixelSize(picw, pich));
+               using (var context = renderTarget.CreateDrawingContext())
+                  context.DrawImage(imgbitmap, new Rect(0, 0, picw, pich));
 
-                  renderTarget.Save(memoryStream);  // png by default
-                  memoryStream.Seek(0, SeekOrigin.Begin);
+               renderTarget.Save(memoryStream);  // png by default
+               memoryStream.Seek(0, SeekOrigin.Begin);
 
-                  byte[] imgbytes = new byte[memoryStream.Length];
-                  memoryStream.Read(imgbytes, 0, imgbytes.Length);
+               byte[] imgbytes = new byte[memoryStream.Length];
+               memoryStream.Read(imgbytes, 0, imgbytes.Length);
 
-                  // add image to rtf code:
-                  iedSB.AppendLine($@"{{\pict\pngblip\picw{picw}\pich{pich}\picwgoal{picwgoal}\pichgoal{pichgoal}");
+               // add image to rtf code:
+               iedSB.AppendLine($@"{{\pict\pngblip\picw{picw}\pich{pich}\picwgoal{picwgoal}\pichgoal{pichgoal}");
 
-                  foreach (byte b in imgbytes)
-                     iedSB.Append(b.ToString("x2"));  // hex encoding
+               foreach (byte b in imgbytes)
+                  iedSB.Append(b.ToString("x2"));  // hex encoding
 
-                  iedSB.AppendLine("}");
-
-               }
+               iedSB.AppendLine("}");
             }
-         }
-      }
+            break;
 
-      if (ied.GetType() == typeof(EditableRun))
-      {
-         EditableRun run = (EditableRun)ied;
-         
-         if (!BoldOn && run.FontWeight == FontWeight.Bold) { iedSB.Append(@"\b "); BoldOn = true; }
-         if (!ItalicOn && run.FontStyle == FontStyle.Italic) { iedSB.Append(@"\i "); ; ItalicOn = true; }
-         if (!UnderlineOn && run.TextDecorations == TextDecorations.Underline) { iedSB.Append(@"\ul "); ; UnderlineOn = true; }
-         
-         if (BoldOn && run.FontWeight == FontWeight.Normal) { iedSB.Append(@"\b0 "); BoldOn = false; }
-         if (ItalicOn && run.FontStyle == FontStyle.Normal) { iedSB.Append(@"\i0 "); ItalicOn = false; }
-         if (UnderlineOn && run.TextDecorations != TextDecorations.Underline) { iedSB.Append(@"\ul0 "); UnderlineOn = false; }
+         case EditableRun run:
 
-         if (run.FontSize > 0) iedSB.Append($@"\fs{(int)(run.FontSize * 2)} ");
+            if (!BoldOn && run.FontWeight == FontWeight.Bold) { iedSB.Append(@"\b "); BoldOn = true; }
+            if (!ItalicOn && run.FontStyle == FontStyle.Italic) { iedSB.Append(@"\i "); ; ItalicOn = true; }
+            if (!UnderlineOn && run.TextDecorations == TextDecorations.Underline) { iedSB.Append(@"\ul "); ; UnderlineOn = true; }
 
-         if (fontMap.TryGetValue(run.FontFamily.Name, out int fontIndex))
-            iedSB.Append($@"\f{fontIndex} ");
+            if (BoldOn && run.FontWeight == FontWeight.Normal) { iedSB.Append(@"\b0 "); BoldOn = false; }
+            if (ItalicOn && run.FontStyle == FontStyle.Normal) { iedSB.Append(@"\i0 "); ItalicOn = false; }
+            if (UnderlineOn && run.TextDecorations != TextDecorations.Underline) { iedSB.Append(@"\ul0 "); UnderlineOn = false; }
 
-         if (run.Foreground is SolidColorBrush foregroundBrush && colorMap.TryGetValue(foregroundBrush.Color, out int colorIndexF))
-            iedSB.Append($@"\cf{colorIndexF} ");
-         else
-            iedSB.Append(@"\cf0 "); // Reset to default
+            if (run.FontSize > 0) iedSB.Append($@"\fs{(int)(run.FontSize * 2)} ");
 
-         if (run.Background is SolidColorBrush backgroundBrush && backgroundBrush.Color != Colors.Transparent && colorMap.TryGetValue(backgroundBrush.Color, out int colorIndexB))
-            iedSB.Append($@"\highlight{colorIndexB} ");
-         else
-            iedSB.Append(@"\highlight0 "); // Reset background to default
+            if (fontMap.TryGetValue(run.FontFamily.Name, out int fontIndex))
+               iedSB.Append($@"\f{fontIndex} ");
 
-         if (!string.IsNullOrEmpty(run.Text))
-            iedSB.Append(GetRtfRunText(run.Text!, ref currentLang));
+            if (run.Foreground is SolidColorBrush foregroundBrush && colorMap.TryGetValue(foregroundBrush.Color, out int colorIndexF))
+               iedSB.Append($@"\cf{colorIndexF} ");
+            else
+               iedSB.Append(@"\cf0 "); // Reset to default
+
+            if (run.Background is SolidColorBrush backgroundBrush && backgroundBrush.Color != Colors.Transparent && colorMap.TryGetValue(backgroundBrush.Color, out int colorIndexB))
+               iedSB.Append($@"\highlight{colorIndexB} ");
+            else
+               iedSB.Append(@"\highlight0 "); // Reset background to default
+
+            if (!string.IsNullOrEmpty(run.Text))
+               iedSB.Append(GetRtfRunText(run.Text!, ref currentLang));
+
+            break;
+
       }
 
       return iedSB.ToString();

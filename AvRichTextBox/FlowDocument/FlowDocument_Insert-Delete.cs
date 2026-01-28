@@ -23,7 +23,8 @@ public partial class FlowDocument
          int insertIdx = 0;
          if (InsertRunMode)
          {
-            List<IEditable> applyInlines = CreateNewInlinesForRange(Selection);
+            (int idLeft, int idRight) edgeIds;
+            List<IEditable> applyInlines = GetRangeInlinesAndAddToDoc(Selection, out edgeIds);
             if (applyInlines.Count == 0)
             {
                applyInlines.Add(new EditableRun(""));
@@ -40,7 +41,7 @@ public partial class FlowDocument
             startInline.InlineText = startInline.InlineText.Insert(insertIdx, insertText);
          }
 
-         Undos.Add(new InsertCharUndo(Blocks.IndexOf(Selection.StartParagraph), Selection.StartParagraph.Inlines.IndexOf(startInline!), insertIdx, this, Selection.Start));
+         Undos.Add(new InsertCharUndo(Selection.StartParagraph.Id, Selection.StartParagraph.Inlines.IndexOf(startInline!), insertIdx, this, Selection.Start));
          UpdateTextRanges(Selection.Start, insertText.Length);
 
 
@@ -89,31 +90,31 @@ public partial class FlowDocument
                emptyRunAdded = true;
             }
                
-            Undos.Add(new DeleteImageUndo(Blocks.IndexOf(startP), eIUC, startInlineIdx, this, originalSelectionStart, emptyRunAdded));
+            Undos.Add(new DeleteImageUndo(startP.Id, eIUC, startInlineIdx, this, originalSelectionStart, emptyRunAdded));
 
             startP.Inlines.Remove(eIUC);
          }
          else
          {
-            IEditable? nextInline = GetNextInline(startInline);
             bool isSelectionAtInlineEnd = startInline.GetCharPosInInline(Selection.End) == startInline.InlineLength;
-            IEditable? keepInline = null;
 
-            if (nextInline != null && nextInline is EditableLineBreak lbreak && isSelectionAtInlineEnd)
+            if (GetNextInline(startInline) is EditableLineBreak lbreak && isSelectionAtInlineEnd)
             {  //Delete linebreak
-               IEditable? lbnext = GetNextInline(nextInline);
-               startP.Inlines.Remove(nextInline);
+               IEditable? lbnext = GetNextInline(lbreak);
+               startP.Inlines.Remove(lbreak);
                if (lbnext != null && lbnext.IsEmpty)
                   startP.Inlines.Remove(lbnext);
                else if (startInline.IsEmpty)
                   startP.Inlines.Remove(startInline);
-               
-               Undos.Add(new DeleteLineBreakUndo(Blocks.IndexOf(startP), lbreak.Id, this, originalSelectionStart));
+
+               Undos.Add(new DeleteLineBreakUndo(startP.Id, lbreak.Id, this, originalSelectionStart));
 
             }
             else
             {  // delete normal run char
-               if (startInline.InlineLength == 1)
+               IEditable? keepInline = null;
+
+               if (startInline.InlineLength == 1 && GetNextInline(startInline) is not EditableLineBreak elb)  // keep empty run on linebreak
                {
                   keepInline = startInline;
                   startP.Inlines.Remove(startInline);
@@ -129,7 +130,7 @@ public partial class FlowDocument
                if (startP.Inlines.Count == 0)
                   startP.Inlines.Add(new EditableRun(""));
 
-               Undos.Add(new DeleteCharUndo(Blocks.IndexOf(startP), startInlineIdx, keepInline, deletedChar, selectionStartInInline, this, originalSelectionStart));
+               Undos.Add(new DeleteCharUndo(startP.Id, startInlineIdx, keepInline, deletedChar, selectionStartInInline, this, originalSelectionStart));
             }
 
 
@@ -155,19 +156,16 @@ public partial class FlowDocument
          return; 
 
       int runIdx = startPar.Inlines.IndexOf(startInline);
-      int charPosInInline = startInline.GetCharPosInInline(Selection.Start);
-      if (charPosInInline > 0)
-      {
-         List<IEditable> newRuns = SplitRunAtPos(Selection.Start, startInline, charPosInInline);
-         runIdx += 1;
-      }
 
-      startPar.Inlines.Insert(runIdx, new EditableLineBreak());
 
-      Undos.Add(new InsertLineBreakUndo(Blocks.IndexOf(Selection.StartParagraph), runIdx, this, Selection.Start));
-      UpdateTextRanges(Selection.Start, 1); 
-     
-      
+      SplitRunAtPos(Selection.Start, startInline, startInline.GetCharPosInInline(Selection.Start)); // creates an empty inline
+      EditableLineBreak newELB = new ();
+      startPar.Inlines.Insert(runIdx + 1, newELB);
+
+
+      Undos.Add(new InsertLineBreakUndo(Selection.StartParagraph.Id, newELB.Id, this, Selection.Start));
+      UpdateTextRanges(Selection.Start, 1);
+
       SelectionExtendMode = ExtendMode.ExtendModeNone;
 
       startPar.UpdateEditableRunPositions();
@@ -180,6 +178,7 @@ public partial class FlowDocument
       Selection.BiasForwardEnd = true;
 
       ScrollInDirection?.Invoke(1);
+
 
    }
 
@@ -204,9 +203,10 @@ public partial class FlowDocument
       Dictionary<Block, List<IEditable>> keepParsAndInlines = KeepParsAndInlines(trange);
       List<Block> allBlocks = keepParsAndInlines.ToList().ConvertAll(keepP => keepP.Key);
       if (saveUndo) 
-         Undos.Add(new DeleteRangeUndo(keepParsAndInlines, Blocks.IndexOf(allBlocks[0]), this, originalSelectionStart, originalTRangeLength));
+         Undos.Add(new DeleteRangeUndo(keepParsAndInlines, allBlocks[0].Id, this, originalSelectionStart, originalTRangeLength));
 
-      List<IEditable> rangeInlines = CreateNewInlinesForRange(trange);
+      (int idLeft, int idRight) edgeIds;
+      List<IEditable> rangeInlines = GetRangeInlinesAndAddToDoc(trange, out edgeIds);
 
       //Delete the created inlines
       foreach (IEditable toDeleteRun in rangeInlines)
@@ -332,8 +332,7 @@ public partial class FlowDocument
 
 
       if (addUndo)
-         //Undos.Add(new InsertParagraphUndo(this, insertCharIndex, originalSelStart, selectionLength - 1));
-         Undos.Add(new InsertParagraphUndo(this, parIndex, keepParInlines, originalSelStart, selectionLength - 1));
+         Undos.Add(new InsertParagraphUndo(this, originalPar.Id, parToInsert.Id, keepParInlines, originalSelStart, selectionLength - 1));
 
       Selection.BiasForwardStart = true;
       Selection.BiasForwardEnd = true;
@@ -361,7 +360,7 @@ public partial class FlowDocument
       bool IsThisParagraphEmpty = thisPar.Inlines.Count == 1 && thisPar.Inlines[0].IsEmpty;
 
       if (saveUndo)
-         Undos.Add(new MergeParagraphUndo(origParInlinesCount, thisParIndex, nextPar.FullClone(), this, originalSelectionStart));
+         Undos.Add(new MergeParagraphUndo(origParInlinesCount, thisPar.Id, nextPar.FullClone(), this, originalSelectionStart));
 
       if (IsThisParagraphEmpty)
          thisPar.Inlines.Clear();
@@ -397,10 +396,8 @@ public partial class FlowDocument
 
       UpdateSelectedParagraphs();
 
-#if DEBUG
-      UpdateDebuggerSelectionParagraphs();
-#endif
-
+      if (ShowDebugger)
+         UpdateDebuggerSelectionParagraphs();
 
 
    }

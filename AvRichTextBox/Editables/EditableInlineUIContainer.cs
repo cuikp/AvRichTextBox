@@ -20,7 +20,10 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable, INotifyPr
    public int TextPositionOfInlineInParagraph { get; set; }
    public string InlineText { get; set; } = "@";
    public string DisplayInlineText { get => $"<UICONTAINER> => {(this.Child != null && this.Child.GetType() == typeof(Image) ? "Image" : "NoChild")}"; }
+   
+   [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static")]
    public string FontName => "---";
+
    public int InlineLength => 1;
    public bool IsEmpty => false;
    public bool IsLastInlineOfParagraph { get; set; }
@@ -30,7 +33,7 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable, INotifyPr
 
    public int ImageNo;
 
-   public IEditable Clone() { return new EditableInlineUIContainer(this.Child){ MyParagraph = this.MyParagraph, Id = this.Id }; }
+   public IEditable Clone() => new EditableInlineUIContainer(this.Child) { MyParagraph = this.MyParagraph }; //, Id = this.Id }; }
 
    //for DebuggerPanel 
    public bool IsStartInline { get; set { field= value; NotifyPropertyChanged(nameof(BackBrush)); NotifyPropertyChanged(nameof(InlineSelectedBorderThickness)); } } = false;

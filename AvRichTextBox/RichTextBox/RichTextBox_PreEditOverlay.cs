@@ -62,7 +62,7 @@ public partial class RichTextBox
          PreeditOverlay.Text = _preeditText;
          PreeditOverlay.Margin = new Thickness(cX, cY, 0, 0);
          PreeditOverlay.IsVisible = true;
-         CaretPosition = new Point(cX, cY - rtbVM.RTBScrollOffset.Y);
+         CaretPosition = new Point(cX, cY - RtbVm.RTBScrollOffset.Y);
          client.UpdateCaretPosition();
 
       }

@@ -12,15 +12,15 @@ namespace AvRichTextBox;
 
 public partial class RichTextBox : UserControl
 {
-   internal FlowDocument FlowDoc => rtbVM.FlowDoc;
-   private RichTextBoxViewModel rtbVM { get; set; } = new();
+   internal FlowDocument FlowDoc => RtbVm.FlowDoc;
+   private RichTextBoxViewModel RtbVm { get; set; } = new();
 
    private void ToggleDebuggerPanel (bool visible) { RunDebugPanel.IsVisible = visible; }
 
   
    public void ScrollToSelection()
    {
-      rtbVM.RTBScrollOffset = rtbVM.RTBScrollOffset.WithY(FlowDoc.Selection.StartRect.Y - 50);
+      RtbVm.RTBScrollOffset = RtbVm.RTBScrollOffset.WithY(FlowDoc.Selection.StartRect.Y - 50);
       
    }
 
@@ -29,19 +29,18 @@ public partial class RichTextBox : UserControl
       InitializeComponent();
 
       this.PropertyChanged += RichTextBox_PropertyChanged;
-
-      FlowDocument = new FlowDocument();
-            
-
-      rtbVM.FlowDocChanged += RtbVM_FlowDocChanged;
-
-      MainDP.DataContext = rtbVM;  // bind to child DockPanel, not the UserControl itself
-          
-
       this.Loaded += RichTextBox_Loaded;
       this.Initialized += RichTextBox_Initialized;
+      this.TextInput += RichTextBox_TextInput;
+      this.GotFocus += RichTextBox_GotFocus;
+      this.LostFocus += RichTextBox_LostFocus;
 
-      
+      FlowDocument = new FlowDocument();
+
+      RtbVm.FlowDocChanged += RtbVM_FlowDocChanged;
+
+      MainDP.DataContext = RtbVm;  // bind to child DockPanel, not the UserControl itself
+
       FlowDocSV.SizeChanged += FlowDocSV_SizeChanged;
 
       AdornerLayer.SetAdorner(DocIC, _CaretRect);
@@ -52,14 +51,9 @@ public partial class RichTextBox : UserControl
       _CaretRect.Bind(IsVisibleProperty, new Binding("CaretVisible"));
       _CaretRect.Bind(MarginProperty, new Binding("CaretMargin"));
       _CaretRect.Bind(HeightProperty, new Binding("CaretHeight"));
-      _CaretRect.DataContext = rtbVM;
-
-      this.TextInput += RichTextBox_TextInput;
+      _CaretRect.DataContext = RtbVm;
 
       this.Focusable = true;
-
-      this.GotFocus += RichTextBox_GotFocus;
-      this.LostFocus += RichTextBox_LostFocus;
 
    }
 
@@ -73,15 +67,15 @@ public partial class RichTextBox : UserControl
       if (ShowDebuggerPanelInDebugMode)
       {
 #if DEBUG
-         rtbVM.RunDebuggerVisible = ShowDebuggerPanelInDebugMode;
+         RtbVm.RunDebuggerVisible = ShowDebuggerPanelInDebugMode;
          //RunDebugger.DataContext = FlowDoc;  // binding set in Xaml
-         this.Width += (rtbVM.RunDebuggerVisible ? 400 : 0);
+         this.Width += (RtbVm.RunDebuggerVisible ? 400 : 0);
 #else
       RunDebugger.DataContext = null;
 #endif
       }
 
-      FlowDoc.ShowDebugger = rtbVM.RunDebuggerVisible;
+      FlowDoc.ShowDebugger = RtbVm.RunDebuggerVisible;
 
       this.Focus();
 
@@ -94,7 +88,7 @@ public partial class RichTextBox : UserControl
 
    private void RtbVM_FlowDocChanged()
    {
-      DocIC.DataContext = rtbVM.FlowDoc;
+      DocIC.DataContext = RtbVm.FlowDoc;
       UpdateAllInlines();
    }
 
@@ -105,15 +99,15 @@ public partial class RichTextBox : UserControl
       {
          if (FlowDoc != null)
          {
-            FlowDoc.ScrollInDirection -= rtbVM.FlowDoc_ScrollInDirection;
-            FlowDoc.UpdateRTBCaret -= rtbVM.FlowDoc_UpdateRTBCaret;
+            FlowDoc.ScrollInDirection -= RtbVm.FlowDoc_ScrollInDirection;
+            FlowDoc.UpdateRTBCaret -= RtbVm.FlowDoc_UpdateRTBCaret;
          }
 
-         rtbVM.FlowDoc = FlowDocument;
+         RtbVm.FlowDoc = FlowDocument;
 
-         rtbVM.FlowDoc.ScrollInDirection += rtbVM.FlowDoc_ScrollInDirection;
-         rtbVM.FlowDoc.UpdateRTBCaret += rtbVM.FlowDoc_UpdateRTBCaret;
-         rtbVM.FlowDoc.InitializeDocument();
+         RtbVm.FlowDoc.ScrollInDirection += RtbVm.FlowDoc_ScrollInDirection;
+         RtbVm.FlowDoc.UpdateRTBCaret += RtbVm.FlowDoc_UpdateRTBCaret;
+         RtbVm.FlowDoc.InitializeDocument();
          CreateClient();
 
       }
@@ -142,9 +136,9 @@ public partial class RichTextBox : UserControl
    }
 
 
-   public void InvalidateCaret() { rtbVM.CaretVisible = true;  }
+   public void InvalidateCaret() { RtbVm.CaretVisible = true;  }
    public void NewDocument() { FlowDoc.NewDocument(); }
-   public void CloseDocument() { FlowDoc.NewDocument();  rtbVM.RTBScrollOffset = new Vector(0, 0);  }
+   public void CloseDocument() { FlowDoc.NewDocument();  RtbVm.RTBScrollOffset = new Vector(0, 0);  }
    //Load/save
 	public void LoadRtf(string rtf) { FlowDoc.LoadRtf(rtf); }
    public void LoadRtfDoc(string fileName) { FlowDoc.LoadRtfFromFile(fileName);  }
@@ -182,10 +176,10 @@ public partial class RichTextBox : UserControl
             break;
       }
 
-      double distanceFromTop = currentY - rtbVM.RTBScrollOffset.Y;
+      double distanceFromTop = currentY - RtbVm.RTBScrollOffset.Y;
       double distanceFromLeft = FlowDoc.Selection.StartRect.X + FlowDocSV.Margin.Left;
-      double newScrollY = rtbVM.RTBScrollOffset.Y + FlowDocSV.Bounds.Height * direction;
-      rtbVM.RTBScrollOffset = rtbVM.RTBScrollOffset.WithY(newScrollY);
+      double newScrollY = RtbVm.RTBScrollOffset.Y + FlowDocSV.Bounds.Height * direction;
+      RtbVm.RTBScrollOffset = RtbVm.RTBScrollOffset.WithY(newScrollY);
       double newCaretY = newScrollY + distanceFromTop;
       //Debug.WriteLine("\nnewCaretY = " + newCaretY + "\nnewscrollY= " + newScrollY + "\ndistanceTop=" + distanceFromTop);
       //EditableParagraph? thisEP = DocIC.GetVisualDescendants().OfType<EditableParagraph>().Where(ep => ep.TranslatePoint(ep.Bounds.Position, DocIC)!.Value.Y <= newCaretY).LastOrDefault();
@@ -222,7 +216,7 @@ public partial class RichTextBox : UserControl
 
    private void FlowDocSV_SizeChanged(object? sender, SizeChangedEventArgs e)
    {
-      rtbVM.ScrollViewerHeight = e.NewSize.Height;
+      RtbVm.ScrollViewerHeight = e.NewSize.Height;
 
    }
      
@@ -247,7 +241,7 @@ public partial class RichTextBox : UserControl
 
    private void ScrollViewer_ScrollChanged(object? sender, Avalonia.Controls.ScrollChangedEventArgs e)
    {
-      rtbVM.RTBScrollOffset = FlowDocSV.Offset;
+      RtbVm.RTBScrollOffset = FlowDocSV.Offset;
 
    }
 

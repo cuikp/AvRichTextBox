@@ -22,6 +22,7 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
    internal event UpdateRTBCaret_Handler? UpdateRTBCaret;
    
    internal static int InlineIdCounter { get; set => field = (value == int.MaxValue) ? 0 : value; }
+   internal static int BlockIdCounter { get; set => field = (value == int.MaxValue) ? 0 : value; }
 
    public Thickness PagePadding { get; set { field = value; NotifyPropertyChanged(nameof(PagePadding)); } } = new(0);
 
@@ -82,12 +83,9 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
       UpdateBlockAndInlineStarts(Selection.StartParagraph);
 
       Selection.StartParagraph.CallRequestInlinesUpdate();
-      //Selection.GetStartInline();
       Selection.CheckLineBreaks();
       Selection.StartParagraph.CallRequestTextLayoutInfoStart();
-
       Selection.EndParagraph.CallRequestInlinesUpdate();
-      //Selection.GetEndInline();
       Selection.EndParagraph.CallRequestTextLayoutInfoEnd();
 
       //Selection.StartParagraph.CallRequestTextBoxFocus();
@@ -250,18 +248,11 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
       SelectionParagraphs.AddRange(Blocks.Where(p => p.StartInDoc + p.BlockLength > Selection.Start && p.StartInDoc <= Selection.End).ToList().ConvertAll(bb => (Paragraph)bb));
    }
 
-   internal string GetText(TextRange tRange)
-   {
-
-      List<IEditable> rangeInlines = GetRangeInlines(tRange);
-      return string.Join("", rangeInlines.ToList().ConvertAll(il => il.InlineText));
-
-   }
-
-   internal List<Block> GetRangeBlocks(TextRange trange)
-   {
-      return [.. Blocks.Where(b=> b.StartInDoc <= trange.End && b.StartInDoc + b.BlockLength - 1 >= trange.Start)];
-   }
+   internal string GetText(TextRange tRange) => string.Join("", GetRangeInlines(tRange).ConvertAll(il => il.InlineText));
+   
+   internal List<Block> GetRangeBlocks(TextRange trange) => [.. Blocks.Where(b=> b.StartInDoc <= trange.End && b.StartInDoc + b.BlockLength - 1 >= trange.Start)];
+   internal List<Block> GetRangeBlocks(int start, int end) => [.. Blocks.Where(b => b.StartInDoc <= end && b.StartInDoc + b.BlockLength - 1 >= start)];
+   
 
    internal Paragraph GetContainingParagraph(int charIndex) => Blocks.LastOrDefault(b => b is Paragraph p && p.StartInDoc <= charIndex) as Paragraph ?? null!;
 

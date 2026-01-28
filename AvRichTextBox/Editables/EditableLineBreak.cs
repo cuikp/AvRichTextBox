@@ -20,11 +20,14 @@ public class EditableLineBreak : LineBreak, IEditable, INotifyPropertyChanged
    public string DisplayInlineText => "{>LINEBREAK<}";
    public int InlineLength => 2;  //because LineBreak acts as a double character in TextBlock? - anyway don't use LineBreak, use \v instead
    public double InlineHeight => FontSize;
+   
+   [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static")]
    public string FontName => "---";
+
    public bool IsEmpty => false;
    public bool IsLastInlineOfParagraph { get; set; }
- 
-   public IEditable Clone() => new EditableLineBreak() { MyParagraph = this.MyParagraph, Id = this.Id };
+
+   public IEditable Clone() => new EditableLineBreak() { MyParagraph = this.MyParagraph }; //, Id = this.Id };
 
 
    //for DebuggerPanel 

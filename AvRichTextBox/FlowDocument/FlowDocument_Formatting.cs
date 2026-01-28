@@ -1,5 +1,6 @@
 ﻿using Avalonia.Controls.Documents;
 using Avalonia.Media;
+using System.Diagnostics;
 
 namespace AvRichTextBox;
 
@@ -125,25 +126,31 @@ public partial class FlowDocument
 
    internal void ApplyFormattingRange(AvaloniaProperty avProperty, object value, TextRange textRange)
    {
-      List<IEditable> newInlines = CreateNewInlinesForRange(textRange);
+      (int idLeft, int idRight) edgeIds;
+      List<IEditable> newInlines = GetRangeInlinesAndAddToDoc(textRange, out edgeIds);
+      
+      //Debug.WriteLine("\nnewlines created:\n" + string.Join("\n", newInlines.ConvertAll(il=> il.InlineText + " :: " + il.Id + "\nEdge ids = L: " + edgeIds.idLeft + ", R: " + edgeIds.idRight)));  
 
 
       //create property association for undo
       List<IEditablePropertyAssociation> propertyAssociations = [];
-      foreach (IEditable inline in newInlines)
+      foreach (EditableRun erun in newInlines.OfType<EditableRun>())
       {
-         IEditablePropertyAssociation iedPropAssoc = new(inline.Id, null!, null!);
+         IEditablePropertyAssociation iedPropAssoc = new(erun.MyParagraph!.Id, erun.Id, null!, null!);
          propertyAssociations.Add(iedPropAssoc);
-         if (inline is EditableRun erun)
+
+         if (formatRunActions.TryGetValue(avProperty, out var runAction))
+            iedPropAssoc.FormatRun = runAction;
+         if (erun.GetValue(avProperty) is object o)
          {
-            if (formatRunActions.TryGetValue(avProperty, out var runAction))
-               iedPropAssoc.FormatRun = runAction;
-            if (erun.GetValue(avProperty) is object o)
-               iedPropAssoc.PropertyValue = o;
+            Debug.WriteLine("orig prperty is: " + iedPropAssoc.PropertyValue ?? "none");
+            iedPropAssoc.PropertyValue = o;
          }
+            
       }
 
-      Undos.Add(new ApplyFormattingUndo(this, propertyAssociations, Selection.Start, textRange));
+      Undos.Add(new ApplyFormattingUndo(this, propertyAssociations, edgeIds, Selection.Start, textRange));
+
 
       if (formatRunsActions.TryGetValue(avProperty, out var applyToRunsAction))
          applyToRunsAction(newInlines, value);
@@ -171,9 +178,9 @@ public partial class FlowDocument
    }
   
    
-   internal void ApplyFormattingInline(FormatRunAction formatRun, IEditable inlineItem, object value)
+   internal void ApplyFormattingInline(FormatRunAction? formatRun, IEditable inlineItem, object value)
    {
-      formatRun(inlineItem, value);
+      formatRun?.Invoke(inlineItem, value);
       Selection.BiasForwardStart = true;
       Selection.BiasForwardEnd = true;
 

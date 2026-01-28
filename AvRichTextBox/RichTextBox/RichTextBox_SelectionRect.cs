@@ -64,10 +64,10 @@ public partial class RichTextBox : UserControl
       //**********Fix caret height and position*********:
       int lineIndex = tlayout.GetLineIndexFromCharacterIndex(edPar.SelectionStart, false);
 
-      rtbVM.CaretHeight = textLines[lineIndex].Extent;
-      if (rtbVM.CaretHeight == 0)
-         rtbVM.CaretHeight = textLines[lineIndex].Height;
-      rtbVM.CaretHeight += 4; // give it an extra bit
+      RtbVm.CaretHeight = textLines[lineIndex].Extent;
+      if (RtbVm.CaretHeight == 0)
+         RtbVm.CaretHeight = textLines[lineIndex].Height;
+      RtbVm.CaretHeight += 4; // give it an extra bit
 
 
       double caretMLeft = selStartPoint.Value.X;
@@ -85,14 +85,14 @@ public partial class RichTextBox : UserControl
          //caretMTop = selStartPoint.Value.Y;
          caretMTop = textTopY;
 
-      rtbVM.CaretMargin = new Thickness(caretMLeft, caretMTop, 0, 0);
-      rtbVM.UpdateCaretVisible();
+      RtbVm.CaretMargin = new Thickness(caretMLeft, caretMTop, 0, 0);
+      RtbVm.UpdateCaretVisible();
 
       // Visualization rectangles:
-      //rtbVM.LineHeightRectMargin = new Thickness(caretMLeft + 3, FlowDoc.Selection.StartRect.Top, 0, 0);
-      //rtbVM.LineHeightRectHeight = textLines[lineIndex].Height; //selStartRect.Size.Height
-      //rtbVM.BaseLineRectMargin = new Thickness(caretMLeft + 5, FlowDoc.Selection.StartRect.Top + textLines[lineIndex].Baseline - textLines[lineIndex].Extent, 0, 0);
-      //rtbVM.BaseLineRectHeight = textLines[lineIndex].Baseline; //selStartRect.Size.Height
+      //RtbVm.LineHeightRectMargin = new Thickness(caretMLeft + 3, FlowDoc.Selection.StartRect.Top, 0, 0);
+      //RtbVm.LineHeightRectHeight = textLines[lineIndex].Height; //selStartRect.Size.Height
+      //RtbVm.BaseLineRectMargin = new Thickness(caretMLeft + 5, FlowDoc.Selection.StartRect.Top + textLines[lineIndex].Baseline - textLines[lineIndex].Extent, 0, 0);
+      //RtbVm.BaseLineRectHeight = textLines[lineIndex].Baseline; //selStartRect.Size.Height
 
    }
 
@@ -146,7 +146,7 @@ public partial class RichTextBox : UserControl
 
       thisPar.FirstIndexLastLine = textLines[^1].FirstTextSourceIndex;
 
-      rtbVM.UpdateCaretVisible();
+      RtbVm.UpdateCaretVisible();
 
    }
 

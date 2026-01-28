@@ -17,6 +17,15 @@ public partial class XamlConversions
    [GeneratedRegex(@"Xaml/Image[0-9]{1,}\.png")]
    public static partial Regex FindXamlImageEntriesRegex();
 
+   [GeneratedRegex(@"<Relationship Type=.*?/xaml/entry.*?/>")]
+   private static partial Regex XamlRelationshipEntryRegex();
+   
+   [GeneratedRegex(@"(?<=Target="").*?(?="")")]
+   private static partial Regex XamlTargetEntryRegex();
+   
+   [GeneratedRegex("(?<=Image)[0-9]{1,}")]
+   private static partial Regex ImageNoMatchRegex();
+
    internal static void LoadXamlPackage(string fileName, FlowDocument fdoc)
    {
       try
@@ -31,9 +40,11 @@ public partial class XamlConversions
             byte[] relsBytes = new byte[(int)relsEntry.Length];
             s.ReadExactly(relsBytes);
             string relString = Encoding.UTF8.GetString(relsBytes);
-            string RelationshipEntryLine = @"<Relationship Type=.*?/xaml/entry.*?/>";
-            Match relLine = Regex.Match(relString, RelationshipEntryLine);
-            Match m = Regex.Match(relLine.Value, @"(?<=Target="").*?(?="")");
+            //string RelationshipEntryLine = @"<Relationship Type=.*?/xaml/entry.*?/>";
+            //Match relLine = Regex.Match(relString, RelationshipEntryLine);
+
+            Match relLine = XamlRelationshipEntryRegex().Match(relString);
+            Match m = XamlTargetEntryRegex().Match(relLine.Value);
             EntryXamlDocumentName = m.Value.TrimStart('/');
          }
 
@@ -314,7 +325,7 @@ public partial class XamlConversions
                                  {
                                     if (bitmapNode.Attributes?.OfType<XmlAttribute>().Where(batt => batt.Name == "UriSource").FirstOrDefault() is XmlAttribute uriSourceAtt)
                                     {
-                                       Match imgNoMatch = Regex.Match(uriSourceAtt.Value, "(?<=Image)[0-9]{1,}");
+                                       Match imgNoMatch = ImageNoMatchRegex().Match(uriSourceAtt.Value);
                                        if (imgNoMatch.Success)
                                        {
                                           int ImageNo = int.Parse(imgNoMatch.Value);
@@ -350,11 +361,7 @@ public partial class XamlConversions
 
    }
 
-
-
-  
-
-
+   
 }
 
 

@@ -1,5 +1,4 @@
-﻿using Avalonia;
-using Avalonia.Controls.Documents;
+﻿using Avalonia.Controls.Documents;
 using Avalonia.Media;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -20,7 +19,7 @@ public class EditableRun : Run, IEditable, INotifyPropertyChanged
       FontSize = 16;
       BaselineAlignment = BaselineAlignment.Baseline;
       Id = ++FlowDocument.InlineIdCounter;
-
+            
    }
 
    public int Id { get; set; }
@@ -28,10 +27,8 @@ public class EditableRun : Run, IEditable, INotifyPropertyChanged
    public Paragraph? MyParagraph { get; set; }
    public int TextPositionOfInlineInParagraph { get; set; }
    public string InlineText { get => Text!; set => Text = value; }
-   public string DisplayInlineText
-   {
-      get => IsEmpty ? "{>EMPTY<}" : (InlineText.Length == 1 ? Text!.Replace(" ", "{>SPACE<}").Replace("\t", "{>TAB<}") : Text!.Replace("\t", "{>TAB<}"));
-   }
+   public string DisplayInlineText => IsEmpty ? "{>EMPTY<}" : (InlineText.Length == 1 ? Text!.Replace(" ", "{>SPACE<}").Replace("\t", "{>TAB<}") : Text!.Replace("\t", "{>TAB<}"));
+   
 
    public int InlineLength => InlineText.Length;
    public double InlineHeight => FontSize;
@@ -40,11 +37,11 @@ public class EditableRun : Run, IEditable, INotifyPropertyChanged
 
    public bool IsLastInlineOfParagraph { get; set; }
     
-   public IEditable Clone()
-   {
-      return new EditableRun(this.Text!)
+   public IEditable Clone() => 
+
+      new EditableRun(this.Text!)
       {
-         Id = this.Id,
+         //Id = this.Id,
          FontStyle = this.FontStyle,
          FontWeight = this.FontWeight,
          TextDecorations = this.TextDecorations,
@@ -57,7 +54,7 @@ public class EditableRun : Run, IEditable, INotifyPropertyChanged
          BaselineAlignment = this.BaselineAlignment,
          Foreground = this.Foreground,
       };
-   }
+   
 
    //For DebuggerPanel
    public bool IsStartInline { get; set { field = value; NotifyPropertyChanged(nameof(BackBrush)); NotifyPropertyChanged(nameof(InlineSelectedBorderThickness)); } }

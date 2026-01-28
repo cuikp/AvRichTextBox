@@ -11,6 +11,7 @@ public class Paragraph : Block
    public Paragraph()
    {
       Inlines.CollectionChanged += Inlines_CollectionChanged;
+      Id = ++FlowDocument.BlockIdCounter;
    }
 
    private void Inlines_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -131,6 +132,7 @@ public class Paragraph : Block
    {
       return new Paragraph() 
       { 
+         Id = this.Id,
          TextAlignment = this.TextAlignment,
          LineSpacing = this.LineSpacing,
          BorderBrush = this.BorderBrush,

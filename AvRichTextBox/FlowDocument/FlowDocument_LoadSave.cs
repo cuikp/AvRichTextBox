@@ -14,15 +14,19 @@ namespace AvRichTextBox;
 
 public partial class FlowDocument
 {
-	internal void LoadRtf(string rtfContent)
+   [GeneratedRegex("\\\\o \".*?\"")]
+   private static partial Regex RemoveOverstrikeRegex();
+
+   internal void LoadRtf(string rtfContent)
 	{
+
 		RTFDomDocument rtfdom = new();
 
-		// Do this to fix malformed `\o "` and orphaned quotes
+		// Do this to fix malformed `\o "` (overstrike) with/without orphaned quotes (old rtf feature that can break parsing)
 		if (rtfContent.Contains("\\o "))
 		{
 			rtfContent = rtfContent.Replace("\\o \"}", "\\o \"\"}").Replace(" \"}", " }");
-			rtfContent = Regex.Replace(rtfContent, "\\\\o \".*?\"", "\\o\"\"");
+			rtfContent = RemoveOverstrikeRegex().Replace(rtfContent, "\\o\"\"");
 		}
 		using MemoryStream rtfStream = new(Encoding.UTF8.GetBytes(rtfContent));
 		using StreamReader streamReader = new(rtfStream);
@@ -177,6 +181,7 @@ public partial class FlowDocument
 	{
 		XamlConversions.SaveXamlPackage(fileName, this);
 	}
+
 
 }
 

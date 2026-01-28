@@ -194,12 +194,6 @@ public class TextRange : INotifyPropertyChanged, IDisposable
    {
       if (myFlowDoc == null) return;
       if (Length < 1) return;
-
-      //try
-      //{
-      //   Debug.WriteLine("\napplying: " + (this.GetText ?? "null"));
-      //}
-      //catch (Exception ex) { Debug.WriteLine("exception, length = " + this.Length + " :::start = " + this.Start + " ::: end= " + this.End + " :::"  + ex.Message); }
       if (this.Text == "") return;
 
       myFlowDoc.ApplyFormattingRange(avProp, value, this);

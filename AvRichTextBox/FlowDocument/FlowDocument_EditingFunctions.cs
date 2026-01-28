@@ -57,7 +57,7 @@ public partial class FlowDocument
 
          bool addnewpar = false;
 
-         if (newinline.InlineText.EndsWith('\r'))
+         if (newinline.InlineText.EndsWith("\r\n"))
          {
             newinline.InlineText = newinline.InlineText[..^1];
             addnewpar = inlineno > 1;

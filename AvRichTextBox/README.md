@@ -8,7 +8,7 @@ Mirroring WPF, this `RichTextBox` control uses the concept of a `FlowDocument` (
 
 The `FlowDoc` is at heart merely an `ObservableCollection` of Blocks bound as the `ItemsSource` of an `ItemsControl` inside a `ScrollViewer`. Upon adding the appropriate key input handling, the control functions like a `RichTextBox`.
 
-(The hard part after that was implementing the selection logic, because `Selection` for the `RichTextBox` has to be able to move between and span multiple Paragraphs (SelectableTextBlocks), both with the keyboard and the mouse, and to allow editing functions that involve splitting or merging Paragraphs. And of course the Inline logic for spanning, inserting, splitting or deleting Inlines.)
+(The harder part after that was implementing the selection logic, because `Selection` for the `RichTextBox` has to be able to move between and span multiple Paragraphs (SelectableTextBlocks), both with the keyboard and the mouse, and to allow editing functions that involve splitting or merging Paragraphs. And of course the Inline logic for spanning, inserting, splitting or deleting Inlines.)
 
 ```mermaid
 classDiagram
@@ -109,3 +109,8 @@ Also made ShowDebuggerPanelInDebugMode default to False.
 
 **Added 2025/08/02**
 ver. 1.3.8 - Includes changes such as fix to mouse selection (wasn't working in Release mode), double/triple clicking to select word/paragraph, and IsReadOnly property for the RichTextBox.
+
+...
+
+**Added 2026/01/28**
+ver 1.4.5: Multiple/overlapping text formatting and undos now work better being based on inline Ids rather than their in-paragraph indexes. Also Paragrph Ids instead of indexes.

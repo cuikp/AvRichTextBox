@@ -10,7 +10,8 @@
 	  <Company>---</Company>
 	  <Product>AvRichTextBox</Product>
 	  <PackageId>Simplecto.Avalonia.RichTextBox</PackageId>
-	  <Version>1.4.2</Version>
+	  <ImplicitUsings>enable</ImplicitUsings>
+	  
 	  <Description>A RichTextBox control to be used in Avalonia</Description>
 	  <PackageTags>Avalonia;UserControl;RichTextBox</PackageTags>
 	  <Title>A RichTextBox control for Avalonia</Title>
@@ -19,13 +20,16 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>ver 1.4.2: adding line break no longer adds empty run (which hampered undo).  Undoing deletion of a line break also fixed.</PackageReleaseNotes>
-
-      <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+	  <PackageReleaseNotes>ver 1.4.5: Multiple/overlapping text formatting and undos now work better being based on inline Ids</PackageReleaseNotes>
+      
+     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 	  <PackageOutputPath>D:\PROG\LocalNuget\AvRichTextBox</PackageOutputPath>
-	  <AssemblyVersion>1.2.5</AssemblyVersion>
-	  <ImplicitUsings>enable</ImplicitUsings>
+	  
+	  <Version>1.4.5</Version>
+	  <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
+	  
+	  
   </PropertyGroup>
 
 
