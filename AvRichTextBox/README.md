@@ -113,4 +113,4 @@ ver. 1.3.8 - Includes changes such as fix to mouse selection (wasn't working in 
 ...
 
 **Added 2026/01/28**
-ver 1.4.5: Multiple/overlapping text formatting and undos now work better being based on inline Ids rather than their in-paragraph indexes. Also Paragrph Ids instead of indexes.
+ver 1.4.5: Multiple/overlapping text formatting and undos now work better being based on inline Ids rather than using their in-paragraph indexes. Also Paragrph Ids instead of indexes.
