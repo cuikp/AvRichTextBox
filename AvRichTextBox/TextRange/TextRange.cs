@@ -136,14 +136,11 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 
    public Paragraph? GetStartPar()
    {
-      Paragraph? startPar = myFlowDoc.Blocks.LastOrDefault(b => b.IsParagraph && (b.StartInDoc <= Start)) as Paragraph;
+      if (myFlowDoc.Blocks.OfType<Paragraph>().LastOrDefault(p => p.StartInDoc <= Start) is not Paragraph startPar) return null;
 
-      if (startPar != null)
-      {
-         //Check if start at end of last paragraph (cannot span from end of a paragraph)
-         if (startPar != myFlowDoc.Blocks.Where(b => b.IsParagraph).Last() && startPar!.EndInDoc == Start)
-            startPar = myFlowDoc.Blocks.FirstOrDefault(b => b.IsParagraph && myFlowDoc.Blocks.IndexOf(b) > myFlowDoc.Blocks.IndexOf(startPar)) as Paragraph;
-      }
+      ////Check if start at end of last paragraph (cannot span from end of a paragraph)
+      //if (startPar != myFlowDoc.Blocks.OfType<Paragraph>().Last() && startPar.EndInDoc == Start)
+      //   startPar = myFlowDoc.Blocks.OfType<Paragraph>().FirstOrDefault(p => myFlowDoc.Blocks.IndexOf(p) > myFlowDoc.Blocks.IndexOf(startPar));
 
       return startPar;
 

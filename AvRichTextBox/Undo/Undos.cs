@@ -128,7 +128,8 @@ internal class DeleteRangeUndo (Dictionary<Block, List<IEditable>> keptParsAndIn
 
 
 internal class InsertParagraphUndo (FlowDocument flowDoc, int origParId, int insertedParId, List<IEditable> keepParInlines, int origSelectionStart, int undoEditOffset) : IUndo
-{  
+{  //all original inlines preserved, so no need to worry about split inlines
+
    public int UndoEditOffset => undoEditOffset;
    public bool UpdateTextRanges => true;
 
@@ -162,12 +163,17 @@ internal class MergeParagraphUndo (int origMergedParInlinesCount, int mergedParI
    {
       try
       {
-
          if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == mergedParId) is not Paragraph mergedPar) return;
          int mergedParIndex = flowDoc.Blocks.IndexOf(mergedPar);
 
          for (int rno = mergedPar.Inlines.Count - 1; rno >= origMergedParInlinesCount; rno--)
             mergedPar.Inlines.RemoveAt(rno);
+
+         if (mergedPar.Inlines.Count == 0)
+            mergedPar.Inlines.Add(new EditableRun(""));
+         
+         mergedPar.CallRequestInlinesUpdate();
+         mergedPar.UpdateEditableRunPositions();
 
          flowDoc.Blocks.Insert(mergedParIndex + 1, removedParClone);
 
@@ -192,9 +198,7 @@ internal class ApplyFormattingUndo (FlowDocument flowDoc, List<IEditableProperty
       int rangeEnd = tRange.End; 
 
       foreach (IEditablePropertyAssociation propassoc in propertyAssociations)
-      {
-         Debug.WriteLine("propval = " + propassoc.PropertyValue ?? "none");
-
+      { 
          if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == propassoc.BlockId) is Paragraph p && p.Inlines.FirstOrDefault(il => il.Id == propassoc.InlineId) is IEditable iline)
             flowDoc.ApplyFormattingInline(propassoc.FormatRun, iline, propassoc.PropertyValue);
       }
@@ -256,7 +260,7 @@ internal class ApplyFormattingUndo (FlowDocument flowDoc, List<IEditableProperty
 }
 
 
-internal class InsertLineBreakUndo(int insertParId, int insertedLBId, FlowDocument flowDoc, int origSelectionStart) : IUndo
+internal class InsertLineBreakUndo(int insertParId, int insertedLBId, (int addedInlineLeftId, int addedInlineRightId) addedInlines, int insertIdx, IEditable origInline, FlowDocument flowDoc, int origSelectionStart) : IUndo
 {
    public int UndoEditOffset => -1;
    public bool UpdateTextRanges => true;
@@ -267,7 +271,14 @@ internal class InsertLineBreakUndo(int insertParId, int insertedLBId, FlowDocume
       {
          if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == insertParId) is not Paragraph thisPar) return;
          if (thisPar.Inlines.FirstOrDefault(lb => lb.Id == insertedLBId) is not EditableLineBreak thisELB) return;
+         if (thisPar.Inlines.FirstOrDefault(il => il.Id == addedInlines.addedInlineLeftId) is not IEditable iedLeft) return;
+         if (thisPar.Inlines.FirstOrDefault(il => il.Id == addedInlines.addedInlineRightId) is not IEditable iedRight) return;
+         
+         thisPar.Inlines.Remove(iedLeft);
+         thisPar.Inlines.Remove(iedRight);
          thisPar.Inlines.Remove(thisELB);
+         thisPar.Inlines.Insert(insertIdx, origInline);
+
          thisPar.CallRequestInlinesUpdate();
          flowDoc.UpdateBlockAndInlineStarts(thisPar);
          flowDoc.Selection.Start = origSelectionStart;
@@ -290,7 +301,7 @@ internal class DeleteLineBreakUndo(int parId, int lineBreakId, FlowDocument flow
       if (flowDoc.GetStartInline(origSelectionStart) is IEditable startInline)
       {
          int runIdx = thisPar.Inlines.IndexOf(startInline);
-         int charPosInInline = startInline.GetCharPosInInline(origSelectionStart);
+         int charPosInInline = flowDoc.GetCharPosInInline(startInline, origSelectionStart);
          if (charPosInInline > 0)
          {
             List<IEditable> newRuns = flowDoc.SplitRunAtPos(origSelectionStart, startInline, charPosInInline);

@@ -4,7 +4,7 @@
 As of ~~2024,2025~~2026, Avalonia doesn't yet come with a RichTextBox, and since I needed one I created a "poor-man's version" based on the existing control `SelectableTextBlock`.
 
 Mirroring WPF, this `RichTextBox` control uses the concept of a `FlowDocument` (`FlowDoc`), which contains `Blocks` (at the current time, only `Paragraph` is available, although `Section` or `Table` could be added later). 
-`Paragraph` contains `IEditable` objects (`EditableRun` (from `Avalonia.Run`) and `EditableInlineUIContainer` (from `Avalonia.InlineUIContainer`)) and it is bound to an `EditableParagraph` (inheriting from `SelectableTextBlock`).
+`Paragraph` contains `IEditable` objects (`EditableRun` (from `Avalonia.Controls.Documents.Run`) and `EditableInlineUIContainer` (from `Avalonia.Controls.Documents.InlineUIContainer`)) and it is bound to an `EditableParagraph` (inheriting from `SelectableTextBlock`).
 
 The `FlowDoc` is at heart merely an `ObservableCollection` of Blocks bound as the `ItemsSource` of an `ItemsControl` inside a `ScrollViewer`. Upon adding the appropriate key input handling, the control functions like a `RichTextBox`.
 
@@ -53,7 +53,7 @@ classDiagram
 
 ```
 
-**A Debugging panel can be displayed by setting "ShowDebuggerPanelInDebugMode" to True.  The panel displays Inline debugging information - Inline starts, paragraph starts, inline texts, and indicates the inlines of the Selection start and end by background color coding.  The Debugger panel is not shown in Release mode**
+**A Debugging panel can be displayed in Debug mode by setting "ShowDebuggerPanelInDebugMode" to True.  The panel displays Inline debugging information - Inline starts, paragraph starts, inline texts, and indicates the inlines of the Selection start and end by background color coding.  The Debugger panel is not shown or active in Release mode**
 
 The RichTextBox has the usual key functions:
 * <kbd>Ctrl</kbd>+<kbd>B</kbd> for **bold**/unbold
@@ -72,10 +72,10 @@ It can also save and load the FlowDoc content as a Word document (.docx), Rtf do
 
 ## Various future to-do improvements include:
 * Word/Html/RTF export and import can be fleshed out (to support more attributes)
-* Save/Load Xaml, Rtf functionality (to/from a stream) for TextRanges 
+* Allow Save/Load TextRanges to Rtf stream
 * Adding Table support
 * Allow the Undo limit to be set, and create a Redo stack
-* Stress testing
+* Stress testing, particularly undos
 
 RtfDomParser used for parsing of rtf files can be found at https://github.com/SourceCodeBackup/RtfDomParser, but for this project I had to manually modify it to use Avalonia.Media instead of System.Drawing.  Generation of .rtf is my own concoction with the bare minimum to produce a readable .rtf file/dataobject.
 
@@ -113,4 +113,6 @@ ver. 1.3.8 - Includes changes such as fix to mouse selection (wasn't working in 
 ...
 
 **Added 2026/01/28**
-ver 1.4.5: Multiple/overlapping text formatting and undos now work better being based on inline Ids rather than using their in-paragraph indexes. Also Paragrph Ids instead of indexes.
+ver 1.4.5: Multiple/overlapping text formatting and undos now work better being based on inline Ids rather than using their in-paragraph indexes. Also Paragrph Ids instead of indexes.  Fixed erroneous deletion of required empty inline before linebreak.
+**Added 2026/01/30**
+ver 1.4.6: Further Undo improvements

@@ -132,6 +132,7 @@ public partial class FlowDocument
       }
       else
       {
+         
          //split last run and remove trailing excess run from list
          if (!RangeEndsAtInlineEnd)
          {
@@ -244,41 +245,38 @@ public partial class FlowDocument
 
    internal IEditable? GetNextInline(IEditable inline)
    {
+      if (this.Blocks.FirstOrDefault(b => b is Paragraph p && p.Id == inline.MyParagraphId) is not Paragraph inlinePar) return null;
+
       IEditable? returnIED = null;
 
-      int myindex = inline.MyParagraph!.Inlines.IndexOf(inline);
+      int myindex = inlinePar.Inlines.IndexOf(inline);
      
-      if (myindex < inline.MyParagraph.Inlines.Count - 1)
-         returnIED = inline.MyParagraph!.Inlines[myindex + 1];
+      if (myindex < inlinePar.Inlines.Count - 1)
+         returnIED = inlinePar.Inlines[myindex + 1];
       else
       {
-         Paragraph? nextPar = GetNextParagraph(inline.MyParagraph);
-         if (nextPar == null)
-            return null;
-         else
-            if (nextPar.Inlines.Count > 0)
-               returnIED = nextPar.Inlines[0];
+         if (GetNextParagraph(inlinePar) is not Paragraph nextPar) return null;
+         if (nextPar.Inlines.Count > 0)
+            returnIED = nextPar.Inlines[0];
       }
       return returnIED;
    }
 
    internal IEditable? GetPreviousInline(IEditable inline) 
    {
+      if (this.Blocks.FirstOrDefault(b => b is Paragraph p && p.Id == inline.MyParagraphId) is not Paragraph inlinePar) return null;
+
       IEditable? returnIED = null;
-      int myindex = inline.MyParagraph!.Inlines.IndexOf(inline);
+
+      int myindex = inlinePar.Inlines.IndexOf(inline);
 
       if (myindex > 0)
-         returnIED = inline.MyParagraph!.Inlines[myindex - 1];
+         returnIED = inlinePar.Inlines[myindex - 1];
       else
       {
-         Paragraph? prevPar = GetPreviousParagraph(inline.MyParagraph);
-         if (prevPar == null)
-            return null;
-         else
-         {
-            if (prevPar.Inlines.Count > 0)
-               returnIED = prevPar.Inlines.Last();
-         }
+         if (GetPreviousParagraph(inlinePar) is not Paragraph prevPar) return null;
+         if (prevPar.Inlines.Count > 0)
+            returnIED = prevPar.Inlines.Last();
       }
       return returnIED;
    }

@@ -1,5 +1,7 @@
 ﻿using Avalonia.Media;
+using DynamicData;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace AvRichTextBox;
 
@@ -17,7 +19,7 @@ public class Paragraph : Block
    private void Inlines_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
    {
       foreach (IEditable ied in Inlines)
-         ied.MyParagraph = this;
+         ied.MyParagraphId = this.Id;
    }
 
    public string ParToolTip => $"Background: {Background}\nLineSpacing: {LineSpacing}\nLineHeight: {LineHeight}";
@@ -33,10 +35,7 @@ public class Paragraph : Block
    public FontWeight FontWeight { get; set { field = value; NotifyPropertyChanged(nameof(FontWeight)); } } = FontWeight.Normal;
    public FontStyle FontStyle{ get; set { field = value; NotifyPropertyChanged(nameof(FontStyle)); } } = FontStyle.Normal;
    public TextAlignment TextAlignment { get; set { field = value; NotifyPropertyChanged(nameof(TextAlignment)); } } = TextAlignment.Left;
-
-   //private SolidColorBrush _SelectionForegroundBrush = new (Colors.Black);  // in Avalonia > 11.1, setting this alters the selection font for some reason
-   //public SolidColorBrush SelectionForegroundBrush { get => _SelectionForegroundBrush; set { _SelectionForegroundBrush = value; NotifyPropertyChanged(nameof(SelectionForegroundBrush)); } }
-
+     
    public SolidColorBrush SelectionBrush { get; set { field = value; NotifyPropertyChanged(nameof(SelectionBrush)); } } = LightBlueBrush;
    internal static SolidColorBrush LightBlueBrush = new(Colors.LightBlue);
 
@@ -82,22 +81,13 @@ public class Paragraph : Block
       }
    }
 
-   internal void UpdateUIContainersSelected()
+   internal void UpdateUIContainersSelected(int start, int end)
    {
       if (this.Inlines != null)
       {
-
-         IEditable? startInline = Inlines.FirstOrDefault(il => il.IsStartInline);
-         IEditable? endInline = Inlines.FirstOrDefault(il => il.IsEndInline);
-         foreach (EditableInlineUIContainer iuc  in this.Inlines.OfType<EditableInlineUIContainer>())
-         {
-            int stidx = startInline == null ? -1 : this.Inlines.IndexOf(startInline);
-            int edidx = endInline == null ? Int32.MaxValue : this.Inlines.IndexOf(endInline);
-            int thisidx = this.Inlines.IndexOf(iuc);
-            iuc.IsSelected = (thisidx > stidx && thisidx < edidx);
-         }
+         foreach (EditableInlineUIContainer iuc in Inlines.OfType<EditableInlineUIContainer>())
+            iuc.IsSelected = (iuc.TextPositionOfInlineInParagraph >= start && iuc.TextPositionOfInlineInParagraph < end);
       }
-
    }
 
    internal bool RemoveEmptyInlines()
@@ -130,7 +120,7 @@ public class Paragraph : Block
 
    internal Paragraph FullClone()
    {
-      return new Paragraph() 
+      Paragraph newPar = new() 
       { 
          Id = this.Id,
          TextAlignment = this.TextAlignment,
@@ -144,8 +134,12 @@ public class Paragraph : Block
          FontSize = this.FontSize,
          FontStyle = this.FontStyle,
          FontWeight = this.FontWeight,
-         Inlines = new ObservableCollection<IEditable>(this.Inlines.Select(il=>il.Clone()))
-      }; 
+      };
+                 
+      newPar.Inlines.CollectionChanged += Inlines_CollectionChanged;
+      newPar.Inlines.AddRange(this.Inlines.Select(il => il.CloneWithId()));
+
+      return newPar;
    }
 
  

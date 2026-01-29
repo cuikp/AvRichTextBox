@@ -20,12 +20,12 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>ver 1.4.5: Multiple/overlapping text formatting and undos now work better being based on inline Ids</PackageReleaseNotes>
+	  <PackageReleaseNotes>ver 1.4.6: Further Undo improvements</PackageReleaseNotes>
       
      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 	  <PackageOutputPath>D:\PROG\LocalNuget\AvRichTextBox</PackageOutputPath>
 	  
-	  <Version>1.4.5</Version>
+	  <Version>1.4.6</Version>
 	  <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
 	  
@@ -123,14 +123,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <Using Include="Avalonia" />
     <Using Include="Avalonia.Input" />
   </ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
+
+
 </Project>

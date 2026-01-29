@@ -99,8 +99,7 @@ public partial class EditableParagraph : SelectableTextBlock
                break;
 
             case "SelectedText":
-               ThisPar.UpdateUIContainersSelected();
-
+               ThisPar.UpdateUIContainersSelected(SelectionStart, SelectionEnd);
                break;
 
             case "TextLayoutInfoStartRequested":

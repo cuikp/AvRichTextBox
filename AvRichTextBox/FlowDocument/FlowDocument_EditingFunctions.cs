@@ -15,7 +15,7 @@ public partial class FlowDocument
       {
          List<IEditable> inlines = [];
          if (b is Paragraph p)
-            inlines.AddRange(p.Inlines.ToList().ConvertAll(il => il.Clone()));
+            inlines.AddRange(p.Inlines.ToList().ConvertAll(il => il.CloneWithId()));
          returnDict.TryAdd(b, inlines);
 
       }
@@ -24,7 +24,13 @@ public partial class FlowDocument
 
    }
 
-   internal int SetRangeToInlines(TextRange tRange, List<IEditable> newInlines)
+   internal int GetCharPosInInline(IEditable inline, int absPos)
+   {
+      if (Blocks.OfType<Paragraph>().FirstOrDefault(p => p.Id == inline.MyParagraphId) is not Paragraph inlinePar) return -1;
+      return absPos - inlinePar.StartInDoc - inline.TextPositionOfInlineInParagraph;
+   }
+
+   internal int PasteInlinesIntoRange(TextRange tRange, List<IEditable> newInlines)
    {  // All of this should constitute one Undo operation
       //Debug.WriteLine("newinlines=\n" + string.Join("\n", newInlines.ConvertAll(il => il.InlineText)));
 
@@ -44,7 +50,7 @@ public partial class FlowDocument
 
       if (tRange.GetStartInline() is not IEditable startInline) return 0;
 
-      List<IEditable> splitInlines = SplitRunAtPos(tRange.Start, startInline, startInline.GetCharPosInInline(tRange.Start));
+      List<IEditable> splitInlines = SplitRunAtPos(tRange.Start, startInline, GetCharPosInInline(startInline, tRange.Start));
 
       int insertionPt = startPar.Inlines.IndexOf(splitInlines[0]) + 1;
 
@@ -116,7 +122,7 @@ public partial class FlowDocument
 
       if (tRange.GetStartInline() is not IEditable startInline) return;
 
-      List<IEditable> splitInlines = SplitRunAtPos(tRange.Start, startInline, startInline.GetCharPosInInline(tRange.Start));
+      List<IEditable> splitInlines = SplitRunAtPos(tRange.Start, startInline, GetCharPosInInline(startInline, tRange.Start));
 
       int startInlineIndex = startPar.Inlines.IndexOf(splitInlines[0]) + 1;
 

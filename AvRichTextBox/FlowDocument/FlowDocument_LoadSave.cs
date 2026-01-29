@@ -19,8 +19,7 @@ public partial class FlowDocument
 
    internal void LoadRtf(string rtfContent)
 	{
-
-		RTFDomDocument rtfdom = new();
+      RTFDomDocument rtfdom = new();
 
 		// Do this to fix malformed `\o "` (overstrike) with/without orphaned quotes (old rtf feature that can break parsing)
 		if (rtfContent.Contains("\\o "))
@@ -93,7 +92,8 @@ public partial class FlowDocument
 
 	internal void LoadXaml(string xamlContent)
 	{
-		ProcessXamlString(xamlContent, this);
+      ClearDocument();
+      ProcessXamlString(xamlContent, this);
 		InitializeDocument();
 	}
 
@@ -110,9 +110,10 @@ public partial class FlowDocument
 	}
 
 	internal void LoadHtmlDocFromFile(string fileName)
-	{
-		try
+	{  
+      try
 		{
+
 			LoadHtml(File.ReadAllText(fileName));
 		}
 		catch (Exception ex3)
@@ -170,7 +171,9 @@ public partial class FlowDocument
 	internal void LoadXamlPackage(string fileName)
 	{
 
-		XamlConversions.LoadXamlPackage(fileName, this);
+      ClearDocument();
+
+      XamlConversions.LoadXamlPackage(fileName, this);
 
 		InitializeDocument();
 

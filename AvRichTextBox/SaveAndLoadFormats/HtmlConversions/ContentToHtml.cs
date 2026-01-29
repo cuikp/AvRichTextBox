@@ -1,12 +1,9 @@
-﻿using Avalonia.Media;
+﻿using Avalonia.Controls;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using HtmlAgilityPack;
-using System.IO;
-using System;
 using System.Net;
 using System.Text;
-using Avalonia.Controls;
-using System.Linq;
 
 namespace AvRichTextBox;
 

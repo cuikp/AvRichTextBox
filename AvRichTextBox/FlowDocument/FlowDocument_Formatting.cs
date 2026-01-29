@@ -63,7 +63,7 @@ public partial class FlowDocument
          InsertRunMode = true;
          if (Selection.GetStartInline() is IEditable startInline)
          {
-            if (startInline != Selection.StartParagraph.Inlines.Last() && startInline.GetCharPosInInline(Selection.Start) == startInline.InlineText.Length)
+            if (startInline != Selection.StartParagraph.Inlines.Last() && GetCharPosInInline(startInline, Selection.Start) == startInline.InlineText.Length)
             {
                IEditable nextInline = Selection.StartParagraph.Inlines[Selection.StartParagraph.Inlines.IndexOf(startInline) + 1];
                bool nextRunItalic = nextInline.GetType() == typeof(EditableRun) && ((EditableRun)nextInline).FontStyle == FontStyle.Italic;
@@ -86,7 +86,7 @@ public partial class FlowDocument
          InsertRunMode = true;
          if (Selection.GetStartInline() is IEditable startInline)
          {
-            if (startInline != Selection.StartParagraph.Inlines.Last() && startInline.GetCharPosInInline(Selection.Start) == startInline.InlineText.Length)
+            if (startInline != Selection.StartParagraph.Inlines.Last() && GetCharPosInInline(startInline, Selection.Start) == startInline.InlineText.Length)
             {
                IEditable nextInline = Selection.StartParagraph.Inlines[Selection.StartParagraph.Inlines.IndexOf(startInline) + 1];
                bool nextRunBold = nextInline.GetType() == typeof(EditableRun) && ((EditableRun)nextInline).FontWeight == FontWeight.Bold;
@@ -110,7 +110,7 @@ public partial class FlowDocument
 
          if (Selection.GetStartInline() is IEditable startInline)
          {
-            if (startInline != Selection.StartParagraph.Inlines.Last() && startInline.GetCharPosInInline(Selection.Start) == startInline.InlineText.Length)
+            if (startInline != Selection.StartParagraph.Inlines.Last() && GetCharPosInInline(startInline, Selection.Start) == startInline.InlineText.Length)
             {
                IEditable nextInline = Selection.StartParagraph.Inlines[Selection.StartParagraph.Inlines.IndexOf(startInline) + 1];
                bool nextRunUnderlined = nextInline.GetType() == typeof(EditableRun) && ((EditableRun)nextInline).TextDecorations == TextDecorations.Underline;
@@ -136,17 +136,13 @@ public partial class FlowDocument
       List<IEditablePropertyAssociation> propertyAssociations = [];
       foreach (EditableRun erun in newInlines.OfType<EditableRun>())
       {
-         IEditablePropertyAssociation iedPropAssoc = new(erun.MyParagraph!.Id, erun.Id, null!, null!);
+         IEditablePropertyAssociation iedPropAssoc = new(erun.MyParagraphId, erun.Id, null!, null!);
          propertyAssociations.Add(iedPropAssoc);
 
          if (formatRunActions.TryGetValue(avProperty, out var runAction))
             iedPropAssoc.FormatRun = runAction;
          if (erun.GetValue(avProperty) is object o)
-         {
-            Debug.WriteLine("orig prperty is: " + iedPropAssoc.PropertyValue ?? "none");
             iedPropAssoc.PropertyValue = o;
-         }
-            
       }
 
       Undos.Add(new ApplyFormattingUndo(this, propertyAssociations, edgeIds, Selection.Start, textRange));

@@ -74,7 +74,7 @@ public partial class RichTextBox
             dom.LoadRTFText(rtfstring);
             List<IEditable> insertInlines = RtfConversions.GetInlinesFromRtf(dom);
             insertInlines.Reverse();
-            int addedchars = FlowDoc.SetRangeToInlines(FlowDoc.Selection, insertInlines);
+            int addedchars = FlowDoc.PasteInlinesIntoRange(FlowDoc.Selection, insertInlines);
 
             newSelPoint = Math.Min(newSelPoint + addedchars, FlowDoc.DocEndPoint - 1);
 

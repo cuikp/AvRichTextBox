@@ -45,18 +45,17 @@
 								</DockPanel>
 
 
-								<ItemsControl  ItemsSource="{Binding Inlines}" Margin="-5, 2, -5, 20"  BorderBrush="DarkBlue" BorderThickness="0.7" >
+								<ItemsControl x:Name="InlinesIC"  ItemsSource="{Binding Inlines}" Margin="-5, 2, -5, 20"  BorderBrush="DarkBlue" BorderThickness="0.7" >
 
 									<ItemsControl.ItemTemplate>
 										<DataTemplate x:DataType="{x:Type local:IEditable}">
-											<Border BorderBrush="Black" BorderThickness="{Binding InlineSelectedBorderThickness}" Background="{Binding BackBrush}">
+											<Border BorderBrush="Black" BorderThickness="{Binding InlineVP.InlineSelectedBorderThickness}" Background="{Binding InlineVP.BackBrush}">
 												<Grid ColumnDefinitions="50* 10* 10* 10*" HorizontalAlignment="Stretch" ShowGridLines="True" Margin="0" >
 													<TextBlock Margin="3, 0" Grid.Column="0" Text="{Binding DisplayInlineText}" TextWrapping="Wrap"  x:DataType="{x:Type local:EditableRun}"
 															   FontWeight="{Binding FontWeight}" FontStyle="{Binding FontStyle}"
 															   TextDecorations="{Binding TextDecorations}" ToolTip.Tip="{Binding InlineToolTip}" />
 													<TextBlock  Grid.Column="1" Text="{Binding TextPositionOfInlineInParagraph}" TextAlignment="Center" />
 													<TextBlock  Grid.Column="2" Text="{Binding InlineText.Length}" TextAlignment="Center" />
-													<!--<TextBlock  Grid.Column="3" Text="{Binding FontName}" TextAlignment="Center" x:DataType="{x:Type local:EditableRun}"/>-->
 													<TextBlock  Grid.Column="3" Text="{Binding Id}" TextAlignment="Center" />
 												</Grid>
 											</Border>

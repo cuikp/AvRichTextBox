@@ -5,7 +5,6 @@ using AvRichTextBox;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -152,8 +151,8 @@ public partial class MainWindow : Window
          FontsCB.SelectedItem = ffamily.ToString();
       }
 
-      Paragraph? selPar = selection.GetStartPar();
-      if (selPar != null && !progChange)
+      if (selection.GetStartPar() is not Paragraph selPar) return;
+      if (!progChange)
       {
          progChange = true;
          LineSpacingNS.Value = selPar.LineSpacing;

@@ -136,7 +136,10 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
    internal void ClearDocument()
    {
       Blocks.Clear();
-      
+
+      BlockIdCounter = 0;
+      InlineIdCounter = 0;
+
       for (int tRangeNo = TextRanges.Count - 1; tRangeNo >= 0; tRangeNo--)
       {
          if (!TextRanges[tRangeNo].Equals(Selection))
@@ -158,7 +161,6 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
       InitializeParagraphs();
 
       UpdateRTBCaret?.Invoke();
-
 
    }
 
@@ -264,23 +266,16 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
          Blocks[parIndex].StartInDoc = parSum;
          parSum += (Blocks[parIndex].BlockLength);
 
-         if (Blocks[parIndex].IsParagraph)
-            ((Paragraph)Blocks[parIndex]).UpdateEditableRunPositions();
+         if (Blocks[parIndex] is Paragraph thisPar)
+            thisPar.UpdateEditableRunPositions();
       }
    }
 
    internal void UpdateBlockAndInlineStarts(Block thisBlock)
    {
       int fromBlockIndex = Blocks.IndexOf(thisBlock);
-      int parSum = fromBlockIndex == 0 ? 0 : Blocks[fromBlockIndex - 1].StartInDoc + Blocks[fromBlockIndex - 1].BlockLength;
-      for (int parIndex = fromBlockIndex; parIndex < Blocks.Count; parIndex++)
-      {
-         Blocks[parIndex].StartInDoc = parSum;
-         parSum += (Blocks[parIndex].BlockLength);
-
-         if (Blocks[parIndex].IsParagraph)
-            ((Paragraph)Blocks[parIndex]).UpdateEditableRunPositions();
-      }
+      if (fromBlockIndex > -1)
+         UpdateBlockAndInlineStarts(fromBlockIndex);
    }
 
 
