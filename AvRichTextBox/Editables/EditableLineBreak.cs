@@ -1,4 +1,5 @@
 ﻿using Avalonia.Controls.Documents;
+using static AvRichTextBox.IEditable;
 
 namespace AvRichTextBox;
 
@@ -11,7 +12,6 @@ public class EditableLineBreak : LineBreak, IEditable
    public int MyParagraphId { get; set; }
    public int TextPositionOfInlineInParagraph { get; set; }
    public string InlineText { get; set; } = @"\n"; //make literal to count as 2 characters
-   public string DisplayInlineText => "{>LINEBREAK<}";
    public int InlineLength => 2;  //because LineBreak acts as a double character in TextBlock? - anyway don't use LineBreak, use \v instead
    public double InlineHeight => FontSize;
    
@@ -34,6 +34,7 @@ public class EditableLineBreak : LineBreak, IEditable
    // FOR DEBUGGER PANEL
    public InlineVisualizationProperties InlineVP { get; set; } = new();
    public string InlineToolTip => "";
+   public string DisplayInlineText => "{>LINEBREAK<}";
 #endif
 
 }

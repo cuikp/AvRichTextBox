@@ -1,12 +1,14 @@
 ﻿using System.ComponentModel;
-using System.Runtime.CompilerServices;
 
 namespace AvRichTextBox;
 
 public class TextRange : INotifyPropertyChanged, IDisposable
 {
    public event PropertyChangedEventHandler? PropertyChanged;
-   private void NotifyPropertyChanged([CallerMemberName] string propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
+   private void InvokeProperty(PropertyChangedEventArgs pceArgs) { PropertyChanged?.Invoke(this, pceArgs); }
+   private static readonly PropertyChangedEventArgs StartChangedArgs = new(nameof(Start));
+   private static readonly PropertyChangedEventArgs EndChangedArgs = new(nameof(End));
+
 
    internal delegate void Start_ChangedHandler(TextRange sender, int newStart);
    internal event Start_ChangedHandler? Start_Changed;
@@ -28,11 +30,11 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 
    internal FlowDocument myFlowDoc;
    public int Length  => End - Start;
-   public int Start { get;  set { if (field != value) { field = value; Start_Changed?.Invoke(this, value); NotifyPropertyChanged(nameof(Start)); } } }
-   public int End { get; set { if (field != value) { field = value; End_Changed?.Invoke(this, value); NotifyPropertyChanged(nameof(End)); } } }
-
-   internal void UpdateStart() { NotifyPropertyChanged(nameof(Start)); }
-   internal void UpdateEnd() { NotifyPropertyChanged(nameof(End)); }
+ 
+   public int Start { get;  set { if (field != value) { field = value; Start_Changed?.Invoke(this, value); InvokeProperty(StartChangedArgs); } } }
+   public int End { get; set { if (field != value) { field = value; End_Changed?.Invoke(this, value); InvokeProperty(EndChangedArgs); } } }
+   internal void UpdateStart() { InvokeProperty(StartChangedArgs); }
+   internal void UpdateEnd() { InvokeProperty(EndChangedArgs); }
 
    internal Paragraph StartParagraph = null!;
    internal Paragraph EndParagraph = null!;

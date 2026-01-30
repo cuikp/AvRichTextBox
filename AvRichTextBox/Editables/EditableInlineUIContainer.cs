@@ -1,5 +1,6 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Controls.Documents;
+using static AvRichTextBox.IEditable;
 
 namespace AvRichTextBox;
 
@@ -13,7 +14,6 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
    public int MyParagraphId { get; set; }
    public int TextPositionOfInlineInParagraph { get; set; }
    public string InlineText { get; set; } = "@";
-   public string DisplayInlineText { get => $"<UICONTAINER> => {(this.Child != null && this.Child.GetType() == typeof(Image) ? "Image" : "NoChild")}"; }
    
    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static")]
    public string FontName => "---";
@@ -43,6 +43,7 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
    // FOR DEBUGGER PANEL
    public InlineVisualizationProperties InlineVP { get; set; } = new();
    public string InlineToolTip => "";
+   public string DisplayInlineText { get => $"<UICONTAINER> => {(this.Child != null && this.Child.GetType() == typeof(Image) ? "Image" : "NoChild")}"; }
 #endif
 
 

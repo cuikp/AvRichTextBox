@@ -208,8 +208,6 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
       //if (selRange.StartParagraph != null)
       //   selRange.StartParagraph.CallRequestTextLayoutInfoStart();
 
-      //Debug.WriteLine("startpar text? = " + selRange.StartParagraph?.GetText + "\n________________");
-
       //Selection.GetStartInline();
       Selection.CheckLineBreaks();
       Selection.StartParagraph.CallRequestTextLayoutInfoStart();

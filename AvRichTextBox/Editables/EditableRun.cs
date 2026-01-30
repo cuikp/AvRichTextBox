@@ -14,7 +14,9 @@ public class EditableRun : Run, IEditable
       FontSize = 16;
       BaselineAlignment = BaselineAlignment.Baseline;
       Id = ++FlowDocument.InlineIdCounter;
-            
+
+
+      
    }
 
    public int Id { get; set; }
@@ -22,8 +24,6 @@ public class EditableRun : Run, IEditable
    public int MyParagraphId { get; set; }
    public int TextPositionOfInlineInParagraph { get; set; }
    public string InlineText { get => Text!; set => Text = value; }
-   public string DisplayInlineText => IsEmpty ? "{>EMPTY<}" : (InlineText.Length == 1 ? Text!.Replace(" ", "{>SPACE<}").Replace("\t", "{>TAB<}") : Text!.Replace("\t", "{>TAB<}"));
-   
 
    public int InlineLength => InlineText.Length;
    public double InlineHeight => FontSize;
@@ -61,6 +61,7 @@ public class EditableRun : Run, IEditable
    // FOR DEBUGGER PANEL
    public InlineVisualizationProperties InlineVP { get; set; } = new();
    public string InlineToolTip => $"Background: {Background}\nForeground: {Foreground}\nFontFamily: {FontFamily}";
+   public string DisplayInlineText => IsEmpty ? "{>EMPTY<}" : (InlineText.Length == 1 ? Text!.Replace(" ", "{>SPACE<}").Replace("\t", "{>TAB<}") : Text!.Replace("\t", "{>TAB<}"));
 #endif
 
 

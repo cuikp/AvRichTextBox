@@ -113,6 +113,7 @@ ver. 1.3.8 - Includes changes such as fix to mouse selection (wasn't working in 
 ...
 
 **Added 2026/01/28**
-ver 1.4.5: Multiple/overlapping text formatting and undos now work better being based on inline Ids rather than using their in-paragraph indexes. Also Paragrph Ids instead of indexes.  Fixed erroneous deletion of required empty inline before linebreak.
+ver 1.4.5: Multiple/overlapping text formatting and undos now work better being based on inline Ids rather than using their in-paragraph indexes. Also Paragraph Ids instead of indexes.  Fixed erroneous deletion of required empty inline before linebreak.
+
 **Added 2026/01/30**
 ver 1.4.6: Further Undo improvements

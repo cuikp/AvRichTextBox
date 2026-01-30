@@ -68,8 +68,6 @@ public class Paragraph : Block
    internal void CallRequestInlinesUpdate() { RequestInlinesUpdate = true; RequestInlinesUpdate = false; }
    internal void CallRequestTextLayoutInfoStart() { RequestTextLayoutInfoStart = true; RequestTextLayoutInfoStart = false; }
    internal void CallRequestTextLayoutInfoEnd() { RequestTextLayoutInfoEnd = true; RequestTextLayoutInfoEnd = false; }
-   //internal void CallRequestTextLayoutInfoStart() { RequestTextLayoutInfoStart = false; RequestTextLayoutInfoStart = true; }
-   //internal void CallRequestTextLayoutInfoEnd() { RequestTextLayoutInfoEnd = false; RequestTextLayoutInfoEnd = true; }
 
    internal void UpdateEditableRunPositions()
    {

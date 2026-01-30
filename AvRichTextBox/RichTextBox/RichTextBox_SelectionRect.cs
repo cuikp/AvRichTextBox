@@ -1,12 +1,9 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
-using System;
-using System.Collections.Generic;
+using Avalonia.VisualTree;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace AvRichTextBox;
 
@@ -88,11 +85,6 @@ public partial class RichTextBox : UserControl
       RtbVm.CaretMargin = new Thickness(caretMLeft, caretMTop, 0, 0);
       RtbVm.UpdateCaretVisible();
 
-      // Visualization rectangles:
-      //RtbVm.LineHeightRectMargin = new Thickness(caretMLeft + 3, FlowDoc.Selection.StartRect.Top, 0, 0);
-      //RtbVm.LineHeightRectHeight = textLines[lineIndex].Height; //selStartRect.Size.Height
-      //RtbVm.BaseLineRectMargin = new Thickness(caretMLeft + 5, FlowDoc.Selection.StartRect.Top + textLines[lineIndex].Baseline - textLines[lineIndex].Extent, 0, 0);
-      //RtbVm.BaseLineRectHeight = textLines[lineIndex].Baseline; //selStartRect.Size.Height
 
    }
 
@@ -147,6 +139,16 @@ public partial class RichTextBox : UserControl
       thisPar.FirstIndexLastLine = textLines[^1].FirstTextSourceIndex;
 
       RtbVm.UpdateCaretVisible();
+
+#if DEBUG
+      // Scroll Debugger panel to selection end inline
+      DebugPanel.ParagraphsLB.ScrollIntoView(thisPar);
+      if (DebugPanel.ParagraphsLB.ContainerFromItem(thisPar) is ListBoxItem lbi)
+         if (lbi.GetVisualDescendants().OfType<ItemsControl>().FirstOrDefault(c => c.Name == "InlinesIC") is ItemsControl inlinesIC)
+            if (FlowDoc.Selection.GetEndInline() is IEditable ied)
+               inlinesIC.ScrollIntoView(ied);
+#endif
+
 
    }
 

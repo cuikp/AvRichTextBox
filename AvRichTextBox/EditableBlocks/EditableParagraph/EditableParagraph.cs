@@ -41,7 +41,7 @@ public partial class EditableParagraph : SelectableTextBlock
    {
       SelectionStartRect_Changed?.Invoke(this);
       this.SetValue(TextLayoutInfoStartRequestedProperty, false);
-      
+
    }
 
    public void UpdateVMFromEPEnd()
@@ -99,7 +99,7 @@ public partial class EditableParagraph : SelectableTextBlock
                break;
 
             case "SelectedText":
-               ThisPar.UpdateUIContainersSelected(SelectionStart, SelectionEnd);
+               ThisPar.UpdateUIContainersSelected(SelectionStart, SelectionEnd);  // changes image opacity to visualize its selection
                break;
 
             case "TextLayoutInfoStartRequested":

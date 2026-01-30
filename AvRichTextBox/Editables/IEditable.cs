@@ -1,14 +1,12 @@
 ﻿using Avalonia.Controls.Documents;
 using Avalonia.Media;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
 
 namespace AvRichTextBox;
 
 public interface IEditable
 {   
    Inline BaseInline { get; }
-
    internal int MyParagraphId { get; set; }
    internal int Id { get; set; }
    internal bool IsLastInlineOfParagraph { get; set; }
@@ -35,12 +33,17 @@ public class InlineVisualizationProperties : INotifyPropertyChanged
 {
    //CLASS FOR DEBUGGER PANEL
    public event PropertyChangedEventHandler? PropertyChanged;
-   private void NotifyPropertyChanged([CallerMemberName] string propertyName = "") => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+   private void InvokeProperty(PropertyChangedEventArgs pceArgs) { PropertyChanged?.Invoke(this, pceArgs); }
 
-   public bool IsStartInline { get; set { field = value; NotifyPropertyChanged(nameof(BackBrush)); NotifyPropertyChanged(nameof(InlineSelectedBorderThickness)); } }
-   public bool IsEndInline { get; set { field = value; NotifyPropertyChanged(nameof(BackBrush)); NotifyPropertyChanged(nameof(InlineSelectedBorderThickness)); } }
-   public bool IsWithinSelectionInline { get; set { field = value; NotifyPropertyChanged(nameof(BackBrush)); } }
+   private static readonly PropertyChangedEventArgs BackBrushChangedArgs = new(nameof(BackBrush));
+   private static readonly PropertyChangedEventArgs InlineSelectedBorderThicknessChangedArgs = new(nameof(InlineSelectedBorderThickness));
+
+   public bool IsStartInline { get; set { field = value; InvokeProperty(BackBrushChangedArgs); InvokeProperty(InlineSelectedBorderThicknessChangedArgs); } }
+   public bool IsEndInline { get; set { field = value; InvokeProperty(BackBrushChangedArgs); InvokeProperty(InlineSelectedBorderThicknessChangedArgs); } }
+   public bool IsWithinSelectionInline { get; set { field = value; InvokeProperty(BackBrushChangedArgs); } }
+   
    public Thickness InlineSelectedBorderThickness => (IsStartInline || IsEndInline) ? new Thickness(3) : new Thickness(1);
+
    readonly SolidColorBrush startInlineBrush = new(Colors.LawnGreen);
    readonly SolidColorBrush endInlineBrush = new(Colors.Pink);
    readonly SolidColorBrush withinSelectionInlineBrush = new(Colors.LightGray);

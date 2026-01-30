@@ -7,80 +7,15 @@
 			 xmlns:local="using:AvRichTextBox" 
 			 x:Class="AvRichTextBox.RichTextBox" 
 			 PointerReleased="RichTextBox_PointerReleased" PointerExited="RichTextBox_PointerExited" KeyDown="RichTextBox_KeyDown"  Focusable="True"
-			 BorderBrush="Black" BorderThickness="1" Padding="2" 
-			  >
+			 BorderBrush="Black" BorderThickness="1" Padding="2" >
 
-	<DockPanel x:Name="MainDP" MinWidth="{Binding MinWidth}">
+	<DockPanel x:Name="MainDP" MinWidth="{Binding MinWidth}">  <!--this binds to viewmodel-->
 
-		<!--VISUAL DEBUGGER - Use this panel for debugging, to show a right-docked panel with visualization of runs.  It is 
-			auto hidden and inactive in Release mode, and default hidden in Debug mode but can be set by setting RunDebuggerVisible-->
-		<Border x:Name="RunDebugPanel" Width="400" BorderBrush="Gray" BorderThickness="1.5" IsVisible="True" DockPanel.Dock="Right">  <!--{Binding RunDebuggerVisible}"-->
-			<DockPanel x:Name="RunDebugger" DataContext="{Binding FlowDoc}"  >
-				<DockPanel DockPanel.Dock="Top" Background="Coral">
+		<!--VISUAL DEBUGGER - Panel for visualization of runs. Hidden/inactive in Release mode, default hidden in Debug mode but settable by: RunDebuggerVisible -->
+		<local:DebuggerPanel x:Name="DebugPanel" Width="400" DockPanel.Dock="Right" IsVisible="{Binding RunDebuggerVisible}"/>
 
-					<Border x:Name="DocSelPanel" DockPanel.Dock="Top" BorderBrush="Black" BorderThickness="0.8">
-						<DockPanel>
-							<TextBlock DockPanel.Dock="Top" Background="LightGray" Text="{Binding Selection.Start, StringFormat='DocSelStart={0}'}"/>
-							<TextBlock Background="LightGray" Text="{Binding Selection.End, StringFormat='DocSelEnd={0}'}"/>
-						</DockPanel>
-					</Border>
-				</DockPanel>
-
-				<Grid Margin="10, 1, 5, 1" ColumnDefinitions="50* 10* 10* 10*" HorizontalAlignment="Stretch" ShowGridLines="True" DockPanel.Dock="Top">
-
-					<TextBlock Grid.Column="0" Text="Text" TextAlignment="Center" />
-					<TextBlock  Grid.Column="1" Text="Idx" TextAlignment="Center" />
-					<TextBlock  Grid.Column="2" Text="Len" TextAlignment="Center" />
-					<!--<TextBlock  Grid.Column="3" Text="Font" TextAlignment="Center" />-->
-					<TextBlock  Grid.Column="3" Text="Inl_Id" TextAlignment="Center" />
-				</Grid>
-
-				<ListBox DockPanel.Dock="Top" ItemsSource="{Binding SelectionParagraphs}" Background="Wheat" BorderBrush="Black" BorderThickness="1" Padding="0" >
-					<ListBox.ItemTemplate>
-						<DataTemplate x:DataType="{x:Type local:Paragraph}">
-							<DockPanel>
-								<DockPanel DockPanel.Dock="Top" Background="AliceBlue">
-									<TextBlock DockPanel.Dock="Left" Text="{Binding Inlines.Count, StringFormat='Inlines={0}'}"/>
-									<TextBlock Margin="20, 0, 0, 0" Text="{Binding StartInDoc, StringFormat='ParStartIdxInDoc={0}'}" ToolTip.Tip="{Binding ParToolTip}" />
-								</DockPanel>
-
-
-								<ItemsControl x:Name="InlinesIC"  ItemsSource="{Binding Inlines}" Margin="-5, 2, -5, 20"  BorderBrush="DarkBlue" BorderThickness="0.7" >
-
-									<ItemsControl.ItemTemplate>
-										<DataTemplate x:DataType="{x:Type local:IEditable}">
-											<Border BorderBrush="Black" BorderThickness="{Binding InlineVP.InlineSelectedBorderThickness}" Background="{Binding InlineVP.BackBrush}">
-												<Grid ColumnDefinitions="50* 10* 10* 10*" HorizontalAlignment="Stretch" ShowGridLines="True" Margin="0" >
-													<TextBlock Margin="3, 0" Grid.Column="0" Text="{Binding DisplayInlineText}" TextWrapping="Wrap"  x:DataType="{x:Type local:EditableRun}"
-															   FontWeight="{Binding FontWeight}" FontStyle="{Binding FontStyle}"
-															   TextDecorations="{Binding TextDecorations}" ToolTip.Tip="{Binding InlineToolTip}" />
-													<TextBlock  Grid.Column="1" Text="{Binding TextPositionOfInlineInParagraph}" TextAlignment="Center" />
-													<TextBlock  Grid.Column="2" Text="{Binding InlineText.Length}" TextAlignment="Center" />
-													<TextBlock  Grid.Column="3" Text="{Binding Id}" TextAlignment="Center" />
-												</Grid>
-											</Border>
-										</DataTemplate>
-									</ItemsControl.ItemTemplate>
-								</ItemsControl>
-
-
-							</DockPanel>
-
-						</DataTemplate>
-
-					</ListBox.ItemTemplate>
-
-				</ListBox>
-
-			</DockPanel>
-
-		</Border>
-
-
-		<ScrollViewer x:Name="FlowDocSV"  HorizontalScrollBarVisibility="Disabled" Margin="0" Padding="0"
-					   Offset="{Binding RTBScrollOffset, Mode=OneWay}"  ScrollChanged="ScrollViewer_ScrollChanged"
+		<ScrollViewer x:Name="FlowDocSV"  HorizontalScrollBarVisibility="Disabled" Margin="0" Padding="0" Offset="{Binding RTBScrollOffset, Mode=OneWay}"  ScrollChanged="ScrollViewer_ScrollChanged"
 					  PointerPressed="FlowDocSV_PointerPressed" PointerMoved="FlowDocSV_PointerMoved" PointerReleased="FlowDocSV_PointerReleased" >
-
 
 			<Grid VerticalAlignment="Top">
 
@@ -135,10 +70,9 @@
 
 									<!--<DataTemplate DataType="local:Table" >
 												<Border BorderBrush="Black" BorderThickness="{Binding BorderThickness}" Background="Azure" >
-													<local:EditableTable HorizontalAlignment="Stretch" Cells="{Binding Cells}" Background="Coral"
-																		 ColDefs="{Binding ColDefs}" RowDefs="{Binding RowDefs}" />
+													<local:EditableTable HorizontalAlignment="Stretch" Cells="{Binding Cells}" Background="Coral" ColDefs="{Binding ColDefs}" RowDefs="{Binding RowDefs}" />
 												</Border>
-											</DataTemplate>-->
+										</DataTemplate>-->
 
 								</ContentControl.DataTemplates>
 							</ContentControl>
@@ -148,12 +82,8 @@
 					</ItemsControl.ItemTemplate>
 				</ItemsControl>
 
-				<TextBlock x:Name="PreeditOverlay" Padding="4, 0, 4, 2" Height="24" FontSize="15" HorizontalAlignment="Left" VerticalAlignment="Top"
-						 Foreground="Black" Background="#DDDDDD" IsHitTestVisible="False" IsVisible="False"/>
-
-				<!--test lines for caret measurement --><!--
-				<Rectangle Stroke="Red" StrokeThickness="2" Width="10" HorizontalAlignment="Left" VerticalAlignment="Top"  Margin="{Binding LineHeightRectMargin}" Height="{Binding LineHeightRectHeight}"/>
-				<Rectangle Stroke="Blue" StrokeThickness="2" Width="15" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="{Binding BaseLineRectMargin}" Height="{Binding BaseLineRectHeight}"/>-->
+				<TextBlock x:Name="PreeditOverlay" Padding="4, 0, 4, 2" Height="24" FontSize="15" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Black" Background="#DDDDDD" IsHitTestVisible="False" IsVisible="False"/>
+							
 				
 			</Grid>
 		</ScrollViewer>

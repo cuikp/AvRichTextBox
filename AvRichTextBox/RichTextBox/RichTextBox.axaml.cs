@@ -15,7 +15,7 @@ public partial class RichTextBox : UserControl
    internal FlowDocument FlowDoc => RtbVm.FlowDoc;
    private RichTextBoxViewModel RtbVm { get; set; } = new();
 
-   private void ToggleDebuggerPanel (bool visible) { RunDebugPanel.IsVisible = visible; }
+   private void ToggleDebuggerPanel (bool visible) { DebugPanel.IsVisible = visible; }
 
   
    public void ScrollToSelection()
@@ -67,9 +67,8 @@ public partial class RichTextBox : UserControl
       if (ShowDebuggerPanelInDebugMode)
       {
 #if DEBUG
-         RtbVm.RunDebuggerVisible = ShowDebuggerPanelInDebugMode;
-         //RunDebugger.DataContext = FlowDoc;  // binding set in Xaml
-         this.Width += (RtbVm.RunDebuggerVisible ? 400 : 0);
+      RtbVm.RunDebuggerVisible = ShowDebuggerPanelInDebugMode;
+      this.Width += (RtbVm.RunDebuggerVisible ? 400 : 0);
 #else
       RunDebugger.DataContext = null;
 #endif
@@ -161,8 +160,7 @@ public partial class RichTextBox : UserControl
    public void LoadXamlPackage (string fileName) { FlowDoc.LoadXamlPackage(fileName);  }
 
    private void MovePage(int direction, bool extend)
-   {  //Debug.WriteLine("trying to move page");
-
+   {  
       double currentY = 0;
       switch (FlowDoc.SelectionExtendMode)
       {
@@ -182,10 +180,8 @@ public partial class RichTextBox : UserControl
       RtbVm.RTBScrollOffset = RtbVm.RTBScrollOffset.WithY(newScrollY);
       double newCaretY = newScrollY + distanceFromTop;
       //Debug.WriteLine("\nnewCaretY = " + newCaretY + "\nnewscrollY= " + newScrollY + "\ndistanceTop=" + distanceFromTop);
-      //EditableParagraph? thisEP = DocIC.GetVisualDescendants().OfType<EditableParagraph>().Where(ep => ep.TranslatePoint(ep.Bounds.Position, DocIC)!.Value.Y <= newCaretY).LastOrDefault();
       EditableParagraph? thisEP = DocIC.GetVisualDescendants().OfType<EditableParagraph>().Where(ep => ep.TranslatePoint(ep.Bounds.Position, DocIC)!.Value.Y <= newScrollY).LastOrDefault();
       
-
       if (thisEP == null)
       {
          if (direction == -1)
@@ -196,9 +192,7 @@ public partial class RichTextBox : UserControl
                FlowDoc.SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeNone;
             }
             else
-            {
                FlowDoc.MovePageSelection(-1, extend, 0);
-            }
 
             this.Focus();
          }

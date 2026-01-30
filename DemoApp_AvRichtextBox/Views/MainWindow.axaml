@@ -180,7 +180,7 @@
 
 					<DockPanel VerticalAlignment="Bottom">
 						<TextBlock Text="DebugPanel" DockPanel.Dock="Top"/>
-						<CheckBox Checked="DebugPanelCB_CheckedUnchecked" Unchecked="DebugPanelCB_CheckedUnchecked" IsChecked="True" />
+						<CheckBox IsCheckedChanged="DebugPanelCB_CheckedUnchecked" IsChecked="True" />
 					</DockPanel>
 					
 					
