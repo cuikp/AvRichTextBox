@@ -188,7 +188,7 @@
 		<!--<avrtb:RichTextBox x:Name="MainRTB"  IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="True"  />-->
 			
 		<!--RTB with direct content -->
-		<avrtb:RichTextBox x:Name="MainRTB"  IsReadOnly="True" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="True"  >
+		<avrtb:RichTextBox x:Name="MainRTB"  IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="True"  >
 			
 			<avrtb:RichTextBox.FlowDocument>
 				<avrtb:FlowDocument >

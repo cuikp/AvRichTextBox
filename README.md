@@ -79,12 +79,13 @@ It can also save and load the FlowDoc content as a Word document (.docx), Rtf do
 
 RtfDomParser used for parsing of rtf files can be found at https://github.com/SourceCodeBackup/RtfDomParser, but for this project I had to manually modify it to use Avalonia.Media instead of System.Drawing.  Generation of .rtf is my own concoction with the bare minimum to produce a readable .rtf file/dataobject.
 
-**Added 2025/02/22:
+#Change log
+##[1.0.15] - 2025/02/22:
 Internal binding was of the RTB itself to its viewmodel, which prevented external binding to UserControl properties (such as IsVisible).  Internal binding is now to the immediate child (DockPanel "MainDP"), freeing up the properties of the UserControl itself.
 Also upgraded copy/paste to allow copying and pasting of paragraph breaks (\r), which were ignored before.
 
-**Added 2025/02/25**
-ver 1.0.16 now works with Avalonia 11.1.xx & 11.2.xx!  Binding update issues resolved.  Previous AvRichTextBox versions failed on Avalonia 11.1 and higher and have been deprecated.
+##[1.0.16] 2025/02/25:
+Now works with Avalonia 11.1.xx & 11.2.xx!  Binding update issues resolved.  Previous AvRichTextBox versions failed on Avalonia 11.1 and higher and have been deprecated.
 In addition, added IME support for Chinese/Japanese input.  Kanji and Hanzi can now be directly inputted in the RichTextBox.
 
 **Added 2025/02/26**
@@ -121,3 +122,6 @@ ver 1.4.6: Further Undo improvements
 **Added 2026/01/30**
 ver 1.4.7: No DebugPanel created at all (not just hidden) in Release mode.  Should have been this way from the start...
 
+
+##[1.5.0] 2026/01/30
+Can add direct content to RichTextBox in Xaml
