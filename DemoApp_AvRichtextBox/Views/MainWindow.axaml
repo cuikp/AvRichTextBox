@@ -52,7 +52,7 @@
 
 			<Border BorderThickness="1.5" BorderBrush="DarkBlue" Margin="15, 1, 5, 1" Padding="2">
 
-				<StackPanel   Background="LightGray" Spacing="8" HorizontalAlignment="Stretch" Orientation="Horizontal">
+				<StackPanel  x:Name="TopStackPanel"  Background="LightGray" Spacing="8" HorizontalAlignment="Stretch" Orientation="Horizontal">
 
 					<Border BorderBrush="Brown" BorderThickness="3" Padding="5">
 						<DockPanel LastChildFill="False">
@@ -177,12 +177,12 @@
 
 						</DockPanel>
 					</Border>
-
-					<DockPanel VerticalAlignment="Bottom">
+					
+					<!--<DockPanel VerticalAlignment="Bottom">
 						<TextBlock Text="DebugPanel" DockPanel.Dock="Top"/>
 						<CheckBox IsCheckedChanged="DebugPanelCB_CheckedUnchecked" IsChecked="True" />
 					</DockPanel>
-					
+					-->
 					
 				</StackPanel>
 
@@ -191,7 +191,7 @@
 		</DockPanel>
 
 	
-		<avrtb:RichTextBox x:Name="MainRTB"  ShowDebuggerPanelInDebugMode="True" IsReadOnly="False" LineBreakOnShiftEnter="True"  >
+		<avrtb:RichTextBox x:Name="MainRTB"  IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="True"  >
 			<!--<avrtb:FlowDocument Blocks="{Binding MyBlocks, DataType={x:Type vm:MainWindowViewModel}}"  >
 				
 			</avrtb:FlowDocument>-->

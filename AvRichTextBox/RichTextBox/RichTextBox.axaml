@@ -11,9 +11,6 @@
 
 	<DockPanel x:Name="MainDP" MinWidth="{Binding MinWidth}">  <!--this binds to viewmodel-->
 
-		<!--VISUAL DEBUGGER - Panel for visualization of runs. Hidden/inactive in Release mode, default hidden in Debug mode but settable by: RunDebuggerVisible -->
-		<local:DebuggerPanel x:Name="DebugPanel" Width="400" DockPanel.Dock="Right" IsVisible="{Binding RunDebuggerVisible}"/>
-
 		<ScrollViewer x:Name="FlowDocSV"  HorizontalScrollBarVisibility="Disabled" Margin="0" Padding="0" Offset="{Binding RTBScrollOffset, Mode=OneWay}"  ScrollChanged="ScrollViewer_ScrollChanged"
 					  PointerPressed="FlowDocSV_PointerPressed" PointerMoved="FlowDocSV_PointerMoved" PointerReleased="FlowDocSV_PointerReleased" >
 

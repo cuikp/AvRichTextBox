@@ -117,3 +117,7 @@ ver 1.4.5: Multiple/overlapping text formatting and undos now work better being 
 
 **Added 2026/01/30**
 ver 1.4.6: Further Undo improvements
+
+**Added 2026/01/30**
+ver 1.4.7: No DebugPanel created at all (not just hidden) in Release mode.  Should have been this way from the start...
+

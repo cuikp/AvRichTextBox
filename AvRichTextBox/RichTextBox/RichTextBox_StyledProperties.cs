@@ -11,14 +11,6 @@ public partial class RichTextBox
       set => SetValue(FlowDocumentProperty, value);
    }
 
-   public static readonly StyledProperty<bool> ShowDebuggerPanelInDebugModeProperty = AvaloniaProperty.Register<RichTextBox, bool>(nameof(ShowDebuggerPanelInDebugMode), false);
-   public bool ShowDebuggerPanelInDebugMode
-   {
-
-      get => GetValue(ShowDebuggerPanelInDebugModeProperty);
-      set { SetValue(ShowDebuggerPanelInDebugModeProperty, value); ToggleDebuggerPanel(value); }
-   }
-
    public static readonly StyledProperty<bool> IsReadOnlyProperty = AvaloniaProperty.Register<RichTextBox, bool>(nameof(IsReadOnly), false);
    public bool IsReadOnly
    {
@@ -32,6 +24,20 @@ public partial class RichTextBox
       get => GetValue(LineBreakOnShiftEnterProperty);
       set { SetValue(LineBreakOnShiftEnterProperty, value);  }
    }
+
+   public static readonly StyledProperty<bool> ShowDebuggerPanelInDebugModeProperty = AvaloniaProperty.Register<RichTextBox, bool>(nameof(ShowDebuggerPanelInDebugMode), false);
+   public bool ShowDebuggerPanelInDebugMode
+   {
+      get => GetValue(ShowDebuggerPanelInDebugModeProperty);
+      set 
+      { 
+         SetValue(ShowDebuggerPanelInDebugModeProperty, value);
+#if DEBUG
+         ToggleDebuggerPanel(value); 
+#endif
+      }
+   }
+
 
 
 }

@@ -7,6 +7,7 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
+using System.Diagnostics;
 
 namespace AvRichTextBox;
 
@@ -15,9 +16,15 @@ public partial class RichTextBox : UserControl
    internal FlowDocument FlowDoc => RtbVm.FlowDoc;
    private RichTextBoxViewModel RtbVm { get; set; } = new();
 
-   private void ToggleDebuggerPanel (bool visible) { DebugPanel.IsVisible = visible; }
+#if DEBUG
+   //VISUAL DEBUGGER -Panel for visualization of runs.Hidden / inactive in Release mode, default hidden in Debug mode but settable by: RunDebuggerVisible
+   private DebuggerPanel debuggerPanel = null!;
 
-  
+   private void ToggleDebuggerPanel (bool visible) { debuggerPanel?.IsVisible = visible; }
+
+#endif
+
+
    public void ScrollToSelection()
    {
       RtbVm.RTBScrollOffset = RtbVm.RTBScrollOffset.WithY(FlowDoc.Selection.StartRect.Y - 50);
@@ -67,10 +74,13 @@ public partial class RichTextBox : UserControl
       if (ShowDebuggerPanelInDebugMode)
       {
 #if DEBUG
+      debuggerPanel = new() { Width = 400 };
+      DockPanel.SetDock(debuggerPanel, Dock.Right);
+      MainDP.Children.Insert(0, debuggerPanel);
+      debuggerPanel.Bind(Visual.IsVisibleProperty, new Binding("RunDebuggerVisible"));
+      
       RtbVm.RunDebuggerVisible = ShowDebuggerPanelInDebugMode;
       this.Width += (RtbVm.RunDebuggerVisible ? 400 : 0);
-#else
-      RunDebugger.DataContext = null;
 #endif
       }
 

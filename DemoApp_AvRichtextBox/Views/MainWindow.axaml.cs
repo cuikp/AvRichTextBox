@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using AvRichTextBox;
+using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -38,6 +39,20 @@ public partial class MainWindow : Window
    private void MainWindow_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
    {
       MainRTB.FlowDocument.Selection_Changed += FlowDocument_Selection_Changed;
+
+#if DEBUG
+      
+      DockPanel debugCBPanel = new () { VerticalAlignment = Avalonia.Layout.VerticalAlignment.Bottom };
+      TextBlock debugTB = new () { Text = "DebugPanel" };
+      CheckBox debugCB = new();
+      debugCB.IsCheckedChanged += DebugPanelCB_CheckedUnchecked;
+      debugCB.IsChecked = true;
+      debugCBPanel.Children.Add(debugTB);
+      debugCBPanel.Children.Add(debugCB);
+      DockPanel.SetDock(debugTB, Dock.Top);
+      TopStackPanel.Children.Add(debugCBPanel);
+      
+#endif
 
       progChange = false;
 
@@ -214,11 +229,13 @@ public partial class MainWindow : Window
       MainRTB.FlowDocument.Selection.ApplyFormatting(BackgroundProperty, hBrush);
    }
 
+#if DEBUG
    private void DebugPanelCB_CheckedUnchecked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
    {
       if (sender is CheckBox thisCB && MainRTB != null)
          MainRTB.ShowDebuggerPanelInDebugMode = thisCB.IsChecked is bool b && b;
    }
+#endif
 
    private void FontsComboBox_DropDownClosed(object? sender, System.EventArgs e)
    {

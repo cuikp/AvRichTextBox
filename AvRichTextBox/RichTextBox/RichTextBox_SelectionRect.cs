@@ -142,8 +142,8 @@ public partial class RichTextBox : UserControl
 
 #if DEBUG
       // Scroll Debugger panel to selection end inline
-      DebugPanel.ParagraphsLB.ScrollIntoView(thisPar);
-      if (DebugPanel.ParagraphsLB.ContainerFromItem(thisPar) is ListBoxItem lbi)
+      debuggerPanel?.ParagraphsLB.ScrollIntoView(thisPar);
+      if (debuggerPanel?.ParagraphsLB.ContainerFromItem(thisPar) is ListBoxItem lbi)
          if (lbi.GetVisualDescendants().OfType<ItemsControl>().FirstOrDefault(c => c.Name == "InlinesIC") is ItemsControl inlinesIC)
             if (FlowDoc.Selection.GetEndInline() is IEditable ied)
                inlinesIC.ScrollIntoView(ied);
