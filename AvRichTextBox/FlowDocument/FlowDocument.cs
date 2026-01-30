@@ -1,4 +1,5 @@
-﻿using Avalonia.Media;
+﻿using Avalonia.Data;
+using Avalonia.Media;
 using DynamicData;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -38,16 +39,12 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
 
    public List<Paragraph> GetSelectedParagraphs => [.. Blocks.Where(b=> b.StartInDoc <= Selection.Start && b.EndInDoc >= Selection.End).Select(b=>(Paragraph)b)];
 
-   public ObservableCollection<Block> Blocks { get; set; } = [];
-
-   //public static readonly StyledProperty<ObservableCollection<Block>> BlocksProperty =
-   //AvaloniaProperty.Register<FlowDocument, ObservableCollection<Block>>(nameof(Blocks), [], defaultBindingMode: BindingMode.TwoWay);
-
-   //public ObservableCollection<Block> Blocks
-   //{
-   //   get => GetValue(BlocksProperty);
-   //   set { SetValue(BlocksProperty, value); }
-   //}
+   public static readonly StyledProperty<ObservableCollection<Block>> BlocksProperty = AvaloniaProperty.Register<FlowDocument, ObservableCollection<Block>>(nameof(Blocks), [], defaultBindingMode: BindingMode.TwoWay);
+   public ObservableCollection<Block> Blocks
+   {
+      get => GetValue(BlocksProperty);
+      set { SetValue(BlocksProperty, value); }
+   }
 
    public string Text => string.Join("", Blocks.ToList().ConvertAll(b => string.Join("", b.Text + Environment.NewLine)));
    
@@ -100,8 +97,6 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
       Selection.Start_Changed += SelectionStart_Changed;
       Selection.End_Changed += SelectionEnd_Changed;
 
-      NewDocument();
-
       DefineFormatRunActions();
 
       //this.PropertyChanged += FlowDocument_PropertyChanged;
@@ -110,15 +105,15 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
 
    }
 
-   private void FlowDocument_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-   {
-      //Debug.WriteLine("property name = " + e.PropertyName);
+   //private void FlowDocument_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+   //{
+   //   //Debug.WriteLine("property name = " + e.PropertyName);
 
-      if (e.PropertyName == "Blocks")
-      {
-         //Debug.WriteLine("FlowDoc property changed: Blocks changed");
-      }
-   }
+   //   if (e.PropertyName == "Blocks")
+   //   {
+   //      //Debug.WriteLine("FlowDoc property changed: Blocks changed");
+   //   }
+   //}
 
    internal void NewDocument()
    {
@@ -188,8 +183,8 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
 
    internal void SelectionStart_Changed(TextRange selRange, int newStart)
    {
-
-      Paragraph startPar = GetContainingParagraph(newStart);
+      if (GetContainingParagraph(newStart) is not Paragraph startPar) return;
+      //Paragraph startPar = GetContainingParagraph(newStart);
       selRange.StartParagraph = startPar;
       startPar.SelectionStartInBlock = newStart - startPar.StartInDoc;
       startPar.CallRequestTextLayoutInfoStart();
@@ -217,9 +212,10 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
 
    internal void SelectionEnd_Changed(TextRange selRange, int newEnd)
    {
-            
-      selRange.EndParagraph = GetContainingParagraph(newEnd);
-      
+
+      if (GetContainingParagraph(newEnd) is not Paragraph endPar) return;
+      selRange.EndParagraph = endPar;
+     
       selRange.EndParagraph.SelectionEndInBlock = newEnd - selRange.EndParagraph.StartInDoc;
     
       selRange.EndParagraph.CallRequestTextLayoutInfoEnd();

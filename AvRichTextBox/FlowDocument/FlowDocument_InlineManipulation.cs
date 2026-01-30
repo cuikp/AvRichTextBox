@@ -190,25 +190,7 @@ public partial class FlowDocument
       }
       return removedParCount;
    }
-
-   //internal void RemoveEmptyInlines(List<int> processParIndexes)
-   //{
-   //   List<IEditable> toDeleteRuns = [];
-   //   //for (int idx = 0; idx < processParIndexes.Count; idx ++)
-   //   for (int idx = processParIndexes.Count - 1; idx >=0; idx --)
-   //   {
-   //      Paragraph p = (Paragraph)Blocks[processParIndexes[idx]];
-   //      for (int iedno = p.Inlines.Count - 1; iedno >= 0; iedno -= 1)
-   //         if (p.Inlines[iedno].InlineText == "" && p.Inlines.Count > 1)
-   //            p.Inlines.RemoveAt(iedno);
-
-   //      if (p.Inlines.Count == 0 && p != Blocks[processParIndexes[0]])
-   //         Blocks.Remove(p);
-   //   }
-
-   //   UpdateBlockAndInlineStarts(processParIndexes[0]);
-
-   //}
+     
 
    internal List<IEditable> SplitRunAtPos(int charPos, IEditable inlineToSplit, int splitPos)
    {

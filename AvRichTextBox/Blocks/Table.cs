@@ -1,22 +1,17 @@
-﻿//using Avalonia;
-//using Avalonia.Controls;
+﻿using Avalonia.Controls;
 //using Avalonia.Media;
-//using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 //using System.ComponentModel;
 //using System.Runtime.CompilerServices;
 
-//namespace AvRichTextBox;
+namespace AvRichTextBox;
 
-//public partial class Table : Block, INotifyPropertyChanged
-//{
-//   public new event PropertyChangedEventHandler? PropertyChanged;
-//   private new void NotifyPropertyChanged([CallerMemberName] string propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
-
-//   public Thickness BorderThickness => new Thickness(1);
-
-//   public ObservableCollection<Border> Cells { get; set; } = [];
-//   public ColumnDefinitions ColDefs { get; set; } = [];
-//   public RowDefinitions RowDefs { get; set; } = [];
+public partial class Table : Block
+{
+   public Thickness BorderThickness { get; set; } = new(1);
+   public ObservableCollection<Border> Cells { get; set; } = [];
+   public ColumnDefinitions ColDefs { get; set; } = [];
+   public RowDefinitions RowDefs { get; set; } = [];
 
 
 //   public Table(int noCols, int noRows, double TableWidth)
@@ -50,5 +45,5 @@
 
 
 
-//}
+}
 

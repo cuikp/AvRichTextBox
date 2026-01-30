@@ -6,6 +6,7 @@ namespace AvRichTextBox;
 
 public class EditableInlineUIContainer : InlineUIContainer, IEditable
 {
+   public EditableInlineUIContainer() { Id = ++FlowDocument.InlineIdCounter; }
 
    public EditableInlineUIContainer(Control c) { Child = c; Id = ++FlowDocument.InlineIdCounter; }
 

@@ -1,7 +1,4 @@
-﻿
-using AvRichTextBox;
-using DocumentFormat.OpenXml.Spreadsheet;
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -22,7 +19,7 @@ public partial class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
    string CurrentExt => Path.GetExtension(CurrentOpenFilePath);
    public string CurrentOpenFileNameExt => "DemoApp_AvRichTextBox - " + CurrentOpenFileName + CurrentExt;
 
-   public FlowDocument MyFlowDoc { get; set; } = new FlowDocument();
+   //public FlowDocument MyFlowDoc { get; set; } = new FlowDocument();
    //public ObservableCollection<Block> MyBlocks { get; set; } = [];
 
    public MainWindowViewModel()
@@ -30,10 +27,8 @@ public partial class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
       //Testing creation a flow doc for binding:
       //Paragraph p = new();
       //p.Inlines.Add(new EditableRun("This is a fixxxxxrst inline"));
-
       //MyFlowDoc.Blocks.Clear();
       //MyFlowDoc.Blocks.Add(p);
-
       //MyBlocks.Add(p);
 
 

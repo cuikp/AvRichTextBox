@@ -178,12 +178,6 @@
 						</DockPanel>
 					</Border>
 					
-					<!--<DockPanel VerticalAlignment="Bottom">
-						<TextBlock Text="DebugPanel" DockPanel.Dock="Top"/>
-						<CheckBox IsCheckedChanged="DebugPanelCB_CheckedUnchecked" IsChecked="True" />
-					</DockPanel>
-					-->
-					
 				</StackPanel>
 
 			</Border>
@@ -191,10 +185,39 @@
 		</DockPanel>
 
 	
-		<avrtb:RichTextBox x:Name="MainRTB"  IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="True"  >
-			<!--<avrtb:FlowDocument Blocks="{Binding MyBlocks, DataType={x:Type vm:MainWindowViewModel}}"  >
-				
-			</avrtb:FlowDocument>-->
+		<!--<avrtb:RichTextBox x:Name="MainRTB"  IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="True"  />-->
+			
+		<!--RTB with direct content -->
+		<avrtb:RichTextBox x:Name="MainRTB"  IsReadOnly="True" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="True"  >
+			
+			<avrtb:RichTextBox.FlowDocument>
+				<avrtb:FlowDocument >
+					<avrtb:FlowDocument.Blocks>
+						<avrtb:Paragraph>
+							<avrtb:Paragraph.Inlines>
+								<avrtb:EditableRun Text="Test line 1"/>
+							</avrtb:Paragraph.Inlines>
+						</avrtb:Paragraph>
+	
+						<avrtb:Paragraph>
+							<avrtb:Paragraph.Inlines>
+								<avrtb:EditableInlineUIContainer>
+									<Image Width="100" Height="60" Source="avares://DemoApp_AvRichTextBox/Assets/avalonia-logo.ico"/>
+								</avrtb:EditableInlineUIContainer>
+							</avrtb:Paragraph.Inlines>
+						</avrtb:Paragraph>
+	
+						<avrtb:Paragraph>
+							<avrtb:Paragraph.Inlines>
+								<avrtb:EditableRun Text="Test line 2. "/>
+								<avrtb:EditableRun Text="With second run."/>
+							</avrtb:Paragraph.Inlines>
+						</avrtb:Paragraph>
+
+					</avrtb:FlowDocument.Blocks>
+				</avrtb:FlowDocument>
+			</avrtb:RichTextBox.FlowDocument>
+
 		</avrtb:RichTextBox>
 
 	</DockPanel>

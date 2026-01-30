@@ -4,7 +4,7 @@ namespace AvRichTextBox;
 
 public partial class RichTextBox
 {
-   public static readonly StyledProperty<FlowDocument> FlowDocumentProperty = AvaloniaProperty.Register<RichTextBox, FlowDocument>(nameof(FlowDocument), defaultValue: new FlowDocument(), defaultBindingMode: BindingMode.TwoWay);
+   public static readonly StyledProperty<FlowDocument> FlowDocumentProperty = AvaloniaProperty.Register<RichTextBox, FlowDocument>(nameof(FlowDocument), defaultValue: null!, defaultBindingMode: BindingMode.TwoWay);
    public FlowDocument FlowDocument
    {
       get => GetValue(FlowDocumentProperty);

@@ -18,8 +18,23 @@ public class Paragraph : Block
 
    private void Inlines_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
    {
-      foreach (IEditable ied in Inlines)
+      foreach (IEditable ied in Inlines) 
          ied.MyParagraphId = this.Id;
+
+      //if (e.NewItems != null)
+      //{
+      //   foreach (IEditable ied in e.NewItems)
+      //   {
+      //      if (ied is EditableLineBreak elb)
+      //      {
+      //         int elbIdx = Inlines.IndexOf(elb);
+      //         Debug.WriteLine("ndex = " + elbIdx);
+      //         if (elbIdx == 0 || (Inlines[elbIdx - 1] is EditableRun erun && erun.Text != ""))
+      //            Inlines.Insert(elbIdx, new EditableRun(""));
+      //      }
+      //   }
+      //}
+
    }
 
    public string ParToolTip => $"Background: {Background}\nLineSpacing: {LineSpacing}\nLineHeight: {LineHeight}";

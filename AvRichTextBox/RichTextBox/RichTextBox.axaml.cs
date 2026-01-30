@@ -42,8 +42,12 @@ public partial class RichTextBox : UserControl
       this.GotFocus += RichTextBox_GotFocus;
       this.LostFocus += RichTextBox_LostFocus;
 
-      FlowDocument = new FlowDocument();
-
+      //if (FlowDocument == null)
+      //{
+      //   FlowDocument = new FlowDocument();
+      //   FlowDoc.NewDocument();
+      //}
+         
       RtbVm.FlowDocChanged += RtbVM_FlowDocChanged;
 
       MainDP.DataContext = RtbVm;  // bind to child DockPanel, not the UserControl itself
@@ -84,11 +88,15 @@ public partial class RichTextBox : UserControl
 #endif
       }
 
+      if (FlowDocument == null)
+      {
+         FlowDocument = new ();
+         FlowDoc.NewDocument();
+      }
+
       FlowDoc.ShowDebugger = RtbVm.RunDebuggerVisible;
 
       this.Focus();
-
-      //FlowDoc.NewDocument();
 
       //CreateClient();
 

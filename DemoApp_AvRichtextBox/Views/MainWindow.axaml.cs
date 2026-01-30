@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using AvRichTextBox;
-using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -55,10 +54,6 @@ public partial class MainWindow : Window
 #endif
 
       progChange = false;
-
-      ////Temp debugging
-      //string testLocation = Path.Combine(AppContext.BaseDirectory, "TestFiles");
-      //MainRTB.LoadWordDoc(Path.Combine(testLocation, "TestDocumentWord.docx"));
 
    }
 

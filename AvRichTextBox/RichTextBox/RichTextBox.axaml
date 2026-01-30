@@ -64,12 +64,12 @@
 										</Border>
 									</DataTemplate>
 
-
-									<!--<DataTemplate DataType="local:Table" >
-												<Border BorderBrush="Black" BorderThickness="{Binding BorderThickness}" Background="Azure" >
-													<local:EditableTable HorizontalAlignment="Stretch" Cells="{Binding Cells}" Background="Coral" ColDefs="{Binding ColDefs}" RowDefs="{Binding RowDefs}" />
-												</Border>
-										</DataTemplate>-->
+<!--
+									<DataTemplate DataType="local:Table" >
+										<Border BorderBrush="Black" BorderThickness="{Binding BorderThickness}" Background="Azure" >
+											<local:EditableTable HorizontalAlignment="Stretch" Cells="{Binding Cells}" Background="Coral" ColDefs="{Binding ColDefs}" RowDefs="{Binding RowDefs}" />
+										</Border>
+									</DataTemplate>-->
 
 								</ContentControl.DataTemplates>
 							</ContentControl>

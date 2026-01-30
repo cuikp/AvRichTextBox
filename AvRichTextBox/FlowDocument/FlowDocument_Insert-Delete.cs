@@ -161,7 +161,7 @@ public partial class FlowDocument
 
       //Debug.WriteLine("split runs\n" + string.Join("\n", eruns.OfType<EditableRun>().ToList().ConvertAll(er => er.Text)));
 
-      EditableLineBreak newELB = new ();
+      var newELB = new EditableLineBreak();
       startPar.Inlines.Insert(runIdx + 1, newELB);
 
       Undos.Add(new InsertLineBreakUndo(Selection.StartParagraph.Id, newELB.Id, (eruns[0].Id, eruns[1].Id), runIdx, originalInline, this, Selection.Start));

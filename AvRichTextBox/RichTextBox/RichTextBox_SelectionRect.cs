@@ -24,8 +24,6 @@ public partial class RichTextBox : UserControl
 
       if (selStartPoint == null || prevCharPoint == null) return;
 
-      //Debug.WriteLine("selstartpoint= " + selStartPoint!.Value.Y);
-
       FlowDoc.Selection.StartRect = new Rect((Point)selStartPoint, selStartRect.Size);
       FlowDoc.Selection.PrevCharRect = new Rect((Point)prevCharPoint, prevCharRect.Size);
 
@@ -33,7 +31,8 @@ public partial class RichTextBox : UserControl
 
       thisPar.DistanceSelectionStartFromLeft = selStartRect.Left;
 
-      List<TextLine> textLines = [.. tlayout.TextLines];
+      //List<TextLine> textLines = [.. tlayout.TextLines];
+      IReadOnlyList<TextLine> textLines = tlayout.TextLines;
 
       int lineNo = tlayout.GetLineIndexFromCharacterIndex(edPar.SelectionStart, false);
       thisPar.IsStartAtFirstLine = lineNo == 0;
@@ -51,7 +50,6 @@ public partial class RichTextBox : UserControl
       else
          thisPar.CharNextLineStart = GetClosestIndex(edPar, lineNo, thisPar.DistanceSelectionStartFromLeft, 1);
 
-      //ThisPar.FirstIndexStartLine = tlayout.TextLines[lineNo].FirstTextSourceIndex;
       thisPar.FirstIndexStartLine = FlowDoc.Selection.IsAtEndOfLineSpace ? 
          textLines[Math.Max(0, lineNo -1)].FirstTextSourceIndex : 
          textLines[lineNo].FirstTextSourceIndex;

@@ -8,35 +8,34 @@ namespace AvRichTextBox;
 
 public partial class EditableTable : Grid, IEditableBlock
 {
-   ////public bool IsEditable { get; set; } = true;
-   ////SolidColorBrush caretBrush = new SolidColorBrush(Colors.Cyan, 0.55);
+   public bool IsEditable { get; set; } = true;
 
-   //public static readonly StyledProperty<ObservableCollection<Border>> CellsProperty = AvaloniaProperty.Register<EditableTable, ObservableCollection<Border>>(nameof(Cells));
-   //public static readonly StyledProperty<ColumnDefinitions> ColDefsProperty = AvaloniaProperty.Register<EditableTable, ColumnDefinitions>(nameof(ColDefs));
-   //public static readonly StyledProperty<RowDefinitions> RowDefsProperty = AvaloniaProperty.Register<EditableTable, RowDefinitions>(nameof(RowDefs));
-   
-   //public ColumnDefinitions ColDefs
-   //{
-   //   get => GetValue(ColDefsProperty);
-   //   set  { SetValue(ColDefsProperty, value); }
-   //}
+   public static readonly StyledProperty<ObservableCollection<Border>> CellsProperty = AvaloniaProperty.Register<EditableTable, ObservableCollection<Border>>(nameof(Cells));
+   public static readonly StyledProperty<ColumnDefinitions> ColDefsProperty = AvaloniaProperty.Register<EditableTable, ColumnDefinitions>(nameof(ColDefs));
+   public static readonly StyledProperty<RowDefinitions> RowDefsProperty = AvaloniaProperty.Register<EditableTable, RowDefinitions>(nameof(RowDefs));
 
-   //public RowDefinitions RowDefs
-   //{
-   //   get => GetValue(RowDefsProperty);
-   //   set { SetValue(RowDefsProperty, value); }
-   //}
+   public ColumnDefinitions ColDefs
+   {
+      get => GetValue(ColDefsProperty);
+      set { SetValue(ColDefsProperty, value); }
+   }
 
-   //public ObservableCollection<Border> Cells
-   //{
-   //   get => GetValue(CellsProperty);
-   //   set => SetValue(CellsProperty, value);
-   //}
+   public RowDefinitions RowDefs
+   {
+      get => GetValue(RowDefsProperty);
+      set { SetValue(RowDefsProperty, value); }
+   }
+
+   public ObservableCollection<Border> Cells
+   {
+      get => GetValue(CellsProperty);
+      set => SetValue(CellsProperty, value);
+   }
 
    //public EditableTable()
    //{
    //   this.Loaded += EditableTable_Loaded;
-      
+
    //}
 
    //private void Cells_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -77,7 +76,7 @@ public partial class EditableTable : Grid, IEditableBlock
    //      this.Children.Add(b);
    //      //Debug.WriteLine(Grid.GetRow(b));
    //   }
-      
+
    //   //Debug.WriteLine("cellcount=" + Cells.Count);
 
    //   this.UpdateLayout();

@@ -14,9 +14,6 @@ public class EditableRun : Run, IEditable
       FontSize = 16;
       BaselineAlignment = BaselineAlignment.Baseline;
       Id = ++FlowDocument.InlineIdCounter;
-
-
-      
    }
 
    public int Id { get; set; }
