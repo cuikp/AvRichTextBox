@@ -241,7 +241,7 @@ public partial class FlowDocument : AvaloniaObject, INotifyPropertyChanged
    internal void UpdateSelectedParagraphs()
    {
       SelectionParagraphs.Clear();
-      SelectionParagraphs.AddRange(Blocks.Where(p => p.StartInDoc + p.BlockLength > Selection.Start && p.StartInDoc <= Selection.End).ToList().ConvertAll(bb => (Paragraph)bb));
+      SelectionParagraphs.AddRange(Blocks.OfType<Paragraph>().Where(p => p.StartInDoc + p.BlockLength > Selection.Start && p.StartInDoc <= Selection.End).ToList());
    }
 
    internal string GetText(TextRange tRange) => string.Join("", GetRangeInlines(tRange).ConvertAll(il => il.InlineText));

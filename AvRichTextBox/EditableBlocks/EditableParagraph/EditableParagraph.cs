@@ -2,6 +2,8 @@
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
+using DocumentFormat.OpenXml.ExtendedProperties;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace AvRichTextBox;
 
@@ -23,12 +25,29 @@ public partial class EditableParagraph : SelectableTextBlock
 
       //this.KeyDown += EditableParagraph_KeyDown;
 
+
    }
+
 
    private void EditableParagraph_Loaded(object? sender, RoutedEventArgs e)
    {
       UpdateInlines();
-            
+      
+      if (this.DataContext is not Paragraph thisPar) return;
+
+      if (Inlines?.Count == 0)
+         thisPar.Inlines.Add(new EditableRun(""));
+
+      List<int> lineBreakIndexes = Inlines.OfType<EditableLineBreak>().ToList().ConvertAll(elb => Inlines.IndexOf(elb));
+      for (int idx = lineBreakIndexes.Count - 1; idx >= 0; idx--)
+      {
+         int elbIdx = lineBreakIndexes[idx];
+         if (elbIdx == 0 || (Inlines[elbIdx - 1] is EditableRun erun && erun.Text != ""))
+            thisPar.Inlines.Insert(elbIdx + 1, new EditableRun(""));
+      }
+      thisPar.UpdateEditableRunPositions();
+      UpdateInlines();
+
    }
 
    public static readonly StyledProperty<bool> TextLayoutInfoStartRequestedProperty = AvaloniaProperty.Register<EditableParagraph, bool>(nameof(TextLayoutInfoStartRequested));
@@ -170,7 +189,6 @@ public partial class EditableParagraph : SelectableTextBlock
 
    internal void UpdateInlines()
    {
-
       if (((Paragraph)this.DataContext!).Inlines != null)
          this.Inlines = GetFormattedInlines();
 
@@ -182,6 +200,7 @@ public partial class EditableParagraph : SelectableTextBlock
 
       this.InvalidateMeasure();
       this.InvalidateVisual();
+
 
    }
 

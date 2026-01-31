@@ -5,14 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:avrtb="using:AvRichTextBox"
 		xmlns:cc="using:CustomControls"
-        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="800" Height="800" Width="950" MinWidth="500"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="800" Height="800" Width="950" MinWidth="500" MinHeight="200"
         x:Class="DemoApp_AvRichtextBox.Views.MainWindow" WindowStartupLocation="CenterScreen"
-        Icon="/Assets/avalonia-logo.ico"
-		Title="{Binding CurrentOpenFileNameExt, DataType={x:Type vm:MainWindowViewModel}}">
+        Icon="/Assets/avalonia-logo.ico" Title="{Binding CurrentOpenFileNameExt, DataType={x:Type vm:MainWindowViewModel}}">
 
 
 	<DockPanel>
 
+		<!-- Formatting controls panel -->
 		<DockPanel DockPanel.Dock="Top"  >
 			<DockPanel DockPanel.Dock="Left" Width="150" LastChildFill="False" >
 				<Menu DockPanel.Dock="Top" BorderBrush="Gray" BorderThickness="1">
@@ -196,6 +196,7 @@
 						<avrtb:Paragraph>
 							<avrtb:Paragraph.Inlines>
 								<avrtb:EditableRun Text="Test line 1"/>
+								<avrtb:EditableLineBreak/>
 							</avrtb:Paragraph.Inlines>
 						</avrtb:Paragraph>
 	
@@ -209,10 +210,31 @@
 	
 						<avrtb:Paragraph>
 							<avrtb:Paragraph.Inlines>
-								<avrtb:EditableRun Text="Test line 2. "/>
-								<avrtb:EditableRun Text="With second run."/>
+								<avrtb:EditableRun Text="Test line 2"/>
 							</avrtb:Paragraph.Inlines>
 						</avrtb:Paragraph>
+
+						<avrtb:Paragraph/>
+
+					<!--	<avrtb:Table ColDefs="100, 150, 100, 100" Height="300" RowDefs="100, 100, 100" BorderThickness="3"/>-->
+
+					<!--	<avrtb:Table BorderThickness="7" ColDefs="100, 150, 100, 100" RowDefs="100, 100, 100" >
+							<avrtb:Table.Cells>
+								<avrtb:Cell RowNo="0" ColNo="0" BorderBrush="Red" BorderThickness="1" >
+									<avrtb:Cell.CellContent>
+										<avrtb:Paragraph>
+											<avrtb:Paragraph.Inlines>
+												<avrtb:EditableRun Text="Cell text"/>
+											</avrtb:Paragraph.Inlines>
+										</avrtb:Paragraph>
+									</avrtb:Cell.CellContent>
+									</avrtb:Cell>
+								<avrtb:Cell RowNo="0" ColNo="2" BorderBrush="Red" BorderThickness="5"/>
+								<avrtb:Cell RowNo="2" ColNo="1" BorderBrush="Green" BorderThickness="2"/>
+								<avrtb:Cell RowNo="2" ColNo="3" BorderBrush="Red" BorderThickness="2"/>
+							</avrtb:Table.Cells>
+						</avrtb:Table>
+-->
 
 					</avrtb:FlowDocument.Blocks>
 				</avrtb:FlowDocument>

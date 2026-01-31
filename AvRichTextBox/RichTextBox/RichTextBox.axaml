@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:dataannotations="using:System.ComponentModel.DataAnnotations"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:system="using:System"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" Background="WhiteSmoke"
@@ -31,6 +32,7 @@
 							<ContentControl Content="{Binding}" HorizontalAlignment="Stretch" >
 
 								<ContentControl.DataTemplates>
+								
 									<DataTemplate DataType="local:Paragraph">
 									
 										<Border BorderThickness="{Binding BorderThickness}" BorderBrush="{Binding BorderBrush}" CornerRadius="3" Margin="{Binding Margin}"
@@ -64,12 +66,44 @@
 										</Border>
 									</DataTemplate>
 
-<!--
+
 									<DataTemplate DataType="local:Table" >
-										<Border BorderBrush="Black" BorderThickness="{Binding BorderThickness}" Background="Azure" >
-											<local:EditableTable HorizontalAlignment="Stretch" Cells="{Binding Cells}" Background="Coral" ColDefs="{Binding ColDefs}" RowDefs="{Binding RowDefs}" />
+										<Border BorderBrush="Black" BorderThickness="{Binding BorderThickness}" Margin="{Binding Margin}" HorizontalAlignment="{Binding TableAlignment}" Width="{Binding Width}" Height="{Binding Height}" Background="Azure" >
+											
+											<local:EditableTable Background="GhostWhite" ShowGridLines="True" >
+												<ItemsControl ItemsSource="{Binding Cells}">
+
+													<ItemsControl.ItemsPanel>
+														<ItemsPanelTemplate>
+															<local:BindableGrid ShowGridLines="True" RowDefs="{Binding RowDefs}" ColDefs="{Binding ColDefs}"/>
+														</ItemsPanelTemplate>
+													  </ItemsControl.ItemsPanel>
+
+														<ItemsControl.Styles>
+															<Style Selector="ItemsControl > ContentPresenter">
+															  <Setter Property="Grid.Row" Value="{Binding RowNo}" />
+															  <Setter Property="Grid.Column" Value="{Binding ColNo}" />
+															</Style>
+													  </ItemsControl.Styles>
+
+
+													  <ItemsControl.ItemTemplate>
+														<DataTemplate x:DataType="{x:Type local:Cell}">
+														  <local:EditableCell 
+														    Grid.Row="{Binding RowNo}"
+														    Grid.Column="{Binding ColNo}"
+															BorderThickness="{Binding BorderThickness}"
+															BorderBrush="{Binding BorderBrush}"
+														  >
+															<local:EditableParagraph DataContext="{Binding CellContent}" />  
+														  
+														  </local:EditableCell>
+														</DataTemplate>
+													  </ItemsControl.ItemTemplate>
+												</ItemsControl>
+											</local:EditableTable>
 										</Border>
-									</DataTemplate>-->
+									</DataTemplate>
 
 								</ContentControl.DataTemplates>
 							</ContentControl>

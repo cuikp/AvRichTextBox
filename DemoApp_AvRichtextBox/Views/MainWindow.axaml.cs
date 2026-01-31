@@ -55,6 +55,10 @@ public partial class MainWindow : Window
 
       progChange = false;
 
+      //Test Table
+      MainRTB.FlowDocument.Blocks.Add(new Table(7, 5) { BorderThickness = new(1), TableAlignment = Avalonia.Layout.HorizontalAlignment.Center });
+      
+
    }
 
    private void CreateNewDocumentMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)

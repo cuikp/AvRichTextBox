@@ -216,7 +216,9 @@ public partial class FlowDocument
    internal Paragraph? GetNextParagraph(Paragraph par)
    {
       int myindex = Blocks.IndexOf(par);
-      return myindex == Blocks.Count - 1 ? null : (Paragraph)Blocks[myindex + 1];
+      if (myindex == Blocks.Count - 1) return null!;
+      return Blocks[myindex + 1] is Paragraph nextPar ? nextPar : null;
+      
    }
    
    internal Paragraph? GetPreviousParagraph(Paragraph par)

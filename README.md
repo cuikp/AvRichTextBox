@@ -69,6 +69,37 @@ The `RichTextBox` also includes the concept of `TextRange` (of which `Selection`
 The RichTextBox content can be saved/loaded either as straight Xaml or a XamlPackage (to preserve images), similar to the WPF RichTextBox.
 It can also save and load the FlowDoc content as a Word document (.docx), Rtf document (.rtf) or Html (.html), though only with a subset of attributes.  This includes text, common text/paragraph formatting, images, highlighting, forecolor, justification, borders, etc.  
 
+Content can be directly added in Xaml as well:
+			
+    '''  
+      <avrtb:RichTextBox ShowDebuggerPanelInDebugMode="True" >
+
+		   <avrtb:RichTextBox.FlowDocument>
+			   <avrtb:FlowDocument >
+				   <avrtb:FlowDocument.Blocks>
+
+                  <avrtb:Paragraph>
+						   <avrtb:Paragraph.Inlines>
+							   <avrtb:EditableRun Text="This is a line of text. "/>
+                        <avrtb:EditableRun Text="With a second run."/>
+						   </avrtb:Paragraph.Inlines>
+					   </avrtb:Paragraph>
+
+					   <avrtb:Paragraph>
+						   <avrtb:Paragraph.Inlines>
+							   <avrtb:EditableInlineUIContainer>
+								   <Image Width="100" Height="60" Source="avares://DemoApp_AvRichTextBox/Assets/avalonia-logo.ico"/>
+							   </avrtb:EditableInlineUIContainer>
+						   </avrtb:Paragraph.Inlines>
+					   </avrtb:Paragraph>
+
+				   </avrtb:FlowDocument.Blocks>
+			   </avrtb:FlowDocument>
+		   </avrtb:RichTextBox.FlowDocument>
+
+    </avrtb:RichTextBox>
+    '''
+
 
 ## Various future to-do improvements include:
 * Word/Html/RTF export and import can be fleshed out (to support more attributes)
@@ -79,49 +110,49 @@ It can also save and load the FlowDoc content as a Word document (.docx), Rtf do
 
 RtfDomParser used for parsing of rtf files can be found at https://github.com/SourceCodeBackup/RtfDomParser, but for this project I had to manually modify it to use Avalonia.Media instead of System.Drawing.  Generation of .rtf is my own concoction with the bare minimum to produce a readable .rtf file/dataobject.
 
-#Change log
-##[1.0.15] - 2025/02/22:
+**#Change log**
+
+**[ver 1.0.15] - 2025/02/22**
 Internal binding was of the RTB itself to its viewmodel, which prevented external binding to UserControl properties (such as IsVisible).  Internal binding is now to the immediate child (DockPanel "MainDP"), freeing up the properties of the UserControl itself.
 Also upgraded copy/paste to allow copying and pasting of paragraph breaks (\r), which were ignored before.
 
-##[1.0.16] 2025/02/25:
+**[ver 1.0.16] 2025/02/25**
 Now works with Avalonia 11.1.xx & 11.2.xx!  Binding update issues resolved.  Previous AvRichTextBox versions failed on Avalonia 11.1 and higher and have been deprecated.
 In addition, added IME support for Chinese/Japanese input.  Kanji and Hanzi can now be directly inputted in the RichTextBox.
 
-**Added 2025/02/26**
-ver 1.0.17 improves IME popup location and behavior (Hides on Esc key, or after backspacing to null entry).
+**[ver 1.0.17] 2025/02/26**
+Improved IME popup location and behavior (Hides on Esc key, or after backspacing to null entry).
 In addition, the RichTextBox content can now be saved as .rtf  (SaveRtfDoc(string fileName)).  As of now, not all attributes are honored in the save (only bold, fontsize, italic and underline).
 
-**Added 2025/02/27**
-ver 1.2.0 - Copying of richtext content (rtf format) is now possible.  Some navigation and pasting fixes/improvements.  Also pasting of large-volume text is now much faster.  Technically 1.0.16 should have been numbered 1.2.0 but hey.
+**[ver 1.2.0] 2025/02/27**
+Copying of richtext content (rtf format) is now possible.  Some navigation and pasting fixes/improvements.  Also pasting of large-volume text is now much faster.  Technically 1.0.16 should have been numbered 1.2.0 but hey.
 
-**Added 2025/02/28**
-ver. 1.2.1 - FontFamily now included in rtf copy/paste, fixed Word reading error due to fonts
+**[ver. 1.2.1] 2025/02/28**
+FontFamily now included in rtf copy/paste, fixed Word reading error due to fonts
 
-**Added 2025/04/05**
-ver. 1.2.6 - some minor fixes: run break errors, and better handling of Word colors.  Also setting ShowDebuggerPanelInDebugMode at runtime will now dynamically show/hide the Debugger panel.
+**[ver. 1.2.6] 2025/04/05**
+Some minor fixes: run break errors, and better handling of Word colors.  Also setting ShowDebuggerPanelInDebugMode at runtime will now dynamically show/hide the Debugger panel.
 
-**Added 2025/04/06**
-ver. 1.3.0 - Can save/load as Html.  Rtf images/line spacing now saved.  Paragraph borders, colors and backgrounds supported.
+**[ver. 1.3.0] 2025/04/06**
+Can save/load as Html.  Rtf images/line spacing now saved.  Paragraph borders, colors and backgrounds supported.
 
-**Added 2025/04/09**
-ver. 1.3.2 - Changed the underlying strategy for Undo. Undo now creates clones instead of retaining objects, which was causing problems during complex Undo sequences.
+**[ver. 1.3.2] 2025/04/09**
+Changed the underlying strategy for Undo. Undo now creates clones instead of retaining objects, which was causing problems during complex Undo sequences.
 Also made ShowDebuggerPanelInDebugMode default to False. 
 
-**Added 2025/08/02**
-ver. 1.3.8 - Includes changes such as fix to mouse selection (wasn't working in Release mode), double/triple clicking to select word/paragraph, and IsReadOnly property for the RichTextBox.
+**[ver. 1.3.8] 2025/08/02**
+Includes changes such as fix to mouse selection (wasn't working in Release mode), double/triple clicking to select word/paragraph, and IsReadOnly property for the RichTextBox.
 
 ...
 
-**Added 2026/01/28**
-ver 1.4.5: Multiple/overlapping text formatting and undos now work better being based on inline Ids rather than using their in-paragraph indexes. Also Paragraph Ids instead of indexes.  Fixed erroneous deletion of required empty inline before linebreak.
+**[ver 1.4.5] 2026/01/28**
+Multiple/overlapping text formatting and undos now work better being based on inline Ids rather than using their in-paragraph indexes. Also Paragraph Ids instead of indexes.  Fixed erroneous deletion of required empty inline before linebreak.  Paragraph text ends with "\r\n" as is proper (rather than "\r").
 
-**Added 2026/01/30**
-ver 1.4.6: Further Undo improvements
+**[ver 1.4.6] 2026/01/30**
+Further Undo improvements
 
-**Added 2026/01/30**
-ver 1.4.7: No DebugPanel created at all (not just hidden) in Release mode.  Should have been this way from the start...
+**[ver 1.4.7] 2026/01/30**
+No DebugPanel created at all (not just hidden) in Release mode.  Should have been this way from the start...
 
-
-##[1.5.0] 2026/01/30
+**[ver. 1.5.0] 2026/01/30**
 Can add direct content to RichTextBox in Xaml

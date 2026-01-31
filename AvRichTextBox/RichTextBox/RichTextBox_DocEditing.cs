@@ -52,6 +52,14 @@ public partial class RichTextBox
 
    }
 
+   internal void InsertTab()
+   {
+      if (IsReadOnly) return;
+      FlowDoc.InsertText("\t");
+      UpdateCurrentParagraphLayout();
+
+   }
+
 
    private void PerformDelete(bool backspace)
    {

@@ -205,7 +205,7 @@ public partial class FlowDocument
    internal void EnsureSelectionContinuity()
    {
 
-      foreach (Paragraph p in Blocks.Where(p => !SelectionParagraphs.Contains(p)))
+      foreach (Paragraph p in Blocks.OfType<Paragraph>().Where(p => !SelectionParagraphs.Contains(p)))
           p.ClearSelection(); 
 
       if (SelectionParagraphs.Count > 1)
@@ -221,12 +221,6 @@ public partial class FlowDocument
          SelectionParagraphs[^1].SelectionStartInBlock = 0;
       }
 
-
-      ////Temp for debugging
-      //foreach (Paragraph p in Blocks.Where(p => !SelectionParagraphs.Contains(p)))
-      //    p.Background = new SolidColorBrush(Colors.Transparent); 
-      //foreach (Paragraph p in Blocks.Where(p => SelectionParagraphs.Contains(p)))
-      //   p.Background = new SolidColorBrush(Colors.Red);
 
    }
 

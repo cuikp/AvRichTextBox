@@ -241,11 +241,14 @@ public partial class FlowDocument
       SelectionExtendMode = ExtendMode.ExtendModeNone;
       ScrollInDirection?.Invoke(-1);
 
-      foreach (Paragraph p in Blocks)
+      foreach (Paragraph p in Blocks.OfType<Paragraph>())
          p.ClearSelection();
 
-      ((Paragraph)Blocks[0]).CallRequestTextLayoutInfoStart();
-      ((Paragraph)Blocks[0]).CallRequestTextLayoutInfoEnd();
+      if (Blocks[0] is Paragraph firstPar)
+      {
+         firstPar.CallRequestTextLayoutInfoStart();
+         firstPar.CallRequestTextLayoutInfoEnd();
+      }
 
    }
 
@@ -258,11 +261,15 @@ public partial class FlowDocument
       SelectionExtendMode = ExtendMode.ExtendModeNone;
       ScrollInDirection?.Invoke(1);
 
-      foreach (Paragraph p in Blocks)
+      foreach (Paragraph p in Blocks.OfType<Paragraph>())
          p.ClearSelection();
 
-      Blocks[^1].SelectionStartInBlock = Blocks[^1].BlockLength - 1;
-      Blocks[^1].SelectionEndInBlock = Blocks[^1].BlockLength - 1;
+      if (Blocks[^1] is Paragraph lastPar)
+      {
+         lastPar.SelectionStartInBlock = lastPar.BlockLength - 1;
+         lastPar.SelectionEndInBlock = lastPar.BlockLength - 1;
+      }
+            
 
       //Necessary for caret movement
       Selection.Start = 0;

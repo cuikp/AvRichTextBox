@@ -1,49 +1,82 @@
 ﻿using Avalonia.Controls;
-//using Avalonia.Media;
+using Avalonia.Layout;
+using Avalonia.Media;
 using System.Collections.ObjectModel;
-//using System.ComponentModel;
-//using System.Runtime.CompilerServices;
+using System.Diagnostics;
 
 namespace AvRichTextBox;
 
 public partial class Table : Block
 {
+
    public Thickness BorderThickness { get; set; } = new(1);
-   public ObservableCollection<Border> Cells { get; set; } = [];
+   public ObservableCollection<Cell> Cells { get; set; } = [];
    public ColumnDefinitions ColDefs { get; set; } = [];
    public RowDefinitions RowDefs { get; set; } = [];
+   public double Height { get; set; } = 500;
+   public double Width { get; set; } = 500;
+   public HorizontalAlignment TableAlignment { get; set; } = HorizontalAlignment.Left;
+
+   public Table() { }
+
+   public Table(int cols, int rows) 
+   {
+      double eqWidth = Width / cols;
+      double eqHeight = Height / rows;
+
+      int cellno = 0;
+
+      for (int rowno = 0; rowno < rows; rowno++)
+      {
+         RowDefs.Add(new RowDefinition(eqHeight, GridUnitType.Pixel));
+         
+         for (int colno = 0; colno < cols; colno++)
+         {
+            ColDefs.Add(new ColumnDefinition(eqWidth, GridUnitType.Pixel));
+            Paragraph newPar = new();
+            newPar.Inlines.Add(new EditableRun("col:" + colno));
+            newPar.Inlines.Add(new EditableLineBreak());
+            newPar.Inlines.Add(new EditableRun("row:" + rowno));
+            
+            Cell newCell = new()
+            {
+               ColNo = colno,
+               RowNo = rowno,
+               BorderThickness = new(3),
+               BorderBrush = Brushes.Red,
+               CellContent = newPar
+            };
+            Cells.Add(newCell);
+            cellno++;
+         }
+      }
 
 
-//   public Table(int noCols, int noRows, double TableWidth)
-//   {
-//      double eqSpacedColWidth = 10D / (double)noCols;
 
-//      for (int rowno = 0; rowno < noRows; rowno++)
-//         this.RowDefs.Add(new RowDefinition());
-//      for (int colno = 0; colno < noCols; colno++)
-//         this.ColDefs.Add(new ColumnDefinition(eqSpacedColWidth, GridUnitType.Star));
-
-//      for (int rowno = 0; rowno < noRows; rowno++)
-//      {
-//         for (int colno = 0; colno < noCols; colno++)
-//         {
-//            Border cellborder = new() { BorderBrush = Brushes.Black, BorderThickness = new Thickness(0.5) };
-//            SelectableTextBlock seltb = new() { GetText = "this is some text, with wrapping as well." };
-//            seltb.Background = Brushes.White;
-//            seltb.TextWrapping = TextWrapping.Wrap;
-//            cellborder.Child = seltb;
-//            Cells.Add(cellborder);
-//            Grid.SetRow(cellborder, rowno);
-//            Grid.SetColumn(cellborder, colno);
-//         }
-//      }
+   }
 
 
-//   }
+   internal void InsertColumn(int idx)
+   {
+
+   }
+
+ 
+}
 
 
+public class Cell 
+{
+   public Cell() { }
 
+   public Block CellContent { get; set; } = new Paragraph();
+   public Thickness BorderThickness { get; set; } = new (1);
+   public IBrush BorderBrush { get; set; } = null!;
+   public int ColNo { get; set; }
+   public int RowNo { get; set; }
 
-
+   public double Width { get; set; } = 100;
+   public double Height { get; set; } = 60;
+   
 }
 

@@ -151,6 +151,10 @@ public partial class FlowDocument
    internal void InsertLineBreak()
    {
       Paragraph startPar = Selection.StartParagraph;
+
+      if (startPar.Inlines.Count == 1 && startPar.Inlines[0] is EditableInlineUIContainer euic)
+         return; // Don't mess container edges
+
       if (Selection.GetStartInline() is not IEditable startInline) 
          return; 
 
@@ -270,6 +274,10 @@ public partial class FlowDocument
    {  //The delete range and InsertParagraph should constitute one Undo operation
 
       Paragraph insertPar = GetContainingParagraph(insertCharIndex);
+
+      if (insertPar.Inlines.Count == 1 && insertPar.Inlines[0] is EditableInlineUIContainer euic)
+         return; // Don't mess container edges
+
       List<IEditable> keepParInlineClones = [.. insertPar.Inlines.Select(il=>il.CloneWithId())]; 
 
       int originalSelStart = insertCharIndex;

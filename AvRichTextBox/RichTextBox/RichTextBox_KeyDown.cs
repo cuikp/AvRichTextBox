@@ -82,6 +82,11 @@ public partial class RichTextBox
                   HideIMEOverlay();
                break;
 
+            case Key.Tab:
+               e.Handled = true;
+               InsertTab();
+               break;
+
             case Key.Enter:
                if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
                {
