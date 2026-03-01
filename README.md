@@ -160,3 +160,7 @@ Can add direct content to RichTextBox in Xaml
 **[ver. 1.6.0] 2026/02/xx
 Can set SelectionBrush globally for RichTextBox
 Table support added
+
+**[ver.1.6.2] 2026/03/01
+Added preliminary table support.  Tables can be added as Blocks to FlowDocument.
+In addition, superscript and subscript runs appear as such (raised/lowered text).
