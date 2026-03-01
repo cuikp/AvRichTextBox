@@ -1,13 +1,7 @@
-﻿using Avalonia;
-using Avalonia.Media;
+﻿using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Media.Immutable;
 using DocumentFormat.OpenXml.Wordprocessing;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 using AvColor = Avalonia.Media.Color;
 
@@ -56,13 +50,14 @@ internal static partial class HelperMethods
          "lightgray" => "#FFCCCCCC",
          "magenta" => "#FFFF00FF",
          "white" => "#FFFFFFFF",
-         "none" => "#00FFFFFF",
+         "none" => string.Empty,
          _ => string.Empty
       };
 
       if (returnString != string.Empty) return returnString;
       //return hexColorRegex().Replace(hex, "") == "" ? ("#" + hex) : (isBackground ? "#FFFFFFFF" : "#FF000000"); // default white or black
-      return hexColorRegex().Replace(hex, "") == "" ? (hex) : (isBackground ? "#FFFFFFFF" : "#FF000000"); // default white or black
+      //return hexColorRegex().Replace(hex, "") == "" ? (hex) : (isBackground ? "#FFFFFFFF" : "#FF000000"); // default white or black
+      return hexColorRegex().Replace(hex, "") == "" ? (hex) : (isBackground ? "" : "#FF000000"); // default empty or black
 
    }
 
@@ -77,7 +72,7 @@ internal static partial class HelperMethods
       var predefinedMatch = HighlightColors.FirstOrDefault(kv => kv.Value == inputColor);
       if (HighlightColors.ContainsKey(predefinedMatch.Key))
       {
-         Debug.WriteLine("key = " + predefinedMatch.Key.ToString());
+         //Debug.WriteLine("key = " + predefinedMatch.Key.ToString());
          return predefinedMatch.Key;
       }
          
@@ -109,7 +104,7 @@ internal static partial class HelperMethods
 
    internal static string ToOpenXmlColor(AvColor color) => $"{color.R:X2}{color.G:X2}{color.B:X2}";
 
-   internal static SolidColorBrush FromOpenXmlColor(string openxmlhex)
+   internal static ISolidColorBrush FromOpenXmlColor(string openxmlhex)
    {
       BrushConverter BConverter = new();
       ImmutableSolidColorBrush? iSCB = (ImmutableSolidColorBrush)BConverter.ConvertFromString("#" + openxmlhex)!;

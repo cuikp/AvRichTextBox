@@ -1,6 +1,5 @@
 ﻿using Avalonia.Controls.Documents;
 using Avalonia.Media;
-using System.Diagnostics;
 
 namespace AvRichTextBox;
 
@@ -126,6 +125,8 @@ public partial class FlowDocument
 
    internal void ApplyFormattingRange(AvaloniaProperty avProperty, object value, TextRange textRange)
    {
+      disableRunTextUndo = true;
+
       (int idLeft, int idRight) edgeIds;
       List<IEditable> newInlines = GetRangeInlinesAndAddToDoc(textRange, out edgeIds);
       
@@ -153,23 +154,27 @@ public partial class FlowDocument
       else
          throw new NotSupportedException($"Formatting for {avProperty.Name} is not supported.");
 
-      UpdateBlockAndInlineStarts(Blocks.IndexOf(Blocks.LastOrDefault(p => p.StartInDoc <= textRange.Start)!));
+      UpdateBlockAndInlineStarts(AllParagraphs.IndexOf(AllParagraphs.LastOrDefault(p => p.StartInDoc <= textRange.Start)!));
       
-      foreach (Paragraph p in GetRangeBlocks(textRange).Where(b=>b.IsParagraph))
+      foreach (Paragraph p in GetOverlappingParagraphsInRange(textRange).OfType<Paragraph>())
          p.CallRequestInlinesUpdate();
 
       
       Selection.BiasForwardStart = true;
       Selection.BiasForwardEnd = true;
-      Selection.StartParagraph = GetContainingParagraph(Selection.Start);
-      Selection.StartParagraph.SelectionStartInBlock = Selection.Start - Selection.StartParagraph.StartInDoc;
-      Selection.EndParagraph.SelectionEndInBlock = Selection.End - Selection.EndParagraph.StartInDoc;
+
+      if (GetContainingParagraph(Selection.Start) is Paragraph startPar)
+      {
+         Selection.StartParagraph = startPar;
+         Selection.StartParagraph.SelectionStartInBlock = Selection.Start - Selection.StartParagraph.StartInDoc;
+         Selection.EndParagraph.SelectionEndInBlock = Selection.End - Selection.EndParagraph.StartInDoc;
+      }
+      
     
       UpdateSelectedParagraphs();
 
-      if (ShowDebugger)
-         UpdateDebuggerSelectionParagraphs();
-      
+      disableRunTextUndo = false;
+
 
    }
   
@@ -188,8 +193,8 @@ public partial class FlowDocument
    private void ApplyItalicRun(IEditable ied, object fontStyle) { if (ied is EditableRun edrun) { edrun.FontStyle = (FontStyle)fontStyle; } }
    private void ApplyTextDecorationRun(IEditable ied, object textDecoration) { if (ied is EditableRun edrun) { edrun.TextDecorations = (TextDecorationCollection)textDecoration; } }
    private void ApplyFontSizeRun(IEditable ied, object fontsize) { if (ied is EditableRun edrun) { edrun.FontSize = (double)fontsize; } }
-   private void ApplyBackgroundRun(IEditable ied, object background) { if (ied is EditableRun edrun) { edrun.Background = (SolidColorBrush)background; } }
-   private void ApplyForegroundRun(IEditable ied, object foreground) { if (ied is EditableRun edrun) { edrun.Foreground = (SolidColorBrush)foreground; } }
+   private void ApplyBackgroundRun(IEditable ied, object background) { if (ied is EditableRun edrun) { edrun.Background = (ISolidColorBrush)background; } }
+   private void ApplyForegroundRun(IEditable ied, object foreground) { if (ied is EditableRun edrun) { edrun.Foreground = (ISolidColorBrush)foreground; } }
    private void ApplyFontStretchRun(IEditable ied, object fontstretch) { if (ied is EditableRun edrun) { edrun.FontStretch = (FontStretch)fontstretch; } }
    private void ApplyBaselineAlignmentRun(IEditable ied, object baselinealignment) { if (ied is EditableRun edrun) { edrun.BaselineAlignment = (BaselineAlignment)baselinealignment ; } }
 

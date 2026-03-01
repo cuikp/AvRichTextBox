@@ -1,8 +1,6 @@
-﻿using Avalonia;
-using Avalonia.Media;
+﻿using Avalonia.Media;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
-using System;
 using System.Diagnostics;
 using System.Linq;
 using static AvRichTextBox.HelperMethods;
@@ -119,10 +117,10 @@ internal static partial class WordConversions
 
                   case "tbl":
 
-                     //DocumentFormat.OpenXml.Wordprocessing.Table wtable = (DocumentFormat.OpenXml.Wordprocessing.Table)section;
+                     DocumentFormat.OpenXml.Wordprocessing.Table wtable = (DocumentFormat.OpenXml.Wordprocessing.Table)section;
 
-                     //System.Windows.Documents.Table newTable = GetTable(wtable);
-                     ////System.Windows.Documents.Table newTable = GetTable(section);
+                     Table newTable = GetTable(wtable, fdoc);
+                     //System.Windows.Documents.Table newTable = GetTable(section);
 
                      //foreach (TableRow tr in newTable.RowGroups[0].Rows)
                      //{
@@ -135,14 +133,14 @@ internal static partial class WordConversions
                      //   }
                      //}
 
-                     //fdoc.Blocks.Add(newTable);
+                     fdoc.Blocks.Add(newTable);
                      break;
 
                   case "p":
 
                      try
                      {
-                        Paragraph para = GetParagraph(section);
+                        Paragraph para = GetParagraph(section, fdoc);
                         //para.FontFamily = fdoc.FontFamily;
                         para.Margin = new Thickness(0);
                         if (para.Inlines.Count == 0)

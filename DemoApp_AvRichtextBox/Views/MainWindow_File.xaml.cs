@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using DemoApp_AvRichtextBox.ViewModels;
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace DemoApp_AvRichtextBox.Views;
@@ -147,6 +148,15 @@ public partial class MainWindow : Window
 
    }
 
-   
+   private void OpenTestFilesFolderMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+   {
 
+      string filesPath = Path.Combine(AppContext.BaseDirectory, "TestFiles");
+      if (OperatingSystem.IsWindows())
+         Process.Start(new ProcessStartInfo("explorer", filesPath) { UseShellExecute = true });
+      else if (OperatingSystem.IsMacOS())
+         Process.Start("open", filesPath);
+      else
+         Process.Start("xdg-open", filesPath);
+   }
 }

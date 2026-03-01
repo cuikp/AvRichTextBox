@@ -34,33 +34,26 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
    internal double ScrollViewerHeight = 10;
    
    public double CaretHeight { get; set { field = value; NotifyPropertyChanged(nameof(CaretHeight)); } } = 5;
-
    public Thickness CaretMargin { get; set { field = value; NotifyPropertyChanged(nameof(CaretMargin)); } } = new(0);
-
    public bool CaretVisible { get; set { field = value; NotifyPropertyChanged(nameof(CaretVisible)); } } = true;
 
    
-   // FOR VISUAL CARET TESTING////////////////////////////////////////
-   public double LineHeightRectHeight { get; set { field = value; NotifyPropertyChanged(nameof(LineHeightRectHeight)); } } = 5;
-   public Thickness LineHeightRectMargin { get; set { field = value; NotifyPropertyChanged(nameof(LineHeightRectMargin)); } } = new(0);
-   public double BaseLineRectHeight { get; set { field = value; NotifyPropertyChanged(nameof(BaseLineRectHeight)); } } = 5; 
-   public Thickness BaseLineRectMargin { get; set { field = value; NotifyPropertyChanged(nameof(BaseLineRectMargin)); } } = new(0);
-   //////////////////////////////////////////////////////////////////
+   //// FOR VISUAL CARET TESTING////////////////////////////////////////
+   //public double LineHeightRectHeight { get; set { field = value; NotifyPropertyChanged(nameof(LineHeightRectHeight)); } } = 5;
+   //public Thickness LineHeightRectMargin { get; set { field = value; NotifyPropertyChanged(nameof(LineHeightRectMargin)); } } = new(0);
+   //public double BaseLineRectHeight { get; set { field = value; NotifyPropertyChanged(nameof(BaseLineRectHeight)); } } = 5; 
+   //public Thickness BaseLineRectMargin { get; set { field = value; NotifyPropertyChanged(nameof(BaseLineRectMargin)); } } = new(0);
+   ////////////////////////////////////////////////////////////////////
 
 
    internal void UpdateCaretVisible()
    {
-
       FlowDoc.Selection.StartParagraph?.CallRequestInvalidateVisual();
-
       CaretVisible = FlowDoc.Selection.Length == 0;
-
    }
-
 
    internal void FlowDoc_ScrollInDirection(int direction)
    {
-
       double scrollPadding = 30;
       if (direction == 1)
       {
@@ -83,7 +76,6 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
          if (checkPointY < RTBScrollOffset.Y)
             RTBScrollOffset = RTBScrollOffset.WithY(checkPointY);
       }
-
    }
 
 

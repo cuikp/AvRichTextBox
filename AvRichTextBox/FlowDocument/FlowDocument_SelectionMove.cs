@@ -8,7 +8,7 @@ public partial class FlowDocument
    {
 
       if (Selection.Length > 0)
-         ResetSelectionLengthZero(Selection.EndParagraph);
+         ResetSelectedParsLengthZero(Selection.EndParagraph);
 
       Selection.BiasForwardStart = !isTextInsertion;
 
@@ -16,11 +16,11 @@ public partial class FlowDocument
       {
          case ExtendMode.ExtendModeNone:
 
-            Paragraph endPar = GetContainingParagraph(Selection.End);
-            if (endPar == Blocks[^1] && endPar.SelectionEndInBlock == endPar.BlockLength - 1)
+            Block endBlock = GetContainingParagraph(Selection.End);
+            if (endBlock == AllParagraphs.ToList()[^1] && endBlock.SelectionEndInBlock == endBlock.BlockLength - 1)
                return;  // End of document
 
-            if (!isTextInsertion && Selection.IsAtLineBreak)
+            if (!isTextInsertion && (Selection.IsAtLineBreak || Selection.IsAtCellBreak))
             {
                Selection.End += 1;
                Selection.CollapseToEnd();
@@ -51,12 +51,11 @@ public partial class FlowDocument
 
    internal void MoveSelectionLeft(bool biasForward)
    {
-
       //Selection.BiasForwardStart = biasForward;
       Selection.BiasForwardStart = true;
 
-      if (Selection!.Length > 0)
-         ResetSelectionLengthZero(Selection.StartParagraph);
+      if (Selection.Length > 0)
+         ResetSelectedParsLengthZero(Selection.StartParagraph);
 
       switch (SelectionExtendMode)
       {
@@ -67,7 +66,7 @@ public partial class FlowDocument
 
             Selection.Start -= 1;
 
-            if (Selection.IsAtLineBreak)
+            if (Selection.IsAtLineBreak || Selection.IsAtCellBreak)
             {
                Selection.Start -= 1;
                Selection.CollapseToStart();
@@ -89,33 +88,101 @@ public partial class FlowDocument
    }
 
 
+   internal int GetRelativeTextPos(IEditable inline, int absTextPos)
+   {
+      //if (Blocks.FirstOrDefault(b => b.Id == inline.MyParagraphId) is not Block myBlock) return -1;
+      if (AllParagraphs.FirstOrDefault(p => p.Id == inline.MyParagraphId) is not Block myBlock) return -1;
+      return absTextPos - myBlock.StartInDoc - inline.TextPositionOfInlineInParagraph;
+   }
+
    internal void MoveRightWord()
    {
       if (Selection.Start >= Selection.StartParagraph.StartInDoc + Selection.StartParagraph.BlockLength)
          return;
 
-      Selection!.BiasForwardStart = true;
-      Selection!.BiasForwardEnd = true;
+      Selection.BiasForwardStart = true;
+      Selection.BiasForwardEnd = true;
 
-      Paragraph startP = (Paragraph)Selection.StartParagraph;
+      Paragraph startP = Selection.StartParagraph;
 
-      int IndexNext = -1; 
       if (startP.SelectionStartInBlock == startP.TextLength)
          Selection.End += 1;
       else
       {
-         if (Selection.GetStartInline() is IEditable startInline && (startInline.IsUIContainer || startInline.IsLineBreak))
-            Selection.End += 1;
-         else
+         if (Selection.GetStartInline() is IEditable startInline)
          {
-            IndexNext = startP.Text.IndexOfAny(" \v".ToCharArray(), startP.SelectionStartInBlock);
-            if (IndexNext == -1)
-               IndexNext = startP.TextLength;
+            if (startInline.IsUIContainer || startInline.IsLineBreak)
+               Selection.End += 1;
             else
-               IndexNext += 1;  // go beyond the space
+            {
+               int currentTextPos = Selection.Start;
 
-            int NextWordEndPoint = Selection.StartParagraph.StartInDoc + IndexNext;
-            Selection.End = NextWordEndPoint;
+               int foundNextIndex = GetRelativeTextPos(startInline, currentTextPos);
+
+               bool breakWhile = false;
+               while (startInline?.InlineText.IndexOf(' ', foundNextIndex) is int IndexNext)
+               {
+                  if (IndexNext == -1)
+                  {
+                     currentTextPos += (startInline.InlineLength - foundNextIndex);
+
+                     startInline = GetNextInline(startInline) ?? null!;
+
+                     if (startInline != null)
+                     {
+                        switch (startInline)
+                        {
+                           case EditableRun erun:
+                              if (startP.Id != startInline.MyParagraphId)
+                              {
+                                 startP = GetNextParagraph(startP)!;
+                                 startInline = startP.Inlines[0];
+                                 currentTextPos = startP.StartInDoc + startInline.TextPositionOfInlineInParagraph;
+                                 foundNextIndex = 0;
+                                 breakWhile = true;
+                              }
+                              else
+                                 foundNextIndex = GetRelativeTextPos(startInline, currentTextPos);
+                              break;
+
+                           case EditableLineBreak elb:
+                              startInline = GetNextInline(startInline) ?? null!;
+                              currentTextPos += 2;
+                              foundNextIndex = 0;
+                              breakWhile = true;
+                              break;
+
+                           default:
+                              foundNextIndex = startInline!.InlineLength;
+                              breakWhile = true;
+                              break;
+                        }
+                     }
+
+                     if (breakWhile) break;
+                  }
+                  else
+                  {
+                     currentTextPos += IndexNext;
+                     foundNextIndex = IndexNext;
+                     break;
+                  }
+
+               }
+
+               if (!breakWhile)
+                  foundNextIndex += 1;  // go beyond the space if found
+
+               int NextWordEndPoint = 0;
+               if (startInline != null)
+                  NextWordEndPoint = startP.StartInDoc + startInline!.TextPositionOfInlineInParagraph + foundNextIndex;
+               else
+                  NextWordEndPoint = startP.StartInDoc + startP.BlockLength;
+
+               Selection.Start = NextWordEndPoint;
+               Selection.End = NextWordEndPoint;
+
+            }
          }
       }
 
@@ -123,7 +190,7 @@ public partial class FlowDocument
       ScrollInDirection?.Invoke(1);
 
    }
-    
+
    internal void MoveLeftWord()
    {
       if (Selection.Start <= 0)
@@ -134,19 +201,19 @@ public partial class FlowDocument
 
       int IndexNext = -1;
       Paragraph startP = (Paragraph)Selection.StartParagraph;
-      
+
       if (startP.SelectionStartInBlock == 0)
-         Selection.Start -= 1; 
+         Selection.Start -= 1;
       else
       {
          Selection.Start -= 1;
          Selection.CollapseToStart();
-         
+
          startP = (Paragraph)Selection.StartParagraph;
 
          if (Selection.GetStartInline() is IEditable startInline && !startInline.IsUIContainer)
          {
-           IndexNext = startP.Text.LastIndexOfAny(" \v".ToCharArray(), startP.SelectionStartInBlock - 1);
+            IndexNext = startP.Text.LastIndexOfAny(" \n".ToCharArray(), startP.SelectionStartInBlock - 1);
             if (IndexNext == -1)
                IndexNext = 0;
             else
@@ -162,8 +229,8 @@ public partial class FlowDocument
       ScrollInDirection?.Invoke(-1);
 
    }
-   
- 
+
+
    internal void MoveSelectionDown(bool biasForward)
    {
 
@@ -171,7 +238,7 @@ public partial class FlowDocument
 
       if (Selection.Length > 0)
       {
-         ResetSelectionLengthZero(Selection.EndParagraph);
+         ResetSelectedParsLengthZero(Selection.EndParagraph);
          Selection.CollapseToEnd();
       }
 
@@ -179,21 +246,22 @@ public partial class FlowDocument
       int nextEnd = Selection.EndParagraph.StartInDoc + Selection.EndParagraph.CharNextLineEnd;
       if (Selection.EndParagraph.IsEndAtLastLine)
       {
-         if (Selection.EndParagraph != Blocks[^1])
+         List<Paragraph> allPars = AllParagraphs;
+
+         if (Selection.EndParagraph != allPars[^1])
          {
-            int nextParIndex = Blocks.IndexOf(Selection.EndParagraph) + 1;
-            Paragraph nextPar = (Paragraph)Blocks[nextParIndex];
-            int oldSE = Selection.End;
-            Selection.End = Math.Min(nextPar.StartInDoc + nextPar.BlockLength - 1, nextEnd);
+            int nextParIndex = allPars.IndexOf(Selection.EndParagraph) + 1;
+            Paragraph nextPar = allPars[nextParIndex];
+            Selection.End = Math.Min(nextPar.StartInDoc + nextPar.BlockLength - 1, nextEnd);  // change BlockLength to be length of first line
          }
       }
       else
          Selection.End = nextEnd;
-         
+
 
       Selection.CollapseToEnd();
       SelectionExtendMode = ExtendMode.ExtendModeNone;
-      
+
       ScrollInDirection?.Invoke(1);
 
    }
@@ -205,33 +273,33 @@ public partial class FlowDocument
 
       if (Selection.Length > 0)
       {
-         ResetSelectionLengthZero(Selection.StartParagraph);
+         ResetSelectedParsLengthZero(Selection.StartParagraph);
          Selection.CollapseToStart();
       }
 
       if (Selection.StartParagraph.IsStartAtFirstLine)
-      {
-         if (Selection.StartParagraph != Blocks[0])
-         {
-            int prevParIndex = Blocks.IndexOf(Selection.StartParagraph) - 1;
-            Paragraph prevPar = (Paragraph)Blocks[prevParIndex];
-            int oldSS = Selection.Start;
-            Selection.Start = Math.Min(prevPar.StartInDoc + prevPar.BlockLength - 1, prevPar.StartInDoc + prevPar.FirstIndexLastLine + Selection.StartParagraph.CharPrevLineStart);
+      {        
+         List<Paragraph> allPars = AllParagraphs;
+         if (Selection.StartParagraph != allPars[0])
+         {            
+            int prevParIndex = allPars.IndexOf(Selection.StartParagraph) - 1;
+            if (allPars[prevParIndex] is Paragraph prevPar)
+               Selection.Start = Math.Min(prevPar.StartInDoc + prevPar.BlockLength - 1, prevPar.StartInDoc + prevPar.FirstIndexLastLine + Selection.StartParagraph.CharPrevLineStart);
          }
       }
       else
       {
          Selection.Start = Selection.StartParagraph.StartInDoc + Selection.StartParagraph.CharPrevLineStart;
       }
-         
+
       Selection.CollapseToStart();
-      
+
       SelectionExtendMode = ExtendMode.ExtendModeNone;
       ScrollInDirection?.Invoke(-1);
-      
+
    }
 
-  
+
    internal void MoveToDocStart()
    {
       Selection.BiasForwardStart = true;
@@ -241,10 +309,11 @@ public partial class FlowDocument
       SelectionExtendMode = ExtendMode.ExtendModeNone;
       ScrollInDirection?.Invoke(-1);
 
-      foreach (Paragraph p in Blocks.OfType<Paragraph>())
+      List<Paragraph> allPars = AllParagraphs;
+      foreach (Paragraph p in allPars)
          p.ClearSelection();
 
-      if (Blocks[0] is Paragraph firstPar)
+      if (allPars[0] is Paragraph firstPar)
       {
          firstPar.CallRequestTextLayoutInfoStart();
          firstPar.CallRequestTextLayoutInfoEnd();
@@ -256,28 +325,31 @@ public partial class FlowDocument
    {
       Selection.BiasForwardStart = false;
       Selection.BiasForwardEnd = false;
-      Selection.End = Blocks[^1].StartInDoc + Blocks[^1].BlockLength - 1;
+
+      List<Paragraph> allPars = AllParagraphs;
+
+      Selection.End = allPars[^1].StartInDoc + allPars[^1].BlockLength - 1;
       Selection.CollapseToEnd();
       SelectionExtendMode = ExtendMode.ExtendModeNone;
       ScrollInDirection?.Invoke(1);
 
-      foreach (Paragraph p in Blocks.OfType<Paragraph>())
+      foreach (Paragraph p in allPars)
          p.ClearSelection();
 
-      if (Blocks[^1] is Paragraph lastPar)
+      if (allPars[^1] is Paragraph lastPar)
       {
          lastPar.SelectionStartInBlock = lastPar.BlockLength - 1;
          lastPar.SelectionEndInBlock = lastPar.BlockLength - 1;
       }
-            
+
 
       //Necessary for caret movement
       Selection.Start = 0;
       Selection.CollapseToStart();
       ///////////////////////////////
-      
+
       Select(DocEndPoint - 1, 0);
-      
+
       UpdateRTBCaret?.Invoke();
 
    }
@@ -292,7 +364,7 @@ public partial class FlowDocument
       if (!selExtend)
       {
          if (Selection.Length > 0)
-            ResetSelectionLengthZero(Selection.StartParagraph);
+            ResetSelectedParsLengthZero(Selection.StartParagraph);
          Selection.CollapseToStart();
       }
       else
@@ -313,7 +385,6 @@ public partial class FlowDocument
       Paragraph thisEndPar = Selection.EndParagraph;
 
       if (thisEndPar.IsEndAtLastLine)
-         //Selection.End = Selection.EndParagraph.StartInDoc + thisEndPar.BlockLength - (Blocks.IndexOf(thisEndPar) == Blocks.Count - 1 ? 2 : 1);
          Selection.End = Selection.EndParagraph.StartInDoc + thisEndPar.BlockLength - 1;
       else
          Selection.End = Selection.EndParagraph.StartInDoc + thisEndPar.LastIndexEndLine;
@@ -326,11 +397,11 @@ public partial class FlowDocument
       }
 
       //////***********
-      
+
       if (!selExtend)
       {
          if (Selection.Length > 0)
-            ResetSelectionLengthZero(Selection.EndParagraph);
+            ResetSelectedParsLengthZero(Selection.EndParagraph);
          Selection.CollapseToEnd();
       }
       else
@@ -381,7 +452,7 @@ public partial class FlowDocument
                Selection.End = newIndexInDoc;
                Selection.CollapseToEnd();
             }
-               
+
             break;
 
          case -1:
@@ -410,13 +481,13 @@ public partial class FlowDocument
                Selection.Start = newIndexInDoc;
                Selection.CollapseToStart();
             }
-               
+
 
             break;
 
       }
 
-      
+
    }
 
    internal void UpdateCaret()
@@ -427,6 +498,6 @@ public partial class FlowDocument
       Selection.EndParagraph.CallRequestTextLayoutInfoEnd();
    }
 
-  
+
 }
 

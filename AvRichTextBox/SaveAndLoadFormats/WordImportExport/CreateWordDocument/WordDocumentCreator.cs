@@ -48,11 +48,10 @@ internal static partial class WordConversions
 
          foreach (Block b in fdoc.Blocks)
          {
-            switch (b.GetType())
+            switch (b)
             {
-               case Type t when t == typeof(Paragraph):
+               case Paragraph p:
 
-                  Paragraph p = (Paragraph)b;
                   DOW.Paragraph dowP = CreateWordDocParagraph(p);
                   body.AppendChild(dowP);
 
@@ -60,9 +59,9 @@ internal static partial class WordConversions
 
                   break;
 
-                  //case Type t when t == typeof(Table):
-                  //   body.AppendChild(CreateWordDocTable((Table)b));
-                  //   break;
+               case Table t:
+                  body.AppendChild(CreateWordDocTable(t));
+                  break;
             }
          }
 

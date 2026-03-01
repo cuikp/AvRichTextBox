@@ -1,26 +1,27 @@
-﻿using System.Collections.ObjectModel;
-
+﻿
 namespace AvRichTextBox;
 
 public partial class FlowDocument 
 {
 
+#if DEBUG
+
    internal bool ShowDebugger = false;
-   internal ObservableCollection<Paragraph> SelectionParagraphs { get; set; } = []; // for DebuggerPanel
 
    private void UpdateDebuggerSelectionParagraphs()
    {
 
-#if DEBUG
-
       //Visuals for DebuggerPanel
-      foreach (Paragraph p in SelectionParagraphs)
+      foreach (Paragraph p in SelectionParagraphs.OfType<Paragraph>())
       {
          foreach (IEditable ied in p.Inlines)
          {
+            //Debug.WriteLine("inlineDisplayText = " + ied.InlineText + " --- " + ied.DisplayInlineText + " ---");
+
             IEditable? startInline = Selection.GetStartInline();
             IEditable? endInline = Selection.GetEndInline();
             int thisRunIndex = p.Inlines.IndexOf(ied);
+            ied.InlineVP.IsTableCellInline = p.IsTableCellBlock;
             ied.InlineVP.IsStartInline = ied == startInline;
             ied.InlineVP.IsEndInline = ied == endInline;
             ied.InlineVP.IsWithinSelectionInline =
@@ -30,10 +31,10 @@ public partial class FlowDocument
          }
       }
 
-#endif
 
    }
 
+#endif
 
 }
 

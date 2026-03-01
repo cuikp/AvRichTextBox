@@ -10,13 +10,54 @@
 			 PointerReleased="RichTextBox_PointerReleased" PointerExited="RichTextBox_PointerExited" KeyDown="RichTextBox_KeyDown"  Focusable="True"
 			 BorderBrush="Black" BorderThickness="1" Padding="2" >
 
+	<UserControl.Styles>
+
+		<Style Selector="local|EditableTable">
+		  <Setter Property="Template">
+			<ControlTemplate>
+			  <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
+				 <ItemsPresenter ItemsPanel="{TemplateBinding ItemsPanel}"/>
+			  </Border>
+			</ControlTemplate>
+		  </Setter>
+		</Style>
+
+		<Style Selector="local|EditableTable > ContentPresenter">
+			<Setter Property="Grid.Row" Value="{Binding RowNo}" />
+			<Setter Property="Grid.Column" Value="{Binding ColNo}" />
+			<Setter Property="Grid.ColumnSpan" Value="{Binding ColSpan}" />
+			<Setter Property="Grid.RowSpan" Value="{Binding RowSpan}" />
+		</Style>
+
+		 <Style Selector="local|EditableParagraph.paragraphBindings">
+			<Setter Property="TextWrapping" Value="Wrap"/>
+			<Setter Property="Margin" Value="5"/>
+			 <!--LineHeight="{Binding LineHeight}"-->
+			<Setter Property="LineSpacing" Value="{Binding LineSpacing}"/>
+			<Setter Property="FontFamily" Value="{Binding FontFamily}"/>
+			<Setter Property="FontWeight" Value="{Binding FontWeight}"/>
+			<Setter Property="FontSize" Value="{Binding FontSize}"/>
+			<Setter Property="Background" Value="{Binding Background}"/>
+			<Setter Property="TextAlignment" Value="{Binding TextAlignment}"/>
+			<Setter Property="SelectionBrush" Value="{Binding SelectionBrush}"/>
+			<Setter Property="VerticalAlignment" Value="{Binding VerticalAlignment}"/>
+
+			<Setter Property="SelectionStart" Value="{Binding SelectionStartInBlock, Mode=TwoWay}"/>
+			<Setter Property="SelectionEnd" Value="{Binding SelectionEndInBlock, Mode=TwoWay}"/>
+		</Style>
+
+	</UserControl.Styles>
+
+
 	<DockPanel x:Name="MainDP" MinWidth="{Binding MinWidth}">  <!--this binds to viewmodel-->
+
 
 		<ScrollViewer x:Name="FlowDocSV"  HorizontalScrollBarVisibility="Disabled" Margin="0" Padding="0" Offset="{Binding RTBScrollOffset, Mode=OneWay}"  ScrollChanged="ScrollViewer_ScrollChanged"
 					  PointerPressed="FlowDocSV_PointerPressed" PointerMoved="FlowDocSV_PointerMoved" PointerReleased="FlowDocSV_PointerReleased" >
 
 			<Grid VerticalAlignment="Top">
 
+				<!-- The FlowDocument itself -->
 				<ItemsControl x:Name="DocIC" DataContext="{Binding FlowDoc}" VerticalAlignment="Top" ItemsSource="{Binding Blocks}" Margin="0" Padding="{Binding PagePadding}" >
 
 					<ItemsControl.ItemsPanel>
@@ -33,76 +74,64 @@
 
 								<ContentControl.DataTemplates>
 								
+									<!-- Template for EditableParagraph -->
 									<DataTemplate DataType="local:Paragraph">
 									
 										<Border BorderThickness="{Binding BorderThickness}" BorderBrush="{Binding BorderBrush}" CornerRadius="3" Margin="{Binding Margin}"
 											  VerticalAlignment="Top" HorizontalAlignment="Stretch" Padding="0">
 
-											<!--LineHeight="{Binding LineHeight}"-->
-
-											<local:EditableParagraph xml:space="preserve" TextWrapping="Wrap" Margin="0"
-													LineSpacing="{Binding LineSpacing}"
-													FontFamily="{Binding FontFamily}"
-													FontWeight="{Binding FontWeight}"
-													FontSize="{Binding FontSize}"
-													Background="{Binding Background}"
-													TextAlignment="{Binding TextAlignment}"
-													SelectionBrush="{Binding SelectionBrush}"
-																		 
-													SelectionStart="{Binding SelectionStartInBlock, Mode=TwoWay}"
-													SelectionEnd="{Binding SelectionEndInBlock, Mode=TwoWay}"
-														
-													MouseMove="EditableParagraph_MouseMove"
-													LostFocus="EditableParagraph_LostFocus"
-													TextLayoutInfoStartRequested="{Binding RequestTextLayoutInfoStart}"
-													TextLayoutInfoEndRequested="{Binding RequestTextLayoutInfoEnd}"
-														 
+											<local:EditableParagraph Classes="paragraphBindings" xml:space="preserve" 
+													MouseMove="EditableParagraph_MouseMove" 
+													LostFocus="EditableParagraph_LostFocus" 
 													SelectionStartRect_Changed="SelectionStart_RectChanged"
 													SelectionEndRect_Changed="SelectionEnd_RectChanged"
+
+													TextLayoutInfoStartRequested="{Binding RequestTextLayoutInfoStart}"
+													TextLayoutInfoEndRequested="{Binding RequestTextLayoutInfoEnd}"
 													local:RequestExtensions.TextBoxFocusRequested="{Binding RequestTextBoxFocus}"
 													local:RequestExtensions.IsInlineUpdateRequested="{Binding RequestInlinesUpdate}"
-													local:RequestExtensions.InvalidateVisualRequested="{Binding RequestInvalidateVisual}" />
-
+													local:RequestExtensions.InvalidateVisualRequested="{Binding RequestInvalidateVisual}"
+													/>
+											
 										</Border>
 									</DataTemplate>
 
 
+									<!-- Template for EditableTable -->
 									<DataTemplate DataType="local:Table" >
-										<Border BorderBrush="Black" BorderThickness="{Binding BorderThickness}" Margin="{Binding Margin}" HorizontalAlignment="{Binding TableAlignment}" Width="{Binding Width}" Height="{Binding Height}" Background="Azure" >
 											
-											<local:EditableTable Background="GhostWhite" ShowGridLines="True" >
-												<ItemsControl ItemsSource="{Binding Cells}">
+										<local:EditableTable Background="GhostWhite"  BorderBrush="{Binding BorderBrush}" BorderThickness="{Binding BorderThickness}" Margin="{Binding Margin}" HorizontalAlignment="{Binding TableAlignment}" Width="{Binding Width}" Height="{Binding Height}" ItemsSource="{Binding Cells}" >
 
-													<ItemsControl.ItemsPanel>
-														<ItemsPanelTemplate>
-															<local:BindableGrid ShowGridLines="True" RowDefs="{Binding RowDefs}" ColDefs="{Binding ColDefs}"/>
-														</ItemsPanelTemplate>
-													  </ItemsControl.ItemsPanel>
+												<ItemsControl.ItemsPanel>
+													<ItemsPanelTemplate>
+														<local:BindableGrid RowDefs="{Binding RowDefs}" ColDefs="{Binding ColDefs}" />
+													</ItemsPanelTemplate>
+												</ItemsControl.ItemsPanel>
 
-														<ItemsControl.Styles>
-															<Style Selector="ItemsControl > ContentPresenter">
-															  <Setter Property="Grid.Row" Value="{Binding RowNo}" />
-															  <Setter Property="Grid.Column" Value="{Binding ColNo}" />
-															</Style>
-													  </ItemsControl.Styles>
-
-
-													  <ItemsControl.ItemTemplate>
-														<DataTemplate x:DataType="{x:Type local:Cell}">
-														  <local:EditableCell 
-														    Grid.Row="{Binding RowNo}"
-														    Grid.Column="{Binding ColNo}"
-															BorderThickness="{Binding BorderThickness}"
-															BorderBrush="{Binding BorderBrush}"
-														  >
-															<local:EditableParagraph DataContext="{Binding CellContent}" />  
-														  
-														  </local:EditableCell>
-														</DataTemplate>
-													  </ItemsControl.ItemTemplate>
-												</ItemsControl>
-											</local:EditableTable>
-										</Border>
+												<ItemsControl.ItemTemplate>
+													<DataTemplate x:DataType="{x:Type local:Cell}">
+														<Grid>
+															<local:EditableCell Padding="{Binding Padding}"  BorderThickness="{Binding BorderThickness}" BorderBrush="{Binding BorderBrush}" Background="{Binding CellBackground}" >
+															
+																<local:EditableParagraph x:DataType="local:Paragraph" Classes="paragraphBindings" DataContext="{Binding CellContent}" xml:space="preserve" 
+																	MouseMove="EditableParagraph_MouseMove" 
+																	LostFocus="EditableParagraph_LostFocus" 
+																	SelectionStartRect_Changed="SelectionStart_RectChanged"
+																	SelectionEndRect_Changed="SelectionEnd_RectChanged"
+																
+																	TextLayoutInfoStartRequested="{Binding RequestTextLayoutInfoStart}"
+																	TextLayoutInfoEndRequested="{Binding RequestTextLayoutInfoEnd}"
+																	local:RequestExtensions.TextBoxFocusRequested="{Binding RequestTextBoxFocus}"
+																	local:RequestExtensions.IsInlineUpdateRequested="{Binding RequestInlinesUpdate}"
+																	local:RequestExtensions.InvalidateVisualRequested="{Binding RequestInvalidateVisual}"
+																	/>  
+															</local:EditableCell>
+															<Rectangle Fill="{Binding SelectionBrush}" Opacity="0.45" IsVisible="{Binding Selected}"/>
+														</Grid>
+													</DataTemplate>
+												</ItemsControl.ItemTemplate>
+										</local:EditableTable>
+										
 									</DataTemplate>
 
 								</ContentControl.DataTemplates>

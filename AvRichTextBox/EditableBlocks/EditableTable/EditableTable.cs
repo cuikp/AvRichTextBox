@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 
 namespace AvRichTextBox;
 
-public partial class EditableTable : Grid, IEditableBlock
+public partial class EditableTable : ItemsControl
 {
    public bool IsEditable { get; set; } = true;
 

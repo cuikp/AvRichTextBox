@@ -20,12 +20,12 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>ver 1.5.1: prevented CR error at images, tab insertion enabled</PackageReleaseNotes>
+	  <PackageReleaseNotes>ver 1.6.2: Super/subscript support and preliminary table support</PackageReleaseNotes>
       
      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 	  <PackageOutputPath>D:\PROG\LocalNuget\AvRichTextBox</PackageOutputPath>
 	  
-	  <Version>1.5.1</Version>
+	  <Version>1.6.2</Version>
 	  <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
 	  
@@ -53,7 +53,6 @@
 
   
   <ItemGroup>
-    <!--<None Remove="RtfDomParserAv.dll" />-->
     <None Remove="SaveAndLoadFormats\Xaml\XamlPackageData\.rels" />
     <None Remove="SaveAndLoadFormats\Xaml\XamlPackageData\[Content_Types].xml" />
   </ItemGroup>
@@ -81,8 +80,8 @@
     <Reference Include="RtfDomParserAv">
       <HintPath>RtfDomParserAv.dll</HintPath>
     </Reference>
+    <None Include="RtfDomParserAv.dll" Pack="true" PackagePath="lib\$(TargetFramework)\" />
   </ItemGroup>
-
 
 	
 	<ItemGroup>
@@ -125,6 +124,7 @@
   <ItemGroup>
     <Using Include="Avalonia" />
     <Using Include="Avalonia.Input" />
+    <Using Include="System.Diagnostics" />
   </ItemGroup>
 
 	<ItemGroup>
@@ -133,6 +133,7 @@
 			<PackagePath>\</PackagePath>
 		</None>
 	</ItemGroup>
+
 
 
 </Project>

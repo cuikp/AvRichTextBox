@@ -71,7 +71,7 @@ It can also save and load the FlowDoc content as a Word document (.docx), Rtf do
 
 Content can be directly added in Xaml as well:
 			
-    '''  
+    ```xaml  
       <avrtb:RichTextBox ShowDebuggerPanelInDebugMode="True" >
 
 		   <avrtb:RichTextBox.FlowDocument>
@@ -98,7 +98,7 @@ Content can be directly added in Xaml as well:
 		   </avrtb:RichTextBox.FlowDocument>
 
     </avrtb:RichTextBox>
-    '''
+    ```
 
 
 ## Various future to-do improvements include:
@@ -156,3 +156,7 @@ No DebugPanel created at all (not just hidden) in Release mode.  Should have bee
 
 **[ver. 1.5.0] 2026/01/30**
 Can add direct content to RichTextBox in Xaml
+
+**[ver. 1.6.0] 2026/02/xx
+Can set SelectionBrush globally for RichTextBox
+Table support added

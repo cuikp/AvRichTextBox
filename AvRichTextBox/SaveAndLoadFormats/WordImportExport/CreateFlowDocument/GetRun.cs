@@ -286,23 +286,15 @@ internal static partial class WordConversions
 
                            case "sz":
 
-
                               thisRun.FontSize = PointsToPixels(Convert.ToDouble(rprsection.GetAttributes()[0].Value));
-                              if (thisRun.BaselineAlignment == BaselineAlignment.Subscript | ((EditableRun)iline).BaselineAlignment == BaselineAlignment.TextTop)
-                                 thisRun.FontSize /= 3;
-                              else
-                                 thisRun.FontSize /= 2;
+                              thisRun.FontSize /= 2;
                               break;
 
 
                            case "szCs":
 
-
                               thisRun.FontSize = PointsToPixels(Convert.ToDouble(rprsection.GetAttributes()[0].Value));
-                              if (thisRun.BaselineAlignment == BaselineAlignment.Subscript | thisRun.BaselineAlignment == BaselineAlignment.TextTop)
-                                 thisRun.FontSize /= 3;
-                              else
-                                 thisRun.FontSize /= 2;
+                              thisRun.FontSize /= 2;
                               break;
 
 
@@ -345,25 +337,22 @@ internal static partial class WordConversions
                               {
                                  case "subscript":
                                     thisRun.BaselineAlignment = BaselineAlignment.Subscript;
-                                    thisRun.FontSize /= 1.5;
                                     break;
 
                                  case "superscript":
-                                    thisRun.BaselineAlignment = BaselineAlignment.Top;
-                                    thisRun.FontSize /= 1.5;
+                                    thisRun.BaselineAlignment = BaselineAlignment.Superscript;
                                     break;
 
                                  default:
                                     thisRun.BaselineAlignment = BaselineAlignment.Baseline;
                                     break;
-
                               }
 
                               break;
                         }
 
                      }
-                     catch (Exception rprEx) { Debug.WriteLine("Error getting run properties:\nLocalName=" + rprsection.LocalName + "\n" + rprEx.Message); }
+                     catch (Exception rprEx) { Debug.WriteLine($"Error getting run properties:\nLocalName={rprsection.LocalName}\n{rprEx.Message}"); }
                   }
 
                   break;

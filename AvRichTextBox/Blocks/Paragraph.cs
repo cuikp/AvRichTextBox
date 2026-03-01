@@ -1,34 +1,45 @@
-﻿using Avalonia.Media;
+﻿using Avalonia.Layout;
+using Avalonia.Media;
 using DynamicData;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 
 namespace AvRichTextBox;
 
 public class Paragraph : Block
 {
+#if DEBUG
+   public string ParToolTip => $"Background: {Background}\nLineSpacing: {LineSpacing}\nLineHeight: {LineHeight}";
+#endif
 
    public ObservableCollection<IEditable> Inlines { get; set; } = [];
 
-   public Paragraph()
+   public Paragraph() { }
+
+   public Paragraph(FlowDocument owningFlowDoc)
    {
+      MyFlowDoc = owningFlowDoc;
+
       Inlines.CollectionChanged += Inlines_CollectionChanged;
-      Id = ++FlowDocument.BlockIdCounter;
+      Id = ++FlowDocument.ParagraphIdCounter;
+
+      SelectionBrush = owningFlowDoc.SelectionBrush;
+
    }
 
    private void Inlines_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
    {
-      foreach (IEditable ied in Inlines) 
+      foreach (IEditable ied in Inlines)
+      {
          ied.MyParagraphId = this.Id;
-
+         ied.MyFlowDoc = this.MyFlowDoc;
+         ied.IsTableCellInline = this.IsTableCellBlock;
+         ied.IsLastInlineOfParagraph = ied == this.Inlines[^1];
+      }
    }
 
-   public string ParToolTip => $"Background: {Background}\nLineSpacing: {LineSpacing}\nLineHeight: {LineHeight}";
-
    public Thickness BorderThickness { get;  set { field = value; NotifyPropertyChanged(nameof(BorderThickness)); } } = new(0);
-   public SolidColorBrush BorderBrush { get; set { field = value; NotifyPropertyChanged(nameof(BorderBrush)); } } = new(Colors.Transparent);
-   public SolidColorBrush Background { get; set { field = value; NotifyPropertyChanged(nameof(Background)); } } = new(Colors.Transparent);
-   //private FontFamily _FontFamily = new ("ＭＳ 明朝, Times New Roman");
+   public ISolidColorBrush BorderBrush { get; set { field = value; NotifyPropertyChanged(nameof(BorderBrush)); } } = new SolidColorBrush(Colors.Transparent);
+   public ISolidColorBrush Background { get; set { field = value; NotifyPropertyChanged(nameof(Background)); } } = new SolidColorBrush(Colors.Transparent);
    public FontFamily FontFamily { get; set { field = value; NotifyPropertyChanged(nameof(FontFamily)); } } = new("Meiryo");
    public double FontSize { get; set { field = value; NotifyPropertyChanged(nameof(FontSize)); } } = 16D;
    public double LineHeight { get; set { field = value; NotifyPropertyChanged(nameof(LineHeight)); } } = 18.666D;  // fontsize normally
@@ -36,8 +47,9 @@ public class Paragraph : Block
    public FontWeight FontWeight { get; set { field = value; NotifyPropertyChanged(nameof(FontWeight)); } } = FontWeight.Normal;
    public FontStyle FontStyle{ get; set { field = value; NotifyPropertyChanged(nameof(FontStyle)); } } = FontStyle.Normal;
    public TextAlignment TextAlignment { get; set { field = value; NotifyPropertyChanged(nameof(TextAlignment)); } } = TextAlignment.Left;
+   public VerticalAlignment VerticalAlignment { get; set { field = value; NotifyPropertyChanged(nameof(VerticalAlignment)); } } = VerticalAlignment.Top;
      
-   public SolidColorBrush SelectionBrush { get; set { field = value; NotifyPropertyChanged(nameof(SelectionBrush)); } } = LightBlueBrush;
+   public IBrush SelectionBrush { get; set { field = value; NotifyPropertyChanged(nameof(SelectionBrush)); } } = LightBlueBrush;
    internal static SolidColorBrush LightBlueBrush = new(Colors.LightBlue);
 
    internal double DistanceSelectionEndFromLeft = 0;
@@ -60,15 +72,18 @@ public class Paragraph : Block
    internal bool RequestTextLayoutInfoStart { get; set { field = value; NotifyPropertyChanged(nameof(RequestTextLayoutInfoStart)); } } = false;
    internal bool RequestTextLayoutInfoEnd { get; set { field = value; NotifyPropertyChanged(nameof(RequestTextLayoutInfoEnd)); } } = false;
    public bool RequestTextBoxFocus { get; set { field = value; NotifyPropertyChanged(nameof(RequestTextBoxFocus)); } } = false;
-
-   //private int _RequestRectOfCharacterIndex;
-   //public int RequestRectOfCharacterIndex { get => _RequestRectOfCharacterIndex; set { _RequestRectOfCharacterIndex = value; NotifyPropertyChanged(nameof(RequestRectOfCharacterIndex)); } }
-
+     
    internal void CallRequestTextBoxFocus() { RequestTextBoxFocus = true; RequestTextBoxFocus = false; }
    internal void CallRequestInvalidateVisual() { RequestInvalidateVisual = true; RequestInvalidateVisual = false; }
    internal void CallRequestInlinesUpdate() { RequestInlinesUpdate = true; RequestInlinesUpdate = false; }
    internal void CallRequestTextLayoutInfoStart() { RequestTextLayoutInfoStart = true; RequestTextLayoutInfoStart = false; }
    internal void CallRequestTextLayoutInfoEnd() { RequestTextLayoutInfoEnd = true; RequestTextLayoutInfoEnd = false; }
+
+   internal void EnsureProperEnd()
+   {
+      if (SelectionEndInBlock < SelectionStartInBlock)
+         SelectionStartInBlock = SelectionEndInBlock;
+   }
 
    internal void UpdateEditableRunPositions()
    {
@@ -101,7 +116,7 @@ public class Paragraph : Block
 
    internal Paragraph PropertyClone()
    {
-      return new Paragraph() 
+      return new Paragraph(MyFlowDoc) 
       { 
          TextAlignment = this.TextAlignment,
          LineSpacing = this.LineSpacing,
@@ -113,15 +128,16 @@ public class Paragraph : Block
          FontFamily = this.FontFamily,
          FontSize = this.FontSize,
          FontStyle = this.FontStyle,
-         FontWeight = this.FontWeight
+         FontWeight = this.FontWeight,
       }; 
    }
 
    internal Paragraph FullClone()
    {
-      Paragraph newPar = new() 
+      Paragraph newPar = new(this.MyFlowDoc) 
       { 
          Id = this.Id,
+         StartInDoc = this.StartInDoc,
          TextAlignment = this.TextAlignment,
          LineSpacing = this.LineSpacing,
          BorderBrush = this.BorderBrush,
@@ -134,10 +150,11 @@ public class Paragraph : Block
          FontStyle = this.FontStyle,
          FontWeight = this.FontWeight,
       };
-                 
+
+      
       newPar.Inlines.CollectionChanged += Inlines_CollectionChanged;
       newPar.Inlines.AddRange(this.Inlines.Select(il => il.CloneWithId()));
-
+            
       return newPar;
    }
 

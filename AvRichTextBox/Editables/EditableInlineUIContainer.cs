@@ -1,6 +1,5 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Controls.Documents;
-using static AvRichTextBox.IEditable;
 
 namespace AvRichTextBox;
 
@@ -11,11 +10,12 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
    public EditableInlineUIContainer(Control c) { Child = c; Id = ++FlowDocument.InlineIdCounter; }
 
    public int Id { get; set; }
-   public Inline BaseInline => this;
    public int MyParagraphId { get; set; }
+   public FlowDocument MyFlowDoc { get; set; } = null!;
    public int TextPositionOfInlineInParagraph { get; set; }
    public string InlineText { get; set; } = "@";
-   
+   public bool IsTableCellInline { get; set; } = false;
+
    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static")]
    public string FontName => "---";
 
@@ -28,7 +28,7 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
 
    public int ImageNo;
 
-   public IEditable Clone() => new EditableInlineUIContainer(this.Child) { MyParagraphId = this.MyParagraphId }; //, Id = this.Id }; }
+   public IEditable Clone() => new EditableInlineUIContainer(this.Child) { MyParagraphId = this.MyParagraphId, MyFlowDoc = this.MyFlowDoc, };
 
    public IEditable CloneWithId()
    {

@@ -1,11 +1,8 @@
-﻿using DocumentFormat.OpenXml;
+﻿using Avalonia.Media;
+using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Wordprocessing;
-using DOW = DocumentFormat.OpenXml.Wordprocessing;
-using Avalonia.Media;
-using System;
-using System.Diagnostics;
 using static AvRichTextBox.HelperMethods;
-using System.Text;
+using DOW = DocumentFormat.OpenXml.Wordprocessing;
 
 namespace AvRichTextBox;
 
@@ -68,13 +65,12 @@ internal static partial class WordConversions
          switch (edRun.BaselineAlignment)
          {
             case BaselineAlignment.Baseline: RunProp.AppendChild(new VerticalTextAlignment() { Val = VerticalPositionValues.Baseline }); break;
-            case BaselineAlignment.TextTop: RunProp.AppendChild(new VerticalTextAlignment() { Val = VerticalPositionValues.Superscript }); break;
-            case BaselineAlignment.Bottom: RunProp.AppendChild(new VerticalTextAlignment() { Val = VerticalPositionValues.Subscript }); break;
+            case BaselineAlignment.Superscript: RunProp.AppendChild(new VerticalTextAlignment() { Val = VerticalPositionValues.Superscript }); break;
+            case BaselineAlignment.Subscript: RunProp.AppendChild(new VerticalTextAlignment() { Val = VerticalPositionValues.Subscript }); break;
          }
 
          // Get font
          var rFont = new RunFonts();
-
          
 
          var fntSize = default(double);
@@ -83,7 +79,7 @@ internal static partial class WordConversions
          //rFont.EastAsia = edRun.FontFamily.ToString();
          rFont.EastAsia = "Meiryo UI";  // temporary default
          
-         fntSize = edRun.FontSize * 0.75 * 2;  // converts pixels to points
+         fntSize = PixelsToPoints(edRun.FontSize * 2);
 
          RunProp.AppendChild(rFont);
          RunProp.AppendChild(new FontSize() { Val = fntSize.ToString() });

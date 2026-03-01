@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using System.Data.SqlTypes;
 using System.IO.Compression;
 using System.Text;
 using System.Xml;
@@ -39,8 +40,7 @@ public partial class XamlConversions
 
 
       //Save images, if any  
-      List<Paragraph> imageContainingParagraphs = fdoc.Blocks.Where(b => b.IsParagraph && ((Paragraph)b).Inlines.Where(iline =>
-          iline.GetType() == typeof(EditableInlineUIContainer) && ((EditableInlineUIContainer)iline).Child.GetType() == typeof(Image)).Any()).ToList().ConvertAll(bb => (Paragraph)bb);
+      List<Paragraph> imageContainingParagraphs = [.. fdoc.AllParagraphs.Where(p => p.Inlines.Where(iline => iline is EditableInlineUIContainer eIUC && eIUC.Child is Image).Any())]; 
 
       if (imageContainingParagraphs.Count != 0)
       {
@@ -119,9 +119,7 @@ public partial class XamlConversions
          s.Write(docBytes, 0, docBytes.Length);
       }
 
-
-      //Debug.WriteLine("done");
-
+      //Debug.WriteLine("done saving");
 
    }
 
@@ -135,23 +133,20 @@ public partial class XamlConversions
       /////  make more general to use for any textrange 
       //selXaml.Append(GetBlocksXaml(new TextRange(this, 0, this.DocEndPoint)));
       
-      foreach (Paragraph paragraph in fdoc.Blocks)
+      foreach (Block block in fdoc.Blocks)
       {
+         switch (block)
+         {
+            case Paragraph par:
 
-         StringBuilder ParagraphHeader = new ("<Paragraph ");
-         ParagraphHeader.Append(
-            $"FontFamily=\"{paragraph.FontFamily.Name}" +
-            $"\" FontWeight=\"{paragraph.FontWeight}" + 
-            $"\" FontStyle=\"{paragraph.FontStyle}" + 
-            $"\" FontSize=\"{paragraph.FontSize}" + 
-            $"\" Margin=\"{paragraph.Margin}" + 
-            $"\" Background=\"{paragraph.Background}" + 
-            "\">");
-         selXaml.Append(ParagraphHeader);
+               selXaml.Append(GetParagraphXaml(par, isXamlPackage));
+               break;
 
-         selXaml.Append(GetParagraphRunsXaml(paragraph.Inlines, isXamlPackage));
-     
-         selXaml.Append("</Paragraph>");
+            case Table table:
+
+               selXaml.Append(GetTableXaml(table, isXamlPackage));
+               break;
+         }
       }
 
       selXaml.Append("</Section>");
@@ -160,6 +155,92 @@ public partial class XamlConversions
 
    }
 
+   internal static string GetTableXaml(Table table, bool isXamlPackage)
+   {
+
+      StringBuilder tableXaml = new("<Table ");
+
+      
+      string TablePropertiesString =
+         "CellSpacing=\"0\"" +
+         $" Margin=\"{table.Margin}\"" +
+         $" Padding=\"0,0,0,0\"" +
+         $" TableAlignment=\"{table.TableAlignment}\"" +
+         $" BorderThickness=\"{table.BorderThickness}\"" +
+         $" BorderBrush=\"{table.BorderBrush}\"";
+      tableXaml.Append(TablePropertiesString);
+      tableXaml.Append('>');
+
+      tableXaml.Append("<Table.Columns>");
+
+      foreach (ColumnDefinition coldef in table.ColDefs)
+      {
+         tableXaml.Append($"<TableColumn Width=\"{coldef.Width}\"/>");
+      }
+
+      tableXaml.Append("</Table.Columns>");
+      tableXaml.Append("<TableRowGroup>");
+
+      for (int rowno = 0; rowno < table.RowDefs.Count; rowno++)
+      {
+         StringBuilder tableRowString = new("<TableRow>");
+         for (int colno = 0; colno < table.ColDefs.Count; colno++)
+         {
+            if (table.Cells.FirstOrDefault(c => c.RowNo == rowno && c.ColNo == colno) is Cell thisCell)
+            {
+               StringBuilder cellString = new("<TableCell ");
+               string cellPropertiesString =
+                  $"ColumnSpan=\"{thisCell.ColSpan}\"" +
+                  $" RowSpan=\"{thisCell.RowSpan}\"" +
+                  $" Padding=\"{thisCell.Padding}\"" +
+                  $" BorderThickness=\"{thisCell.BorderThickness}\"" +
+                  $" BorderBrush=\"{thisCell.BorderBrush}\"" +
+                  $" CellBackground=\"{thisCell.CellBackground}\"";
+               cellString.Append(cellPropertiesString);
+               cellString.Append('>');
+
+               if (thisCell.CellContent is Paragraph par)
+               {
+                  cellString.Append(GetParagraphXaml(par, isXamlPackage));
+               }
+
+               cellString.Append("</TableCell>");
+               tableRowString.Append(cellString);
+            }
+         }
+
+         tableRowString.Append("</TableRow>");
+         tableXaml.Append(tableRowString);
+      }
+
+      tableXaml.Append("</TableRowGroup>");
+      tableXaml.Append("</Table>");
+
+      return tableXaml.ToString();
+
+   }
+
+
+   internal static string GetParagraphXaml(Paragraph par, bool isXamlPackage)
+   {
+      StringBuilder parXaml = new("<Paragraph ");
+      parXaml.Append(
+         $"FontFamily=\"{par.FontFamily.Name}\"" +
+         $" FontWeight=\"{par.FontWeight}\"" +
+         $" FontStyle=\"{par.FontStyle}\"" +
+         $" FontSize=\"{par.FontSize}\"" +
+         $" Margin=\"{par.Margin}\"" +
+         $" Background=\"{par.Background}\"" +
+         $" TextAlignment=\"{par.TextAlignment}\"" +
+         $" VerticalAlignment=\"{par.VerticalAlignment}\"" +
+         ">");
+
+      parXaml.Append(GetParagraphRunsXaml(par.Inlines, isXamlPackage));
+
+      parXaml.Append("</Paragraph>");
+
+      return parXaml.ToString();
+   }
 
    internal static string GetParagraphRunsXaml(IEnumerable<IEditable> parInlines, bool isXamlPackage)
    {

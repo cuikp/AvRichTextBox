@@ -22,8 +22,8 @@ public class BindableGrid : Grid
       this.UpdateLayout();
    }
 
-   public static readonly StyledProperty<RowDefinitions> RowDefsProperty = AvaloniaProperty.Register<BindableGrid, RowDefinitions>(nameof(RowDefs), defaultValue: new RowDefinitions());
-   public static readonly StyledProperty<ColumnDefinitions> ColDefsProperty = AvaloniaProperty.Register<BindableGrid, ColumnDefinitions>(nameof(ColDefs), defaultValue: new ColumnDefinitions());
+   public static readonly StyledProperty<RowDefinitions> RowDefsProperty = AvaloniaProperty.Register<BindableGrid, RowDefinitions>(nameof(RowDefs), defaultValue: []);
+   public static readonly StyledProperty<ColumnDefinitions> ColDefsProperty = AvaloniaProperty.Register<BindableGrid, ColumnDefinitions>(nameof(ColDefs), defaultValue: []);
    public RowDefinitions RowDefs { get => GetValue(RowDefsProperty); set => SetValue(RowDefsProperty, value); } 
    public ColumnDefinitions ColDefs { get => GetValue(ColDefsProperty); set => SetValue(ColDefsProperty, value); }
 

@@ -1,38 +1,15 @@
 ﻿using DynamicData;
-using System.Text.RegularExpressions;
 
 namespace AvRichTextBox;
 
 public partial class FlowDocument
 {
-
-   private Dictionary<Block, List<IEditable>> KeepParsAndInlines(TextRange tRange)
-   {
-      Dictionary<Block, List<IEditable>> returnDict = [];
-
-      List<Block> allBlocks = GetRangeBlocks(tRange);
-      foreach (Block b in allBlocks)
-      {
-         List<IEditable> inlines = [];
-         if (b is Paragraph p)
-            inlines.AddRange(p.Inlines.ToList().ConvertAll(il => il.CloneWithId()));
-         returnDict.TryAdd(b, inlines);
-
-      }
-
-      return returnDict;
-
-   }
-
-   internal int GetCharPosInInline(IEditable inline, int absPos)
-   {
-      if (Blocks.OfType<Paragraph>().FirstOrDefault(p => p.Id == inline.MyParagraphId) is not Paragraph inlinePar) return -1;
-      return absPos - inlinePar.StartInDoc - inline.TextPositionOfInlineInParagraph;
-   }
-
+  
    internal int PasteInlinesIntoRange(TextRange tRange, List<IEditable> newInlines)
    {  // All of this should constitute one Undo operation
       //Debug.WriteLine("newinlines=\n" + string.Join("\n", newInlines.ConvertAll(il => il.InlineText)));
+
+      disableRunTextUndo = true;
 
       int addedCharCount = 0;
 
@@ -40,9 +17,9 @@ public partial class FlowDocument
 
       int rangeStart = tRange.Start;
       int deleteRangeLength = tRange.Length;
-      int parIndex = Blocks.IndexOf(startPar);
+      int parIndex = AllParagraphs.IndexOf(startPar);
 
-      Undos.Add(new PasteUndo(KeepParsAndInlines(tRange), parIndex, this, rangeStart, deleteRangeLength - newInlines.Sum(nil=>nil.InlineLength)));
+      Undos.Add(new PasteUndo(GetOverlappingParagraphsInRange(tRange), parIndex, this, rangeStart, deleteRangeLength - newInlines.Sum(nil=>nil.InlineLength)));
 
       //Delete selected range first
       if (tRange.Length > 0)
@@ -76,10 +53,10 @@ public partial class FlowDocument
             addPar.Inlines.RemoveMany(moveInlines);
 
             //Create new paragraph to insert
-            addPar = new Paragraph();
+            addPar = new Paragraph(this);
             addPar.Inlines.AddRange(moveInlines);
             startInlineIndex = addPar.Inlines.Count;
-            Blocks.Insert(parIndex, addPar);
+            Blocks.Insert(parIndex, addPar);  /////$$$$$$
             addPar.CallRequestInlinesUpdate();
             UpdateBlockAndInlineStarts(addPar);
             addedCharCount += 1;
@@ -97,6 +74,8 @@ public partial class FlowDocument
       startPar.CallRequestInlinesUpdate();
       UpdateBlockAndInlineStarts(startPar);
 
+      disableRunTextUndo = false;
+
       return addedCharCount;
 
    }
@@ -110,7 +89,7 @@ public partial class FlowDocument
       int deleteRangeLength = tRange.Length;
       int parIndex = Blocks.IndexOf(startPar);
 
-      Undos.Add(new PasteUndo(KeepParsAndInlines(tRange), parIndex, this, rangeStart, deleteRangeLength - newText.Length));
+      Undos.Add(new PasteUndo(GetOverlappingParagraphsInRange(tRange), parIndex, this, rangeStart, deleteRangeLength - newText.Length));
 
       //Delete any selected text first
       if (tRange.Length > 0)
@@ -150,11 +129,12 @@ public partial class FlowDocument
 
    }
 
-
    internal void Undo()
    {
       if (Undos.Count > 0)
       {
+         disableRunTextUndo = true;
+         
          Undos.Last().PerformUndo();
 
          UpdateSelection();
@@ -166,78 +146,31 @@ public partial class FlowDocument
 
          UpdateSelectedParagraphs();
          
-         if (ShowDebugger)
-            UpdateDebuggerSelectionParagraphs();
 
          ScrollInDirection?.Invoke(1);
          ScrollInDirection?.Invoke(-1);
+
+         disableRunTextUndo = false;
+
       }
    }
 
-   internal void RestoreDeletedBlocks(Dictionary<Block, List<IEditable>> parsAndInlines, int blockIndex)
+   internal void RestoreDeletedBlocks(List<Paragraph> parClones, int blockIndex)
    {
-      //Reset all paragraphs with new inlines exactly as before
-
-      foreach (KeyValuePair<Block, List<IEditable>> restorePar in parsAndInlines)
-      {
-         if (restorePar.Key is Paragraph p)
-         {
-            p.Inlines.Clear();
-            p.CallRequestInlinesUpdate();
-            p.Inlines.AddRange(restorePar.Value);
-         }
-      }
-
       //Restore all of the previous paragraphs            
       Blocks.RemoveAt(blockIndex);
-      Blocks.AddOrInsertRange(parsAndInlines.ToList().ConvertAll(pil => pil.Key), blockIndex);
+      Blocks.AddOrInsertRange(parClones, blockIndex);
 
-      foreach (KeyValuePair<Block, List<IEditable>> restorePar in parsAndInlines)
-         if (restorePar.Key.IsParagraph)
-         {
-            if (restorePar.Key is Paragraph p)
-            {
-               p.CallRequestInlinesUpdate();
-               p.ClearSelection();
-            }
-         }
-
+      foreach (Paragraph p in parClones)
+      {
+         p.CallRequestInlinesUpdate();
+         p.ClearSelection();
+      }
+  
       UpdateBlockAndInlineStarts(blockIndex);
 
    }
 
-   [GeneratedRegex(@"[\r\n]")]
-   internal static partial Regex FindLineBreakCharsRegex();
-
-
-   internal IEditable? GetStartInline(int charIndex)
-   {
-
-      if (Blocks.LastOrDefault(b => b.IsParagraph && (b.StartInDoc <= charIndex)) is Paragraph startPar)
-      {
-         //Check if start is at end of last paragraph (cannot span from end of a paragraph)
-         if (startPar != Blocks.Where(b => b.IsParagraph).Last() && startPar.EndInDoc == charIndex)
-         {
-            return null;
-            //if (Blocks.FirstOrDefault(b => b.IsParagraph && Blocks.IndexOf(b) > Blocks.IndexOf(startPar)) is Paragraph lastPar)
-            //   startPar = lastPar;
-         }
-
-         IEditable? startInline = null;
-         bool IsAtLineBreak = false;
-         if (startPar.Inlines.LastOrDefault(ied => startPar.StartInDoc + ied.TextPositionOfInlineInParagraph <= charIndex) is IEditable startInlineReal)
-         {
-            if (startPar.Inlines.LastOrDefault(ied => !ied.IsLineBreak && startPar.StartInDoc + ied.TextPositionOfInlineInParagraph <= charIndex) is IEditable lastInline)
-               startInline = lastInline;
-            IsAtLineBreak = startInline != startInlineReal;
-         }
-         return startInline;
-
-      }
-      else
-         return null;
-
-   }
-
+   
 
 }

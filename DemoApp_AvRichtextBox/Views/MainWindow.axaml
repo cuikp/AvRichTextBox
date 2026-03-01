@@ -31,6 +31,8 @@
 						<Separator/>
 						<MenuItem Header="Load Html file" Click="LoadHtmlFileMenuItem_Click"/>
 						<MenuItem Header="Save Html file" Click="SaveHtmlFileMenuItem_Click"/>
+						<Separator Height="2"/>
+						<MenuItem Header="Open test files folder" Click="OpenTestFilesFolderMenuItem_Click"/>
 					</MenuItem>
 
 				</Menu>
@@ -60,8 +62,7 @@
 
 							<DockPanel DockPanel.Dock="Top">
 								<TextBlock Text="Font:" Margin="3,0" VerticalAlignment="Center"/>
-								<ComboBox x:Name="FontsCB" Width="170" FontSize="16" DropDownClosed="FontsComboBox_DropDownClosed" >
-								</ComboBox>
+								<ComboBox x:Name="FontsCB" Width="170" FontSize="16" DropDownClosed="FontsComboBox_DropDownClosed" Focusable="False" />
 							</DockPanel>
 
 							<DockPanel DockPanel.Dock="Top" Margin="3, 5">
@@ -185,10 +186,10 @@
 		</DockPanel>
 
 	
-		<!--<avrtb:RichTextBox x:Name="MainRTB"  IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="True"  />-->
+		<avrtb:RichTextBox x:Name="MainRTB"  IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="True"  DisableUserCopy="False" SelectionBrush="LightBlue" />
 			
 		<!--RTB with direct content -->
-		<avrtb:RichTextBox x:Name="MainRTB"  IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="True"  >
+		<!--<avrtb:RichTextBox x:Name="MainRTB"  IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="True" DisableUserCopy="False"  >
 			
 			<avrtb:RichTextBox.FlowDocument>
 				<avrtb:FlowDocument >
@@ -216,9 +217,9 @@
 
 						<avrtb:Paragraph/>
 
-					<!--	<avrtb:Table ColDefs="100, 150, 100, 100" Height="300" RowDefs="100, 100, 100" BorderThickness="3"/>-->
+					--><!--	<avrtb:Table ColDefs="100, 150, 100, 100" Height="300" RowDefs="100, 100, 100" BorderThickness="3"/>--><!--
 
-					<!--	<avrtb:Table BorderThickness="7" ColDefs="100, 150, 100, 100" RowDefs="100, 100, 100" >
+					--><!--	<avrtb:Table BorderThickness="7" ColDefs="100, 150, 100, 100" RowDefs="100, 100, 100" >
 							<avrtb:Table.Cells>
 								<avrtb:Cell RowNo="0" ColNo="0" BorderBrush="Red" BorderThickness="1" >
 									<avrtb:Cell.CellContent>
@@ -234,13 +235,13 @@
 								<avrtb:Cell RowNo="2" ColNo="3" BorderBrush="Red" BorderThickness="2"/>
 							</avrtb:Table.Cells>
 						</avrtb:Table>
--->
+						--> <!--
 
 					</avrtb:FlowDocument.Blocks>
 				</avrtb:FlowDocument>
 			</avrtb:RichTextBox.FlowDocument>
 
-		</avrtb:RichTextBox>
+		</avrtb:RichTextBox>-->
 
 	</DockPanel>
 

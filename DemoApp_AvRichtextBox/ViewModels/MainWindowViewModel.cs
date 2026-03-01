@@ -19,9 +19,6 @@ public partial class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
    string CurrentExt => Path.GetExtension(CurrentOpenFilePath);
    public string CurrentOpenFileNameExt => "DemoApp_AvRichTextBox - " + CurrentOpenFileName + CurrentExt;
 
-   //public FlowDocument MyFlowDoc { get; set; } = new FlowDocument();
-   //public ObservableCollection<Block> MyBlocks { get; set; } = [];
-
    public MainWindowViewModel()
    {
       //Testing creation a flow doc for binding:
@@ -30,7 +27,6 @@ public partial class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
       //MyFlowDoc.Blocks.Clear();
       //MyFlowDoc.Blocks.Add(p);
       //MyBlocks.Add(p);
-
 
    }     
 

@@ -12,9 +12,9 @@ namespace AvRichTextBox;
 internal static partial class WordConversions
 {
 
-   internal static Paragraph GetParagraph(OpenXmlElement section)
+   internal static Paragraph GetParagraph(OpenXmlElement section, FlowDocument fdoc)
    {
-      Paragraph para = new();
+      Paragraph para = new(fdoc);
 
       try
       {

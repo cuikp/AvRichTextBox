@@ -84,7 +84,21 @@ public partial class RichTextBox
 
             case Key.Tab:
                e.Handled = true;
-               InsertTab();
+               if (FlowDoc.Selection.GetStartPar() is Paragraph p && p.IsTableCellBlock)
+               {
+                  if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+                  {
+                     if (FlowDoc.GetPreviousParagraph(p) is Paragraph prevPar)
+                        FlowDoc.Select(prevPar.StartInDoc, 0);
+                  }
+                  else
+                  {
+                     if (FlowDoc.GetNextParagraph(p) is Paragraph nextPar)
+                        FlowDoc.Select(nextPar.StartInDoc, 0);
+                  }
+               }
+               else
+                  InsertTab();
                break;
 
             case Key.Enter:

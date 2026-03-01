@@ -5,6 +5,7 @@ using AvRichTextBox;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -43,7 +44,7 @@ public partial class MainWindow : Window
       
       DockPanel debugCBPanel = new () { VerticalAlignment = Avalonia.Layout.VerticalAlignment.Bottom };
       TextBlock debugTB = new () { Text = "DebugPanel" };
-      CheckBox debugCB = new();
+      CheckBox debugCB = new() { Focusable = false };
       debugCB.IsCheckedChanged += DebugPanelCB_CheckedUnchecked;
       debugCB.IsChecked = true;
       debugCBPanel.Children.Add(debugTB);
@@ -55,15 +56,11 @@ public partial class MainWindow : Window
 
       progChange = false;
 
-      //Test Table
-      MainRTB.FlowDocument.Blocks.Add(new Table(7, 5) { BorderThickness = new(1), TableAlignment = Avalonia.Layout.HorizontalAlignment.Center });
-      
-
    }
 
    private void CreateNewDocumentMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
    {
-      MainRTB.CloseDocument();
+      MainRTB.CreateNewDocument();
       
    }
 
@@ -85,6 +82,7 @@ public partial class MainWindow : Window
          PerformFind();
          e.Handled = true;
       }
+         
    }
 
    private void FindTextBox_GotFocus(object? sender, Avalonia.Input.GotFocusEventArgs e)

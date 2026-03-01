@@ -37,7 +37,7 @@ public partial class RichTextBox
       SelectionOrigin = thisPar.StartInDoc + hitCarIndex.TextPosition;
 
       //Clear all selections in all paragraphs      
-      foreach (Paragraph p in FlowDoc.Blocks.Where(pp => pp.SelectionLength != 0)) { p.ClearSelection();  }
+      foreach (Paragraph p in FlowDoc.AllParagraphs.Where(pp => pp.SelectionLength != 0)) { p.ClearSelection();  }
 
       int sel_start_idx = SelectionOrigin;
       int sel_end_idx = SelectionOrigin;

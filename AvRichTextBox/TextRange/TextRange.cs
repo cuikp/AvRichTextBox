@@ -9,7 +9,6 @@ public class TextRange : INotifyPropertyChanged, IDisposable
    private static readonly PropertyChangedEventArgs StartChangedArgs = new(nameof(Start));
    private static readonly PropertyChangedEventArgs EndChangedArgs = new(nameof(End));
 
-
    internal delegate void Start_ChangedHandler(TextRange sender, int newStart);
    internal event Start_ChangedHandler? Start_Changed;
    internal delegate void End_ChangedHandler(TextRange sender, int newEnd);
@@ -33,8 +32,6 @@ public class TextRange : INotifyPropertyChanged, IDisposable
  
    public int Start { get;  set { if (field != value) { field = value; Start_Changed?.Invoke(this, value); InvokeProperty(StartChangedArgs); } } }
    public int End { get; set { if (field != value) { field = value; End_Changed?.Invoke(this, value); InvokeProperty(EndChangedArgs); } } }
-   internal void UpdateStart() { InvokeProperty(StartChangedArgs); }
-   internal void UpdateEnd() { InvokeProperty(EndChangedArgs); }
 
    internal Paragraph StartParagraph = null!;
    internal Paragraph EndParagraph = null!;
@@ -45,60 +42,37 @@ public class TextRange : INotifyPropertyChanged, IDisposable
    internal bool IsAtEndOfLineSpace = false;
    internal bool IsAtEndOfLine = false;
    internal bool IsAtLineBreak = false;
+   internal bool IsAtCellBreak = false;
 
    internal bool BiasForwardStart = true;
    internal bool BiasForwardEnd = true;
    public void CollapseToStart() { End = Start;  }
    public void CollapseToEnd() { Start = End ; }
 
-
-   internal void CheckLineBreaks()
+    
+   internal int CalculateStartInInline(IEditable inline)
    {
-      GetStartInline();
-      IsAtLineBreak = false;
+      return this.Start - (StartParagraph.StartInDoc + inline.TextPositionOfInlineInParagraph);
+   }
 
-      if (GetStartPar() is not Paragraph startPar) return;
-      IEditable? startInline = null;
-
-      foreach (IEditable inline in startPar.Inlines)
-      {
-         if (BiasForwardStart)
-         {
-            IEditable? startInlineReal = startPar.Inlines.LastOrDefault(ied => startPar.StartInDoc + ied.TextPositionOfInlineInParagraph <= Start);
-            startInline = startPar.Inlines.LastOrDefault(ied => !ied.IsLineBreak && startPar.StartInDoc + ied.TextPositionOfInlineInParagraph <= Start);
-            IsAtLineBreak = startInline != startInlineReal;
-         }
-         else
-         {
-            if (Start == startPar.StartInDoc)
-               startInline = startPar.Inlines.FirstOrDefault();
-            else
-            {
-               startInline = startPar.Inlines.LastOrDefault(ied => startPar.StartInDoc + ied.TextPositionOfInlineInParagraph < Start);
-               IEditable? startInlineUpToLineBreak = startPar.Inlines.LastOrDefault(ied => !ied.IsLineBreak && startPar.StartInDoc + ied.TextPositionOfInlineInParagraph < Start);
-               if (startInline != null && startInline.IsLineBreak)
-                  startInline = myFlowDoc.GetNextInline(startInline) ?? startInline;
-               IsAtLineBreak = startInline != startInlineUpToLineBreak;
-            }
-         }
-      }
-
+   internal int CalculateEndInInline(IEditable inline)
+   {
+      return this.End - (EndParagraph.StartInDoc + inline.TextPositionOfInlineInParagraph);
    }
 
    internal IEditable? GetStartInline()
    {
-      
-      if (GetStartPar() is not Paragraph startPar) return null;
-
-      IEditable? startInline = null;
       IsAtLineBreak = false;
+      IsAtCellBreak = false;
 
+      if (GetStartPar() is not Paragraph startPar) return null;
+      IEditable? startInline = null;
+      
       if (BiasForwardStart)
       {
          IEditable? startInlineReal = startPar.Inlines.LastOrDefault(ied => startPar.StartInDoc + ied.TextPositionOfInlineInParagraph <= Start);
          startInline = startPar.Inlines.LastOrDefault(ied => !ied.IsLineBreak && startPar.StartInDoc + ied.TextPositionOfInlineInParagraph <= Start);
          IsAtLineBreak = startInline != startInlineReal;
-         //Debug.WriteLine("calculating isatlinebreak biasforwardstart");
       }
       else
       {
@@ -106,7 +80,6 @@ public class TextRange : INotifyPropertyChanged, IDisposable
             startInline = startPar.Inlines.FirstOrDefault();
          else
          {
-            //Debug.WriteLine("calculating isatlinebreak - OTHER");
             startInline = startPar.Inlines.LastOrDefault(ied => startPar.StartInDoc + ied.TextPositionOfInlineInParagraph < Start);
             IEditable? startInlineUpToLineBreak = startPar.Inlines.LastOrDefault(ied => !ied.IsLineBreak && startPar.StartInDoc + ied.TextPositionOfInlineInParagraph < Start);
             if (startInline != null && startInline.IsLineBreak)
@@ -115,10 +88,13 @@ public class TextRange : INotifyPropertyChanged, IDisposable
          }
       }
 
+      //Check if at cellbreak
+      if (startInline != null && startInline.IsTableCellInline && startInline.IsLastInlineOfParagraph)
+            IsAtCellBreak = CalculateStartInInline(startInline) >= startInline.InlineText.Length;
+
       return startInline;
 
    }
-
 
    internal IEditable? GetEndInline()
    {
@@ -132,40 +108,28 @@ public class TextRange : INotifyPropertyChanged, IDisposable
       else
          endInline = endPar.Inlines.LastOrDefault(ied => endPar.StartInDoc + ied.TextPositionOfInlineInParagraph < End);
 
+
+      //Check if at cellbreak
+      if (endInline != null && endInline.IsTableCellInline && endInline.IsLastInlineOfParagraph)
+         IsAtCellBreak = CalculateEndInInline(endInline) >= endInline.InlineText.Length;
+
       return endInline;
    }
 
-
-   public Paragraph? GetStartPar()
-   {
-      if (myFlowDoc.Blocks.OfType<Paragraph>().LastOrDefault(p => p.StartInDoc <= Start) is not Paragraph startPar) return null;
-
-      ////Check if start at end of last paragraph (cannot span from end of a paragraph)
-      //if (startPar != myFlowDoc.Blocks.OfType<Paragraph>().Last() && startPar.EndInDoc == Start)
-      //   startPar = myFlowDoc.Blocks.OfType<Paragraph>().FirstOrDefault(p => myFlowDoc.Blocks.IndexOf(p) > myFlowDoc.Blocks.IndexOf(startPar));
-
-      return startPar;
-
-   }
-
-   public Paragraph? GetEndPar()
-   {
-      return myFlowDoc.Blocks.LastOrDefault(b => b.IsParagraph && b.StartInDoc < End) as Paragraph;  // less than to keep within end of paragraph
-      
-   }
+   public Paragraph? GetStartPar() => myFlowDoc.AllParagraphs.LastOrDefault(p => p.StartInDoc <= Start);
+   public Paragraph? GetEndPar() => myFlowDoc.AllParagraphs.LastOrDefault(p => p.StartInDoc < End);
 
    public object? GetFormatting(AvaloniaProperty avProp)
    {
       object? formatting = null;
       if (myFlowDoc == null) return null;
       if (GetStartInline() is IEditable currentInline)
-         formatting = GetFormattingInline(avProp, currentInline);
+         formatting = GetFormattingOfInline(avProp, currentInline);
       
       return formatting;
    }
 
-
-   internal static object? GetFormattingInline(AvaloniaProperty avProperty, IEditable inline)
+   internal static object? GetFormattingOfInline(AvaloniaProperty avProperty, IEditable inline)
    {
       object? returnValue = null;
 
@@ -187,7 +151,6 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 
       return returnValue;
    }
-
 
    public void ApplyFormatting(AvaloniaProperty avProp, object value)
    {

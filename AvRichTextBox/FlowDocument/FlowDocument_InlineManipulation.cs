@@ -1,10 +1,15 @@
 ﻿using System.Collections.ObjectModel;
-using System.Diagnostics;
 
 namespace AvRichTextBox;
 
 public partial class FlowDocument
 {
+   internal int GetCharPosInInline(IEditable inline, int absPos)
+   {
+      if (AllParagraphs.FirstOrDefault(p => p.Id == inline.MyParagraphId) is not Paragraph inlinePar) return -1;
+
+      return absPos - inlinePar.StartInDoc - inline.TextPositionOfInlineInParagraph;
+   }
 
    internal List<IEditable> GetRangeInlines(TextRange trange)
    {
@@ -12,14 +17,12 @@ public partial class FlowDocument
       if (trange.GetEndPar() is not Paragraph endPar) return [];
 
       //Create clones of all inlines
-      List<IEditable> AllSelectedInlines = Blocks.Where(b => b.IsParagraph).SelectMany( b =>
-            ((Paragraph)b).Inlines.Where(iline => 
-            {
-               double absInlineStart = b.StartInDoc + iline.TextPositionOfInlineInParagraph;
-               double absInlineEnd = b.StartInDoc + iline.TextPositionOfInlineInParagraph + iline.InlineLength;
-               iline.IsLastInlineOfParagraph = iline == ((Paragraph)b).Inlines[^1];
-               return absInlineEnd > trange.Start && absInlineStart < trange.End;
-            })
+      List<IEditable> AllSelectedInlines = AllParagraphs.SelectMany( p => p.Inlines.Where(iline => 
+         {
+            double absInlineStart = p.StartInDoc + iline.TextPositionOfInlineInParagraph;
+            double absInlineEnd = p.StartInDoc + iline.TextPositionOfInlineInParagraph + iline.InlineLength;
+            return absInlineEnd > trange.Start && absInlineStart < trange.End;
+         })
       ).ToList().ConvertAll(il => 
       {
          IEditable clonedInline = il.Clone();
@@ -30,9 +33,9 @@ public partial class FlowDocument
 
       //Edge case
       if (AllSelectedInlines.Count == 0)
-         AllSelectedInlines = Blocks.Where(b => b.IsParagraph).SelectMany(b =>
-            ((Paragraph)b).Inlines.Where(iline => b.StartInDoc + iline.TextPositionOfInlineInParagraph + iline.InlineLength >= trange.Start &&
-             b.StartInDoc + iline.TextPositionOfInlineInParagraph < trange.End)).ToList().ConvertAll(il => il.Clone());
+         AllSelectedInlines = AllParagraphs.SelectMany(p =>
+            p.Inlines.Where(iline => p.StartInDoc + iline.TextPositionOfInlineInParagraph + iline.InlineLength >= trange.Start &&
+             p.StartInDoc + iline.TextPositionOfInlineInParagraph < trange.End)).ToList().ConvertAll(il => il.Clone());
 
       IEditable firstInline = AllSelectedInlines[0];
       int firstInlineSplitIndex = Math.Min(trange.Start - startPar.StartInDoc - firstInline.TextPositionOfInlineInParagraph, firstInline.InlineText.Length);
@@ -60,7 +63,7 @@ public partial class FlowDocument
    {
       edgeIds = new();
 
-      List<IEditable> AllSelectedInlines = [.. Blocks.OfType<Paragraph>().SelectMany(p => p.Inlines.Where(iline =>
+      List<IEditable> AllSelectedInlines = [.. AllParagraphs.SelectMany(p => p.Inlines.Where(iline =>
       {
          var ilineAbsoluteStart = p.StartInDoc + iline.TextPositionOfInlineInParagraph;
          return ilineAbsoluteStart + iline.InlineLength > trange.Start && ilineAbsoluteStart < trange.End;
@@ -69,7 +72,7 @@ public partial class FlowDocument
 
       //Edge case where range length is 0 and starts at inline end
       if (AllSelectedInlines.Count == 0)
-         AllSelectedInlines = [.. Blocks.OfType<Paragraph>().SelectMany(p => p.Inlines.Where(iline => 
+         AllSelectedInlines = [.. AllParagraphs.SelectMany(p => p.Inlines.Where(iline => 
          {
             var ilineAbsoluteStart = p.StartInDoc + iline.TextPositionOfInlineInParagraph;
             return ilineAbsoluteStart + iline.InlineLength >= trange.Start && ilineAbsoluteStart < trange.End; 
@@ -160,50 +163,32 @@ public partial class FlowDocument
             startPar.Inlines.Insert(indexOfFirstInline + 1, insertFirstInline);
             //if (RangeEndsAtInlineEnd)
                //lastInline.InlineText = firstInlineText[firstInlineSplitIndex..];
-               
          }
 
          //Debug.WriteLine("\nInlines to convert=\n" + string.Join("\n", AllSelectedInlines.ConvertAll(il => il.InlineText + " :: " + il.Id)));
-
       }
 
       startPar.CallRequestInlinesUpdate();
       endPar.CallRequestInlinesUpdate();
-      UpdateBlockAndInlineStarts(Blocks.IndexOf(startPar));
+      UpdateBlockAndInlineStarts(AllParagraphs.IndexOf(startPar));
  
     
       return AllSelectedInlines;
 
    }
 
-   internal int RemoveEmptyParagraphs(int upToParNo)
-   {
-      int removedParCount = 0;
-      for (int idx = Blocks.Count - 1; idx >= upToParNo; idx--)
-      {
-         Paragraph p = (Paragraph)Blocks[idx];
-         if (p.Inlines.Count == 0 || (p.Inlines.Count == 1 && p.Inlines[0].InlineLength == 0))
-         {
-            Blocks.Remove(p);
-            removedParCount++;
-         }
-      }
-      return removedParCount;
-   }
-     
-
    internal List<IEditable> SplitRunAtPos(int charPos, IEditable inlineToSplit, int splitPos)
    {
       //if (inlineToSplit.IsUIContainer)
       //   return [new EditableRun(""), inlineToSplit];
+      if (GetContainingParagraph(charPos) is not Paragraph containingPar) return [];
+      ObservableCollection<IEditable> inlines = containingPar.Inlines;
 
-      ObservableCollection<IEditable> inlines = GetContainingParagraph(charPos).Inlines;
       int runIdx = inlines.IndexOf(inlineToSplit);
 
       //splitPos = Math.Min(splitPos, inlineToSplit.InlineLength);
 
       string part2Text = inlineToSplit.InlineText[splitPos..];
-
 
       inlineToSplit.InlineText = inlineToSplit.InlineText[..splitPos];
       IEditable insertInline = inlineToSplit.Clone();
@@ -215,21 +200,52 @@ public partial class FlowDocument
 
    internal Paragraph? GetNextParagraph(Paragraph par)
    {
-      int myindex = Blocks.IndexOf(par);
-      if (myindex == Blocks.Count - 1) return null!;
-      return Blocks[myindex + 1] is Paragraph nextPar ? nextPar : null;
+      List<Paragraph> allPars = AllParagraphs;
+      int myindex = allPars.IndexOf(par);
+      if (myindex == allPars.Count - 1) return null!;
+      return allPars[myindex + 1]  ?? null;
       
    }
    
    internal Paragraph? GetPreviousParagraph(Paragraph par)
    {
-      int myindex = Blocks.IndexOf(par);
-      return myindex == 0 ? null : (Paragraph)Blocks[myindex - 1];
+      List<Paragraph> allPars = AllParagraphs;
+      int myindex = allPars.IndexOf(par);
+      return myindex == 0 ? null : allPars[myindex - 1];
+
    }
+
+   internal IEditable? GetStartInline(int charIndex)
+   {
+      List<Paragraph> allPars = AllParagraphs;
+      if (allPars.LastOrDefault(b => b.StartInDoc <= charIndex) is Paragraph startPar)
+      {
+         //Check if start is at end of last paragraph (cannot span from end of a paragraph)
+         if (startPar != allPars.Last() && startPar.EndInDoc == charIndex)
+         {
+            return null;
+         }
+
+         IEditable? startInline = null;
+         bool IsAtLineBreak = false;
+         if (startPar.Inlines.LastOrDefault(ied => startPar.StartInDoc + ied.TextPositionOfInlineInParagraph <= charIndex) is IEditable startInlineReal)
+         {
+            if (startPar.Inlines.LastOrDefault(ied => !ied.IsLineBreak && startPar.StartInDoc + ied.TextPositionOfInlineInParagraph <= charIndex) is IEditable lastInline)
+               startInline = lastInline;
+            IsAtLineBreak = startInline != startInlineReal;
+         }
+         return startInline;
+
+      }
+      else
+         return null;
+
+   }
+
 
    internal IEditable? GetNextInline(IEditable inline)
    {
-      if (this.Blocks.FirstOrDefault(b => b is Paragraph p && p.Id == inline.MyParagraphId) is not Paragraph inlinePar) return null;
+      if (AllParagraphs.FirstOrDefault(p => p.Id == inline.MyParagraphId) is not Paragraph inlinePar) return null;
 
       IEditable? returnIED = null;
 
@@ -248,7 +264,7 @@ public partial class FlowDocument
 
    internal IEditable? GetPreviousInline(IEditable inline) 
    {
-      if (this.Blocks.FirstOrDefault(b => b is Paragraph p && p.Id == inline.MyParagraphId) is not Paragraph inlinePar) return null;
+      if (AllParagraphs.FirstOrDefault(p => p.Id == inline.MyParagraphId) is not Paragraph inlinePar) return null;
 
       IEditable? returnIED = null;
 

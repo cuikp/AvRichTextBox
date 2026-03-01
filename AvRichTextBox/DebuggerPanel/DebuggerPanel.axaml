@@ -1,67 +1,85 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
-			 xmlns:local="using:AvRichTextBox" 
-             x:Class="AvRichTextBox.DebuggerPanel">
-  
-    <Border  BorderBrush="Gray" BorderThickness="1.5"> 
-			<DockPanel DataContext="{Binding FlowDoc}" >
-				<DockPanel DockPanel.Dock="Top" Background="Coral">
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:resources="using:System.Resources"
+			 mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
+			 xmlns:local="using:AvRichTextBox"
+			 x:Class="AvRichTextBox.DebuggerPanel">
 
-					<Border DockPanel.Dock="Top" BorderBrush="Black" BorderThickness="0.8">
-						<DockPanel>
-							<TextBlock DockPanel.Dock="Top" Background="LightGray" Text="{Binding Selection.Start, StringFormat='DocSelStart={0}'}"/>
-							<TextBlock Background="LightGray" Text="{Binding Selection.End, StringFormat='DocSelEnd={0}'}"/>
-						</DockPanel>
-					</Border>
+	<UserControl.Resources>
+
+		<VisualBrush x:Key="TableInlineBrush" TileMode="Tile" DestinationRect="0,0,10,40" Stretch="None">
+			<VisualBrush.Visual>
+				<Canvas Width="10" Height="40">
+					<Line StartPoint="0,40" EndPoint="10,0" Stroke="Blue" StrokeThickness="3" Opacity="0.1"/>
+				</Canvas>
+			</VisualBrush.Visual>
+		</VisualBrush>
+
+	</UserControl.Resources>
+
+
+	<Border  BorderBrush="Gray" BorderThickness="1.5">
+	<DockPanel DataContext="{Binding FlowDoc}" >
+		<DockPanel DockPanel.Dock="Top" Background="Coral">
+
+			<Border DockPanel.Dock="Top" BorderBrush="Black" BorderThickness="0.8">
+				<DockPanel>
+					<DockPanel DockPanel.Dock="Left">
+						<TextBlock DockPanel.Dock="Top" Background="LightGray" Text="{Binding Selection.Start, StringFormat='DocSelStart={0}'}"/>
+						<TextBlock Background="LightGray" Text="{Binding Selection.End, StringFormat='DocSelEnd={0}'}"/>
+					</DockPanel>
 				</DockPanel>
+			</Border>
+		</DockPanel>
 
-				<Grid Margin="10, 1, 5, 1" ColumnDefinitions="50* 15* 10* 10*" HorizontalAlignment="Stretch" ShowGridLines="True" DockPanel.Dock="Top">
+		<Grid Margin="10, 1, 5, 1" ColumnDefinitions="50* 15* 10* 10*" HorizontalAlignment="Stretch" ShowGridLines="True" DockPanel.Dock="Top">
 
-					<TextBlock Grid.Column="0" Text="Text" TextAlignment="Center" />
-					<TextBlock  Grid.Column="1" Text="PosInPar" TextAlignment="Center" />
-					<TextBlock  Grid.Column="2" Text="Len" TextAlignment="Center" />
-					<TextBlock  Grid.Column="3" Text="Inl_Id" TextAlignment="Center" />
-				</Grid>
+			<TextBlock Grid.Column="0" Text="Text" TextAlignment="Center" />
+			<TextBlock  Grid.Column="1" Text="PosInPar" TextAlignment="Center" />
+			<TextBlock  Grid.Column="2" Text="Len" TextAlignment="Center" />
+			<TextBlock  Grid.Column="3" Text="Inl_Id" TextAlignment="Center" />
+		</Grid>
 
-				<ListBox x:Name="ParagraphsLB"  DockPanel.Dock="Top" ItemsSource="{Binding SelectionParagraphs}" Background="Wheat" BorderBrush="Black" BorderThickness="1" Padding="0" >
-					<ListBox.ItemTemplate>
-						<DataTemplate x:DataType="{x:Type local:Paragraph}">
-							<DockPanel>
-								<DockPanel DockPanel.Dock="Top" Background="AliceBlue">
-									<TextBlock DockPanel.Dock="Left" Text="{Binding Inlines.Count, StringFormat='Inlines={0}'}"/>
-									<TextBlock Margin="20, 0, 0, 0" Text="{Binding StartInDoc, StringFormat='ParStartIdxInDoc={0}'}" ToolTip.Tip="{Binding ParToolTip}" />
-								</DockPanel>
+		<ListBox x:Name="ParagraphsLB"  DockPanel.Dock="Top" ItemsSource="{Binding SelectionParagraphs}" Background="Wheat" BorderBrush="Black" BorderThickness="1" Padding="0" >
+			<ListBox.ItemTemplate>
+				<DataTemplate x:DataType="{x:Type local:Paragraph}">
+					<DockPanel>
+						<DockPanel DockPanel.Dock="Top" Background="AliceBlue">
+							<TextBlock DockPanel.Dock="Left" Text="{Binding Inlines.Count, StringFormat='Inlines={0}'}"/>
+							<TextBlock Margin="20, 0, 0, 0" Text="{Binding StartInDoc, StringFormat='ParStartIdxInDoc={0}'}" ToolTip.Tip="{Binding ParToolTip}" />
+						</DockPanel>
 
 
-								<ItemsControl x:Name="InlinesIC" ItemsSource="{Binding Inlines}" Margin="-5, 2, -5, 20"  BorderBrush="DarkBlue" BorderThickness="0.7" >
-									<ItemsControl.ItemTemplate>
-										<DataTemplate x:DataType="{x:Type local:IEditable}">
-											<Border BorderBrush="Black" BorderThickness="{Binding InlineVP.InlineSelectedBorderThickness}" Background="{Binding InlineVP.BackBrush}">
-												<Grid ColumnDefinitions="50* 15* 10* 10*" HorizontalAlignment="Stretch" ShowGridLines="True" Margin="0" >
-													<TextBlock x:DataType="{x:Type local:EditableRun}" Margin="3, 0" Grid.Column="0" Text="{Binding DisplayInlineText}" TextWrapping="Wrap"  
-															   FontWeight="{Binding FontWeight}" FontStyle="{Binding FontStyle}" TextDecorations="{Binding TextDecorations}" ToolTip.Tip="{Binding InlineToolTip}" />
-													<TextBlock  Grid.Column="1" Text="{Binding TextPositionOfInlineInParagraph}" TextAlignment="Center" />
-													<TextBlock  Grid.Column="2" Text="{Binding InlineText.Length}" TextAlignment="Center" />
-													<TextBlock  Grid.Column="3" Text="{Binding Id}" TextAlignment="Center" />
-												</Grid>
-											</Border>
-										</DataTemplate>
-									</ItemsControl.ItemTemplate>
-								</ItemsControl>
+						<ItemsControl x:Name="InlinesIC" ItemsSource="{Binding Inlines}" Margin="-5, 2, -5, 20"  BorderBrush="DarkBlue" BorderThickness="0.7" >
+							<ItemsControl.ItemTemplate>
+								<DataTemplate x:DataType="{x:Type local:IEditable}">
+									<Border BorderBrush="Black" BorderThickness="{Binding InlineVP.InlineSelectedBorderThickness}" Background="{Binding InlineVP.BackBrush}">
+										<Grid ColumnDefinitions="50* 15* 10* 10*" HorizontalAlignment="Stretch" ShowGridLines="True" Margin="0" >
+											<Grid x:DataType="{x:Type local:EditableRun}" Margin="3, 0" Grid.Column="0">
+												<Border Background="{StaticResource TableInlineBrush}" IsVisible="{Binding InlineVP.IsTableCellInline}"/>
+												<TextBlock  Text="{Binding DisplayInlineText}" TextWrapping="Wrap" FontWeight="{Binding FontWeight}" FontStyle="{Binding FontStyle}" TextDecorations="{Binding TextDecorations}" ToolTip.Tip="{Binding InlineToolTip}" />
+											</Grid>
+											<TextBlock  Grid.Column="1" Text="{Binding TextPositionOfInlineInParagraph}" TextAlignment="Center" />
+											<TextBlock  Grid.Column="2" Text="{Binding InlineText.Length}" TextAlignment="Center" />
+											<TextBlock  Grid.Column="3" Text="{Binding Id}" TextAlignment="Center" />
+										</Grid>
+									</Border>
+								</DataTemplate>
+							</ItemsControl.ItemTemplate>
+						</ItemsControl>
 
-							</DockPanel>
+					</DockPanel>
 
-						</DataTemplate>
+				</DataTemplate>
 
-					</ListBox.ItemTemplate>
+			</ListBox.ItemTemplate>
 
-				</ListBox>
+		</ListBox>
 
-			</DockPanel>
+	</DockPanel>
 
-		</Border>
+	</Border>
 
 </UserControl>

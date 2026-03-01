@@ -1,19 +1,17 @@
 ﻿using Avalonia.Controls;
-using Avalonia.Input;
-using DocumentFormat.OpenXml.VariantTypes;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+using Avalonia.Media;
 using RtfDomParserAv;
-using System.Linq;
-using System.Threading.Tasks;
 using static AvRichTextBox.FlowDocument;
 
 namespace AvRichTextBox;
 
 public partial class RichTextBox
 {
-    
+
+   private static ScaleTransform strans = new(0.75, 0.75);
+   internal static TransformGroup SubscriptTG = new();
+   internal static TransformGroup SuperscriptTG = new();
+
    private void ToggleItalics()
    {
       if (IsReadOnly) return;
@@ -35,9 +33,11 @@ public partial class RichTextBox
 
    }
 
+   
    private void CopyToClipboard()
    {      
-      
+      if (DisableUserCopy) return;
+
       var dataObject = new DataObject();
 
       //create rtf string

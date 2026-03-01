@@ -2,8 +2,6 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
 using Avalonia.VisualTree;
-using System.Diagnostics;
-using System.Linq;
 
 namespace AvRichTextBox;
 
@@ -31,7 +29,6 @@ public partial class RichTextBox : UserControl
 
       thisPar.DistanceSelectionStartFromLeft = selStartRect.Left;
 
-      //List<TextLine> textLines = [.. tlayout.TextLines];
       IReadOnlyList<TextLine> textLines = tlayout.TextLines;
 
       int lineNo = tlayout.GetLineIndexFromCharacterIndex(edPar.SelectionStart, false);
@@ -77,7 +74,6 @@ public partial class RichTextBox : UserControl
          caretMTop = FlowDoc.Selection.PrevCharRect.Top + 1;
       }
       else
-         //caretMTop = selStartPoint.Value.Y;
          caretMTop = textTopY;
 
       RtbVm.CaretMargin = new Thickness(caretMLeft, caretMTop, 0, 0);
