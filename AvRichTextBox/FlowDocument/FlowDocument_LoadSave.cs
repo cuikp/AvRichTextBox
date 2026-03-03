@@ -1,14 +1,11 @@
 using DocumentFormat.OpenXml.Packaging;
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Text.RegularExpressions;
-using static AvRichTextBox.WordConversions;
-using static AvRichTextBox.RtfConversions;
-using static AvRichTextBox.XamlConversions;
+using HtmlAgilityPack;
 using RtfDomParserAv;
 using System.Text;
-using HtmlAgilityPack;
+using System.Text.RegularExpressions;
+using static AvRichTextBox.RtfConversions;
+using static AvRichTextBox.WordConversions;
+using static AvRichTextBox.XamlConversions;
 
 namespace AvRichTextBox;
 

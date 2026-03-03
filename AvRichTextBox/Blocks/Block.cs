@@ -102,7 +102,7 @@ public class Block : INotifyPropertyChanged
          switch (this)
          {
             case Paragraph p:
-               returnLength = p.Inlines.ToList().Sum(il => il.InlineLength) + 1;
+               returnLength = p.Inlines.ToList().Sum(il => il.InlineLength) + 1; 
                
                if (p.IsTableCellBlock)
                   returnLength += 1;  //char7

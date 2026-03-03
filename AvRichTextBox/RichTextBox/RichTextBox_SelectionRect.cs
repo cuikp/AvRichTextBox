@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Controls.Documents;
 using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
 using Avalonia.VisualTree;
@@ -16,6 +17,30 @@ public partial class RichTextBox : UserControl
 
       Rect selStartRect = tlayout.HitTestTextPosition(edPar.SelectionStart);
       Rect prevCharRect = tlayout.HitTestTextPosition(edPar.SelectionStart - 1);
+
+
+      //// calculate inner texts (sub/superscript)///////////////////
+      //int innerTextOffset = 0;
+      //foreach (EditableInlineUIContainer edcont in edPar.Inlines.OfType<EditableInlineUIContainer>())
+      //{
+      //   if (edcont.Child is TextBlock tblock)
+      //   {
+      //      int tblockLen = tblock.Inlines.Sum(il => ((Run)il).Text?.Length) ?? 0;
+      //      innerTextOffset += (tblockLen - 1);
+      //      Debug.WriteLine("innerTextoffset START  = " + innerTextOffset);
+      //   }
+      //}
+
+      //int relativeSelStart = edPar.SelectionStart - innerTextOffset;
+
+      //Rect selStartRect = tlayout.HitTestTextPosition(relativeSelStart);
+      //Rect prevCharRect = tlayout.HitTestTextPosition(relativeSelStart - 1);
+
+
+      ////Debug.WriteLine("Sel Start = " + edPar.SelectionStart + " ::: text at sel = " + edPar.Text[edPar.SelectionStart..]);
+      ////////////////////////////////////////////////////////////
+
+
 
       Point? selStartPoint = edPar.TranslatePoint(selStartRect.Position, DocIC);
       Point? prevCharPoint = edPar.TranslatePoint(prevCharRect.Position, DocIC);
@@ -59,7 +84,7 @@ public partial class RichTextBox : UserControl
       RtbVm.CaretHeight = textLines[lineIndex].Extent;
       if (RtbVm.CaretHeight == 0)
          RtbVm.CaretHeight = textLines[lineIndex].Height;
-      RtbVm.CaretHeight += 4; // give it an extra bit
+      RtbVm.CaretHeight += 4; // temporary fix to give it an extra bit
 
 
       double caretMLeft = selStartPoint.Value.X;
@@ -89,6 +114,29 @@ public partial class RichTextBox : UserControl
       TextLayout tlayout = edPar.TextLayout;
 
       Rect selEndRect = tlayout.HitTestTextPosition(edPar.SelectionEnd);
+
+
+
+      //// calculate inner texts (sub/superscript)///////////////////
+      //int innerTextOffset = 0;
+      //foreach (EditableInlineUIContainer edcont in edPar.Inlines.OfType<EditableInlineUIContainer>())
+      //{
+      //   if (edcont.Child is TextBlock tblock)
+      //   {
+      //      int tblockLen = tblock.Inlines.Sum(il => ((Run)il).Text?.Length) ?? 0;
+      //      innerTextOffset += (tblockLen - 1);
+      //      Debug.WriteLine("innerTextoffset END = " + innerTextOffset);
+      //   }
+      //}
+
+      //int relativeSelEnd = edPar.SelectionEnd - innerTextOffset;
+      //Rect selEndRect = tlayout.HitTestTextPosition(relativeSelEnd);
+
+      ////Debug.WriteLine("Sel Start = " + edPar.SelectionStart + " ::: text at sel = " + edPar.Text[edPar.SelectionStart..]);
+
+      //////////////////////////////////////////////////////////////////////////////
+
+
 
       Point? selEndPoint = edPar.TranslatePoint(selEndRect.Position, DocIC);
       if (selEndPoint != null)

@@ -6,18 +6,24 @@ namespace AvRichTextBox;
 public class EditableRun : Run, IEditable
 {
    
-   public EditableRun() { Id = ++FlowDocument.InlineIdCounter; }
+   public EditableRun() { InitializeRun();  }
 
    public EditableRun(string text)
    {
       this.Text = text;
+
+      InitializeRun();
+
+   }
+
+   private void InitializeRun()
+   {
+      Id = ++FlowDocument.InlineIdCounter;
+      BaselineAlignment = BaselineAlignment.Baseline;
       //FontFamily = "Meiryo";
       FontSize = 16;
-      BaselineAlignment = BaselineAlignment.Baseline;
-      Id = ++FlowDocument.InlineIdCounter;
 
       PropertyChanged += EditableRun_PropertyChanged;
-
    }
 
    private void EditableRun_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
@@ -54,6 +60,7 @@ public class EditableRun : Run, IEditable
    public string InlineText { get => Text!; set => Text = value; }
 
    public int InlineLength => InlineText.Length;
+   //public int InlineLength { get { Debug.WriteLine("Inline: " + this.Text + " ::: len = " + InlineText.Length); return InlineText.Length; } }
    public double InlineHeight => FontSize;
    public bool IsEmpty => InlineText.Length == 0;
    public string FontName => FontFamily?.Name == null ? "" : FontFamily?.Name!;

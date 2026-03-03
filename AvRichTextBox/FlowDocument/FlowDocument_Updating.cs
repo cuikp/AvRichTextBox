@@ -11,6 +11,7 @@ public partial class FlowDocument
       if (fromBlockIndex >= Blocks.Count) return;
 
       int blockSum = fromBlockIndex == 0 ? 0 : Blocks[fromBlockIndex - 1].StartInDoc + Blocks[fromBlockIndex - 1].BlockLength;
+      
       for (int blockIndex = fromBlockIndex; blockIndex < Blocks.Count; blockIndex++)
       {
          Blocks[blockIndex].StartInDoc = blockSum;

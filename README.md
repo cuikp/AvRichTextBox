@@ -71,96 +71,100 @@ It can also save and load the FlowDoc content as a Word document (.docx), Rtf do
 
 Content can be directly added in Xaml as well:
 			
-    ```xaml  
-      <avrtb:RichTextBox ShowDebuggerPanelInDebugMode="True" >
+```xaml  
+<avrtb:RichTextBox ShowDebuggerPanelInDebugMode="True" >
 
-		   <avrtb:RichTextBox.FlowDocument>
-			   <avrtb:FlowDocument >
-				   <avrtb:FlowDocument.Blocks>
+	<avrtb:RichTextBox.FlowDocument>
+		<avrtb:FlowDocument >
+			<avrtb:FlowDocument.Blocks>
 
-                  <avrtb:Paragraph>
-						   <avrtb:Paragraph.Inlines>
-							   <avrtb:EditableRun Text="This is a line of text. "/>
-                        <avrtb:EditableRun Text="With a second run."/>
-						   </avrtb:Paragraph.Inlines>
-					   </avrtb:Paragraph>
+            <avrtb:Paragraph>
+					<avrtb:Paragraph.Inlines>
+						<avrtb:EditableRun Text="This is a line of text. "/>
+                  <avrtb:EditableRun Text="With a second run."/>
+					</avrtb:Paragraph.Inlines>
+				</avrtb:Paragraph>
 
-					   <avrtb:Paragraph>
-						   <avrtb:Paragraph.Inlines>
-							   <avrtb:EditableInlineUIContainer>
-								   <Image Width="100" Height="60" Source="avares://DemoApp_AvRichTextBox/Assets/avalonia-logo.ico"/>
-							   </avrtb:EditableInlineUIContainer>
-						   </avrtb:Paragraph.Inlines>
-					   </avrtb:Paragraph>
+				<avrtb:Paragraph>
+					<avrtb:Paragraph.Inlines>
+						<avrtb:EditableInlineUIContainer>
+							<Image Width="100" Height="60" Source="avares://DemoApp_AvRichTextBox/Assets/avalonia-logo.ico"/>
+						</avrtb:EditableInlineUIContainer>
+					</avrtb:Paragraph.Inlines>
+				</avrtb:Paragraph>
 
-				   </avrtb:FlowDocument.Blocks>
-			   </avrtb:FlowDocument>
-		   </avrtb:RichTextBox.FlowDocument>
+			</avrtb:FlowDocument.Blocks>
+		</avrtb:FlowDocument>
+	</avrtb:RichTextBox.FlowDocument>
 
-    </avrtb:RichTextBox>
-    ```
+</avrtb:RichTextBox>
+```
 
 
 ## Various future to-do improvements include:
 * Word/Html/RTF export and import can be fleshed out (to support more attributes)
-* Allow Save/Load TextRanges to Rtf stream
-* Adding Table support
-* Allow the Undo limit to be set, and create a Redo stack
-* Stress testing, particularly undos
+* Allow Save/Load `TextRange` to Rtf stream
+* Make Undo more solid, allow the Undo limit to be set, create a Redo stack
 
-RtfDomParser used for parsing of rtf files can be found at https://github.com/SourceCodeBackup/RtfDomParser, but for this project I had to manually modify it to use Avalonia.Media instead of System.Drawing.  Generation of .rtf is my own concoction with the bare minimum to produce a readable .rtf file/dataobject.
+`RtfDomParser` used for reading/parsing of rtf files can be found at https://github.com/SourceCodeBackup/RtfDomParser, but for this project I had to manually modify it to use `Avalonia.Media` instead of `System.Drawing`.  That modified library is included in this project as `RtfDomParserAv.dll`.  Generation of .rtf for saving is my own concoction with the bare minimum necessary to produce a readable .rtf file/dataobject.
 
-**#Change log**
+## Usage Examples
+Time is always a limiting factor, so I'd appreciate any contributors who have used this library and have time/interest to add usage examples for this library.
+A file for usage examples is in `/docs/BasicUsage.md`.
+If you are able, feel free to add a section to BasicUsage.md, or even create a new file under `/docs`, then open a pull request.
+
+
+## Change log
 
 **[ver 1.0.15] - 2025/02/22**
-Internal binding was of the RTB itself to its viewmodel, which prevented external binding to UserControl properties (such as IsVisible).  Internal binding is now to the immediate child (DockPanel "MainDP"), freeing up the properties of the UserControl itself.
+Internal binding was of the RTB itself to its viewmodel, which prevented external binding to `UserControl` properties (such as IsVisible).  Internal binding is now to the immediate child (`DockPanel` "MainDP"), freeing up the properties of the `UserControl` itself.
 Also upgraded copy/paste to allow copying and pasting of paragraph breaks (\r), which were ignored before.
 
 **[ver 1.0.16] 2025/02/25**
-Now works with Avalonia 11.1.xx & 11.2.xx!  Binding update issues resolved.  Previous AvRichTextBox versions failed on Avalonia 11.1 and higher and have been deprecated.
+Now works with Avalonia 11.1.xx & 11.2.xx!  Binding update issues resolved.  Previous `AvRichTextBox` versions failed on Avalonia 11.1 and higher and have been deprecated.
 In addition, added IME support for Chinese/Japanese input.  Kanji and Hanzi can now be directly inputted in the RichTextBox.
 
 **[ver 1.0.17] 2025/02/26**
 Improved IME popup location and behavior (Hides on Esc key, or after backspacing to null entry).
-In addition, the RichTextBox content can now be saved as .rtf  (SaveRtfDoc(string fileName)).  As of now, not all attributes are honored in the save (only bold, fontsize, italic and underline).
+In addition, the RichTextBox content can now be saved as .rtf  (`SaveRtfDoc(string fileName)`).  As of now, not all font attributes are honored in the save.
 
 **[ver 1.2.0] 2025/02/27**
 Copying of richtext content (rtf format) is now possible.  Some navigation and pasting fixes/improvements.  Also pasting of large-volume text is now much faster.  Technically 1.0.16 should have been numbered 1.2.0 but hey.
 
 **[ver. 1.2.1] 2025/02/28**
-FontFamily now included in rtf copy/paste, fixed Word reading error due to fonts
+`FontFamily` now included in rtf copy/paste, fixed Word reading error due to fonts
 
 **[ver. 1.2.6] 2025/04/05**
-Some minor fixes: run break errors, and better handling of Word colors.  Also setting ShowDebuggerPanelInDebugMode at runtime will now dynamically show/hide the Debugger panel.
+Some minor fixes: run break errors, and better handling of Word colors.  Also setting `ShowDebuggerPanelInDebugMode` at runtime will now dynamically show/hide the Debugger panel.
 
 **[ver. 1.3.0] 2025/04/06**
-Can save/load as Html.  Rtf images/line spacing now saved.  Paragraph borders, colors and backgrounds supported.
+Can save/load as Html.  Rtf images/line spacing now saved.  `Paragraph` borders, colors and backgrounds supported.
 
 **[ver. 1.3.2] 2025/04/09**
 Changed the underlying strategy for Undo. Undo now creates clones instead of retaining objects, which was causing problems during complex Undo sequences.
-Also made ShowDebuggerPanelInDebugMode default to False. 
+Also made `ShowDebuggerPanelInDebugMode` default to `False`. 
 
 **[ver. 1.3.8] 2025/08/02**
-Includes changes such as fix to mouse selection (wasn't working in Release mode), double/triple clicking to select word/paragraph, and IsReadOnly property for the RichTextBox.
+Includes changes such as fix to mouse selection (wasn't working in Release mode), double/triple clicking to select word/paragraph, and `IsReadOnly` property for the RichTextBox.
 
 ...
 
 **[ver 1.4.5] 2026/01/28**
-Multiple/overlapping text formatting and undos now work better being based on inline Ids rather than using their in-paragraph indexes. Also Paragraph Ids instead of indexes.  Fixed erroneous deletion of required empty inline before linebreak.  Paragraph text ends with "\r\n" as is proper (rather than "\r").
+Multiple/overlapping text formatting and undos now work better being based on `IEditable` Ids rather than using their in-paragraph indexes. Also `Paragraph` Ids instead of indexes.  Fixed erroneous deletion of required empty inline before `EditableLineBreak`.  `Paragraph` text ends with "\r\n" as is proper (rather than "\r").
 
 **[ver 1.4.6] 2026/01/30**
 Further Undo improvements
 
 **[ver 1.4.7] 2026/01/30**
-No DebugPanel created at all (not just hidden) in Release mode.  Should have been this way from the start...
+No `DebugPanel` created at all (not just hidden) in Release mode.  Should have been this way from the start...
 
 **[ver. 1.5.0] 2026/01/30**
-Can add direct content to RichTextBox in Xaml
+Can add direct content to `AvRichTextBox` in Xaml
 
 **[ver. 1.6.0] 2026/02/xx**
-Can set SelectionBrush globally for RichTextBox
-Table support added
+Can set `SelectionBrush` globally for AvRichTextBox
 
 **[ver.1.6.2] 2026/03/01**
-Added preliminary table support.  Tables can be added as Blocks to FlowDocument.
-In addition, superscript and subscript runs appear as such (raised/lowered text).
+**[ver.1.6.3]**
+Added preliminary `Table` support.  `Table` can be added as a `Block` in the `FlowDocument`.  (Some bugs remain to be fixed.)
+In addition, `BaselineAlignment.Superscript`/`.Subscript` runs nwo appear properly as such (raised/lowered text).  (Modification was necessary because Avalonia's `SelectableTextBlock` currently doesn't display them properly).

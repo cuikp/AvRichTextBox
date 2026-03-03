@@ -1,5 +1,4 @@
-﻿using Avalonia.Controls;
-using Avalonia.Controls.Documents;
+﻿using Avalonia.Controls.Documents;
 using Avalonia.Media;
 
 namespace AvRichTextBox;
@@ -15,48 +14,47 @@ internal partial class EditableParagraph
       {
          foreach (IEditable ied in p.Inlines)
          {
-
             if (ied is EditableRun erun)
-            {
+            {               
                switch (erun.BaselineAlignment)
                {
                   case BaselineAlignment.Subscript:
-                     returnInlines.Add(CreateContainerFromERun(erun, RichTextBox.SubscriptTG));
+                     
+                     returnInlines.Add(CreateScriptRun(erun));
                      continue;
-
                   case BaselineAlignment.Superscript:
-                     returnInlines.Add(CreateContainerFromERun(erun, RichTextBox.SuperscriptTG));
+                     returnInlines.Add(CreateScriptRun(erun));
                      continue;
                }
             }
 
             returnInlines.Add((Inline)ied);
-            
+                       
          }
       }
       
       return returnInlines;
    }
 
-   private static InlineUIContainer CreateContainerFromERun(EditableRun erun, TransformGroup rTransform)
+   private static Run CreateScriptRun(EditableRun erun)
    {
-      TextBlock subBlock = new()
+      Run scriptRun = new(erun.Text)
       {
-         Inlines = [new Run(erun.Text)
-                        {
-                           FontSize = erun.FontSize,
-                           FontWeight = erun.FontWeight,
-                           FontStyle = erun.FontStyle,
-                           FontFamily = erun.FontFamily,
-                           Foreground = erun.Foreground,
-                           Background = erun.Background,
-                           TextDecorations = erun.TextDecorations,
-                        }],
-         RenderTransform = rTransform
+         FontSize = erun.FontSize * 0.75,
+         FontWeight = erun.FontWeight,
+         FontStyle = erun.FontStyle,
+         FontFamily = erun.FontFamily,
+         Foreground = erun.Foreground,
+         Background = erun.Background,
+         TextDecorations = erun.TextDecorations,
+         BaselineAlignment = erun.BaselineAlignment == BaselineAlignment.Superscript ? BaselineAlignment.Superscript : BaselineAlignment.TextBottom
       };
-      return new InlineUIContainer (subBlock);
+
+
+      return scriptRun;
 
    }
+
 
    internal void UpdateInlines()
    {
