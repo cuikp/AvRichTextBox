@@ -1,10 +1,6 @@
-﻿using Avalonia;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using Avalonia.Media.Immutable;
-using DocumentFormat.OpenXml.Math;
-using System.Linq;
 using System.Text;
 using static AvRichTextBox.HelperMethods;
 

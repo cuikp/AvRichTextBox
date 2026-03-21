@@ -78,6 +78,7 @@ public partial class RichTextBox : UserControl
 
       ////FOR DEBUGGING
       FlowDoc.CreateTestDocument();
+      
 
 #if DEBUG
       if (ShowDebuggerPanelInDebugMode)
@@ -97,6 +98,7 @@ public partial class RichTextBox : UserControl
 
 
    }
+
 
    private void RtbVM_FlowDocChanged()
    {

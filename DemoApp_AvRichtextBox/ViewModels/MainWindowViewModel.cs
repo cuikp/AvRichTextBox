@@ -21,12 +21,7 @@ public partial class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
 
    public MainWindowViewModel()
    {
-      //Testing creation a flow doc for binding:
-      //Paragraph p = new();
-      //p.Inlines.Add(new EditableRun("This is a fixxxxxrst inline"));
-      //MyFlowDoc.Blocks.Clear();
-      //MyFlowDoc.Blocks.Add(p);
-      //MyBlocks.Add(p);
+     
 
    }     
 
