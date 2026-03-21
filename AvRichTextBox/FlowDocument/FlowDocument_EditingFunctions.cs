@@ -114,7 +114,9 @@ public partial class FlowDocument
             FontStyle = sRun.FontStyle,
             FontSize = sRun.FontSize,
             TextDecorations = sRun.TextDecorations,
-            Background = sRun.Background
+            Background = sRun.Background,
+            BaselineAlignment = sRun.BaselineAlignment,
+            Foreground = sRun.Foreground
          };
 
          startPar.Inlines.Insert(startInlineIndex, newEditableRun);

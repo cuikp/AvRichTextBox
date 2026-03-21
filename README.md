@@ -159,7 +159,7 @@ Further Undo improvements
 No `DebugPanel` created at all (not just hidden) in Release mode.  Should have been this way from the start...
 
 **[ver. 1.5.0] 2026/01/30**
-Can add direct content to `AvRichTextBox` in Xaml
+Can add direct content to `RichTextBox` in Xaml
 
 **[ver. 1.6.0] 2026/02/xx**
 Can set `SelectionBrush` globally for AvRichTextBox
@@ -167,4 +167,4 @@ Can set `SelectionBrush` globally for AvRichTextBox
 **[ver.1.6.2] 2026/03/01**
 **[ver.1.6.3]**
 Added preliminary `Table` support.  `Table` can be added as a `Block` in the `FlowDocument`.  (Some bugs remain to be fixed.)
-In addition, `BaselineAlignment.Superscript`/`.Subscript` runs nwo appear properly as such (raised/lowered text).  (Modification was necessary because Avalonia's `SelectableTextBlock` currently doesn't display them properly).
+In addition, `BaselineAlignment.Superscript`/`.Subscript` runs now appear properly as such (raised/lowered text).  (Modification was necessary because Avalonia's `SelectableTextBlock` currently doesn't display them properly).  

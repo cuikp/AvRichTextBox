@@ -1,111 +1,155 @@
 using Avalonia.Controls;
-using Avalonia.Controls.Documents;
 using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
-using Avalonia.VisualTree;
 
 namespace AvRichTextBox;
 
 public partial class RichTextBox : UserControl
-{   
+{
 
    internal void SelectionStart_RectChanged(EditableParagraph edPar)
    {
       edPar.UpdateLayout();
-      
+
+      if (edPar.DataContext is not Paragraph thisPar) return;
+
       TextLayout tlayout = edPar.TextLayout;
 
       Rect selStartRect = tlayout.HitTestTextPosition(edPar.SelectionStart);
       Rect prevCharRect = tlayout.HitTestTextPosition(edPar.SelectionStart - 1);
 
+      if (edPar.TranslatePoint(selStartRect.Position, DocIC) is not Point selStartPoint) return;
+      if (edPar.TranslatePoint(prevCharRect.Position, DocIC) is not Point prevCharPoint) return;
 
-      //// calculate inner texts (sub/superscript)///////////////////
-      //int innerTextOffset = 0;
-      //foreach (EditableInlineUIContainer edcont in edPar.Inlines.OfType<EditableInlineUIContainer>())
-      //{
-      //   if (edcont.Child is TextBlock tblock)
-      //   {
-      //      int tblockLen = tblock.Inlines.Sum(il => ((Run)il).Text?.Length) ?? 0;
-      //      innerTextOffset += (tblockLen - 1);
-      //      Debug.WriteLine("innerTextoffset START  = " + innerTextOffset);
-      //   }
-      //}
-
-      //int relativeSelStart = edPar.SelectionStart - innerTextOffset;
-
-      //Rect selStartRect = tlayout.HitTestTextPosition(relativeSelStart);
-      //Rect prevCharRect = tlayout.HitTestTextPosition(relativeSelStart - 1);
-
-
-      ////Debug.WriteLine("Sel Start = " + edPar.SelectionStart + " ::: text at sel = " + edPar.Text[edPar.SelectionStart..]);
-      ////////////////////////////////////////////////////////////
-
-
-
-      Point? selStartPoint = edPar.TranslatePoint(selStartRect.Position, DocIC);
-      Point? prevCharPoint = edPar.TranslatePoint(prevCharRect.Position, DocIC);
-
-      if (selStartPoint == null || prevCharPoint == null) return;
-
-      FlowDoc.Selection.StartRect = new Rect((Point)selStartPoint, selStartRect.Size);
-      FlowDoc.Selection.PrevCharRect = new Rect((Point)prevCharPoint, prevCharRect.Size);
-
-      if (edPar.DataContext is not Paragraph thisPar) return;
-
-      thisPar.DistanceSelectionStartFromLeft = selStartRect.Left;
+      FlowDoc.Selection.StartRect = new Rect(selStartPoint, selStartRect.Size);
+      FlowDoc.Selection.PrevCharRect = new Rect(prevCharPoint, prevCharRect.Size);
 
       IReadOnlyList<TextLine> textLines = tlayout.TextLines;
 
-      int lineNo = tlayout.GetLineIndexFromCharacterIndex(edPar.SelectionStart, false);
-      thisPar.IsStartAtFirstLine = lineNo == 0;
-      thisPar.IsStartAtLastLine = (lineNo == textLines.Count - 1);
-
-      if (thisPar.IsStartAtFirstLine)
-         thisPar.CharPrevLineStart = edPar.SelectionStart;
-      else
-      {  // get index of first char on previous line
-         thisPar.CharPrevLineStart = GetClosestIndex(edPar, lineNo, thisPar.DistanceSelectionStartFromLeft, -1);
-      }
-
-      if (thisPar.IsStartAtLastLine)
-         thisPar.CharNextLineStart = edPar.SelectionEnd - textLines[lineNo].FirstTextSourceIndex;
-      else
-         thisPar.CharNextLineStart = GetClosestIndex(edPar, lineNo, thisPar.DistanceSelectionStartFromLeft, 1);
-
-      thisPar.FirstIndexStartLine = FlowDoc.Selection.IsAtEndOfLineSpace ? 
-         textLines[Math.Max(0, lineNo -1)].FirstTextSourceIndex : 
-         textLines[lineNo].FirstTextSourceIndex;
-      thisPar.FirstIndexLastLine = textLines[^1].FirstTextSourceIndex;
-
-
-      //**********Fix caret height and position*********:
+      //Calculate caret height and position
       int lineIndex = tlayout.GetLineIndexFromCharacterIndex(edPar.SelectionStart, false);
+      TextLine thisTextLine = textLines[lineIndex];
 
-      RtbVm.CaretHeight = textLines[lineIndex].Extent;
-      if (RtbVm.CaretHeight == 0)
-         RtbVm.CaretHeight = textLines[lineIndex].Height;
-      RtbVm.CaretHeight += 4; // temporary fix to give it an extra bit
+      ////check for subscript
+      //if (FlowDoc.Selection.GetStartInline() is EditableRun erun)
+      //   if (erun.BaselineAlignment == BaselineAlignment.Subscript)
 
+      double glyphHeight = thisTextLine.Height;
+      int IdxInThisLine = FlowDoc.Selection.Start - thisPar.StartInDoc;   // GetTextBounds counts charindex from start of paragraph
+      bool offsetTopFromHeight = false;
+      BaselineAlignment balign = BaselineAlignment.Baseline;
 
-      double caretMLeft = selStartPoint.Value.X;
-      double caretMTop = textLines[lineIndex].Start;
-
-      double textTopY = FlowDoc.Selection.StartRect.Top + (textLines[lineIndex].Extent == 0 ? 0 : Math.Max(0, textLines[lineIndex].Baseline - textLines[lineIndex].Extent));
-      //Debug.WriteLine("baseline = " + textLines[lineIndex].Baseline + "\nextent = " + textLines[lineIndex].Extent + "\ntextopY = " + textTopY);
-
-      if (FlowDoc.Selection.IsAtEndOfLineSpace)
+      if (thisTextLine.GetTextBounds(IdxInThisLine, 1).FirstOrDefault() is TextBounds tbounds && tbounds.TextRunBounds[0].TextRun is ShapedTextRun strun)
       {
-         caretMLeft = FlowDoc.Selection.PrevCharRect!.Right;
-         caretMTop = FlowDoc.Selection.PrevCharRect.Top + 1;
+         //Trace.WriteLine("idxthisline = " + IdxInThisLine + ", text=" + strun.Text + ", baselineAign = " + strun.Properties.BaselineAlignment);
+         glyphHeight = strun.GlyphRun.Bounds.Height - 2;
+         offsetTopFromHeight = (strun.Properties.BaselineAlignment != BaselineAlignment.Superscript);
+         balign = strun.Properties.BaselineAlignment;
       }
-      else
-         caretMTop = textTopY;
 
-      RtbVm.CaretMargin = new Thickness(caretMLeft, caretMTop, 0, 0);
+      RtbVm.CalculateCaretHeightAndPosition(thisTextLine, selStartPoint.X, glyphHeight, offsetTopFromHeight, balign);
       RtbVm.UpdateCaretVisible();
 
 
+      //************ calculate start line-relative properties *****************
+      thisPar.DistanceSelectionStartFromLeft = selStartRect.Left;
+      thisPar.IsStartAtFirstLine = lineIndex == 0;
+      thisPar.IsStartAtLastLine = (lineIndex == textLines.Count - 1);
+
+      // get index of first char on previous line
+      if (thisPar.IsStartAtFirstLine)
+         thisPar.CharPrevLineStart = edPar.SelectionStart;
+      else
+         thisPar.CharPrevLineStart = GetClosestIndex(edPar, lineIndex, thisPar.DistanceSelectionStartFromLeft, -1);
+
+      // get index of first char on next line
+      if (thisPar.IsStartAtLastLine)
+         thisPar.CharNextLineStart = edPar.SelectionEnd - thisTextLine.FirstTextSourceIndex;
+      else
+         thisPar.CharNextLineStart = GetClosestIndex(edPar, lineIndex, thisPar.DistanceSelectionStartFromLeft, 1);
+
+      thisPar.FirstIndexStartLine = FlowDoc.Selection.IsAtEndOfLineSpace ?
+         textLines[Math.Max(0, lineIndex - 1)].FirstTextSourceIndex :
+         thisTextLine.FirstTextSourceIndex;
+      thisPar.FirstIndexLastLine = textLines[^1].FirstTextSourceIndex;
+      //****************************************************************
+
+
    }
+
+
+   //internal void SelectionStart_RectChanged(EditableParagraph edPar)
+   //{
+
+   //   edPar.UpdateLayout();
+
+   //   if (edPar.DataContext is not Paragraph thisPar) return;
+   //   TextLayout tlayout = edPar.TextLayout;
+
+   //   Rect selStartRect = tlayout.HitTestTextPosition(edPar.SelectionStart);
+   //   Rect prevCharRect = tlayout.HitTestTextPosition(edPar.SelectionStart - 1);
+
+   //   //Trace.WriteLine("selstartrectX = " + selStartRect.X);
+
+   //   if (edPar.TranslatePoint(selStartRect.Position, DocIC) is not Point selStartPoint) return;
+   //   if (edPar.TranslatePoint(prevCharRect.Position, DocIC) is not Point prevCharPoint) return;
+
+   //   FlowDoc.Selection.StartRect = new Rect(selStartPoint, selStartRect.Size);
+   //   FlowDoc.Selection.PrevCharRect = new Rect(prevCharPoint, prevCharRect.Size);
+
+   //   IReadOnlyList<TextLine> textLines = tlayout.TextLines;
+
+   //   //Calculate caret height and position
+   //   int lineIndex = tlayout.GetLineIndexFromCharacterIndex(edPar.SelectionStart, false);
+   //   TextLine thisTextLine = textLines[lineIndex];
+
+   //   ////test for subscript
+   //   //if (FlowDoc.Selection.GetStartInline() is EditableRun erun)
+   //   //   if (erun.BaselineAlignment == BaselineAlignment.Subscript)
+   //   //      offsetMe = true;
+
+   //   //double glyphHeight = thisTextLine.Height;
+   //   //int IdxInThisLine = FlowDoc.Selection.Start - (thisPar.StartInDoc - thisTextLine.FirstTextSourceIndex);
+   //   //bool offsetTopFromHeight = false;
+   //   //BaselineAlignment balign = BaselineAlignment.Baseline;
+
+   //   //if (thisTextLine.GetTextBounds(IdxInThisLine, 1)[0].TextRunBounds[0].TextRun is ShapedTextRun strun)
+   //   //{
+   //   //   //Trace.WriteLine(strun.Text + ", baselineAign = " + strun.Properties.BaselineAlignment);
+   //   //   glyphHeight = strun.GlyphRun.Bounds.Height - 2;
+   //   //   offsetTopFromHeight = (strun.Properties.BaselineAlignment != BaselineAlignment.Superscript);
+   //   //   balign = strun.Properties.BaselineAlignment;
+   //   //}
+
+   //   //RtbVm.CalculateCaretHeightAndPosition(thisTextLine, selStartPoint.X, glyphHeight, offsetTopFromHeight, balign);
+   //   RtbVm.CalculateCaretHeightAndPosition(thisTextLine, selStartPoint.X);
+   //   RtbVm.UpdateCaretVisible();
+
+   //   //************ calculate start line-relative properties *****************
+   //   thisPar.DistanceSelectionStartFromLeft = selStartRect.Left;
+   //   thisPar.IsStartAtFirstLine = lineIndex == 0;
+   //   thisPar.IsStartAtLastLine = (lineIndex == textLines.Count - 1);
+
+   //   // get index of first char on previous line
+   //   if (thisPar.IsStartAtFirstLine)
+   //      thisPar.CharPrevLineStart = edPar.SelectionStart;
+   //   else
+   //      thisPar.CharPrevLineStart = GetClosestIndex(edPar, lineIndex, thisPar.DistanceSelectionStartFromLeft, -1);
+
+   //   // get index of first char on next line
+   //   if (thisPar.IsStartAtLastLine)
+   //      thisPar.CharNextLineStart = edPar.SelectionEnd - thisTextLine.FirstTextSourceIndex;
+   //   else
+   //      thisPar.CharNextLineStart = GetClosestIndex(edPar, lineIndex, thisPar.DistanceSelectionStartFromLeft, 1);
+
+   //   thisPar.FirstIndexStartLine = FlowDoc.Selection.IsAtEndOfLineSpace ?
+   //      textLines[Math.Max(0, lineIndex - 1)].FirstTextSourceIndex :
+   //      thisTextLine.FirstTextSourceIndex;
+   //   thisPar.FirstIndexLastLine = textLines[^1].FirstTextSourceIndex;
+   //   //****************************************************************
+
+
+   //}
 
    internal void SelectionEnd_RectChanged(EditableParagraph edPar)
    {
@@ -115,43 +159,23 @@ public partial class RichTextBox : UserControl
 
       Rect selEndRect = tlayout.HitTestTextPosition(edPar.SelectionEnd);
 
-
-
-      //// calculate inner texts (sub/superscript)///////////////////
-      //int innerTextOffset = 0;
-      //foreach (EditableInlineUIContainer edcont in edPar.Inlines.OfType<EditableInlineUIContainer>())
-      //{
-      //   if (edcont.Child is TextBlock tblock)
-      //   {
-      //      int tblockLen = tblock.Inlines.Sum(il => ((Run)il).Text?.Length) ?? 0;
-      //      innerTextOffset += (tblockLen - 1);
-      //      Debug.WriteLine("innerTextoffset END = " + innerTextOffset);
-      //   }
-      //}
-
-      //int relativeSelEnd = edPar.SelectionEnd - innerTextOffset;
-      //Rect selEndRect = tlayout.HitTestTextPosition(relativeSelEnd);
-
-      ////Debug.WriteLine("Sel Start = " + edPar.SelectionStart + " ::: text at sel = " + edPar.Text[edPar.SelectionStart..]);
-
-      //////////////////////////////////////////////////////////////////////////////
-
-
-
       Point? selEndPoint = edPar.TranslatePoint(selEndRect.Position, DocIC);
       if (selEndPoint != null)
          FlowDoc.Selection.EndRect = new Rect((Point)selEndPoint!, selEndRect.Size);
 
+      RtbVm.UpdateCaretVisible();
+
+      //************ calculate end line-relative properties *****************
       if (edPar.DataContext is not Paragraph thisPar) return;
 
       thisPar.DistanceSelectionEndFromLeft = tlayout.HitTestTextPosition(edPar.SelectionEnd).Left;
       int lineNo = tlayout.GetLineIndexFromCharacterIndex(edPar.SelectionEnd, false);
-      
-      List<TextLine> textLines = [.. tlayout.TextLines];
 
+      IReadOnlyList<TextLine> textLines = tlayout.TextLines;
+            
       thisPar.IsEndAtLastLine = lineNo == textLines.Count - 1;
-
       thisPar.IsEndAtFirstLine = (lineNo == 0);
+
       if (thisPar.IsEndAtLastLine)
       {
          thisPar.LastIndexEndLine = thisPar.BlockLength;
@@ -160,16 +184,12 @@ public partial class RichTextBox : UserControl
       else
       {
          TextLine tline = textLines[lineNo];
-         //Debug.WriteLine("textstring ="  + string.Join(Environment.NewLine, (tline.TextRuns.Select(tr=>tr.GetText))));
-         //Debug.WriteLine("lastis rn? "  + (tline.TextRuns.Last().GetText.ToString() == Environment.NewLine));
-         
          int goBackNo = 1;
          if (tline.TextRuns.Count > 0)
          {
             if (tline.TextRuns[tline.TextRuns.Count - 1].Text.ToString() == Environment.NewLine)
                goBackNo++;
          }
-         
          thisPar.LastIndexEndLine = textLines[lineNo + 1].FirstTextSourceIndex - goBackNo;
          thisPar.CharNextLineEnd = GetClosestIndex(edPar, lineNo, thisPar.DistanceSelectionEndFromLeft, 1);
       }
@@ -177,10 +197,9 @@ public partial class RichTextBox : UserControl
       if (!thisPar.IsEndAtFirstLine)
          thisPar.CharPrevLineEnd = GetClosestIndex(edPar, lineNo, thisPar.DistanceSelectionEndFromLeft, -1);
 
-
       thisPar.FirstIndexLastLine = textLines[^1].FirstTextSourceIndex;
-
-      RtbVm.UpdateCaretVisible();
+      //****************************************************************
+            
 
 #if DEBUG
       // Scroll Debugger panel to selection end inline

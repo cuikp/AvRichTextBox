@@ -80,7 +80,7 @@
 										<Border BorderThickness="{Binding BorderThickness}" BorderBrush="{Binding BorderBrush}" CornerRadius="3" Margin="{Binding Margin}"
 											  VerticalAlignment="Top" HorizontalAlignment="Stretch" Padding="0">
 
-											<local:EditableParagraph Classes="paragraphBindings" xml:space="preserve" 
+											<local:EditableParagraph Classes="paragraphBindings" xml:space="preserve"	
 													MouseMove="EditableParagraph_MouseMove" 
 													LostFocus="EditableParagraph_LostFocus" 
 													SelectionStartRect_Changed="SelectionStart_RectChanged"

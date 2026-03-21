@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿using Avalonia.Media;
+using Avalonia.Media.TextFormatting;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using static AvRichTextBox.FlowDocument;
 
@@ -14,22 +16,12 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
       
    public Vector RTBScrollOffset { get; set { if (field != value) { field = value; NotifyPropertyChanged(nameof(RTBScrollOffset)); } } }
 
-   public double MinWidth => RunDebuggerVisible ? 500 : 100;
-
    public FlowDocument FlowDoc { get; set { field = value; NotifyPropertyChanged(nameof(FlowDoc)); FlowDocChanged?.Invoke(); } } = null!;
 
    public bool RunDebuggerVisible { get; set { field = value; NotifyPropertyChanged(nameof(RunDebuggerVisible)); } }
+   public double MinWidth => RunDebuggerVisible ? 500 : 100;
 
-   public RichTextBoxViewModel()
-   {
-      //FlowDoc.ScrollInDirection += FlowDoc_ScrollInDirection;
-      //FlowDoc.UpdateRTBCaret += FlowDoc_UpdateRTBCaret;
-   }
-
-   internal void FlowDoc_UpdateRTBCaret()
-   {
-      UpdateCaretVisible();
-   }
+   public RichTextBoxViewModel() {  }
 
    internal double ScrollViewerHeight = 10;
    
@@ -37,7 +29,42 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
    public Thickness CaretMargin { get; set { field = value; NotifyPropertyChanged(nameof(CaretMargin)); } } = new(0);
    public bool CaretVisible { get; set { field = value; NotifyPropertyChanged(nameof(CaretVisible)); } } = true;
 
-   
+
+   internal void CalculateCaretHeightAndPosition(TextLine currTextLine, double caretMLeft, double glyphRunHeight, bool offsetTopFromHeight, BaselineAlignment balign)
+   {
+
+      CaretHeight = currTextLine.Extent;
+      if (CaretHeight == 0)
+         CaretHeight = currTextLine.Height;
+      CaretHeight *= 1.1; // give it a little extra vertical hangover
+
+      if (balign != BaselineAlignment.Baseline)
+         CaretHeight = glyphRunHeight;
+
+      double caretMTop = currTextLine.Start;
+      
+      //if (currTextLine.GetTextBounds(0, 1).FirstOrDefault() is TextBounds tbounds)
+      //   caretMTop = tbounds.Rectangle.Top;
+
+      double textTopY = FlowDoc.Selection.StartRect.Top + (currTextLine.Extent == 0 ? 0 : Math.Max(0, currTextLine.Baseline - currTextLine.Extent));
+
+      if (FlowDoc.Selection.IsAtEndOfLineSpace)
+      {
+         caretMLeft = FlowDoc.Selection.PrevCharRect.Right;
+         caretMTop = FlowDoc.Selection.PrevCharRect.Top + 1;
+      }
+      else
+         caretMTop = textTopY;
+
+      if (offsetTopFromHeight)
+         caretMTop += (currTextLine.Height - glyphRunHeight - 1);
+
+      CaretMargin = new Thickness(caretMLeft, caretMTop, 0, 0);
+
+
+
+   }
+
    //// FOR VISUAL CARET TESTING////////////////////////////////////////
    //public double LineHeightRectHeight { get; set { field = value; NotifyPropertyChanged(nameof(LineHeightRectHeight)); } } = 5;
    //public Thickness LineHeightRectMargin { get; set { field = value; NotifyPropertyChanged(nameof(LineHeightRectMargin)); } } = new(0);
@@ -45,6 +72,7 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
    //public Thickness BaseLineRectMargin { get; set { field = value; NotifyPropertyChanged(nameof(BaseLineRectMargin)); } } = new(0);
    ////////////////////////////////////////////////////////////////////
 
+   internal void FlowDoc_UpdateRTBCaret() { UpdateCaretVisible(); }
 
    internal void UpdateCaretVisible()
    {
@@ -57,21 +85,19 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
       double scrollPadding = 30;
       if (direction == 1)
       {
-         double checkPointY = FlowDoc.Selection.EndRect!.Y;
+         double checkPointY = FlowDoc.Selection.EndRect.Y;
 
          if (FlowDoc.SelectionExtendMode == ExtendMode.ExtendModeLeft)
-            checkPointY = FlowDoc.Selection.StartRect!.Y;
+            checkPointY = FlowDoc.Selection.StartRect.Y;
 
          if (checkPointY > RTBScrollOffset.Y + ScrollViewerHeight - scrollPadding)
             RTBScrollOffset = RTBScrollOffset.WithY(checkPointY - ScrollViewerHeight + scrollPadding);
-            //RTBScrollOffset = RTBScrollOffset.WithY(checkPointY + scrollPadding);
       }
       else
       {
-         double checkPointY = FlowDoc.Selection.StartRect!.Y;
+         double checkPointY = FlowDoc.Selection.StartRect.Y;
          if (FlowDoc.SelectionExtendMode == ExtendMode.ExtendModeRight)
-            checkPointY = FlowDoc.Selection.EndRect!.Y;
-
+            checkPointY = FlowDoc.Selection.EndRect.Y;
 
          if (checkPointY < RTBScrollOffset.Y)
             RTBScrollOffset = RTBScrollOffset.WithY(checkPointY);

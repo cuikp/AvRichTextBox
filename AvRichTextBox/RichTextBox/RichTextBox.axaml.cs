@@ -77,7 +77,7 @@ public partial class RichTextBox : UserControl
       }
 
       ////FOR DEBUGGING
-      //FlowDoc.CreateTestDocument();
+      FlowDoc.CreateTestDocument();
 
 #if DEBUG
       if (ShowDebuggerPanelInDebugMode)

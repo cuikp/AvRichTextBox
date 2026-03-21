@@ -26,9 +26,11 @@ internal partial class EditableParagraph : SelectableTextBlock
       this.Loaded += EditableParagraph_Loaded;
       this.PropertyChanged += EditableParagraph_PropertyChanged;
 
+      FontFeatures = [ new FontFeature { Tag = "liga", Value = 0 } ]; // fix wrong hit testing with some font/letter combinations
+
       //this.KeyDown += EditableParagraph_KeyDown;
    }
-   
+
    private void EditableParagraph_Loaded(object? sender, RoutedEventArgs e)
    {
       UpdateInlines();
