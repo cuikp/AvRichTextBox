@@ -1,2 +1,3 @@
 ﻿DemoApp_AvRichTextBox/TestFiles/** linguist-detectable=false
 *.rtf linguist-detectable=false
+*.html linguist-detectable=false
