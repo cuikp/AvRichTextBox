@@ -10,6 +10,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{33B80D73-F48F-4CA1-8077-D1AFFBEC773B}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		AvRichTextBox\LICENSE.txt = AvRichTextBox\LICENSE.txt
 		README.md = README.md
 	EndProjectSection
 EndProject
