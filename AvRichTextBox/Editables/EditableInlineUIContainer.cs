@@ -15,6 +15,7 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
    public int TextPositionOfInlineInParagraph { get; set; }
    public string InlineText { get; set; } = "@";
    public bool IsTableCellInline { get; set; } = false;
+   public object Tag { get; set; } = null!;
 
    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static")]
    public string FontName => "---";
@@ -31,10 +32,11 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
    public IEditable Clone() => new EditableInlineUIContainer(this.Child) { MyParagraphId = this.MyParagraphId, MyFlowDoc = this.MyFlowDoc, };
 
    public IEditable CloneWithId()
-   {
+   {  
       IEditable IdClone = this.Clone();
       IdClone.Id = this.Id;
       return IdClone;
+            
    }
 
    public bool IsSelected { get; set { field = value; this.Child.Opacity = value ? 0.2 : 1; } } = false;

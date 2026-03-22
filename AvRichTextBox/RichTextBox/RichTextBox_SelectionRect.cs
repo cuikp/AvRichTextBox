@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
+using Avalonia.VisualTree;
 
 namespace AvRichTextBox;
 
@@ -39,7 +40,7 @@ public partial class RichTextBox : UserControl
       bool offsetTopFromHeight = false;
       BaselineAlignment balign = BaselineAlignment.Baseline;
 
-      if (thisTextLine.GetTextBounds(IdxInThisLine, 1).FirstOrDefault() is TextBounds tbounds && tbounds.TextRunBounds[0].TextRun is ShapedTextRun strun)
+      if (thisTextLine.GetTextBounds(IdxInThisLine, 1).FirstOrDefault() is TextBounds tbounds && tbounds.TextRunBounds.Count > 0 && tbounds.TextRunBounds[0].TextRun is ShapedTextRun strun)
       {
          //Trace.WriteLine("idxthisline = " + IdxInThisLine + ", text=" + strun.Text + ", baselineAign = " + strun.Properties.BaselineAlignment);
          glyphHeight = strun.GlyphRun.Bounds.Height - 2;
@@ -205,7 +206,7 @@ public partial class RichTextBox : UserControl
       // Scroll Debugger panel to selection end inline
       debuggerPanel?.ParagraphsLB.ScrollIntoView(thisPar);
       if (debuggerPanel?.ParagraphsLB.ContainerFromItem(thisPar) is ListBoxItem lbi)
-         if (lbi.GetVisualDescendants().OfType<ItemsControl>().FirstOrDefault(c => c.Name == "InlinesIC") is ItemsControl inlinesIC)
+         if (lbi.GetVisualChildren().OfType<ItemsControl>().FirstOrDefault(c => c.Name == "InlinesIC") is ItemsControl inlinesIC)
             if (FlowDoc.Selection.GetEndInline() is IEditable ied)
                inlinesIC.ScrollIntoView(ied);
 #endif

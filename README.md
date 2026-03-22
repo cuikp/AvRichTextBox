@@ -168,3 +168,9 @@ Can set `SelectionBrush` globally for AvRichTextBox
 **[ver.1.6.3]**
 Added preliminary `Table` support.  `Table` can be added as a `Block` in the `FlowDocument`.  (Some bugs remain to be fixed.)
 In addition, `BaselineAlignment.Superscript`/`.Subscript` runs now appear properly as such (raised/lowered text).  (Modification was necessary because Avalonia's `SelectableTextBlock` currently doesn't display them properly).  
+
+**[ver 1.6.4] 2026/03/22**: updated to Avalonia 11.3.12
+
+**[ver 1.6.5] 2026/03/22**: fixed possible out of bounds error TextRunBounds in _SelectionRect.cs
+
+**[ver 1.6.6] 2026/03/22**: fixed GetVisualDescendants() error in Debug mode
