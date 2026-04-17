@@ -22,14 +22,14 @@
 		  </Setter>
 		</Style>
 
-		<Style Selector="local|EditableTable > ContentPresenter">
+		<Style Selector="local|EditableTable > ContentPresenter" x:DataType="local:Cell">
 			<Setter Property="Grid.Row" Value="{Binding RowNo}" />
 			<Setter Property="Grid.Column" Value="{Binding ColNo}" />
 			<Setter Property="Grid.ColumnSpan" Value="{Binding ColSpan}" />
 			<Setter Property="Grid.RowSpan" Value="{Binding RowSpan}" />
 		</Style>
 
-		 <Style Selector="local|EditableParagraph.paragraphBindings">
+		 <Style Selector="local|EditableParagraph.paragraphBindings" x:DataType="local:Paragraph">
 			<Setter Property="TextWrapping" Value="Wrap"/>
 			<Setter Property="Margin" Value="5"/>
 			 <!--LineHeight="{Binding LineHeight}"-->
@@ -49,7 +49,7 @@
 	</UserControl.Styles>
 
 
-	<DockPanel x:Name="MainDP" MinWidth="{Binding MinWidth}">  <!--this binds to viewmodel-->
+	<DockPanel x:Name="MainDP" x:DataType="local:RichTextBoxViewModel" MinWidth="{Binding MinWidth}">  <!--this binds to viewmodel-->
 
 
 		<ScrollViewer x:Name="FlowDocSV"  HorizontalScrollBarVisibility="Disabled" Margin="0" Padding="0" Offset="{Binding RTBScrollOffset, Mode=OneWay}"  ScrollChanged="ScrollViewer_ScrollChanged"

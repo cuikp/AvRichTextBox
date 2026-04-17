@@ -6,8 +6,8 @@
 		xmlns:avrtb="using:AvRichTextBox"
 		xmlns:cc="using:CustomControls"
         mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="800" Height="800" Width="950" MinWidth="500" MinHeight="200"
-        x:Class="DemoApp_AvRichtextBox.Views.MainWindow" WindowStartupLocation="CenterScreen"
-        Icon="/Assets/avalonia-logo.ico" Title="{Binding CurrentOpenFileNameExt, DataType={x:Type vm:MainWindowViewModel}}">
+        x:Class="DemoApp_AvRichtextBox.Views.MainWindow" WindowStartupLocation="CenterScreen" x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico" Title="{Binding CurrentOpenFileNameExt}">
 
 
 	<DockPanel>

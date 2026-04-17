@@ -1,0 +1,128 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:DigiNoteCards.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:actipro="http://schemas.actiprosoftware.com/avaloniaui"
+        xmlns:local="clr-namespace:DigiNoteCards"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="DigiNoteCards.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="DigiNoteCards">
+
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Grid Name="topStack">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Name="StackMain1" Grid.Row="0">
+            <Menu>
+                <MenuItem Header="File">
+                    <MenuItem Header="Load File"/>
+                    <MenuItem Header="Load Backup"/>
+                    <Separator/>
+                    <MenuItem Header="Save"/>
+                    <MenuItem Header="Save As"/>
+                    <MenuItem Header="Save As HTML"/>
+                    <Separator/>
+                    <MenuItem Header="Close"/>
+                    <MenuItem Header="Exit"/>
+                    <MenuItem Header="Help"/>    
+                </MenuItem>
+                <MenuItem Header="Find/Replace"/>
+                <MenuItem Header="Generate PDF">
+                    <MenuItem Header="Board"/>
+                    <MenuItem Header="Cards"/>
+                    <MenuItem Header="Selected Cards"/>
+                </MenuItem>
+            <MenuItem Header="Settings">
+                <MenuItem Header="Font"/>
+                <MenuItem Header="Font Color"/>
+                <MenuItem Header="Background Color"/>
+                <Separator/>
+                <MenuItem Header="Align Left"/>
+                <MenuItem Header="Align Right"/>
+                <MenuItem Header="Align Center"/>                                    <Separator/>
+                <MenuItem Header="Label"/>
+                <Separator/>
+                <MenuItem Header="Backup"/>
+                <MenuItem Header="Reset"/>
+            </MenuItem>
+            <MenuItem Header="Arrange"/>
+            </Menu>
+
+        </StackPanel>
+        <StackPanel Name="StackMain2" Grid.Row="1" Background="LightSteelBlue" Orientation="Horizontal" Height="50">
+            <DockPanel Height="50"> 
+                <Button Name="btnSelAll" Content="Select All" Margin="5" Width="100"></Button>
+                <Button Name="btnUnSelAll" Content="Unselect All" Margin="5" Width="100" />
+                <Button Name="btnUndoLstMv" Content="Undo Last Move" Margin="5" Width="100"/>
+                <Button Name="btnUndoLstDel" Content="Undo Last Delete" Margin="5" Width="200"/>
+                <Slider  Name="sldCanvas" HorizontalAlignment="Center" Orientation="Horizontal"
+                         Margin="10,10,10,10" Height="50" Width="100" Minimum="0.2" Maximum="2.0"
+                         Value="{Binding CnvSliderValue, Mode=TwoWay}"   
+                            TickPlacement="TopLeft" TickFrequency="0.5" VerticalAlignment="Top"/>
+                <TextBox Name="sldText" Text="{Binding CnvSliderValue,  Mode=TwoWay}" IsReadOnly="True"
+                    DockPanel.Dock="Right" TextAlignment="Right" Height="20" Width="40">
+                </TextBox>
+            </DockPanel>
+        </StackPanel>
+        <StackPanel Name="StackMainFind" Grid.Row="2" Background="LightSteelBlue" Orientation="Vertical" Height="120" IsVisible="true">
+            <DockPanel VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0" Height="40">
+                <Label Content="Find" VerticalAlignment="Center" Margin="20,0,0,0"/>
+                <TextBox Name="txtFind" HorizontalAlignment="Stretch" Height="30" Width="300" Margin="3,0,0,0" VerticalContentAlignment="Center"/>
+                <Label Content="Replace" VerticalAlignment="Center" Margin="20,0,0,0"/>
+                <TextBox Name="txtReplace" HorizontalAlignment="Stretch" Height="30" Width="300" Margin="3,0,0,0" VerticalContentAlignment="Center"/>
+            </DockPanel>
+            <DockPanel VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0" Height="40">
+                <CheckBox Name="ckCase" Content="Match Case" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                <CheckBox Name="ckWord" Content="Match  Word" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                <CheckBox Name="ckSelect" Content="Selected Cards" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                <RadioButton Name="rbLblSearch" Margin="5,0,0,0" GroupName="Search">In Label</RadioButton>
+                <RadioButton Name="rbTxtSearch" Margin="5,0,0,0" GroupName="Search" IsChecked="True">In Text</RadioButton>
+            </DockPanel>
+            <StackPanel Orientation="Horizontal">
+                <Button Name="btnFind" Content="Find" IsDefault="True" Height="30" Width="60" Margin="5,0,0,0"/>
+                <Button Name="btnFindNext" Content="Find Next"  Height="30" Width="80" Margin="20,0,0,0"/>
+                <Button Name="ReplaceBtn" Content="Replace"  Height="30" Width="70" Margin="20,0,0,0"/>
+                <Button Name="ReplaceAll" Content="Replace All" Height="30" Width="100" Margin="20,0,0,0"/>
+            </StackPanel>
+        </StackPanel>
+        
+                <ScrollViewer Name="Scroll" Grid.Row="3" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible"
+                            HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <Viewbox  x:Name="CardView" HorizontalAlignment="Left" VerticalAlignment="Top">
+                        <local:CardsCanvas Name="Cards" Height="5000" Width="5000" Background="LightGray"
+                                HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <Canvas.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Add Card" Click="AddCard_Click"/>
+                                    <MenuItem Name="SelectAll" Header="Select All"/>
+                                    <MenuItem Name="UnSelectAll" Header="Unselect All"/>
+                                    <MenuItem Name="UndoCardDelete" Header="Undo Card Delete"/>
+                                    <MenuItem Name="UndoCardMove" Header="Undo Last Move"/>
+                                    <MenuItem Name="InsertColLeft" Header="Insert Column Left"/>
+                                    <MenuItem Name="InsertColRight" Header="Insert Column Right"/>
+                                    <MenuItem Name="DeleteCol" Header="Delete Column"/>
+                                    <MenuItem Name="InsertRowAbove" Header="Inset Row Above"/>
+                                    <MenuItem Name="InsertRowBelow" Header="Insert Row Below"/>
+                                    <MenuItem Name="DeleteRow" Header="Delete Row"/>
+                                </ContextMenu>
+                            </Canvas.ContextMenu>
+
+                        </local:CardsCanvas>                   
+                    </Viewbox>
+                </ScrollViewer>
+            
+    </Grid>
+
+</Window>

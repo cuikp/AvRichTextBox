@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Media;
 using AvRichTextBox;
 using System;
@@ -29,6 +30,7 @@ public partial class MainWindow : Window
    public MainWindow()
    {
       InitializeComponent();
+
 
       Loaded += MainWindow_Loaded;
     
@@ -86,13 +88,13 @@ public partial class MainWindow : Window
          
    }
 
-   private void FindTextBox_GotFocus(object? sender, Avalonia.Input.GotFocusEventArgs e)
+   private void FindTextBox_GotFocus(object? sender, FocusChangedEventArgs e)
    {
       FindTB.Background = Brushes.White;
       this.FindTB.Focus();
    }
 
-   private void FindTextBox_LostFocus(object? sender, Avalonia.Input.GotFocusEventArgs e)
+   private void FindTextBox_LostFocus(object? sender, FocusChangedEventArgs e)
    {
       FindTB.Background = Brushes.LightGray;
       

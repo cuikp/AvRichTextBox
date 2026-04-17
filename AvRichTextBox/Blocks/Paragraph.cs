@@ -1,14 +1,20 @@
 ﻿using Avalonia.Layout;
 using Avalonia.Media;
+using DocumentFormat.OpenXml.Drawing;
 using DynamicData;
 using System.Collections.ObjectModel;
 
 namespace AvRichTextBox;
 
+
 public class Paragraph : Block
 {
-#if DEBUG
+
    public string ParToolTip => $"Background: {Background}\nLineSpacing: {LineSpacing}\nLineHeight: {LineHeight}";
+
+
+#if DEBUG
+   //public string ParToolTip => $"Background: {Background}\nLineSpacing: {LineSpacing}\nLineHeight: {LineHeight}";
 #endif
 
    public ObservableCollection<IEditable> Inlines { get; set; } = [];

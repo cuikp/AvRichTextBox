@@ -26,10 +26,10 @@ public partial class XamlConversions
    [GeneratedRegex("(?<=Image)[0-9]{1,}")]
    private static partial Regex ImageNoMatchRegex();
 
-   internal static void LoadXamlPackage(string fileName, FlowDocument fdoc)
+   internal static async Task<bool> LoadXamlPackage(string fileName, FlowDocument fdoc)
    {
-      //try
-      //{
+      try
+      {
          using FileStream fstream = new(fileName, FileMode.Open);
          using ZipArchive zipArchive = new(fstream, ZipArchiveMode.Read);
          string EntryXamlDocumentName = "";
@@ -91,9 +91,10 @@ public partial class XamlConversions
 
             }
          }
-      //}
-      //catch (Exception ex) { throw new FileLoadException("Could not load xaml package", fileName, ex); }
+      }
+      catch (Exception ex) { return false; }
 
+      return true;
 
    }
 

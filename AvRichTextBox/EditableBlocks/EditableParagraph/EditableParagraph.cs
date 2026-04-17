@@ -127,13 +127,13 @@ internal partial class EditableParagraph : SelectableTextBlock
       //UpdateVMFromEPEnd();
    }
 
-   protected override void OnLostFocus(RoutedEventArgs e)
+   protected override void OnLostFocus(FocusChangedEventArgs e)
    {
       base.OnLostFocus(e);
       this.Focusable = false;
    }
 
-   protected override void OnGotFocus(GotFocusEventArgs e)
+   protected override void OnGotFocus(FocusChangedEventArgs e)
    {
       base.OnGotFocus(e);
       this.Focusable = true;

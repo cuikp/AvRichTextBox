@@ -42,11 +42,7 @@
 					<Button x:Name="CmdUp" DockPanel.Dock="Top" Margin="0, -1, -1, 0" Grid.Row="0" Padding="0" BorderBrush="Gray"
 							Click="CmdUp_Click" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Focusable="False" Background="DarkGray">
 						<Path HorizontalAlignment="Center" VerticalAlignment="Center" Fill="Black" Data="M4,0 L0,4 L8,4 z"/>
-						<Button.Styles>
-							<Style>
-								
-							</Style>
-						</Button.Styles>
+						
 					</Button>
 					<Button x:Name="CmdDown" Grid.Row="1" Margin="0, 0, -1, -1"  Padding="0" BorderBrush="Gray"
 						Click="CmdDown_Click"	Focusable="False" Background="DarkGray" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -56,21 +52,21 @@
 			</DockPanel>
 
 			<Grid ClipToBounds="True" VerticalAlignment="Stretch" Background="White" HorizontalAlignment="Stretch" Margin="3, 0, 1, 0" >
-				<TextBox FontFamily="Times New Roman" Background="White"
+				<TextBox FontFamily="Times New Roman" Background="White" x:DataType="local:NumericSpinner"
 						 MinWidth="0"
 						 Focusable="True" 
 						 IsTabStop="False" 
 						 HorizontalContentAlignment="Right" 
 						 VerticalContentAlignment="Center" 
 						 Margin="0, 0, 1, 0"
-						 FontSize="{Binding FontSize, DataType={x:Type local:NumericSpinner}}" 
-						 FontWeight="{Binding FontWeight, DataType={x:Type local:NumericSpinner}}" 
+						 FontSize="{Binding FontSize}"
+						 FontWeight="{Binding FontWeight}"
 						 Padding="0, 0, 0, 0"
 						 BorderBrush="Transparent" 
 						 BorderThickness="0" 
 						 VerticalAlignment="Stretch" 
 						 HorizontalAlignment="Stretch"
-						 Text="{Binding Value, Converter={StaticResource doubleToStringConverter}, FallbackValue=10, DataType={x:Type local:NumericSpinner}}"
+						 Text="{Binding Value, Converter={StaticResource doubleToStringConverter}, FallbackValue=10}"
 						  />
 			</Grid>
 			

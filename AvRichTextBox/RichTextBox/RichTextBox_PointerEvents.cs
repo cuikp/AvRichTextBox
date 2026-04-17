@@ -17,7 +17,7 @@ public partial class RichTextBox
    }
 
 
-   private void EditableParagraph_LostFocus(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+   private void EditableParagraph_LostFocus(object? sender, FocusChangedEventArgs e)
    {
       this.Focus();
    }

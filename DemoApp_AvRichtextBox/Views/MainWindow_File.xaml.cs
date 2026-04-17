@@ -24,7 +24,13 @@ public partial class MainWindow : Window
       {
          Title = "Open Xaml package file",
          SuggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync(Path.Combine(AppContext.BaseDirectory, "TestFiles")),
-         FileTypeFilter = [new("Xaml package files") { Patterns = ["*.xamlp"] }],
+         FileTypeFilter = 
+         [
+            new("Xaml package files") { Patterns = ["*.xamlp"] },
+            new("all files") { Patterns = ["*.*"] }
+
+         ],
+         
          AllowMultiple = false
       };
 

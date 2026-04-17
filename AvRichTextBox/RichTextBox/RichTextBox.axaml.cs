@@ -64,17 +64,15 @@ public partial class RichTextBox : UserControl
 
    private void RichTextBox_Initialized(object? sender, EventArgs e)
    {
-
-   }
-
-   private void RichTextBox_Loaded(object? sender, RoutedEventArgs e)
-   {
-
       if (FlowDocument == null)
       { // only create the necessary FlowDocument if not already existing
          FlowDocument = new();
          FlowDoc.NewDocument();
       }
+   }
+
+   private void RichTextBox_Loaded(object? sender, RoutedEventArgs e)
+   {
 
       ////FOR DEBUGGING
       //FlowDoc.CreateTestDocument();
@@ -83,7 +81,11 @@ public partial class RichTextBox : UserControl
 #if DEBUG
       if (ShowDebuggerPanelInDebugMode)
       {
-         debuggerPanel = new() { Width = 400 };
+         debuggerPanel = new()
+         {
+            Width = 400,
+            DataContext = FlowDoc
+         };
          DockPanel.SetDock(debuggerPanel, Dock.Right);
          MainDP.Children.Insert(0, debuggerPanel);
          debuggerPanel.Bind(Visual.IsVisibleProperty, new Binding("RunDebuggerVisible"));
@@ -151,12 +153,12 @@ public partial class RichTextBox : UserControl
       }
    }
 
-   private void RichTextBox_GotFocus(object? sender, GotFocusEventArgs e)
+   private void RichTextBox_GotFocus(object? sender, FocusChangedEventArgs e)
    {
       //Debug.WriteLine("Got focus rtb");
    }
 
-   private void RichTextBox_LostFocus(object? sender, RoutedEventArgs e)
+   private void RichTextBox_LostFocus(object? sender, FocusChangedEventArgs e)
    {
       //Debug.WriteLine("lost focus rtb");
    }

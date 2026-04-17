@@ -174,3 +174,5 @@ In addition, `BaselineAlignment.Superscript`/`.Subscript` runs now appear proper
 **[ver 1.6.5] 2026/03/22**: fixed possible out of bounds error TextRunBounds in _SelectionRect.cs
 
 **[ver 1.6.6] 2026/03/22**: fixed GetVisualDescendants() error in Debug mode
+
+**[ver 1.7.1] 2026/04/17**: Updated to Avalonia 12

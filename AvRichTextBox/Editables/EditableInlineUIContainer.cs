@@ -41,12 +41,15 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
 
    public bool IsSelected { get; set { field = value; this.Child.Opacity = value ? 0.2 : 1; } } = false;
 
-
-#if DEBUG
-   // FOR DEBUGGER PANEL
    public InlineVisualizationProperties InlineVP { get; set; } = new();
    public string InlineToolTip => "";
    public string DisplayInlineText { get => $"<UICONTAINER> => {(this.Child != null && this.Child.GetType() == typeof(Image) ? "Image" : "NoChild")}"; }
+
+#if DEBUG
+   // FOR DEBUGGER PANEL
+   //public InlineVisualizationProperties InlineVP { get; set; } = new();
+   //public string InlineToolTip => "";
+   //public string DisplayInlineText { get => $"<UICONTAINER> => {(this.Child != null && this.Child.GetType() == typeof(Image) ? "Image" : "NoChild")}"; }
 #endif
 
 

@@ -4,7 +4,7 @@
 			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 			 xmlns:resources="using:System.Resources"
 			 mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="450"
-			 xmlns:local="using:AvRichTextBox"
+			 xmlns:local="using:AvRichTextBox" 
 			 x:Class="AvRichTextBox.DebuggerPanel">
 
 	<UserControl.Resources>
@@ -21,11 +21,12 @@
 
 
 	<Border  BorderBrush="Gray" BorderThickness="1.5">
-	<DockPanel DataContext="{Binding FlowDoc}" >
+	<DockPanel  >
+
 		<DockPanel DockPanel.Dock="Top" Background="Coral">
 
 			<Border DockPanel.Dock="Top" BorderBrush="Black" BorderThickness="0.8">
-				<DockPanel>
+				<DockPanel x:DataType="local:FlowDocument">
 					<DockPanel DockPanel.Dock="Left">
 						<TextBlock DockPanel.Dock="Top" Background="LightGray" Text="{Binding Selection.Start, StringFormat='DocSelStart={0}'}"/>
 						<TextBlock Background="LightGray" Text="{Binding Selection.End, StringFormat='DocSelEnd={0}'}"/>
@@ -42,9 +43,9 @@
 			<TextBlock  Grid.Column="3" Text="Inl_Id" TextAlignment="Center" />
 		</Grid>
 
-		<ListBox x:Name="ParagraphsLB"  DockPanel.Dock="Top" ItemsSource="{Binding SelectionParagraphs}" Background="Wheat" BorderBrush="Black" BorderThickness="1" Padding="0" >
+		<ListBox x:Name="ParagraphsLB"  DockPanel.Dock="Top" x:DataType="local:FlowDocument" ItemsSource="{Binding SelectionParagraphs}" Background="Wheat" BorderBrush="Black" BorderThickness="1" Padding="0" >
 			<ListBox.ItemTemplate>
-				<DataTemplate x:DataType="{x:Type local:Paragraph}">
+				<DataTemplate x:DataType="local:Paragraph">
 					<DockPanel>
 						<DockPanel DockPanel.Dock="Top" Background="AliceBlue">
 							<TextBlock DockPanel.Dock="Left" Text="{Binding Inlines.Count, StringFormat='Inlines={0}'}"/>

@@ -165,14 +165,18 @@ public partial class FlowDocument
 
 	}
 
-	internal void LoadXamlPackage(string fileName)
+	internal async void LoadXamlPackage(string fileName)
 	{
 
       ClearDocument();
 
-      XamlConversions.LoadXamlPackage(fileName, this);
-
-		InitializeDocument();
+		if (await XamlConversions.LoadXamlPackage(fileName, this))
+		{
+			InitializeDocument();
+		}
+		else
+			NewDocument();
+		
 
 	}
 
