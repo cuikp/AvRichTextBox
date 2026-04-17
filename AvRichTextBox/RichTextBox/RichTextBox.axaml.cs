@@ -46,6 +46,7 @@ public partial class RichTextBox : UserControl
       FlowDocSV.SizeChanged += FlowDocSV_SizeChanged;
 
       AdornerLayer.SetAdorner(DocIC, _CaretRect);
+      AdornerLayer.SetIsClipEnabled(_CaretRect, false);
 
       InitializeBlinkAnimation();
 
@@ -65,7 +66,7 @@ public partial class RichTextBox : UserControl
    private void RichTextBox_Initialized(object? sender, EventArgs e)
    {
       if (FlowDocument == null)
-      { // only create the necessary FlowDocument if not already existing
+      { // only create initial FlowDocument if not already existing
          FlowDocument = new();
          FlowDoc.NewDocument();
       }

@@ -38,81 +38,82 @@ public partial class RichTextBox
    private void CopyToClipboard()
    {      
       if (DisableUserCopy) return;
-      //$$$$$$$$$$$$$$$$$$$$$$$$$$
-      //var dataObject = new DataObject();
-      var dataObject = new DataTransferItem();
+     
+      var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+      if (clipboard == null) return;
       //create rtf string
       List<IEditable> newInlines = FlowDoc.GetRangeInlines(FlowDoc.Selection);
       string rtfString = RtfConversions.GetRtfFromInlines(newInlines);
       byte[] rtfbytes = System.Text.Encoding.Default.GetBytes(rtfString);
-      
-      //dataObject.Set(DataFormat.CreateStringApplicationFormat("Rich Text Format"), rtfbytes);
-      dataObject.Set(DataFormat.CreateStringApplicationFormat("Text"), FlowDoc.Selection.GetText());
-            
-      //TopLevel.GetTopLevel(this)!.Clipboard!.SetDataAsync(dataObject);
-      
+
+      var richTextFormat = DataFormat.CreateBytesPlatformFormat("Rich Text Format");
+      var dataTransfer = new DataTransfer();
+      dataTransfer.Add(DataTransferItem.Create(richTextFormat, rtfbytes));
+      dataTransfer.Add(DataTransferItem.CreateText(FlowDoc.Selection.GetText()));
+
+      _ = clipboard.SetDataAsync(dataTransfer);
+
    }
 
    
    private async void PasteFromClipboard()
    {
+      if (IsReadOnly) return;
 
-      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-      //if (IsReadOnly) return;
+      bool TextPasted = false;
+      int originalSelectionStart = FlowDoc.Selection.Start;
+      int newSelPoint = originalSelectionStart;
+            
 
-      //bool TextPasted = false;
-      //int originalSelectionStart = FlowDoc.Selection.Start;
-      //int newSelPoint = originalSelectionStart;
+      var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+      if (clipboard == null) return;
 
-      //var formats = await TopLevel.GetTopLevel(this)!.Clipboard!.GetDataFormatsAsync();
+      var richTextFormat = DataFormat.CreateBytesPlatformFormat("Rich Text Format");
 
-      //if (formats.Where(f=> f.Identifier == "Rich Text Format").FirstOrDefault() is object rtfobj)
-      //{
-      //   byte[] rtfbytes = (byte[])rtfobj;
-      //   string rtfstring = System.Text.Encoding.Default.GetString(rtfbytes!);
+      var formats = await clipboard.GetDataFormatsAsync();
+      if (formats.Contains(richTextFormat))
+      {
+         if (await clipboard.TryGetValueAsync(richTextFormat) is byte[] rtfbytes)
+         {
+            string rtfstring = System.Text.Encoding.Default.GetString(rtfbytes!);
+            RTFDomDocument dom = new();
+            dom.LoadRTFText(rtfstring);
+            List<IEditable> insertInlines = RtfConversions.GetInlinesFromRtf(dom);
+            insertInlines.Reverse();
+            int addedchars = FlowDoc.PasteInlinesIntoRange(FlowDoc.Selection, insertInlines);
 
-      //   RTFDomDocument dom = new();
-      //   dom.LoadRTFText(rtfstring);
-      //   List<IEditable> insertInlines = RtfConversions.GetInlinesFromRtf(dom);
-      //   insertInlines.Reverse();
-      //   int addedchars = FlowDoc.PasteInlinesIntoRange(FlowDoc.Selection, insertInlines);
+            newSelPoint = Math.Min(newSelPoint + addedchars, FlowDoc.DocEndPoint - 1);
 
-      //   newSelPoint = Math.Min(newSelPoint + addedchars, FlowDoc.DocEndPoint - 1);
+            TextPasted = true;
+         }
+      }
+          
+      else if (await clipboard.TryGetTextAsync() is string pasteText)
+      {
+         FlowDoc.SetRangeToText(FlowDoc.Selection, pasteText);
+         newSelPoint = Math.Min(newSelPoint + pasteText.Length, FlowDoc.DocEndPoint - 1);
+         TextPasted = true;
+      }
 
-      //   TextPasted = true;
-      //}
-      //else if (formats.Where(f => f.Identifier == "Text").Any())
-      //{
-      //   if (await TopLevel.GetTopLevel(this)!.Clipboard!.TryGetValueAsync(DataFormat.CreateStringApplicationFormat("Text")) is object textobj)
-      //   {
-      //      if (textobj.ToString() is string pasteText)
-      //      {
-      //         FlowDoc.SetRangeToText(FlowDoc.Selection, pasteText);
-      //         newSelPoint = Math.Min(newSelPoint + pasteText.Length, FlowDoc.DocEndPoint - 1);
-      //         TextPasted = true;
-      //      }
-      //   }
-      //}
-      
-      //if (TextPasted)
-      //{
-      //   this.DocIC.UpdateLayout();
-      //   await Task.Delay(100); //necessary for following operations
-         
-      //   FlowDoc.Selection.EndParagraph.CallRequestInlinesUpdate();  // important
-      //   FlowDoc.Selection.EndParagraph.UpdateEditableRunPositions();
+      if (TextPasted)
+      {
+         this.DocIC.UpdateLayout();
+         await Task.Delay(100); //necessary for following operations
 
-      //   FlowDoc.Select(newSelPoint, 0);
-      //   FlowDoc.UpdateSelection();
+         FlowDoc.Selection.EndParagraph.CallRequestInlinesUpdate();  // important
+         FlowDoc.Selection.EndParagraph.UpdateEditableRunPositions();
 
-      //   FlowDoc.Selection.BiasForwardStart = false;
-      //   FlowDoc.Selection.BiasForwardEnd = false;
-      //   FlowDoc.SelectionExtendMode = ExtendMode.ExtendModeNone;
+         FlowDoc.Select(newSelPoint, 0);
+         FlowDoc.UpdateSelection();
 
-      //   CreateClient();
+         FlowDoc.Selection.BiasForwardStart = false;
+         FlowDoc.Selection.BiasForwardEnd = false;
+         FlowDoc.SelectionExtendMode = ExtendMode.ExtendModeNone;
 
-        
-      //}
+         CreateClient();
+
+
+      }
 
    }
 
