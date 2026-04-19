@@ -269,7 +269,7 @@ internal static partial class RtfConversions
          {
             RTFDomElementContainer rcont = rtfField.Result;
 
-            //Debug.WriteLine("innert tex=" + rcont.InnerText);
+            Debug.WriteLine("innert text=" + rcont.InnerText);
 
 
             foreach (RTFDomElement rtfelm in rcont.Elements)
@@ -353,7 +353,7 @@ internal static partial class RtfConversions
          }
          else
          {
-            Debug.WriteLine("unknown: " + domelm.GetType().ToString());
+            Debug.WriteLine("unknown element: " + domelm.GetType().ToString());
          }
       }
 
