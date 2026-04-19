@@ -1,6 +1,4 @@
-﻿using Avalonia.Collections;
-using Avalonia.Controls.Documents;
-using Avalonia.Layout;
+﻿using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using DynamicData;
@@ -15,57 +13,7 @@ internal static partial class RtfConversions
    internal static string DefaultEastAsiaFont = "";
    internal static string DefaultAsciiFont = "";
 
-   internal static List<IEditable> GetInlinesFromRtf(RTFDomDocument rtfdoc)
-   {
-
-      List<IEditable> returnList = [];
-      
-      int domParCount = rtfdoc.Elements.OfType<RTFDomParagraph>().Count();
-      //int parno = 0;
-      foreach (RTFDomElement rtfelm in rtfdoc.Elements)
-      {
-         switch (rtfelm)
-         {
-            case RTFDomParagraph rtfpar:
-               //parno++;
-
-               //set 
-               //Paragraph newpar = new();
-
-               //switch (rtfpar.Format.Align)
-               //{
-               //   case RTFAlignment.Left: newpar.TextAlignment = TextAlignment.Left; break;
-               //   case RTFAlignment.Center: newpar.TextAlignment = TextAlignment.Center; break;
-               //   case RTFAlignment.Right: newpar.TextAlignment = TextAlignment.Right; break;
-               //   case RTFAlignment.Justify: newpar.TextAlignment = TextAlignment.Justify; break;
-               //}
-               //newpar.LineHeight = TwipToPix(PixelsToPoints(rtfpar.Format.LineSpacing)) * 2D;
-               //newpar.FontFamily = new FontFamily(rtfpar.Format.FontName);
-               //newpar.Margin = new Thickness(rtfpar.Format.xxx);
-
-
-               if (rtfpar.Elements.Count > 0)
-               {
-                  List<IEditable> addInlines = GetRtfTextElementsAsInlines(rtfpar.Elements);
-                  //if (parno != domParCount)  // Don't add \r at the last run as it's unnecessary???
-                  addInlines.Last().InlineText += Environment.NewLine;
-                  returnList.AddRange(addInlines);
-               }
-
-               break;
-
-            case RTFDomTable table:
-
-
-
-               break;
-         }
-      }
-
-      return returnList;
-
-   }
-
+  
    internal static void GetFlowDocumentFromRtf(RTFDomDocument rtfdoc, FlowDocument fdoc)
    {
       double leftMargin = Math.Round(TwipToPix(rtfdoc.LeftMargin));
@@ -94,8 +42,6 @@ internal static partial class RtfConversions
       }
 
       fdoc.PagePadding = new Thickness(TwipToPix(rtfdoc.LeftMargin), TwipToPix(rtfdoc.TopMargin), TwipToPix(rtfdoc.RightMargin), TwipToPix(rtfdoc.BottomMargin));
-      
-
 
    }
 
@@ -312,7 +258,7 @@ internal static partial class RtfConversions
       return newpar;
    }
 
-   private static List<IEditable> GetRtfTextElementsAsInlines(RTFDomElementList elements)
+   internal static List<IEditable> GetRtfTextElementsAsInlines(RTFDomElementList elements)
    {
       List<IEditable> returnList = [];
 
@@ -407,7 +353,7 @@ internal static partial class RtfConversions
          }
          else
          {
-            Debug.WriteLine("unkjnown: " + domelm.GetType().ToString());
+            Debug.WriteLine("unknown: " + domelm.GetType().ToString());
          }
       }
 

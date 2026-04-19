@@ -40,7 +40,7 @@ public partial class FlowDocument
                insertIdx = GetCharPosInInline(startInline, Selection.Start);
                startInline.InlineText = startInline.InlineText.Insert(insertIdx, insertText); // undo handled by PropertyChanged: Text
             }
-            catch{ Debug.WriteLine("insert Error: starinlinetext = " + startInline.InlineText + ", idx = " + insertIdx);}
+            catch(Exception ex){ Debug.WriteLine("insert Error: startInlinetext = " + startInline.InlineText + ", idx = " + insertIdx + "\n" + ex.Message + "*");}
          }
 
          UpdateTextRanges(Selection.Start, insertText.Length);

@@ -36,17 +36,22 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
       CaretHeight = currTextLine.Extent;
       if (CaretHeight == 0)
          CaretHeight = currTextLine.Height;
-      CaretHeight *= 1.1; // give it a little extra vertical hangover
+      CaretHeight *= 1.3; // give it a little extra vertical hangover
 
       if (balign != BaselineAlignment.Baseline)
          CaretHeight = glyphRunHeight;
 
+      //Paragraph thisPar = FlowDoc.Selection.StartParagraph;
+
+
       double caretMTop = currTextLine.Start;
-      
+
+
       //if (currTextLine.GetTextBounds(0, 1).FirstOrDefault() is TextBounds tbounds)
       //   caretMTop = tbounds.Rectangle.Top;
 
-      double textTopY = FlowDoc.Selection.StartRect.Top + (currTextLine.Extent == 0 ? 0 : Math.Max(0, currTextLine.Baseline - currTextLine.Extent));
+      //double textTopY = FlowDoc.Selection.StartRect.Top + (currTextLine.Extent == 0 ? 0 : Math.Max(0, currTextLine.Baseline - currTextLine.Extent));
+      double textTopY = FlowDoc.Selection.StartRect.Top; 
 
       if (FlowDoc.Selection.IsAtEndOfLineSpace)
       {
@@ -55,6 +60,7 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
       }
       else
          caretMTop = textTopY;
+
 
       if (offsetTopFromHeight)
          caretMTop += (currTextLine.Height - glyphRunHeight - 1);

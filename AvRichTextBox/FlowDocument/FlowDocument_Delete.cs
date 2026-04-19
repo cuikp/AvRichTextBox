@@ -1,4 +1,6 @@
-﻿using DynamicData;
+﻿using DocumentFormat.OpenXml.InkML;
+using DocumentFormat.OpenXml.Wordprocessing;
+using DynamicData;
 
 namespace AvRichTextBox;
 
@@ -108,23 +110,29 @@ public partial class FlowDocument
 
    }
 
-   internal void DeleteRange(TextRange trange, bool addUndo)
+   internal (int idLeft, int idRight) DeleteRange(TextRange trange, bool addUndo)
    {
-      disableRunTextUndo = true;
-
+      bool isSingleBlockContent = Blocks.Count == 1;
       int originalSelectionStart = Selection.Start;
       int originalTRangeLength = trange.Length;
-
       List<Paragraph> rangePars = GetOverlappingParagraphsInRange(trange);
-      List<Table> tablesFullyInRange = GetFullTablesInRange(trange);
+      int firstParId = rangePars.First().Id;
+
+      disableRunTextUndo = true;
+
+      List <Table> tablesFullyInRange = GetFullTablesInRange(trange);
       List<Paragraph> paragraphsFullyInRange = GetFullParagraphsInRange(trange);
 
+      IEditable lastInline = rangePars[0].Inlines.Last();
+      if (paragraphsFullyInRange.Count == 1 && rangePars[0].Inlines.Count == 1 && GetCharPosInInline(lastInline, Selection.Start) ==  lastInline.InlineLength) 
+         return (lastInline.Id, -1);      
+
       if (addUndo) 
-         Undos.Add(new DeleteRangeUndo(rangePars.ConvertAll(rpar=> rpar.FullClone()), rangePars[0].Id, this, originalSelectionStart, originalTRangeLength));
+         Undos.Add(new DeleteRangeUndo(rangePars.ConvertAll(rpar=> rpar.FullClone()), firstParId, this, originalSelectionStart, originalTRangeLength));
 
       (int idLeft, int idRight) edgeIds;
       List<IEditable> rangeInlines = GetRangeInlinesAndAddToDoc(trange, out edgeIds);
-
+            
       //Delete the created inlines
       foreach (IEditable toDeleteRun in rangeInlines)
       {  
@@ -141,7 +149,8 @@ public partial class FlowDocument
          fullyContainedPar.Inlines.Clear();
          fullyContainedPar.Inlines.Add(new EditableRun(""));  //empty run placeholder for paragraph
 
-         if (!fullyContainedPar.IsTableCellBlock)
+         //if (!fullyContainedPar.IsTableCellBlock && (Blocks.Count !=1))
+         if (!fullyContainedPar.IsTableCellBlock && !isSingleBlockContent)
             Blocks.Remove(fullyContainedPar);
       }
       
@@ -172,15 +181,32 @@ public partial class FlowDocument
       if (Blocks.Count == 1 && Blocks[0] is Paragraph onlyPar && onlyPar.Inlines.Count == 0)
          onlyPar.Inlines.Add(new EditableRun(""));
 
-
-      UpdateTextRanges(originalSelectionStart, -originalTRangeLength);
-
-      UpdateSelection();
-
-      trange.CollapseToStart();
-      SelectionExtendMode = ExtendMode.ExtendModeNone;
+      if (Blocks.Count == 0)
+      {
+         Paragraph newPar = new(this) { Id = firstParId };
+         newPar.Inlines.Add(new EditableRun(""));
+         Blocks.Add(newPar);
+      }
 
       disableRunTextUndo = false;
+
+      
+      SelectionExtendMode = ExtendMode.ExtendModeNone;
+
+      UpdateTextRanges(originalSelectionStart, -originalTRangeLength);
+      UpdateSelection();
+
+      _ = AsyncUpdateCaret(trange);
+
+      return edgeIds;
+
+   }
+
+   internal async Task AsyncUpdateCaret(TextRange trange)
+   {
+      //await Task.Delay(100);
+      trange.CollapseToStart();
+      UpdateCaret();
 
    }
 

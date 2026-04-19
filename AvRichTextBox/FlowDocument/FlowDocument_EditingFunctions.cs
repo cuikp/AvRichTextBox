@@ -5,80 +5,89 @@ namespace AvRichTextBox;
 public partial class FlowDocument
 {
   
-   internal int PasteInlinesIntoRange(TextRange tRange, List<IEditable> newInlines)
-   {  // All of this should constitute one Undo operation
-      //Debug.WriteLine("newinlines=\n" + string.Join("\n", newInlines.ConvertAll(il => il.InlineText)));
+   //internal int PasteInlinesIntoRange(TextRange tRange, List<IEditable> newInlines, int pastedTextLength)
+   //{  // All of this should constitute one Undo operation
+   //   //Debug.WriteLine("newinlines=\n" + string.Join("\n", newInlines.ConvertAll(il => il.InlineText)));
+      
+   //   if (tRange.GetStartInline() is not IEditable startInline)
+   //      return 0;
 
-      disableRunTextUndo = true;
+   //   int addedCharCount = 0;
 
-      int addedCharCount = 0;
+   //   Paragraph startPar = tRange.StartParagraph;
 
-      Paragraph startPar = tRange.StartParagraph;
+   //   int rangeStart = tRange.Start;
+   //   int deleteRangeLength = tRange.Length;
+   //   int parIndex = AllParagraphs.IndexOf(startPar);
+   //   bool firstParEmpty = startPar.Inlines[0] is EditableRun erun && erun.Text == "";
 
-      int rangeStart = tRange.Start;
-      int deleteRangeLength = tRange.Length;
-      int parIndex = AllParagraphs.IndexOf(startPar);
+      
+   //   disableRunTextUndo = true;
 
-      Undos.Add(new PasteUndo(GetOverlappingParagraphsInRange(tRange), parIndex, this, rangeStart, deleteRangeLength - newInlines.Sum(nil=>nil.InlineLength)));
+   //   Undos.Add(new PasteUndo(GetOverlappingParagraphsInRange(tRange), parIndex, this, rangeStart, deleteRangeLength - pastedTextLength, firstParEmpty));
 
-      //Delete selected range first
-      if (tRange.Length > 0)
-         DeleteRange(tRange, false);
+   //   //Delete selected range first
+   //   if (tRange.Length > 0)
+   //      DeleteRange(tRange, false);
 
-      if (tRange.GetStartInline() is not IEditable startInline) return 0;
+   //   //Debug.WriteLine("addpar.inlines count before split: " + startPar.Inlines.Count);
 
-      List<IEditable> splitInlines = SplitRunAtPos(tRange.Start, startInline, GetCharPosInInline(startInline, tRange.Start));
+   //   List<IEditable> splitInlines = SplitRunAtPos(tRange.Start, startInline, GetCharPosInInline(startInline, tRange.Start));
 
-      int insertionPt = startPar.Inlines.IndexOf(splitInlines[0]) + 1;
+   //   //Debug.WriteLine("addpar.inlines count after split: " + startPar.Inlines.Count);
 
-      int startInlineIndex = startPar.Inlines.IndexOf(splitInlines[0]) + 1;
-      Paragraph addPar = startPar;
-      int inlineno = 0;
-      foreach (IEditable newinline in newInlines)
-      {
-         inlineno++;
+   //   int insertionPt = startPar.Inlines.IndexOf(splitInlines[0]) + 1;
 
-         bool addnewpar = false;
+   //   int startInlineIndex = startPar.Inlines.IndexOf(splitInlines[0]) + 1;
+   //   Paragraph addPar = startPar;
+   //   int inlineno = 0;
+     
 
-         if (newinline.InlineText.EndsWith("\r\n"))
-         {
-            newinline.InlineText = newinline.InlineText[..^1];
-            addnewpar = inlineno > 1;
-            //Debug.WriteLine("addnew par? " + addnewpar +  " (" + newinline.InlineText + ")");
-         }
+   //   foreach (IEditable newinline in newInlines)
+   //   {
+   //      inlineno++;
 
-         if (addnewpar)
-         {
-            List<IEditable> moveInlines = [.. addPar.Inlines.Take(new Range(0, startInlineIndex))];  // create an independent new list
-            addPar.Inlines.RemoveMany(moveInlines);
+   //      bool addnewpar = false;
 
-            //Create new paragraph to insert
-            addPar = new Paragraph(this);
-            addPar.Inlines.AddRange(moveInlines);
-            startInlineIndex = addPar.Inlines.Count;
-            Blocks.Insert(parIndex, addPar);  /////$$$$$$
-            addPar.CallRequestInlinesUpdate();
-            UpdateBlockAndInlineStarts(addPar);
-            addedCharCount += 1;
-         }
+   //      //if (newinline.InlineText.EndsWith("\r\n"))
+   //      //{
+   //      //   newinline.InlineText = newinline.InlineText[..^1];
+   //      //   addnewpar = inlineno > 1;
+   //      //   //Debug.WriteLine("addnew par? " + addnewpar +  " (" + newinline.InlineText + ")");
+   //      //}
 
-         addPar.Inlines.Insert(startInlineIndex, newinline);
-         addPar.CallRequestInlinesUpdate();
-         UpdateBlockAndInlineStarts(addPar);
-         addedCharCount += newinline.InlineLength;
-      }
+   //      //if (addnewpar)
+   //      //{
+   //      //   List<IEditable> moveInlines = [.. addPar.Inlines.Take(new Range(0, startInlineIndex))];  // create an independent new list
+   //      //   addPar.Inlines.RemoveMany(moveInlines);
 
-      if (splitInlines[0].InlineText == "")
-         startPar.Inlines.Remove(splitInlines[0]);
+   //      //   //Create new paragraph to insert
+   //      //   addPar = new Paragraph(this);
+   //      //   addPar.Inlines.AddRange(moveInlines);
+   //      //   startInlineIndex = addPar.Inlines.Count;
+   //      //   Blocks.Insert(parIndex, addPar);  /////$$$$$$
+   //      //   addPar.CallRequestInlinesUpdate();
+   //      //   UpdateBlockAndInlineStarts(addPar);
+   //      //   addedCharCount += 1;
+   //      //}
 
-      startPar.CallRequestInlinesUpdate();
-      UpdateBlockAndInlineStarts(startPar);
+   //      addPar.Inlines.Insert(startInlineIndex, newinline);
+   //      addPar.CallRequestInlinesUpdate();
+   //      //UpdateBlockAndInlineStarts(addPar);
+   //      addedCharCount += newinline.InlineLength;
+   //   }
 
-      disableRunTextUndo = false;
+   //   if (splitInlines[0].InlineText == "")
+   //      startPar.Inlines.Remove(splitInlines[0]);
 
-      return addedCharCount;
+   //   startPar.CallRequestTextLayoutInfoStart();
+   //   UpdateBlockAndInlineStarts(startPar);
 
-   }
+   //   disableRunTextUndo = false;
+
+   //   return addedCharCount;
+
+   //}
 
 
    internal void SetRangeToText(TextRange tRange, string newText)
@@ -88,8 +97,9 @@ public partial class FlowDocument
       int rangeStart = tRange.Start;
       int deleteRangeLength = tRange.Length;
       int parIndex = Blocks.IndexOf(startPar);
+      bool firstParEmpty = startPar.Inlines[0] is EditableRun erun && erun.Text == "";
 
-      Undos.Add(new PasteUndo(GetOverlappingParagraphsInRange(tRange), parIndex, this, rangeStart, deleteRangeLength - newText.Length));
+      Undos.Add(new PasteUndo(GetOverlappingParagraphsInRange(tRange), parIndex, this, rangeStart, deleteRangeLength - newText.Length, firstParEmpty, []));
 
       //Delete any selected text first
       if (tRange.Length > 0)

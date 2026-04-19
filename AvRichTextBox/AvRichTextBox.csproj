@@ -20,12 +20,14 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>ver 1.7.2: Updated to Avalonia 12 with fixes</PackageReleaseNotes>
+	  <PackageReleaseNotes>ver 1.7.3: Added end byte "\0" to clipboard rtfstring for some apps that need it
+Fixed: Deleting all RTB content as Range prevented input or crashed
+Fixed: Errors with pasting of multiple paragraphs</PackageReleaseNotes>
       
      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 	  <PackageOutputPath>D:\PROG\LocalNuget\AvRichTextBox</PackageOutputPath>
 	  
-	  <Version>1.7.2</Version>
+	  <Version>1.7.3</Version>
 	  <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
 	  

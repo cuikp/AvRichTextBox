@@ -82,15 +82,16 @@ public partial class RichTextBox : UserControl
 #if DEBUG
       if (ShowDebuggerPanelInDebugMode)
       {
-         debuggerPanel = new()
-         {
-            Width = 400,
-            DataContext = FlowDoc
-         };
+         //Create Debugger Panel only in debug mode and if show
+         debuggerPanel = new() { Width = 400, DataContext = FlowDoc };
          DockPanel.SetDock(debuggerPanel, Dock.Right);
          MainDP.Children.Insert(0, debuggerPanel);
+         debuggerPanel.DataContext = RtbVm;
          debuggerPanel.Bind(Visual.IsVisibleProperty, new Binding("RunDebuggerVisible"));
-      
+         debuggerPanel.SelEndTB.Bind(TextBlock.TextProperty, new Binding("FlowDoc.Selection.End"){ StringFormat = "DocSelEnd={0}" }); 
+         debuggerPanel.SelStartTB.Bind(TextBlock.TextProperty, new Binding("FlowDoc.Selection.Start") { StringFormat = "DocSelStart={0}" });
+
+         debuggerPanel.ParagraphsLB.ItemsSource = FlowDoc.SelectionParagraphs;
          RtbVm.RunDebuggerVisible = ShowDebuggerPanelInDebugMode;
          this.Width += (RtbVm.RunDebuggerVisible ? 400 : 0);
          FlowDoc.ShowDebugger = RtbVm.RunDebuggerVisible;

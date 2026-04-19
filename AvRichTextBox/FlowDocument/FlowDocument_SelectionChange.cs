@@ -12,7 +12,8 @@ public partial class FlowDocument
       Selection.EndParagraph.CallRequestInlinesUpdate();
       Selection.EndParagraph.CallRequestTextLayoutInfoEnd();
 
-      //Selection.StartParagraph.CallRequestTextBoxFocus();
+      Selection.StartParagraph.CallRequestTextBoxFocus();
+
    }
 
    internal void SelectionStart_Changed(TextRange selRange, int newStart)

@@ -19,14 +19,13 @@ public interface IEditable
    public bool IsRun => this.GetType() == typeof(EditableRun);
    public bool IsUIContainer => this.GetType() == typeof(EditableInlineUIContainer);
    public bool IsLineBreak => this.GetType() == typeof(EditableLineBreak);
-   
-   public string DisplayInlineText { get; }
-   public InlineVisualizationProperties InlineVP { get; set; }
+
 
 #if DEBUG
    // FOR DEBUGGER PANEL
-   //public InlineVisualizationProperties InlineVP { get; set; }
-   //public string DisplayInlineText { get; }
+   public string InlineToolTip { get; }
+   public InlineVisualizationProperties InlineVP { get; set; }
+   public string DisplayInlineText { get; }
 #endif
 
 }

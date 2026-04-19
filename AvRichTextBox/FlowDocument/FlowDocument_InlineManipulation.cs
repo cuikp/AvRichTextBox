@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using DocumentFormat.OpenXml.Vml.Spreadsheet;
+using System.Collections.ObjectModel;
 
 namespace AvRichTextBox;
 
@@ -7,14 +8,16 @@ public partial class FlowDocument
    internal int GetCharPosInInline(IEditable inline, int absPos)
    {
       if (AllParagraphs.FirstOrDefault(p => p.Id == inline.MyParagraphId) is not Paragraph inlinePar) return -1;
-
       return absPos - inlinePar.StartInDoc - inline.TextPositionOfInlineInParagraph;
    }
 
    internal List<IEditable> GetRangeInlines(TextRange trange)
    {
+      
       if (trange.GetStartPar() is not Paragraph startPar) return [];
       if (trange.GetEndPar() is not Paragraph endPar) return [];
+    
+      disableRunTextUndo = true;
 
       //Create clones of all inlines
       List<IEditable> AllSelectedInlines = AllParagraphs.SelectMany( p => p.Inlines.Where(iline => 
@@ -43,7 +46,6 @@ public partial class FlowDocument
       if (AllSelectedInlines.Count == 1)
       {
          int lastInlineSplitIndex = trange.End - endPar.StartInDoc - firstInline.TextPositionOfInlineInParagraph;
-         //firstInline.InlineText = firstInline.InlineText[firstInlineSplitIndex..lastInlineSplitIndex];
          firstInline.InlineText = firstInline.IsEmpty ? "" : firstInline.InlineText[firstInlineSplitIndex..lastInlineSplitIndex];
       }
       else
@@ -53,6 +55,8 @@ public partial class FlowDocument
          firstInline.InlineText = firstInline.InlineText[firstInlineSplitIndex ..];
          lastInline.InlineText = lastInline.InlineText[..lastInlineSplitIndex];
       }
+
+      disableRunTextUndo = false;
 
       return AllSelectedInlines;
 
@@ -177,16 +181,20 @@ public partial class FlowDocument
 
    }
 
-   internal List<IEditable> SplitRunAtPos(int charPos, IEditable inlineToSplit, int splitPos)
+   internal List<IEditable> SplitRunAtPos(int charIdxInDoc, IEditable inlineToSplit, int splitPos)
    {
+      
       //if (inlineToSplit.IsUIContainer)
       //   return [new EditableRun(""), inlineToSplit];
-      if (GetContainingParagraph(charPos) is not Paragraph containingPar) return [];
+
+      if (GetContainingParagraph(charIdxInDoc) is not Paragraph containingPar) return [];
       ObservableCollection<IEditable> inlines = containingPar.Inlines;
+      
+      if (inlines.Count == 1 && charIdxInDoc == containingPar.StartInDoc + inlines[0].InlineLength) return [inlines[0]];
+
+      disableRunTextUndo = true;
 
       int runIdx = inlines.IndexOf(inlineToSplit);
-
-      //splitPos = Math.Min(splitPos, inlineToSplit.InlineLength);
 
       string part2Text = inlineToSplit.InlineText[splitPos..];
 
@@ -194,6 +202,8 @@ public partial class FlowDocument
       IEditable insertInline = inlineToSplit.Clone();
       insertInline.InlineText = part2Text;
       inlines.Insert(runIdx + 1, insertInline);
+      
+      disableRunTextUndo = false;
 
       return [inlineToSplit, insertInline];
    }

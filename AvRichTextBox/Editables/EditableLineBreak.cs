@@ -34,15 +34,11 @@ public class EditableLineBreak : LineBreak, IEditable
    }
 
 
+#if DEBUG
+   // FOR DEBUGGER PANEL
    public InlineVisualizationProperties InlineVP { get; set; } = new();
    public string InlineToolTip => "";
    public string DisplayInlineText => "{>LINEBREAK<}";
-
-#if DEBUG
-   // FOR DEBUGGER PANEL
-   //public InlineVisualizationProperties InlineVP { get; set; } = new();
-   //public string InlineToolTip => "";
-   //public string DisplayInlineText => "{>LINEBREAK<}";
 #endif
 
 }

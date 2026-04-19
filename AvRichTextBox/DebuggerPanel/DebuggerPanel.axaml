@@ -28,8 +28,8 @@
 			<Border DockPanel.Dock="Top" BorderBrush="Black" BorderThickness="0.8">
 				<DockPanel x:DataType="local:FlowDocument">
 					<DockPanel DockPanel.Dock="Left">
-						<TextBlock DockPanel.Dock="Top" Background="LightGray" Text="{Binding Selection.Start, StringFormat='DocSelStart={0}'}"/>
-						<TextBlock Background="LightGray" Text="{Binding Selection.End, StringFormat='DocSelEnd={0}'}"/>
+						<TextBlock x:Name="SelStartTB" DockPanel.Dock="Top" Background="LightGray" />
+						<TextBlock x:Name="SelEndTB" Background="LightGray"/>
 					</DockPanel>
 				</DockPanel>
 			</Border>
@@ -43,7 +43,7 @@
 			<TextBlock  Grid.Column="3" Text="Inl_Id" TextAlignment="Center" />
 		</Grid>
 
-		<ListBox x:Name="ParagraphsLB"  DockPanel.Dock="Top" x:DataType="local:FlowDocument" ItemsSource="{Binding SelectionParagraphs}" Background="Wheat" BorderBrush="Black" BorderThickness="1" Padding="0" >
+		<ListBox x:Name="ParagraphsLB"  DockPanel.Dock="Top" Background="Wheat" BorderBrush="Black" BorderThickness="1" Padding="0" >
 			<ListBox.ItemTemplate>
 				<DataTemplate x:DataType="local:Paragraph">
 					<DockPanel>
@@ -55,10 +55,10 @@
 
 						<ItemsControl x:Name="InlinesIC" ItemsSource="{Binding Inlines}" Margin="-5, 2, -5, 20"  BorderBrush="DarkBlue" BorderThickness="0.7" >
 							<ItemsControl.ItemTemplate>
-								<DataTemplate x:DataType="{x:Type local:IEditable}">
+								<DataTemplate  x:CompileBindings="False">
 									<Border BorderBrush="Black" BorderThickness="{Binding InlineVP.InlineSelectedBorderThickness}" Background="{Binding InlineVP.BackBrush}">
 										<Grid ColumnDefinitions="50* 15* 10* 10*" HorizontalAlignment="Stretch" ShowGridLines="True" Margin="0" >
-											<Grid x:DataType="{x:Type local:EditableRun}" Margin="3, 0" Grid.Column="0">
+											<Grid  Margin="3, 0" Grid.Column="0" >
 												<Border Background="{StaticResource TableInlineBrush}" IsVisible="{Binding InlineVP.IsTableCellInline}"/>
 												<TextBlock  Text="{Binding DisplayInlineText}" TextWrapping="Wrap" FontWeight="{Binding FontWeight}" FontStyle="{Binding FontStyle}" TextDecorations="{Binding TextDecorations}" ToolTip.Tip="{Binding InlineToolTip}" />
 											</Grid>

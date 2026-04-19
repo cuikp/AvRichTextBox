@@ -169,10 +169,19 @@ Can set `SelectionBrush` globally for AvRichTextBox
 Added preliminary `Table` support.  `Table` can be added as a `Block` in the `FlowDocument`.  (Some bugs remain to be fixed.)
 In addition, `BaselineAlignment.Superscript`/`.Subscript` runs now appear properly as such (raised/lowered text).  (Modification was necessary because Avalonia's `SelectableTextBlock` currently doesn't display them properly).  
 
-**[ver 1.6.4] 2026/03/22**: updated to Avalonia 11.3.12
+**[ver 1.6.4] 2026/03/22**:
+updated to Avalonia 11.3.12
 
-**[ver 1.6.5] 2026/03/22**: fixed possible out of bounds error TextRunBounds in _SelectionRect.cs
+**[ver 1.6.5] 2026/03/22**:
+fixed possible out of bounds error TextRunBounds in _SelectionRect.cs
 
-**[ver 1.6.6] 2026/03/22**: fixed GetVisualDescendants() error in Debug mode
+**[ver 1.6.6] 2026/03/22**:
+fixed GetVisualDescendants() error in Debug mode
 
-**[ver 1.7.1] 2026/04/17**: Updated to Avalonia 12
+**[ver 1.7.1] 2026/04/17**:
+Updated to Avalonia 12
+
+**[ver 1.7.3] 2026/04/18**: 
+Added end byte "\0" to clipboard rtfstring for some apps that need it.
+Fixed: Deleting all RTB content as a Range (i.e. selecting all (Ctrl-A) + Delete) prevented input or crashed.
+Fixed: Errors with pasting of multiple paragraphs

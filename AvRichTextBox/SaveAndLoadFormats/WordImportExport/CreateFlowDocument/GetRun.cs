@@ -241,10 +241,14 @@ internal static partial class WordConversions
                      {
                         switch (rprsection.LocalName)
                         {
-                           case "u":
+                           case "strike":
+                              TextDecoration textDecStrikeout = new() { Location = TextDecorationLocation.Strikethrough };
+                              thisRun.TextDecorations = [textDecStrikeout];
+                              break;
 
-                              TextDecoration ProtectedTextDecoration = new() { Location = TextDecorationLocation.Underline };
-                              thisRun.TextDecorations = [ ProtectedTextDecoration ];
+                           case "u":
+                              TextDecoration textDecUnderline = new() { Location = TextDecorationLocation.Underline };
+                              thisRun.TextDecorations = [textDecUnderline];
                               break;
 
                            //case "i": ((EditableRun)iline).FontStyle = FontStyle.Italic; break;
@@ -252,7 +256,7 @@ internal static partial class WordConversions
                            case "b": thisrun.FontWeight = FontWeight.Bold; break;
                                  
                            case "rFonts":
-
+                                                            
                               string runAsciiFont = "";
                               string runEastAsiaFont = "";
                               // Dim cultureInfo As CultureInfo = cultureInfo.CurrentCulture
