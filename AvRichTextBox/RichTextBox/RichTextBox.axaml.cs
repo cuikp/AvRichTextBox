@@ -56,8 +56,8 @@ public partial class RichTextBox : UserControl
       _CaretRect.Bind(HeightProperty, new Binding("CaretHeight"));
       _CaretRect.DataContext = RtbVm;
 
-      SubscriptTG.Children = [new TranslateTransform(0, 4.8), strans];
-      SuperscriptTG.Children = [new TranslateTransform(0, -4.8), strans];
+      SubscriptTG.Children = [new TranslateTransform(0, 4.8), subscriptScaleTransform];
+      SuperscriptTG.Children = [new TranslateTransform(0, -4.8), subscriptScaleTransform];
 
       this.Focusable = true;
 

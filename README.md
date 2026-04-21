@@ -185,3 +185,10 @@ Updated to Avalonia 12
 Added end byte "\0" to clipboard rtfstring for some apps that need it.
 Fixed: Deleting all RTB content as a Range (i.e. selecting all (Ctrl-A) + Delete) prevented input or crashed.
 Fixed: Errors with pasting of multiple paragraphs
+
+**[ver 1.7.4] 2026/04/20**: 
+Made RtfDomParserAv parse numbered lists (as consecutive numbers)
+
+**[ver 1.7.5] 2026/04/21**: 
+External images can now be pasted into RTB.
+Removed setting default collection on BlocksProperty of FlowDocument, which was causing multiple RTBs to point to the same collection.  Blocks collection is now created in FlowDocument ctor.

@@ -1,6 +1,4 @@
-﻿using Avalonia.Controls;
-using Avalonia.Controls.Documents;
-using Avalonia.Data;
+﻿using Avalonia.Data;
 using Avalonia.Media;
 using DynamicData;
 using System.Collections.ObjectModel;
@@ -35,7 +33,7 @@ public partial class FlowDocument : AvaloniaObject
 
    public List<Paragraph> GetSelectedParagraphs => [.. AllParagraphs.Where(p=> p.StartInDoc <= Selection.Start && p.EndInDoc >= Selection.End).Select(b=>(Paragraph)b)];
 
-   public static readonly StyledProperty<ObservableCollection<Block>> BlocksProperty = AvaloniaProperty.Register<FlowDocument, ObservableCollection<Block>>(nameof(Blocks), [], defaultBindingMode: BindingMode.TwoWay);
+   public static readonly StyledProperty<ObservableCollection<Block>> BlocksProperty = AvaloniaProperty.Register<FlowDocument, ObservableCollection<Block>>(nameof(Blocks), defaultBindingMode: BindingMode.TwoWay);
    public ObservableCollection<Block> Blocks
    {
       get => GetValue(BlocksProperty);
@@ -58,7 +56,7 @@ public partial class FlowDocument : AvaloniaObject
    
    public FlowDocument()
    {
-
+      Blocks = [];
       Selection = new TextRange(this, 0, 0);
       Selection.Start_Changed += SelectionStart_Changed;
       Selection.End_Changed += SelectionEnd_Changed;
