@@ -1,4 +1,7 @@
-﻿using System.ComponentModel;
+﻿using DocumentFormat.OpenXml.Math;
+using System.ComponentModel;
+using System.Text;
+using static AvRichTextBox.XamlConversions;
 
 namespace AvRichTextBox;
 
@@ -30,8 +33,8 @@ public class TextRange : INotifyPropertyChanged, IDisposable
    internal FlowDocument myFlowDoc;
    public int Length  => End - Start;
  
-   public int Start { get;  set { if (field != value) { field = value; Start_Changed?.Invoke(this, value); InvokeProperty(StartChangedArgs); } } }
-   public int End { get; set { if (field != value) { field = value; End_Changed?.Invoke(this, value); InvokeProperty(EndChangedArgs); } } }
+   public int Start { get;  set {  field = value; Start_Changed?.Invoke(this, value); InvokeProperty(StartChangedArgs);  } }
+   public int End { get; set {  field = value; End_Changed?.Invoke(this, value); InvokeProperty(EndChangedArgs);  } }
 
    internal Paragraph StartParagraph = null!;
    internal Paragraph EndParagraph = null!;
@@ -175,6 +178,74 @@ public class TextRange : INotifyPropertyChanged, IDisposable
    {
       get => GetText();
       set => myFlowDoc.SetRangeToText(this, value);
+   }
+
+
+   public void Save(Stream stream, ContentDataFormat dataFormat)
+   {      
+      switch (dataFormat)
+      {
+         case ContentDataFormat.Xaml:
+
+            StringBuilder rangeXamlBuilder = new(SectionTextDefault);
+            rangeXamlBuilder.Append(GetParagraphRunsXaml(myFlowDoc.GetRangeInlines(this), false));
+            rangeXamlBuilder.Append("</Section>");
+            byte[] xamlStringBytes = Encoding.UTF8.GetBytes(rangeXamlBuilder.ToString());
+            stream.Write(xamlStringBytes, 0, xamlStringBytes.Length);
+            break;
+
+         case ContentDataFormat.XamlPackage:
+
+            break;
+
+         case ContentDataFormat.Text:
+
+            byte[] textStringBytes = Encoding.UTF8.GetBytes(this.Text);
+            stream.Write(textStringBytes, 0, textStringBytes.Length);
+            break;
+
+         case ContentDataFormat.Rtf:
+
+            byte[] rtfStringBytes = Encoding.UTF8.GetBytes(RtfConversions.GetRtfFromInlines(myFlowDoc.GetRangeInlines(this)));
+            stream.Write(rtfStringBytes, 0, rtfStringBytes.Length);
+            break;
+      }
+      
+
+   }
+
+   public void Load(Stream stream, ContentDataFormat dataFormat)
+   {
+      (int idLeft, int idRight) edgeIds = myFlowDoc.DeleteRange(this, false, false);
+      
+      byte[] streamBytes = new byte[stream.Length];
+      stream.ReadExactly(streamBytes);
+      string readString = Encoding.UTF8.GetString(streamBytes, 0, streamBytes.Length);
+      List<int> addedBlockIds = []; // dummy or use for undo
+
+      switch (dataFormat)
+      {
+         case ContentDataFormat.Xaml:
+
+            myFlowDoc.InsertXaml(streamBytes, StartParagraph, EndParagraph, this, myFlowDoc.Blocks.IndexOf(StartParagraph), addedBlockIds);
+            break;
+
+         case ContentDataFormat.XamlPackage:
+
+            break;
+
+         case ContentDataFormat.Text:
+
+            this.Text = readString;
+            break;
+
+         case ContentDataFormat.Rtf:
+                        
+            myFlowDoc.InsertRTF(streamBytes, StartParagraph, this, myFlowDoc.Blocks.IndexOf(StartParagraph), addedBlockIds);
+            break;
+      }
+
+
    }
 
    public void Dispose()

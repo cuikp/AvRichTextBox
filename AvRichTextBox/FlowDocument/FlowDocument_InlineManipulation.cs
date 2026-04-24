@@ -157,16 +157,14 @@ public partial class FlowDocument
          bool RangeStartsAtInlineStart = firstInlineSplitIndex <= 0;
 
          // split first run and remove initial excess run from list
-         if (!RangeStartsAtInlineStart)
-         {
+         if (!RangeStartsAtInlineStart && firstInlineText != "")
+         {  //Debug.WriteLine("firstinline text = " + firstInlineText + ", " + firstInlineText.Length + ", splitidx = " + firstInlineSplitIndex);
+
             firstInline.InlineText = firstInlineText[..firstInlineSplitIndex];
             insertFirstInline.InlineText = firstInlineText[firstInlineSplitIndex..];
             AllSelectedInlines.Remove(firstInline);
             AllSelectedInlines.Insert(0, insertFirstInline);
-            
             startPar.Inlines.Insert(indexOfFirstInline + 1, insertFirstInline);
-            //if (RangeEndsAtInlineEnd)
-               //lastInline.InlineText = firstInlineText[firstInlineSplitIndex..];
          }
 
          //Debug.WriteLine("\nInlines to convert=\n" + string.Join("\n", AllSelectedInlines.ConvertAll(il => il.InlineText + " :: " + il.Id)));

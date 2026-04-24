@@ -170,7 +170,7 @@ public partial class MainWindow : Window
       if (!progChange)
       {
          progChange = true;
-         LineSpacingNS.Value = selPar.LineSpacing;
+         LineHeightNS.Value = selPar.LineHeight;
          ParagraphBorderNS.Value = selPar.BorderThickness.Left;
          ParBorderCP.Color = selPar.BorderBrush.Color;
          ParBackgroundCP.Color = selPar.Background.Color;
@@ -185,10 +185,15 @@ public partial class MainWindow : Window
 
    }
 
-   internal void LineSpacingNS_UserValueChanged(double value)
+   internal void LineHeightNS_UserValueChanged(double value)
    {
       foreach (Paragraph p in MainRTB.FlowDocument.GetSelectedParagraphs)
-         p.LineSpacing = value;
+      {
+         //p.LineSpacing *= 2;
+         p.LineHeight = value;
+      }
+         
+                  
    }
 
    internal void ParagraphBorderNS_UserValueChanged(double value)

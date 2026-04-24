@@ -21,105 +21,109 @@ public partial class XamlConversions
 
    internal static void SaveXamlPackage(string fileName, FlowDocument fdoc)
    {
-
-      using FileStream fstream = new(fileName, FileMode.Create);
-      using ZipArchive zipArchive = new(fstream, ZipArchiveMode.Create);
-      var resource = AssetLoader.Open(packageRelsUri);
-      var reader = new StreamReader(resource);
-      ZipArchiveEntry relsEntry = zipArchive.CreateEntry("_rels/.rels");
-      byte[] relsBytes = Encoding.UTF8.GetBytes(reader.ReadToEnd());
-      using (var s = relsEntry.Open())
-      { s.Write(relsBytes, 0, relsBytes.Length); }
-
-      resource = AssetLoader.Open(contentTypesUri);
-      reader = new StreamReader(resource);
-      ZipArchiveEntry contentsEntry = zipArchive.CreateEntry("[Content_Types].xml");
-      byte[] contentsBytes = Encoding.UTF8.GetBytes(reader.ReadToEnd());
-      using (var s = contentsEntry.Open())
-      { s.Write(contentsBytes, 0, contentsBytes.Length); }
-
-
-      //Save images, if any  
-      List<Paragraph> imageContainingParagraphs = [.. fdoc.AllParagraphs.Where(p => p.Inlines.Where(iline => iline is EditableInlineUIContainer eIUC && eIUC.Child is Image).Any())]; 
-
-      if (imageContainingParagraphs.Count != 0)
+      try
       {
-         int imageNo = 0; //Consecutively define image nos.
-         List<UniqueBitmap> uniqueBitmaps = [];
-         foreach (Paragraph p in imageContainingParagraphs)
+         using FileStream fstream = new(fileName, FileMode.Create);
+         using ZipArchive zipArchive = new(fstream, ZipArchiveMode.Create);
+         var resource = AssetLoader.Open(packageRelsUri);
+         var reader = new StreamReader(resource);
+         ZipArchiveEntry relsEntry = zipArchive.CreateEntry("_rels/.rels");
+         byte[] relsBytes = Encoding.UTF8.GetBytes(reader.ReadToEnd());
+         using (var s = relsEntry.Open())
+         { s.Write(relsBytes, 0, relsBytes.Length); }
+
+         resource = AssetLoader.Open(contentTypesUri);
+         reader = new StreamReader(resource);
+         ZipArchiveEntry contentsEntry = zipArchive.CreateEntry("[Content_Types].xml");
+         byte[] contentsBytes = Encoding.UTF8.GetBytes(reader.ReadToEnd());
+         using (var s = contentsEntry.Open())
+         { s.Write(contentsBytes, 0, contentsBytes.Length); }
+
+
+         //Save images, if any  
+         List<Paragraph> imageContainingParagraphs = [.. fdoc.AllParagraphs.Where(p => p.Inlines.Where(iline => iline is EditableInlineUIContainer eIUC && eIUC.Child is Image).Any())];
+
+         if (imageContainingParagraphs.Count != 0)
          {
-            foreach (EditableInlineUIContainer imageUIContainer in p.Inlines.Where(iline => iline.GetType() == typeof(EditableInlineUIContainer) &&
-                       ((EditableInlineUIContainer)iline).Child.GetType() == typeof(Image)))
+            int imageNo = 0; //Consecutively define image nos.
+            List<UniqueBitmap> uniqueBitmaps = [];
+            foreach (Paragraph p in imageContainingParagraphs)
             {
-               if (imageUIContainer.Child is Image thisImg)
+               foreach (EditableInlineUIContainer imageUIContainer in p.Inlines.Where(iline => iline.GetType() == typeof(EditableInlineUIContainer) &&
+                          ((EditableInlineUIContainer)iline).Child.GetType() == typeof(Image)))
                {
-
-                  Bitmap? imgbitmap = (Bitmap)thisImg.Source!;
-
-                  //Debug.WriteLine("Imagesource is null ? : " + (thisImg.Source == null));
-                  if (imgbitmap == null)
+                  if (imageUIContainer.Child is Image thisImg)
                   {
-                     //Create dummy bitmap to maintain doc/image structure
-                     imageNo += 1;
-                     Bitmap dummyBMP = new RenderTargetBitmap(new PixelSize(10, 10));
-                     uniqueBitmaps.Add(new UniqueBitmap(dummyBMP, (int)thisImg.Width, (int)thisImg.Height, imageNo));
-                     imageUIContainer.ImageNo = imageNo;
-                  }
-                  else
-                  {
-                     UniqueBitmap foundUniqueBitmap = uniqueBitmaps.Where(bmp => bmp.uBitmap == imgbitmap).FirstOrDefault()!;
-                     if (foundUniqueBitmap == null)
-                     {  //add as new unique bitmap
+
+                     Bitmap? imgbitmap = (Bitmap)thisImg.Source!;
+
+                     //Debug.WriteLine("Imagesource is null ? : " + (thisImg.Source == null));
+                     if (imgbitmap == null)
+                     {
+                        //Create dummy bitmap to maintain doc/image structure
                         imageNo += 1;
-                        uniqueBitmaps.Add(new UniqueBitmap(imgbitmap, (int)thisImg.Width, (int)thisImg.Height, imageNo));
+                        Bitmap dummyBMP = new RenderTargetBitmap(new PixelSize(10, 10));
+                        uniqueBitmaps.Add(new UniqueBitmap(dummyBMP, (int)thisImg.Width, (int)thisImg.Height, imageNo));
                         imageUIContainer.ImageNo = imageNo;
                      }
                      else
                      {
-                        if (foundUniqueBitmap.maxWidth < thisImg.Width)
-                           foundUniqueBitmap.maxWidth = (int)thisImg.Width;
-                        if (foundUniqueBitmap.maxHeight < thisImg.Height)
-                           foundUniqueBitmap.maxHeight = (int)thisImg.Height;
-                        imageUIContainer.ImageNo = foundUniqueBitmap.consecutiveIndex;
+                        UniqueBitmap foundUniqueBitmap = uniqueBitmaps.Where(bmp => bmp.uBitmap == imgbitmap).FirstOrDefault()!;
+                        if (foundUniqueBitmap == null)
+                        {  //add as new unique bitmap
+                           imageNo += 1;
+                           uniqueBitmaps.Add(new UniqueBitmap(imgbitmap, (int)thisImg.Width, (int)thisImg.Height, imageNo));
+                           imageUIContainer.ImageNo = imageNo;
+                        }
+                        else
+                        {
+                           if (foundUniqueBitmap.maxWidth < thisImg.Width)
+                              foundUniqueBitmap.maxWidth = (int)thisImg.Width;
+                           if (foundUniqueBitmap.maxHeight < thisImg.Height)
+                              foundUniqueBitmap.maxHeight = (int)thisImg.Height;
+                           imageUIContainer.ImageNo = foundUniqueBitmap.consecutiveIndex;
+                        }
                      }
                   }
                }
             }
-         }
 
-         //Write all unique bitmaps to zip
-         imageNo = 1;
-         foreach (UniqueBitmap uB in uniqueBitmaps)
-         {
-            //if (uB.uBitmap != null)
-            //{
-            var memoryStream = new MemoryStream();
-            if (uB.uBitmap != null)
-               ResizeAndSaveBitmap(uB.uBitmap, uB.maxWidth, uB.maxHeight, memoryStream);
-            memoryStream.Seek(0, SeekOrigin.Begin);
-
-            string imageName = "Xaml/Image" + imageNo.ToString() + ".png";
-            ZipArchiveEntry imageEntry = zipArchive.CreateEntry(imageName);
-            using (var s = imageEntry.Open())
+            //Write all unique bitmaps to zip
+            imageNo = 1;
+            foreach (UniqueBitmap uB in uniqueBitmaps)
             {
-               byte[] imgbytes = new byte[memoryStream.Length];
-               memoryStream.Read(imgbytes, 0, imgbytes.Length);
-               s.Write(imgbytes, 0, imgbytes.Length);
+               //if (uB.uBitmap != null)
+               //{
+               var memoryStream = new MemoryStream();
+               if (uB.uBitmap != null)
+                  ResizeAndSaveBitmap(uB.uBitmap, uB.maxWidth, uB.maxHeight, memoryStream);
+               memoryStream.Seek(0, SeekOrigin.Begin);
+
+               string imageName = "Xaml/Image" + imageNo.ToString() + ".png";
+               ZipArchiveEntry imageEntry = zipArchive.CreateEntry(imageName);
+               using (var s = imageEntry.Open())
+               {
+                  byte[] imgbytes = new byte[memoryStream.Length];
+                  memoryStream.Read(imgbytes, 0, imgbytes.Length);
+                  s.Write(imgbytes, 0, imgbytes.Length);
+               }
+
+               //}
+               imageNo++;
             }
-
-            //}
-            imageNo++;
          }
-      }
 
-      ZipArchiveEntry docEntry = zipArchive.CreateEntry("Xaml/Document.xaml");
-      using (var s = docEntry.Open())
-      {
-         byte[] docBytes = Encoding.UTF8.GetBytes(GetDocXaml(true, fdoc));
-         s.Write(docBytes, 0, docBytes.Length);
-      }
+         ZipArchiveEntry docEntry = zipArchive.CreateEntry("Xaml/Document.xaml");
+         using (var s = docEntry.Open())
+         {
+            byte[] docBytes = Encoding.UTF8.GetBytes(GetDocXaml(true, fdoc));
+            s.Write(docBytes, 0, docBytes.Length);
+         }
 
-      //Debug.WriteLine("done saving");
+         //Debug.WriteLine("done saving");
+
+      }
+      catch (Exception ex) { throw new Exception("Error trying to save Xaml package: (" + ex.Message + ")"); }
 
    }
 

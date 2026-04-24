@@ -17,7 +17,7 @@ public partial class FlowDocument
    }
 
    internal void SelectionStart_Changed(TextRange selRange, int newStart)
-   {
+   {  //Debug.WriteLine("SELECTION START CHANGED");
 
       switch (GetContainingParagraph(newStart))
       {

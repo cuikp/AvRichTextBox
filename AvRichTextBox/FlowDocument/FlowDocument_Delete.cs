@@ -101,7 +101,7 @@ public partial class FlowDocument
 
    internal void DeleteSelection()
    {
-      DeleteRange(Selection, true);
+      DeleteRange(Selection, true, true);
       SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeNone;
       UpdateBlockAndInlineStarts(Selection.StartParagraph);
       Selection.CollapseToStart();
@@ -110,33 +110,37 @@ public partial class FlowDocument
 
    }
 
-   internal (int idLeft, int idRight) DeleteRange(TextRange trange, bool addUndo)
+   internal (int idLeft, int idRight) DeleteRange(TextRange trange, bool addUndo, bool adjustCursor)
    {
-      bool isSingleBlockContent = Blocks.Count == 1;
+      bool docContainsOneBlock = Blocks.Count == 1;
       int originalSelectionStart = Selection.Start;
       int originalTRangeLength = trange.Length;
       List<Paragraph> rangePars = GetOverlappingParagraphsInRange(trange);
       int firstParId = rangePars.First().Id;
-
+      int firstParIndex = GetAllParagraphs.IndexOf(rangePars.First());
+      
       disableRunTextUndo = true;
 
       List <Table> tablesFullyInRange = GetFullTablesInRange(trange);
       List<Paragraph> paragraphsFullyInRange = GetFullParagraphsInRange(trange);
+
+      bool firstParDeleted = paragraphsFullyInRange.Count > 0 && paragraphsFullyInRange.First().StartInDoc == originalSelectionStart;
 
       IEditable lastInline = rangePars[0].Inlines.Last();
       if (paragraphsFullyInRange.Count == 1 && rangePars[0].Inlines.Count == 1 && GetCharPosInInline(lastInline, Selection.Start) ==  lastInline.InlineLength) 
          return (lastInline.Id, -1);      
 
       if (addUndo) 
-         Undos.Add(new DeleteRangeUndo(rangePars.ConvertAll(rpar=> rpar.FullClone()), firstParId, this, originalSelectionStart, originalTRangeLength));
+         Undos.Add(new DeleteRangeUndo(rangePars.ConvertAll(rpar=> rpar.FullClone()), firstParIndex, this, originalSelectionStart, originalTRangeLength, firstParDeleted));
 
       (int idLeft, int idRight) edgeIds;
       List<IEditable> rangeInlines = GetRangeInlinesAndAddToDoc(trange, out edgeIds);
-            
+
+
       //Delete the created inlines
       foreach (IEditable toDeleteRun in rangeInlines)
-      {  
-         if (AllParagraphs.FirstOrDefault(p=> p.Id == toDeleteRun.MyParagraphId) is Paragraph rangePar)
+      {
+         if (AllParagraphs.FirstOrDefault(p => p.Id == toDeleteRun.MyParagraphId) is Paragraph rangePar)
          {
             rangePar.Inlines.Remove(toDeleteRun);
             rangePar.CallRequestInlinesUpdate();
@@ -147,25 +151,23 @@ public partial class FlowDocument
       foreach (Paragraph fullyContainedPar in paragraphsFullyInRange)
       {
          fullyContainedPar.Inlines.Clear();
-         fullyContainedPar.Inlines.Add(new EditableRun(""));  //empty run placeholder for paragraph
-
-         //if (!fullyContainedPar.IsTableCellBlock && (Blocks.Count !=1))
-         if (!fullyContainedPar.IsTableCellBlock && !isSingleBlockContent)
+         if (!fullyContainedPar.IsTableCellBlock && !docContainsOneBlock)
             Blocks.Remove(fullyContainedPar);
       }
-      
+
       Blocks.RemoveMany(tablesFullyInRange);
 
-      //Add a blank run if all runs were deleted in one paragraph
-      if (rangePars.Count == 1 && rangePars[0] is Paragraph p3 && p3.Inlines.Count == 0)
-         p3.Inlines.Add(new EditableRun(""));
+      Paragraph firstPar = rangePars[0];
+      Paragraph lastPar = rangePars[^1];
 
-      //Merge inlines of last paragraph with first
-      if (rangePars.Count > 1)
+      //Add a blank run if all runs were deleted in one paragraph
+      if (rangePars.Count == 1 && firstPar.Inlines.Count == 0)
+         firstPar.Inlines.Add(new EditableRun(""));
+
+
+      //Merge inlines of last paragraph with first if present
+      if (rangePars.Count > 1 && Blocks.Contains(firstPar))
       {
-         Paragraph firstPar = rangePars[0];
-         Paragraph lastPar = rangePars[^1];
-         
          if (!(firstPar.IsTableCellBlock || lastPar.IsTableCellBlock))
          {
             List<IEditable> moveInlines = [.. lastPar.Inlines];
@@ -177,24 +179,32 @@ public partial class FlowDocument
          }
       }
 
-      //Special case where all content was deleted leaving one empty block
+      // re-add the first par if no blocks are left
+      if (Blocks.Count == 0) 
+         Blocks.Add(firstPar);
+
+      //Special case with one remaining block with no inlines
       if (Blocks.Count == 1 && Blocks[0] is Paragraph onlyPar && onlyPar.Inlines.Count == 0)
          onlyPar.Inlines.Add(new EditableRun(""));
 
-      if (Blocks.Count == 0)
-      {
-         Paragraph newPar = new(this) { Id = firstParId };
-         newPar.Inlines.Add(new EditableRun(""));
-         Blocks.Add(newPar);
-      }
 
       disableRunTextUndo = false;
 
-      
+      UpdateBlockAndInlineStarts(firstParIndex);
+
+      //if (firstParDeleted) // && adjustCursor)
+      //{ // fix caret position if 1st paragraph was deleted
+      //   Selection.Start = Math.Max(0, Selection.Start - 1);
+      //   Selection.CollapseToStart();
+      //}
+            
+      Selection.Start = Selection.Start;
+
       SelectionExtendMode = ExtendMode.ExtendModeNone;
 
       UpdateTextRanges(originalSelectionStart, -originalTRangeLength);
       UpdateSelection();
+
 
       _ = AsyncUpdateCaret(trange);
 
@@ -306,7 +316,7 @@ public partial class FlowDocument
          //   startP.RemoveEmptyInlines();
          
          TextRange deleteTextRange = new (this, Selection.Start, NextWordEndPoint);
-         DeleteRange(deleteTextRange, true);  // updates all text ranges and adds undo
+         DeleteRange(deleteTextRange, true, true);  // updates all text ranges and adds undo
                            
          UpdateBlockAndInlineStarts(AllParagraphs.IndexOf(startP));
       }

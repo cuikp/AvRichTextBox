@@ -85,6 +85,52 @@ public partial class RichTextBox
       IsHitTestVisible = false
    };
 
+     
 
+   internal readonly Avalonia.Controls.Shapes.Path SelectionPath;
+   private readonly PathGeometry _geometry = new() { Figures = [] };
+
+   private readonly PathFigure _pathFigure = new()
+   {
+      IsClosed = true,
+      IsFilled = true,
+      StartPoint = new Point(0, 0),
+      Segments = []
+   };
+
+   private readonly PolyLineSegment _polyLine = new()
+   {
+      Points = []
+   };
+
+
+   public void SetSelectionPoints(IReadOnlyList<Point> points)
+   {
+      if (points == null || points.Count == 0)
+      {
+         _geometry.Figures?.Clear();
+         return;
+      }
+
+      if (!_geometry.Figures.Contains(_pathFigure))
+         _geometry.Figures.Add(_pathFigure);
+
+      _pathFigure.StartPoint = points[0];
+
+      _polyLine.Points.Clear();
+      for (int i = 1; i < points.Count; i++)
+         _polyLine.Points.Add(points[i]);
+   }
+
+   internal void SetSelection(int start, int end)
+   {
+      for (int parno = 0; parno < FlowDoc.SelectionParagraphs.Count; parno++)
+      {
+         Paragraph p = FlowDoc.SelectionParagraphs[parno];
+         
+
+
+      }
+   }
 }
 

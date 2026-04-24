@@ -190,7 +190,7 @@ internal static partial class HtmlConversions
    {
       var parStyle = new StringBuilder();
 
-      if (p.LineSpacing > 0)
+      if (p.LineHeight > 0)
          parStyle.Append($"line-height:{p.LineHeight}px;");
 
       switch (p.TextAlignment)

@@ -60,7 +60,10 @@ public partial class RichTextBox
       if (IsReadOnly) return;
 
       if (FlowDoc.Selection.Length > 0)
+      {
          FlowDoc.DeleteSelection();
+      }
+         
       else
       {
          if (backspace)
@@ -73,6 +76,9 @@ public partial class RichTextBox
       }
 
       UpdateCurrentParagraphLayout();
+      
+      //_ = FlowDoc.AsyncUpdateCaret(FlowDoc.Selection);
+
    }
 
    

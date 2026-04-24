@@ -3,10 +3,8 @@ using Avalonia.Input.Platform;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using DynamicData;
-using RtfDomParserAv;
 using System.Text;
 using static AvRichTextBox.FlowDocument;
-using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;
 
@@ -75,16 +73,17 @@ public partial class RichTextBox
 
       //get paste location properties
       int originalSelectionStart = FlowDoc.Selection.Start;
+      int originalSelectionEnd = FlowDoc.Selection.End;
       TextRange insertRange = FlowDoc.Selection;
       List<Paragraph> originalRangeParagraphs = FlowDoc.GetOverlappingParagraphsInRange(insertRange).ConvertAll(op=>op.FullClone());
       int deleteRangeLength = insertRange.Length;
       Paragraph startPar = insertRange.StartParagraph;
-      Paragraph endPar = insertRange.EndParagraph;
       int insertParIndex = FlowDoc.AllParagraphs.IndexOf(startPar);
       bool firstParEmpty = startPar.Inlines[0] is EditableRun erun && erun.Text == "";
       int pastedTextLength = 0;
       List<int> addedBlockIds = [];
-
+      bool firstParWasDeleted = startPar.StartInDoc == originalSelectionStart && startPar.EndInDoc <= originalSelectionEnd && !firstParEmpty;
+      bool addUndo = true;
       bool contentPasted = false;
 
       FlowDoc.disableRunTextUndo = true;
@@ -92,68 +91,7 @@ public partial class RichTextBox
       //Get clipboard content
       if (await clipboard.TryGetValueAsync(richTextFormat) is byte[] rtfbytes)
       {
-         (int leftId, int rightId) edgeIds = FlowDoc.DeleteRange(insertRange, false);
-         int insertIdx = startPar.Inlines.IndexOf(startPar.Inlines.FirstOrDefault(il => il.Id == edgeIds.leftId)!) + 1;
-         List<IEditable> rightSplitRuns = endPar.Inlines.ToList()[insertIdx..];
-
-         int blockno = 0;
-         List<Block> rtfBlocks = GetRtfContent(rtfbytes);
-               
-         foreach (Block block in rtfBlocks)
-         {
-            if (block is Paragraph p)
-            {                  
-               Paragraph addPar = startPar; 
-
-               //Remove single empty run if present
-               if (addPar.Inlines.Count == 1 && addPar.Inlines[0] is EditableRun run && run.InlineText == "")
-               {
-                  addPar.Inlines.RemoveAt(0);
-                  insertIdx = 0;
-               }
-                        
-               bool paragraphCreated = false;
-
-               switch (blockno)
-               {
-                  case 0:
-                     // insert first paragraph into existing paragraph
-                     addPar.Inlines.AddOrInsertRange(p.Inlines, insertIdx);
-                     break;
-
-                  default:
-                     // create new paragraphs for pars 1 onward
-                     addPar = (Paragraph)block;
-                     pastedTextLength += 1;
-                     paragraphCreated = true;
-                     break;
-               }
-
-               pastedTextLength += p.TextLength;
-
-               if (paragraphCreated)
-               {
-                  if (blockno == rtfBlocks.Count - 1)
-                  {
-                     startPar.Inlines.RemoveMany(rightSplitRuns);
-                     addPar.Inlines.AddRange(rightSplitRuns);
-                  }
-
-                  FlowDoc.Blocks.Insert(insertParIndex + blockno, addPar);
-                  addedBlockIds.Add(addPar.Id);
-
-               }
-            }
-            else
-            { // non-Paragraph block always pastes as new block
-               FlowDoc.Blocks.Insert(insertParIndex + blockno, block);
-               addedBlockIds.Add(block.Id);
-               pastedTextLength += block.TextLength;
-            }
-
-            blockno++;
-         }
-
+         pastedTextLength = FlowDoc.InsertRTF(rtfbytes, startPar, insertRange, insertParIndex, addedBlockIds);
          contentPasted = true;
       }
 
@@ -174,8 +112,12 @@ public partial class RichTextBox
 
       else if (await clipboard.TryGetTextAsync() is string pasteText)
       {
-         FlowDoc.SetRangeToText(FlowDoc.Selection, pasteText);
+         FlowDoc.disableRunTextUndo = true;
+         pastedTextLength = pasteText.Length;
+         FlowDoc.Selection.Text = pasteText;
+         FlowDoc.disableRunTextUndo = false;
          contentPasted = true;
+         addUndo = true;
       }
 
       FlowDoc.disableRunTextUndo = false;
@@ -183,7 +125,8 @@ public partial class RichTextBox
       //Update based on pasted content
       if (contentPasted)
       {
-         FlowDoc.Undos.Add(new PasteUndo(originalRangeParagraphs, insertParIndex, FlowDoc, originalSelectionStart, deleteRangeLength - pastedTextLength, firstParEmpty, addedBlockIds));
+         if (addUndo)
+            FlowDoc.Undos.Add(new PasteUndo(originalRangeParagraphs, insertParIndex, FlowDoc, originalSelectionStart, deleteRangeLength - pastedTextLength, firstParEmpty, addedBlockIds, firstParWasDeleted));
 
          this.DocIC.UpdateLayout();
          FlowDoc.UpdateBlockAndInlineStarts(insertParIndex);
@@ -202,61 +145,6 @@ public partial class RichTextBox
 
 
    }
-
-   private List<Block> GetRtfContent(byte[] rtfbytes)
-   {
-      int textCount = 0;
-      List<Block> returnList = [];
-      
-      string rtfstring = Encoding.ASCII.GetString(rtfbytes!);
-      RTFDomDocument rtfdoc = new();
-      rtfdoc.LoadRTFText(rtfstring);
-
-      int domParCount = rtfdoc.Elements.OfType<RTFDomParagraph>().Count();
-      int parno = 0;
-
-      foreach (RTFDomElement rtfelm in rtfdoc.Elements)
-      {
-         switch (rtfelm)
-         {
-            case RTFDomParagraph rtfpar:
-
-               Paragraph newPar = new(FlowDoc);
-
-               switch (rtfpar.Format.Align)
-               {
-                  case RTFAlignment.Left: newPar.TextAlignment = TextAlignment.Left; break;
-                  case RTFAlignment.Center: newPar.TextAlignment = TextAlignment.Center; break;
-                  case RTFAlignment.Right: newPar.TextAlignment = TextAlignment.Right; break;
-                  case RTFAlignment.Justify: newPar.TextAlignment = TextAlignment.Justify; break;
-               }
-               newPar.LineHeight = TwipToPix(PixelsToPoints(rtfpar.Format.LineSpacing)) / 2;
-               newPar.FontFamily = new FontFamily(rtfpar.Format.FontName);
-               newPar.FontSize = rtfpar.Format.FontSize * 2D;
-               //newPar.Margin = new Thickness(rtfpar.Format.xxx);
-              
-               if (rtfpar.Elements.Count > 0)
-               {
-                  List<IEditable> addInlines = RtfConversions.GetRtfTextElementsAsInlines(rtfpar.Elements);
-                  textCount+= addInlines.Sum(nil => nil.InlineLength);
-                  newPar.Inlines.AddRange(addInlines); 
-               }
-               
-               returnList.Add(newPar);
-
-               parno++;
-
-               break;
-
-            case RTFDomTable table:
-
-               break;
-
-         }
-      }
-
-
-      return returnList;
-   }
-
+    
+  
 }

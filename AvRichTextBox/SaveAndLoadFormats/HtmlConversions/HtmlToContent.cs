@@ -411,7 +411,8 @@ internal static partial class HtmlConversions
                {
                   double lineHeight = Double.TryParse(kvp.Value.Replace("px", ""), out var px) ? px : 0;
                   double maxInlineHeight = par.Inlines.Max(ilh => ilh.InlineHeight);
-                  par.LineSpacing = LineHeightToLineSpacing(lineHeight, maxInlineHeight);
+                  //par.LineHeight = LineHeightToLineSpacing(lineHeight, maxInlineHeight);
+                  par.LineHeight = lineHeight;
                }
                //par.LineHeight = Double.TryParse(kvp.Value.Replace("px", ""), out var px) ? px : 0;
                break;
@@ -535,11 +536,10 @@ internal static partial class HtmlConversions
    }
 
 
-   private static double LineHeightToLineSpacing (double lineHeight, double maxFontSize)
-   {
-      return lineHeight - maxFontSize * 1.25;
-      
-   }
+   //private static double LineHeightToLineSpacing (double lineHeight, double maxFontSize)
+   //{
+   //   return lineHeight - maxFontSize * 1.25;
+   //}
 
 
    private static (Thickness? thickness, ISolidColorBrush? brush)? ParseBorderShorthand(string value)

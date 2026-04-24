@@ -45,8 +45,34 @@ public partial class RichTextBox : UserControl
 
       FlowDocSV.SizeChanged += FlowDocSV_SizeChanged;
 
+      ////Selection path
+      //_pathFigure.Segments.Add(_polyLine);
+      //_geometry.Figures.Add(_pathFigure);
+      //SelectionPath = new()
+      //{
+      //   Stroke = Brushes.Red,
+      //   StrokeThickness = 1,
+      //   Fill = Brushes.DeepSkyBlue,
+      //   Opacity = 0.2,
+      //   Data = _geometry,
+      //   IsHitTestVisible = false
+      //};
+
+
       AdornerLayer.SetAdorner(DocIC, _CaretRect);
+      //AdornerLayer.SetAdorner(DocIC, SelectionPath);
       AdornerLayer.SetIsClipEnabled(_CaretRect, false);
+
+
+      //SetSelectionPoints([
+      //   new Point(15, 30), 
+      //   new Point(200, 90),
+      //   new Point(200, 120),
+      //   new Point(15, 120),
+      //   //new Point(15, 120),
+
+      // ]);
+
 
       InitializeBlinkAnimation();
 
@@ -77,7 +103,7 @@ public partial class RichTextBox : UserControl
 
       ////FOR DEBUGGING
       //FlowDoc.CreateTestDocument();
-      
+
 
 #if DEBUG
       if (ShowDebuggerPanelInDebugMode)
@@ -90,7 +116,6 @@ public partial class RichTextBox : UserControl
          debuggerPanel.Bind(Visual.IsVisibleProperty, new Binding("RunDebuggerVisible"));
          debuggerPanel.SelEndTB.Bind(TextBlock.TextProperty, new Binding("FlowDoc.Selection.End"){ StringFormat = "DocSelEnd={0}" }); 
          debuggerPanel.SelStartTB.Bind(TextBlock.TextProperty, new Binding("FlowDoc.Selection.Start") { StringFormat = "DocSelStart={0}" });
-
          debuggerPanel.ParagraphsLB.ItemsSource = FlowDoc.SelectionParagraphs;
          RtbVm.RunDebuggerVisible = ShowDebuggerPanelInDebugMode;
          this.Width += (RtbVm.RunDebuggerVisible ? 400 : 0);

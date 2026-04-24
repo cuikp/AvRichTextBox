@@ -45,7 +45,7 @@ internal static partial class RtfConversions
 
    }
 
-   private static Table GetTableFromRtfDom(RTFDomTable rtftable, FlowDocument fdoc, RTFColorTable cTable)
+   internal static Table GetTableFromRtfDom(RTFDomTable rtftable, FlowDocument fdoc, RTFColorTable cTable)
    {
       Table newtable = new(fdoc);
       for (int colno = 0; colno < rtftable.Columns.Count; colno++)
@@ -213,7 +213,7 @@ internal static partial class RtfConversions
       return newtable;
    }
 
-   private static Paragraph GetParagraphFromRtfDom(RTFDomParagraph rtfpar, FlowDocument fdoc)
+   internal static Paragraph GetParagraphFromRtfDom(RTFDomParagraph rtfpar, FlowDocument fdoc)
    {
       Paragraph newpar = new(fdoc);
 
@@ -227,8 +227,7 @@ internal static partial class RtfConversions
 
       newpar.Background = new SolidColorBrush(rtfpar.Format.BackColor);
       newpar.BorderBrush = new SolidColorBrush(rtfpar.Format.BorderColor);
-      newpar.BorderThickness = new Avalonia.Thickness(TwipToPix(rtfpar.Format.BorderWidth));
-
+      newpar.BorderThickness = new Thickness(TwipToPix(rtfpar.Format.BorderWidth));
       newpar.FontFamily = new FontFamily(rtfpar.Format.FontName);
       //newpar.Margin = new Thickness(rtfpar.Format.xxx);
       
@@ -236,24 +235,15 @@ internal static partial class RtfConversions
 
       newpar.Inlines.AddRange(addInlines);
 
-
       if (newpar.Inlines.Count == 0) newpar.Inlines.Add(new EditableRun(""));
 
-      //if (newpar.Inlines.Count > 0)
-      //{
       //double rtfLineHeight = TwipToPix(rtfpar.Format.LineSpacing);
       double rtfLineHeightUnits = (double)rtfpar.Format.LineSpacing / 240;
 
       //Debug.WriteLine("rtfparlinespacing = " + rtfpar.Format.LineSpacing);
       double ilineH = newpar.Inlines.First().InlineHeight;
-      //double spacing = rtfLineHeight - ilineH;
-
       double lheight = ilineH * rtfLineHeightUnits * 1.25;
       newpar.LineHeight = lheight;
-      //newpar.LineSpacing = spacing;
-      //}
-      // else
-      //    newpar.LineHeight = TwipToPix(rtfpar.Format.LineSpacing);
 
       return newpar;
    }

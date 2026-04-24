@@ -20,12 +20,12 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>ver 1.7.5: Removed default collection on BlocksProperty of FlowDocument, which was causing multiple RTBs to point to the same collection.  Blocks collection created in FlowDocument ctor now.</PackageReleaseNotes>
+	  <PackageReleaseNotes>ver 1.7.7: Caret size and position fixed for most cases</PackageReleaseNotes>
       
      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 	  <PackageOutputPath>D:\PROG\LocalNuget\AvRichTextBox</PackageOutputPath>
 	  
-	  <Version>1.7.5</Version>
+	  <Version>1.7.7</Version>
 	  <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
 	  
@@ -83,9 +83,6 @@
 
 	
 	<ItemGroup>
-    <Compile Update="FlowDocument\FlowDocument_RangeXaml.cs">
-      <DependentUpon>%(Filename)</DependentUpon>
-    </Compile>
     <Compile Update="RichTextBox\RichTextBoxInputClient.cs">
       <SubType>Code</SubType>
       <DependentUpon>%(Filename)</DependentUpon>

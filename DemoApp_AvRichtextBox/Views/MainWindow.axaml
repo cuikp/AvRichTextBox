@@ -101,9 +101,9 @@
 								<DockPanel DockPanel.Dock="Top">
 									
 									<DockPanel DockPanel.Dock="Left" LastChildFill="False" >
-										<TextBlock Text="Line spacing"  TextWrapping="Wrap" DockPanel.Dock="Top"/>
-										<cc:NumericSpinner x:Name="LineSpacingNS" Width="42" Margin="3" MinValue="0" MaxValue="50" Value="0" Height="30" DockPanel.Dock="Top" FontSize="16"
-														 UserValueChanged="LineSpacingNS_UserValueChanged" />
+										<TextBlock Text="Line height"  TextWrapping="Wrap" DockPanel.Dock="Top"/>
+										<cc:NumericSpinner x:Name="LineHeightNS" Width="65" Margin="3" MinValue="0" MaxValue="400" Value="0" Height="30" DockPanel.Dock="Top" FontSize="16"
+														 UserValueChanged="LineHeightNS_UserValueChanged" />
 									</DockPanel>
 
 									<DockPanel Margin="2">
@@ -187,7 +187,7 @@
 
 		<Grid >
 	
-		<avrtb:RichTextBox Grid.Row="0" x:Name="MainRTB" IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="True"  DisableUserCopy="False" SelectionBrush="LightBlue" />
+		<avrtb:RichTextBox Grid.Row="0" x:Name="MainRTB" Zoom="1" IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="True"  DisableUserCopy="False" SelectionBrush="LightBlue" />
 
 			<!-- Test a second RTB in tandem-->
 			<!--<avrtb:RichTextBox Grid.Row="1" x:Name="MainRTB2"  IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="True"  DisableUserCopy="False" SelectionBrush="LightGreen" />-->

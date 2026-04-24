@@ -132,7 +132,7 @@ public partial class XamlConversions
    }
 
 
-   private static Table GetTable(XmlNode tableNode, FlowDocument fdoc)
+   internal static Table GetTable(XmlNode tableNode, FlowDocument fdoc)
    {
       Table newTable = new(fdoc);
 
@@ -281,7 +281,7 @@ public partial class XamlConversions
    }
 
 
-   private static Paragraph GetParagraph (XmlNode parNode, FlowDocument fdoc)
+   internal static Paragraph GetParagraph (XmlNode parNode, FlowDocument fdoc)
    {
       Paragraph newPar = new(fdoc);
       //newPar.LineHeight = ;
@@ -352,14 +352,14 @@ public partial class XamlConversions
          {
             case "Run":
                EditableRun erun = new(inlineNode.InnerText);
-               //Debug.WriteLine("inlineNode= " + inlineNode.Attributes.Count + " /// " + inlineNode.InnerText);
+
                foreach (XmlAttribute att in inlineNode.Attributes!)
                {
                   switch (att.Name)
                   {
                      case "FontFamily":
-                        //Debug.WriteLine("fontfamily_run = " + erun.FontFamily.ToString());
-                        switch (erun.FontFamily.Name)
+                        
+                        switch (att.Value)
                         {
                            case "$Default":
                               //do nothing - inherit paragraph font

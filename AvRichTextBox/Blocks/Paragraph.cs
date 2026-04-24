@@ -9,13 +9,11 @@ namespace AvRichTextBox;
 
 public class Paragraph : Block
 {
+   public string ParToolTip => $"Background: {Background}\nLineHeight: {LineHeight}";
 
-   public string ParToolTip => $"Background: {Background}\nLineSpacing: {LineSpacing}\nLineHeight: {LineHeight}";
-
-
-#if DEBUG
-   //public string ParToolTip => $"Background: {Background}\nLineSpacing: {LineSpacing}\nLineHeight: {LineHeight}";
-#endif
+//#if DEBUG
+//   public string ParToolTip => $"Background: {Background}\nLineHeight: {LineHeight}";
+//#endif
 
    public ObservableCollection<IEditable> Inlines { get; set; } = [];
 
@@ -48,8 +46,20 @@ public class Paragraph : Block
    public ISolidColorBrush Background { get; set { field = value; NotifyPropertyChanged(nameof(Background)); } } = new SolidColorBrush(Colors.Transparent);
    public FontFamily FontFamily { get; set { field = value; NotifyPropertyChanged(nameof(FontFamily)); } } = new("Meiryo");
    public double FontSize { get; set { field = value; NotifyPropertyChanged(nameof(FontSize)); } } = 16D;
-   public double LineHeight { get; set { field = value; NotifyPropertyChanged(nameof(LineHeight)); } } = 18.666D;  // fontsize normally
-   public double LineSpacing { get; set { field = value; NotifyPropertyChanged(nameof(LineSpacing)); } } = 0D;
+   public double LineHeight { get; set { field = value; NotifyPropertyChanged(nameof(LineHeight)); } } = 0;  // based on fontsize 
+   
+   //public double LineSpacing 
+   //{ 
+   //   get; 
+   //   set
+   //   { 
+   //      field = value; NotifyPropertyChanged(nameof(LineSpacing));
+   //      CallRequestInlinesUpdate();
+   //      CallRequestTextLayoutInfoStart();
+   //      CallRequestInvalidateVisual();
+   //   } 
+   //} = 0D;
+
    public FontWeight FontWeight { get; set { field = value; NotifyPropertyChanged(nameof(FontWeight)); } } = FontWeight.Normal;
    public FontStyle FontStyle{ get; set { field = value; NotifyPropertyChanged(nameof(FontStyle)); } } = FontStyle.Normal;
    public TextAlignment TextAlignment { get; set { field = value; NotifyPropertyChanged(nameof(TextAlignment)); } } = TextAlignment.Left;
@@ -125,7 +135,7 @@ public class Paragraph : Block
       return new Paragraph(MyFlowDoc) 
       { 
          TextAlignment = this.TextAlignment,
-         LineSpacing = this.LineSpacing,
+         //LineSpacing = this.LineSpacing,
          BorderBrush = this.BorderBrush,
          BorderThickness = this.BorderThickness,
          LineHeight = this.LineHeight,
@@ -145,7 +155,7 @@ public class Paragraph : Block
          Id = this.Id,
          StartInDoc = this.StartInDoc,
          TextAlignment = this.TextAlignment,
-         LineSpacing = this.LineSpacing,
+         //LineSpacing = this.LineSpacing,
          BorderBrush = this.BorderBrush,
          BorderThickness = this.BorderThickness,
          LineHeight = this.LineHeight,

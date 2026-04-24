@@ -73,8 +73,11 @@ public partial class FlowDocument
 
             SelectionExtendMode = ExtendMode.ExtendModeRight;
 
-            if (Selection.EndParagraph == allPars[^1] && Selection.End == Text.Length)
+            if (Selection.EndParagraph == allPars[^1] && Selection.StartParagraph.IsEndAtLastLine)
+            {
+               Selection.End = Selection.EndParagraph.StartInDoc + Selection.EndParagraph.TextLength;
                return;  // last line of document
+            }
             
             Paragraph origEndPar = Selection.EndParagraph;
             
@@ -151,7 +154,11 @@ public partial class FlowDocument
          case ExtendMode.ExtendModeLeft:
 
             if (Selection.StartParagraph == allPars[0] && Selection.StartParagraph.IsStartAtFirstLine)
+            {
+               Selection.Start = 0;
                return;  // first line of document
+            }
+               
 
             Paragraph origStartPar = Selection.StartParagraph;
             if (Selection.StartParagraph.IsStartAtFirstLine)

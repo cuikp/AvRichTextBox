@@ -4,11 +4,13 @@
              xmlns:dataannotations="using:System.ComponentModel.DataAnnotations"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:system="using:System"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" Background="WhiteSmoke"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" Background="White"
 			 xmlns:local="using:AvRichTextBox" 
 			 x:Class="AvRichTextBox.RichTextBox" 
 			 PointerReleased="RichTextBox_PointerReleased" PointerExited="RichTextBox_PointerExited" KeyDown="RichTextBox_KeyDown"  Focusable="True"
-			 BorderBrush="Black" BorderThickness="1" Padding="2" >
+			 BorderBrush="Black" BorderThickness="1" Padding="2"   >
+
+
 
 	<UserControl.Styles>
 
@@ -32,8 +34,8 @@
 		 <Style Selector="local|EditableParagraph.paragraphBindings" x:DataType="local:Paragraph">
 			<Setter Property="TextWrapping" Value="Wrap"/>
 			<Setter Property="Margin" Value="5"/>
-			 <!--LineHeight="{Binding LineHeight}"-->
-			<Setter Property="LineSpacing" Value="{Binding LineSpacing}"/>
+			<Setter Property="LineHeight" Value="{Binding LineHeight}"/>
+			<!--<Setter Property="LineSpacing" Value="{Binding LineSpacing}"/>-->
 			<Setter Property="FontFamily" Value="{Binding FontFamily}"/>
 			<Setter Property="FontWeight" Value="{Binding FontWeight}"/>
 			<Setter Property="FontSize" Value="{Binding FontSize}"/>
@@ -50,19 +52,27 @@
 
 
 	<DockPanel x:Name="MainDP" x:DataType="local:RichTextBoxViewModel" MinWidth="{Binding MinWidth}">  <!--this binds to viewmodel-->
+	
 
+	<LayoutTransformControl >
+		<LayoutTransformControl.LayoutTransform>
+			<ScaleTransform x:DataType="local:RichTextBox" ScaleX="{Binding $parent[local:RichTextBox].Zoom, Mode=OneWay}" ScaleY="{Binding $parent[local:RichTextBox].Zoom, Mode=OneWay}" />
+		</LayoutTransformControl.LayoutTransform>
 
+	
 		<ScrollViewer x:Name="FlowDocSV"  HorizontalScrollBarVisibility="Disabled" Margin="0" Padding="0" Offset="{Binding RTBScrollOffset, Mode=OneWay}"  ScrollChanged="ScrollViewer_ScrollChanged"
-					  PointerPressed="FlowDocSV_PointerPressed" PointerMoved="FlowDocSV_PointerMoved" PointerReleased="FlowDocSV_PointerReleased" >
+					  PointerPressed="FlowDocSV_PointerPressed" PointerMoved="FlowDocSV_PointerMoved" PointerReleased="FlowDocSV_PointerReleased"  >
+							
 
 			<Grid VerticalAlignment="Top">
 
 				<!-- The FlowDocument itself -->
 				<ItemsControl x:Name="DocIC" DataContext="{Binding FlowDoc}" VerticalAlignment="Top" ItemsSource="{Binding Blocks}" Margin="0" Padding="{Binding PagePadding}" >
 
+
 					<ItemsControl.ItemsPanel>
 						<ItemsPanelTemplate>
-							<StackPanel Orientation="Vertical" />
+							<StackPanel Orientation="Vertical"  />
 						</ItemsPanelTemplate>
 					</ItemsControl.ItemsPanel>
 
@@ -148,7 +158,10 @@
 			</Grid>
 		</ScrollViewer>
 
+		</LayoutTransformControl>
+
 	</DockPanel>
+
 
 
 </UserControl>

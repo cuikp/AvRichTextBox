@@ -74,7 +74,7 @@ internal class DeleteRunUndo(int parId, EditableRun removedRunClone, int deleted
 }
 
 
-internal class PasteUndo(List<Paragraph> keptPars, int parIndex, FlowDocument flowDoc, int origSelectionStart, int undoEditOffset, bool firstParEmpty, List<int> addedBlockIds) : IUndo
+internal class PasteUndo(List<Paragraph> keptPars, int parIndex, FlowDocument flowDoc, int origSelectionStart, int undoEditOffset, bool firstParEmpty, List<int> addedBlockIds, bool firstParWasDeleted) : IUndo
 {
    public int UndoEditOffset => undoEditOffset;
    public bool UpdateTextRanges => true;
@@ -85,8 +85,9 @@ internal class PasteUndo(List<Paragraph> keptPars, int parIndex, FlowDocument fl
       {
          flowDoc.disableRunTextUndo = true;
 
-         flowDoc.RestoreDeletedBlocks(keptPars, parIndex);
-         
+         //flowDoc.RestoreDeletedBlocks(keptPars, parIndex, firstParWasDeleted);
+         flowDoc.RestoreDeletedBlocks(keptPars, parIndex, false);
+
          foreach (int bid in addedBlockIds)
             if (flowDoc.Blocks.FirstOrDefault(b => b.Id == bid) is Block foundBlock)
                flowDoc.Blocks.Remove(foundBlock);
@@ -103,6 +104,7 @@ internal class PasteUndo(List<Paragraph> keptPars, int parIndex, FlowDocument fl
          flowDoc.Selection.Start = origSelectionStart;
          flowDoc.Selection.End = origSelectionStart;
          flowDoc.UpdateSelection();
+         
          flowDoc.disableRunTextUndo = false;
                   
 
@@ -111,7 +113,7 @@ internal class PasteUndo(List<Paragraph> keptPars, int parIndex, FlowDocument fl
    }
 }
 
-internal class DeleteRangeUndo (List<Paragraph> keptParClones, int startParId, FlowDocument flowDoc, int origSelectionStart, int undoEditOffset) : IUndo
+internal class DeleteRangeUndo (List<Paragraph> keptParClones, int startParIndex, FlowDocument flowDoc, int origSelectionStart, int undoEditOffset, bool firstParWasDeleted) : IUndo
 {  //parInlines are cloned inlines
 
    public int UndoEditOffset => undoEditOffset;
@@ -120,24 +122,21 @@ internal class DeleteRangeUndo (List<Paragraph> keptParClones, int startParId, F
    public void PerformUndo()
    {
       try
-      {         
-         if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == startParId) is not Paragraph startPar) return;
-         int parIndex = flowDoc.AllParagraphs.IndexOf(startPar);
-
+      {
          flowDoc.disableRunTextUndo = true;
 
-         flowDoc.RestoreDeletedBlocks(keptParClones, parIndex);  ///$$$$$$$$
+         flowDoc.RestoreDeletedBlocks(keptParClones, startParIndex, firstParWasDeleted);
 
          flowDoc.Selection.Start = Math.Max (0, origSelectionStart -1);  //necessary to reset caret
          flowDoc.Selection.CollapseToStart();
-
          flowDoc.Selection.Start = origSelectionStart;
          flowDoc.Selection.End = origSelectionStart;
          flowDoc.UpdateSelection();
+         
          flowDoc.disableRunTextUndo = false;
 
       }
-      catch { Debug.WriteLine("Failed DeleteRangeUndo at Par: " + startParId); }
+      catch { Debug.WriteLine("Failed DeleteRangeUndo at Par index: " + startParIndex); }
    }
 
 }

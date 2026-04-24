@@ -40,11 +40,16 @@ public partial class RichTextBox : UserControl
       bool offsetTopFromHeight = false;
       BaselineAlignment balign = BaselineAlignment.Baseline;
 
+      bool endOfPar = thisPar.EndInDoc - FlowDoc.Selection.Start == 1 && !(FlowDoc.Selection.Start == thisPar.StartInDoc);
+
+      if (endOfPar)
+         IdxInThisLine -= 1;
+
       if (thisTextLine.GetTextBounds(IdxInThisLine, 1).FirstOrDefault() is TextBounds tbounds && tbounds.TextRunBounds.Count > 0 && tbounds.TextRunBounds[0].TextRun is ShapedTextRun strun)
       {
-         //Trace.WriteLine("idxthisline = " + IdxInThisLine + ", text=" + strun.Text + ", baselineAign = " + strun.Properties.BaselineAlignment);
          glyphHeight = strun.GlyphRun.Bounds.Height - 2;
-         offsetTopFromHeight = (strun.Properties.BaselineAlignment != BaselineAlignment.Superscript);
+         //Trace.WriteLine("strun.Properties.BaselineAlignment = " + strun.Properties.BaselineAlignment);
+         offsetTopFromHeight = (strun.Properties.BaselineAlignment == BaselineAlignment.TextBottom);
          balign = strun.Properties.BaselineAlignment;
       }
 

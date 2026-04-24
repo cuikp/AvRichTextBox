@@ -5,6 +5,13 @@ namespace AvRichTextBox;
 
 public partial class RichTextBox
 {
+   public static readonly StyledProperty<double> ZoomProperty = AvaloniaProperty.Register<RichTextBox, double>(nameof(Zoom), defaultValue: 1);
+   public double Zoom
+   {
+      get => GetValue(ZoomProperty);
+      set => SetValue(ZoomProperty, value);
+   }
+      
    public static readonly StyledProperty<FlowDocument> FlowDocumentProperty = AvaloniaProperty.Register<RichTextBox, FlowDocument>(nameof(FlowDocument), defaultValue: null!, defaultBindingMode: BindingMode.TwoWay);
    public FlowDocument FlowDocument
    {

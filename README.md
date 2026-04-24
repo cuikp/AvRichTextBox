@@ -103,7 +103,6 @@ Content can be directly added in Xaml as well:
 
 ## Various future to-do improvements include:
 * Word/Html/RTF export and import can be fleshed out (to support more attributes)
-* Allow Save/Load `TextRange` to Rtf stream
 * Make Undo more solid, allow the Undo limit to be set, create a Redo stack
 
 `RtfDomParser` used for reading/parsing of rtf files can be found at https://github.com/SourceCodeBackup/RtfDomParser, but for this project I had to manually modify it to use `Avalonia.Media` instead of `System.Drawing`.  That modified library is included in this project as `RtfDomParserAv.dll`.  Generation of .rtf for saving is my own concoction with the bare minimum necessary to produce a readable .rtf file/dataobject.
@@ -192,3 +191,14 @@ Made RtfDomParserAv parse numbered lists (as consecutive numbers)
 **[ver 1.7.5] 2026/04/21**: 
 External images can now be pasted into RTB.
 Removed setting default collection on BlocksProperty of FlowDocument, which was causing multiple RTBs to point to the same collection.  Blocks collection is now created in FlowDocument ctor.
+
+**[ver 1.7.6] 2026/04/24**: 
+Fixed various pasting errors
+Added TextRange.Load()/.Save() (to Xaml, Rtf, Text)
+RichTextBox now has a Zoom (double) property 
+Fixed LoadXaml was not parsing FontFamily for EditableRuns
+Changed Paragraph LineHeight default from 18.666 to 0 (height based on fontsize)
+
+**[ver 1.7.7] 2026/04/24**: 
+Caret size and position fixed for most cases
+

@@ -4,6 +4,39 @@ namespace AvRichTextBox;
 
 public partial class FlowDocument
 {
+   internal int InsertRTF(byte[] rtfbytes, Paragraph startPar, TextRange insertRange, int insertParIndex, List<int> addedBlockIds)
+   {
+      (int leftId, int rightId) edgeIds = DeleteRange(insertRange, false, false);
+
+      IEditable leftInline = startPar.Inlines.FirstOrDefault(il => il.Id == edgeIds.leftId)!;
+      int insertIdx = (insertRange.Start == startPar.StartInDoc) ? 0 : startPar.Inlines.IndexOf(leftInline) + 1;
+      //Debug.WriteLine("insertidx = " + insertIdx + "\nleftinline = " + startPar.Inlines.FirstOrDefault(il => il.Id == edgeIds.leftId)!.InlineText);
+
+      List<IEditable> rightSplitRuns = startPar.Inlines.ToList()[insertIdx..];
+
+      List<Block> rtfBlocks = GetRtfContent(rtfbytes);
+
+      return ProcessBlocks(rtfBlocks, startPar, insertIdx, insertParIndex, addedBlockIds, rightSplitRuns);
+
+   }
+
+   //internal int InsertRTF(byte[] rtfbytes, Paragraph startPar, TextRange insertRange, int insertParIndex, List<int> addedBlockIds)
+   //{
+   //   (int leftId, int rightId) edgeIds = DeleteRange(insertRange, false, false);
+   //   int insertIdx = 0;
+   //   if (startPar.Inlines.FirstOrDefault(il => il.Id == edgeIds.leftId) is IEditable leftInline)
+   //   {
+   //      insertIdx = startPar.Inlines.IndexOf(leftInline) + 1;
+   //      List<IEditable> rightSplitRuns = startPar.Inlines.ToList()[insertIdx..];
+   //      List<Block> rtfBlocks = GetRtfContent(rtfbytes);
+
+   //      return ProcessBlocks(rtfBlocks, startPar, insertIdx, insertParIndex, addedBlockIds, rightSplitRuns);
+   //   }
+   //   else 
+   //      return 0;
+   //}
+
+
    internal void InsertText(string? insertText)
    {
       if (Selection.GetStartInline() is not IEditable startInline || startInline.GetType() == typeof(EditableInlineUIContainer)) return;
@@ -12,7 +45,7 @@ public partial class FlowDocument
       {
          if (Selection.Length > 0)
          {
-            DeleteRange(Selection, true);
+            DeleteRange(Selection, true, false);
             Selection.CollapseToStart();
             SelectionExtendMode = ExtendMode.ExtendModeNone;
             startInline = Selection.GetStartInline() ?? startInline;
@@ -118,7 +151,7 @@ public partial class FlowDocument
          selectionLength = Selection.Length;
          if (Selection.Length > 0)
          {
-            DeleteRange(Selection, false);
+            DeleteRange(Selection, false, false);
             Selection.CollapseToStart();
             SelectionExtendMode = ExtendMode.ExtendModeNone;
          }

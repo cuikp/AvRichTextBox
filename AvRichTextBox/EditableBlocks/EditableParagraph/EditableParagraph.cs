@@ -29,6 +29,9 @@ internal partial class EditableParagraph : SelectableTextBlock
       FontFeatures = [ new FontFeature { Tag = "liga", Value = 0 } ]; // fix wrong hit testing with some font/letter combinations
 
       //this.KeyDown += EditableParagraph_KeyDown;
+
+      LineSpacing = 0;
+
    }
 
    private void EditableParagraph_Loaded(object? sender, RoutedEventArgs e)
@@ -71,14 +74,14 @@ internal partial class EditableParagraph : SelectableTextBlock
             //   break;
                     
             case "LineSpacing":
-               this.UpdateLayout();
+               //this.UpdateLayout();
 
-               if (TextLayout != null && TextLayout.TextLines.Count > 0)
-               {
-                  double maxLineHeight = Math.Max(TextLayout.TextLines[0].Height, TextLayout.TextLines[^1].Height);
-                  ThisPar.LineHeight = maxLineHeight;
-               }
-               //Debug.WriteLine("\nline spacing changed: LINESpacing = " + this.LineSpacing);
+               //if (TextLayout != null && TextLayout.TextLines.Count > 0)
+               //{
+               //   double maxLineHeight = Math.Max(TextLayout.TextLines[0].Height, TextLayout.TextLines[^1].Height);
+               //   ThisPar.LineHeight = maxLineHeight;
+               //}
+               ////Debug.WriteLine("\nline spacing changed: LINESpacing = " + this.LineSpacing);
 
                break;
 
