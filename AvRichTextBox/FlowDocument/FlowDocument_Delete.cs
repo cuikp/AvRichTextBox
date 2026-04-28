@@ -55,12 +55,19 @@ public partial class FlowDocument
             {  //Delete linebreak
                IEditable? lbnext = GetNextInline(lbreak);
                startP.Inlines.Remove(lbreak);
+               int emptyRunId = -1;
                if (lbnext != null && lbnext.IsEmpty)
+               {
                   startP.Inlines.Remove(lbnext);
+                  emptyRunId = lbnext.Id;
+               }
                else if (startInline.IsEmpty)
+               {
                   startP.Inlines.Remove(startInline);
+                  emptyRunId = startInline.Id;
+               }
 
-               Undos.Add(new DeleteLineBreakUndo(startP.Id, lbreak.Id, this, originalSelectionStart));
+               Undos.Add(new DeleteLineBreakUndo(startP.Id, lbreak.Id, emptyRunId, this, originalSelectionStart));
 
             }
             else
@@ -127,7 +134,8 @@ public partial class FlowDocument
       bool firstParDeleted = paragraphsFullyInRange.Count > 0 && paragraphsFullyInRange.First().StartInDoc == originalSelectionStart;
 
       IEditable lastInline = rangePars[0].Inlines.Last();
-      if (paragraphsFullyInRange.Count == 1 && rangePars[0].Inlines.Count == 1 && GetCharPosInInline(lastInline, Selection.Start) ==  lastInline.InlineLength) 
+      
+      if (rangePars.Count == 1 && rangePars[0].Inlines.Count == 1 && GetCharPosInInline(lastInline, Selection.Start) ==  lastInline.InlineLength) 
          return (lastInline.Id, -1);      
 
       if (addUndo) 

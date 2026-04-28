@@ -50,7 +50,7 @@ internal static partial class WordConversions
                         {
                            case "left": { newTable.TableAlignment = HorizontalAlignment.Left; break; }
                            case "right": { newTable.TableAlignment = HorizontalAlignment.Right; break; }
-                           case "center": { newTable.TableAlignment = HorizontalAlignment.Center; Debug.WriteLine("center"); break; }
+                           case "center": { newTable.TableAlignment = HorizontalAlignment.Center; break; }
                         }
                      break;
                   }

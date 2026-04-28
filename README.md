@@ -152,7 +152,7 @@ Includes changes such as fix to mouse selection (wasn't working in Release mode)
 Multiple/overlapping text formatting and undos now work better being based on `IEditable` Ids rather than using their in-paragraph indexes. Also `Paragraph` Ids instead of indexes.  Fixed erroneous deletion of required empty inline before `EditableLineBreak`.  `Paragraph` text ends with "\r\n" as is proper (rather than "\r").
 
 **[ver 1.4.6] 2026/01/30**
-Further Undo improvements
+Further `Undo` improvements
 
 **[ver 1.4.7] 2026/01/30**
 No `DebugPanel` created at all (not just hidden) in Release mode.  Should have been this way from the start...
@@ -165,40 +165,43 @@ Can set `SelectionBrush` globally for AvRichTextBox
 
 **[ver.1.6.2] 2026/03/01**
 **[ver.1.6.3]**
-Added preliminary `Table` support.  `Table` can be added as a `Block` in the `FlowDocument`.  (Some bugs remain to be fixed.)
+Added preliminary `Table` support.  `Table` can be added as a `Block` in the `FlowDocument`.  (Some bugs remain to be fixed: for example, copying/pasting of tables not supported yet.)
 In addition, `BaselineAlignment.Superscript`/`.Subscript` runs now appear properly as such (raised/lowered text).  (Modification was necessary because Avalonia's `SelectableTextBlock` currently doesn't display them properly).  
 
 **[ver 1.6.4] 2026/03/22**:
 updated to Avalonia 11.3.12
 
 **[ver 1.6.5] 2026/03/22**:
-fixed possible out of bounds error TextRunBounds in _SelectionRect.cs
+fixed possible out of bounds error `TextRunBounds` in _SelectionRect.cs
 
 **[ver 1.6.6] 2026/03/22**:
-fixed GetVisualDescendants() error in Debug mode
+fixed `GetVisualDescendants()` error in Debug mode
 
 **[ver 1.7.1] 2026/04/17**:
 Updated to Avalonia 12
 
 **[ver 1.7.3] 2026/04/18**: 
 Added end byte "\0" to clipboard rtfstring for some apps that need it.
-Fixed: Deleting all RTB content as a Range (i.e. selecting all (Ctrl-A) + Delete) prevented input or crashed.
+Fixed: Deleting all RTB content as a `Range` (i.e. selecting all (Ctrl-A) + Delete) prevented input or crashed.
 Fixed: Errors with pasting of multiple paragraphs
 
 **[ver 1.7.4] 2026/04/20**: 
-Made RtfDomParserAv parse numbered lists (as consecutive numbers)
+Made `RtfDomParserAv` parse numbered lists (as consecutive numbers)
 
 **[ver 1.7.5] 2026/04/21**: 
 External images can now be pasted into RTB.
-Removed setting default collection on BlocksProperty of FlowDocument, which was causing multiple RTBs to point to the same collection.  Blocks collection is now created in FlowDocument ctor.
+Removed setting default collection on `BlocksProperty` of `FlowDocument`, which was causing multiple RTBs to point to the same collection.  `Blocks` collection is now created in `FlowDocument` ctor.
 
 **[ver 1.7.6] 2026/04/24**: 
 Fixed various pasting errors
-Added TextRange.Load()/.Save() (to Xaml, Rtf, Text)
-RichTextBox now has a Zoom (double) property 
-Fixed LoadXaml was not parsing FontFamily for EditableRuns
-Changed Paragraph LineHeight default from 18.666 to 0 (height based on fontsize)
+Added `TextRange.Load()`/`.Save()` (to and from Xaml, Rtf, Text)
+`RichTextBox` now has a `Zoom` (double) property. 
+Fixed `LoadXaml` was not parsing `FontFamily` for `EditableRun`s
+Changed default for `LineHeight` of `Paragraph` from 18.666 to 0 (height based on fontsize)
 
-**[ver 1.7.7] 2026/04/24**: 
-Caret size and position fixed for most cases
+**[ver 1.8.0] 2026/04/29**: 
+Completely revamped the visual method for displaying text selection (independent highlighting across the RTB, which no longer depends on each `SelectableTextBlock`).
+`EditableParagraph` therefore changed to inherit from the more lightweight `TextBlock` instead of `SelectableTextBlock`, since the selection function is no longer needed.
+This new selection method can now properly highlight linebreaks and empty paragraphs as well.
+Caret size and position also fixed for most cases.
 

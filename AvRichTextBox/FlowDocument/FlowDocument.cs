@@ -12,7 +12,7 @@ public partial class FlowDocument : AvaloniaObject
    internal event ScrollInDirection_Handler? ScrollInDirection;
 
    public delegate void SelectionChanged_Handler(TextRange selection);
-   public event SelectionChanged_Handler? Selection_Changed;
+   public event SelectionChanged_Handler? SelectionChanged;
 
    public delegate void UpdateRTBCaret_Handler();
    internal event UpdateRTBCaret_Handler? UpdateRTBCaret;
@@ -233,20 +233,6 @@ public partial class FlowDocument : AvaloniaObject
             return Enumerable.Empty<Paragraph>();
          }).Cast<Paragraph>();
       }
-   }
-
-   internal void ResetSelectedParsLengthZero(Paragraph currPar)
-   {
-      if (Selection == null) return;
-
-      //Debug.WriteLine("StartPar = " + Selection.StartParagraph.Text);
-
-      foreach (Paragraph withinPar in AllParagraphs.Where(apar => apar.StartInDoc >= Selection.StartParagraph.StartInDoc && apar.StartInDoc <= Selection.EndParagraph.StartInDoc))
-      {
-         if (withinPar != currPar)
-            withinPar.ClearSelection();
-      }
-     
    }
 
 

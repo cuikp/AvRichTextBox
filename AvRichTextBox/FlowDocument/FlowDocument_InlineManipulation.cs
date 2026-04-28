@@ -180,8 +180,7 @@ public partial class FlowDocument
    }
 
    internal List<IEditable> SplitRunAtPos(int charIdxInDoc, IEditable inlineToSplit, int splitPos)
-   {
-      
+   {      
       //if (inlineToSplit.IsUIContainer)
       //   return [new EditableRun(""), inlineToSplit];
 

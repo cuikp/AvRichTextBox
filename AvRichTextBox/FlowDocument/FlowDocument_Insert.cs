@@ -1,4 +1,9 @@
-﻿using DynamicData;
+﻿using DocumentFormat.OpenXml.InkML;
+using DynamicData;
+using RtfDomParserAv;
+using System.Text;
+using System.Xml;
+using Avalonia.Threading;
 
 namespace AvRichTextBox;
 
@@ -16,26 +21,86 @@ public partial class FlowDocument
 
       List<Block> rtfBlocks = GetRtfContent(rtfbytes);
 
-      return ProcessBlocks(rtfBlocks, startPar, insertIdx, insertParIndex, addedBlockIds, rightSplitRuns);
+      return ProcessInsertBlocks(rtfBlocks, startPar, insertIdx, insertParIndex, addedBlockIds, rightSplitRuns);
 
    }
 
-   //internal int InsertRTF(byte[] rtfbytes, Paragraph startPar, TextRange insertRange, int insertParIndex, List<int> addedBlockIds)
-   //{
-   //   (int leftId, int rightId) edgeIds = DeleteRange(insertRange, false, false);
-   //   int insertIdx = 0;
-   //   if (startPar.Inlines.FirstOrDefault(il => il.Id == edgeIds.leftId) is IEditable leftInline)
-   //   {
-   //      insertIdx = startPar.Inlines.IndexOf(leftInline) + 1;
-   //      List<IEditable> rightSplitRuns = startPar.Inlines.ToList()[insertIdx..];
-   //      List<Block> rtfBlocks = GetRtfContent(rtfbytes);
 
-   //      return ProcessBlocks(rtfBlocks, startPar, insertIdx, insertParIndex, addedBlockIds, rightSplitRuns);
-   //   }
-   //   else 
-   //      return 0;
-   //}
+   private List<Block> GetRtfContent(byte[] rtfbytes)
+   {
+      int textCount = 0;
+      List<Block> rtfBlockList = [];
 
+      string rtfstring = Encoding.ASCII.GetString(rtfbytes);
+      RTFDomDocument rtfdoc = new();
+      rtfdoc.LoadRTFText(rtfstring);
+
+      int domParCount = rtfdoc.Elements.OfType<RTFDomParagraph>().Count();
+      int parno = 0;
+
+      foreach (RTFDomElement rtfelm in rtfdoc.Elements)
+      {
+         switch (rtfelm)
+         {
+            case RTFDomParagraph rtfpar:
+
+               Paragraph rtfPar = RtfConversions.GetParagraphFromRtfDom(rtfpar, this);
+               rtfBlockList.Add(rtfPar);
+               textCount += (rtfBlockList.Count + rtfBlockList.OfType<Paragraph>().ToList().SelectMany(p => p.Inlines).Sum(il => il.InlineLength));
+               parno++;
+
+               break;
+
+            case RTFDomTable rtftable:
+               Table rtfTable = RtfConversions.GetTableFromRtfDom(rtftable, this, rtfdoc.ColorTable);
+               break;
+         }
+      }
+
+      return rtfBlockList;
+   }
+
+
+   internal int InsertXaml(byte[] xamlbytes, Paragraph startPar, Paragraph endPar, TextRange insertRange, int insertParIndex, List<int> addedBlockIds)
+   {
+      (int leftId, int rightId) edgeIds = DeleteRange(insertRange, false, false);
+      int insertIdx = startPar.Inlines.IndexOf(startPar.Inlines.FirstOrDefault(il => il.Id == edgeIds.leftId)!) + 1;
+      List<IEditable> rightSplitRuns = endPar.Inlines.ToList()[insertIdx..];
+
+      string xamlString = Encoding.ASCII.GetString(xamlbytes);
+
+      List<Block> xamlBlocks = [];
+
+      XmlDocument xamlDocument = new();
+
+      xamlDocument.LoadXml(xamlString);
+
+      if (xamlDocument.ChildNodes.Count == 1)
+      {
+         XmlNode? SectionNode = xamlDocument.ChildNodes[0];
+         if (SectionNode!.Name == "Section")
+         {
+            foreach (XmlNode blockNode in SectionNode.ChildNodes.OfType<XmlNode>())
+            {
+               switch (blockNode.Name)
+               {
+                  case "Paragraph":
+
+                     xamlBlocks.Add(XamlConversions.GetParagraph(blockNode, this));
+                     break;
+
+                  case "Table":
+
+                     xamlBlocks.Add(XamlConversions.GetTable(blockNode, this));
+                     break;
+               }
+            }
+         }
+      }
+
+      return ProcessInsertBlocks(xamlBlocks, startPar, insertIdx, insertParIndex, addedBlockIds, rightSplitRuns);
+
+   }
 
    internal void InsertText(string? insertText)
    {
@@ -107,9 +172,20 @@ public partial class FlowDocument
       //Debug.WriteLine("split runs\n" + string.Join("\n", eruns.OfType<EditableRun>().ToList().ConvertAll(er => er.Text)));
 
       var newELB = new EditableLineBreak();
-      startPar.Inlines.Insert(runIdx + 1, newELB);
+      int insertIdx = runIdx + 1;
+      startPar.Inlines.Insert(insertIdx, newELB);
 
-      Undos.Add(new InsertLineBreakUndo(Selection.StartParagraph.Id, newELB.Id, (eruns[0].Id, eruns[1].Id), runIdx, originalInlineClone, this, Selection.Start));
+      List<int> addedRuns = eruns.ConvertAll(erun => erun.Id);
+
+      if (insertIdx == startPar.Inlines.Count - 1 || startPar.Inlines[insertIdx + 1].IsLineBreak)
+      {
+         EditableRun newErun = new ("");
+         startPar.Inlines.Insert(insertIdx + 1, newErun);
+         addedRuns.Add(newErun.Id);
+      }
+      
+      Undos.Add(new InsertLineBreakUndo(Selection.StartParagraph.Id, newELB.Id, addedRuns, runIdx, originalInlineClone, this, Selection.Start));
+
       UpdateTextRanges(Selection.Start, 1);
 
       SelectionExtendMode = ExtendMode.ExtendModeNone;
@@ -174,13 +250,9 @@ public partial class FlowDocument
       
       originalPar.Inlines.Clear();
       originalPar.Inlines.AddRange(RunList1);
-      originalPar.SelectionStartInBlock = 0;
-      originalPar.CollapseToStart();
 
       if (originalPar.Inlines.Last() is EditableLineBreak elb)
-      {
          originalPar.Inlines.Insert(originalPar.Inlines.Count, new EditableRun(""));
-      }
 
       Paragraph parToInsert = originalPar.PropertyClone();
 
@@ -195,8 +267,9 @@ public partial class FlowDocument
       }
       
       UpdateTextRanges(insertCharIndex, 1);
-
+      
       UpdateBlockAndInlineStarts(parIndex);
+
       originalPar.CallRequestInlinesUpdate();
       parToInsert.CallRequestInlinesUpdate();
 
@@ -204,19 +277,26 @@ public partial class FlowDocument
       if (addUndo)
          Undos.Add(new InsertParagraphUndo(this, originalPar.Id, parToInsert.Id, keepParInlineClones, originalSelStart, selectionLength - 1));
 
+      originalPar.CallRequestTextLayoutInfoStart();
+      originalPar.CallRequestTextLayoutInfoEnd();
+      parToInsert.CallRequestTextLayoutInfoStart();
+      parToInsert.CallRequestTextLayoutInfoEnd();
+            
+
       Selection.BiasForwardStart = true;
       Selection.BiasForwardEnd = true;
-      Selection.End += 1;
-      Selection.CollapseToEnd();
-
-      originalPar.CallRequestTextLayoutInfoStart();
-      parToInsert.CallRequestTextLayoutInfoStart();
-      originalPar.CallRequestTextLayoutInfoEnd();
-      parToInsert.CallRequestTextLayoutInfoEnd();
-
+                  
+ 
+      Dispatcher.UIThread.Post(() =>
+      {
+         Selection.End += 1;
+         Selection.CollapseToEnd();
+      });
+            
       ScrollInDirection?.Invoke(1);
 
       disableRunTextUndo = false;
+
 
    }
 

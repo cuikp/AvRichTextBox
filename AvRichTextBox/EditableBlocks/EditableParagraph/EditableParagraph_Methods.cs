@@ -19,9 +19,6 @@ internal partial class EditableParagraph
                switch (erun.BaselineAlignment)
                {
                   case BaselineAlignment.Subscript:
-                     
-                     returnInlines.Add(CreateScriptRun(erun));
-                     continue;
                   case BaselineAlignment.Superscript:
                      returnInlines.Add(CreateScriptRun(erun));
                      continue;
@@ -47,7 +44,8 @@ internal partial class EditableParagraph
          Foreground = erun.Foreground,
          Background = erun.Background,
          TextDecorations = erun.TextDecorations,
-         BaselineAlignment = erun.BaselineAlignment == BaselineAlignment.Superscript ? BaselineAlignment.Superscript : BaselineAlignment.TextBottom
+         //BaselineAlignment = erun.BaselineAlignment == BaselineAlignment.Superscript ? BaselineAlignment.Superscript : BaselineAlignment.TextBottom
+         BaselineAlignment = erun.BaselineAlignment == BaselineAlignment.Superscript ? BaselineAlignment.Superscript : BaselineAlignment.Subscript
       };
 
 
@@ -58,7 +56,9 @@ internal partial class EditableParagraph
 
    internal void UpdateInlines()
    {
-      if (((Paragraph)this.DataContext!).Inlines != null)
+      if (this.DataContext is not Paragraph par) return;
+      
+      if (par.Inlines != null)
          this.Inlines = GetFormattedInlines();
 
       //foreach (Inline thisIL in this.Inlines!)
@@ -70,33 +70,42 @@ internal partial class EditableParagraph
       this.InvalidateVisual();
    }
 
+   private void UpdateParRelativePos()
+   {
+      if (ThisPar != null)
+      {
+         ThisPar.TextLayout = this.TextLayout;
+         
+         if (myDocIC != null)
+         {
+            if (this.TranslatePoint(new Point(0, 0), myDocIC) is Point p)
+            {
+               ThisPar.DocICRelativeTop = p.Y + ThisPar.Margin.Top;
+               ThisPar.DocICRelativeLeft = p.X + ThisPar.Margin.Left;
+
+               ThisPar.FlowDocRelativeTop = ThisPar.DocICRelativeTop + ThisPar.MyFlowDoc.PagePadding.Top;
+               ThisPar.FlowDocRelativeLeft = ThisPar.DocICRelativeLeft + ThisPar.MyFlowDoc.PagePadding.Left;
+            }
+         }
+      }
+   }
+
    public void UpdateVMFromEPStart()
    {
-      SelectionStartRect_Changed?.Invoke(this);
       this.SetValue(TextLayoutInfoStartRequestedProperty, false);
+      this.UpdateLayout();
+      UpdateParRelativePos();
 
    }
 
    public void UpdateVMFromEPEnd()
    {
-      SelectionEndRect_Changed?.Invoke(this);
       this.SetValue(TextLayoutInfoEndRequestedProperty, false);
+      this.UpdateLayout();
+      UpdateParRelativePos();
+      
    }
 
-   //private int GetClosestIndex(int lineNo, double distanceFromLeft, int direction)
-   //{
-   //   CharacterHit chit = this.TextLayout.TextLines[lineNo + direction].GetCharacterHitFromDistance(distanceFromLeft);
-
-   //   double CharDistanceDiffThis = Math.Abs(distanceFromLeft - this.TextLayout.HitTestTextPosition(chit.FirstCharacterIndex).Left);
-   //   double CharDistanceDiffNext = Math.Abs(distanceFromLeft - this.TextLayout.HitTestTextPosition(chit.FirstCharacterIndex + 1).Left);
-
-   //   if (CharDistanceDiffThis > CharDistanceDiffNext)
-   //      return chit.FirstCharacterIndex + 1;
-   //   else
-   //      return chit.FirstCharacterIndex;
-
-
-   //}
 
 
 }

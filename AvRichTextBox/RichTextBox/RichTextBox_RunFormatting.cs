@@ -10,10 +10,6 @@ namespace AvRichTextBox;
 
 public partial class RichTextBox
 {
-   private static readonly ScaleTransform subscriptScaleTransform = new(0.75, 0.75);
-   internal static TransformGroup SubscriptTG = new();
-   internal static TransformGroup SuperscriptTG = new();
-
    private void ToggleItalics()
    {
       if (IsReadOnly) return;
@@ -78,7 +74,7 @@ public partial class RichTextBox
       List<Paragraph> originalRangeParagraphs = FlowDoc.GetOverlappingParagraphsInRange(insertRange).ConvertAll(op=>op.FullClone());
       int deleteRangeLength = insertRange.Length;
       Paragraph startPar = insertRange.StartParagraph;
-      int insertParIndex = FlowDoc.AllParagraphs.IndexOf(startPar);
+      int insertParIndex = FlowDoc.Blocks.IndexOf(startPar);
       bool firstParEmpty = startPar.Inlines[0] is EditableRun erun && erun.Text == "";
       int pastedTextLength = 0;
       List<int> addedBlockIds = [];

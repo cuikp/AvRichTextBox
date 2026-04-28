@@ -29,14 +29,11 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
    public Thickness CaretMargin { get; set { field = value; NotifyPropertyChanged(nameof(CaretMargin)); } } = new(0);
    public bool CaretVisible { get; set { field = value; NotifyPropertyChanged(nameof(CaretVisible)); } } = true;
 
-
-   internal void CalculateCaretHeightAndPosition(TextLine currTextLine, double caretMLeft, double glyphRunHeight, bool offsetTopFromHeight, BaselineAlignment balign)
+   internal void CalculateCaretHeightAndPosition(TextLine currTextLine, double caretMLeft, double glyphRunHeight, BaselineAlignment balign)
    {
-      //Debug.WriteLine("extent = " + currTextLine.Extent + ", height = " + currTextLine.Height);
-      
       double caretMTop = currTextLine.Start;
       //if (currTextLine.GetTextBounds(0, 1).FirstOrDefault() is TextBounds tbounds)
-      //   caretMTop = tbounds.Rectangle.Top;
+      //   caretMTop = tbounds.Rectangle.DocICRelativeTop;
 
       double textTopY = FlowDoc.Selection.StartRect.Top; 
 
@@ -51,11 +48,11 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
 
       double whiteDiff = currTextLine.Height - glyphRunHeight;
 
-      if (offsetTopFromHeight)
+      if (balign == BaselineAlignment.Subscript)
          caretMTop += (whiteDiff - 1);
       else if (whiteDiff > 0)
       {
-         caretMTop += (balign == BaselineAlignment.Baseline ? whiteDiff / 2 : whiteDiff);
+         caretMTop += (balign == BaselineAlignment.Superscript ? 0 : (balign == BaselineAlignment.Baseline ? whiteDiff / 2 : whiteDiff));
       }
 
       CaretHeight = glyphRunHeight;

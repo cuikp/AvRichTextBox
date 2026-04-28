@@ -20,12 +20,12 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>ver 1.7.7: Caret size and position fixed for most cases</PackageReleaseNotes>
+	  <PackageReleaseNotes>ver 1.8.0: Completely revamped selection visual to show selected linebreaks and empty paragraphs as well.  Caret height behaves better.</PackageReleaseNotes>
       
      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 	  <PackageOutputPath>D:\PROG\LocalNuget\AvRichTextBox</PackageOutputPath>
 	  
-	  <Version>1.7.7</Version>
+	  <Version>1.8.0</Version>
 	  <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
 	  
@@ -87,7 +87,10 @@
       <SubType>Code</SubType>
       <DependentUpon>%(Filename)</DependentUpon>
     </Compile>
-    <Compile Update="RichTextBox\RichTextBox_SelectionRect.cs">
+    <Compile Update="RichTextBox\RichTextBox_SelectionChanged_separate.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+    <Compile Update="RichTextBox\RichTextBox_SelectionChanged.cs">
       <DependentUpon>%(Filename)</DependentUpon>
     </Compile>
     <Compile Update="RichTextBox\RichTextBox_PointerEvents.cs">

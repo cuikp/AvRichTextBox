@@ -120,7 +120,6 @@ public partial class FlowDocument
                {
                   charsFromStart = Math.Min(charsFromStart, nextPar.TextLength);
                   newStart = nextPar.StartInDoc + charsFromStart;
-                  Selection.StartParagraph.CollapseToStart();
                }
             }
 
@@ -192,7 +191,6 @@ public partial class FlowDocument
                {
                   charsFromStart = Math.Min(charsFromStart, prevPar.TextLength);
                   newEnd = prevPar.StartInDoc + prevPar.FirstIndexLastLine + charsFromStart;
-                  Selection.EndParagraph.CollapseToStart();
                }
                   
             }
@@ -218,35 +216,35 @@ public partial class FlowDocument
    internal void EnsureSelectionContinuity()
    {
 
-      List<Paragraph> allPars = AllParagraphs;
+      //List<Paragraph> allPars = AllParagraphs;
 
-      foreach (Paragraph p in allPars.Where(p => !SelectionParagraphs.Contains(p)))
-          p.ClearSelection(); 
+      ////foreach (Paragraph p in allPars.Where(p => !SelectionParagraphs.Contains(p)))
+      ////    p.ClearSelection(); 
 
-      if (SelectionParagraphs.Count > 1)
-      {
-         for (int i = 0; i < SelectionParagraphs.Count; i++)
-         {
-            Paragraph selPar = SelectionParagraphs[i];
-            switch (i)
-            {
-               case 0:
-                  //ensure first par selected to end
-                  selPar.SelectionEndInBlock = selPar.BlockLength;
-                  break;
+      //if (SelectionParagraphs.Count > 1)
+      //{
+      //   for (int i = 0; i < SelectionParagraphs.Count; i++)
+      //   {
+      //      Paragraph selPar = SelectionParagraphs[i];
+      //      switch (i)
+      //      {
+      //         case 0:
+      //            //ensure first par selected to end
+      //            selPar.SelectionEndInBlock = selPar.BlockLength;
+      //            break;
 
-               case int last when last == SelectionParagraphs.Count - 1:
-                  //ensure last par selected from start
-                  selPar.SelectionStartInBlock = 0;
-                  break;
+      //         case int last when last == SelectionParagraphs.Count - 1:
+      //            //ensure last par selected from start
+      //            selPar.SelectionStartInBlock = 0;
+      //            break;
 
-               default:
-                  selPar.SelectionStartInBlock = 0;
-                  selPar.SelectionEndInBlock = selPar.BlockLength;
-                  break;
-            }
-         }
-      }
+      //         default:
+      //            selPar.SelectionStartInBlock = 0;
+      //            selPar.SelectionEndInBlock = selPar.BlockLength;
+      //            break;
+      //      }
+      //   }
+      //}
 
       foreach (Paragraph p in SelectionParagraphs)
       {

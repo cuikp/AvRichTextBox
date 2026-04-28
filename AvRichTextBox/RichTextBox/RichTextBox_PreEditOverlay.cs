@@ -2,6 +2,7 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Input.TextInput;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Media.TextFormatting;
 
 namespace AvRichTextBox;
 
@@ -73,7 +74,7 @@ public partial class RichTextBox
    }
 
 
-   private readonly Rectangle? _CaretRect = new()
+   private readonly Rectangle _CaretRect = new()
    {
       StrokeThickness = 2,
       Stroke = Brushes.Black,
@@ -87,50 +88,43 @@ public partial class RichTextBox
 
      
 
-   internal readonly Avalonia.Controls.Shapes.Path SelectionPath;
+   internal readonly Avalonia.Controls.Shapes.Path SelectionPath = new()
+   {
+      Stroke = Brushes.Black,
+      Fill = Brushes.DeepSkyBlue,
+      Opacity = 0.35,
+      IsHitTestVisible = false
+   };
+   
    private readonly PathGeometry _geometry = new() { Figures = [] };
+   
+   internal static PathFigure GetLineRectanglePath(Rect lineRect)
+   {          
+      double tlineTop = lineRect.Top;
+      double tlineRight = lineRect.Right;
+      double tlineBottom = lineRect.Bottom;
+      double tlineLeft = lineRect.Left;
 
-   private readonly PathFigure _pathFigure = new()
-   {
-      IsClosed = true,
-      IsFilled = true,
-      StartPoint = new Point(0, 0),
-      Segments = []
-   };
-
-   private readonly PolyLineSegment _polyLine = new()
-   {
-      Points = []
-   };
-
-
-   public void SetSelectionPoints(IReadOnlyList<Point> points)
-   {
-      if (points == null || points.Count == 0)
+      PathFigure newPathFig = new()
       {
-         _geometry.Figures?.Clear();
-         return;
-      }
+         IsClosed = true,
+         IsFilled = true,
+         StartPoint = new Point(tlineLeft, tlineTop),
+         Segments = []
+      };
 
-      if (!_geometry.Figures.Contains(_pathFigure))
-         _geometry.Figures.Add(_pathFigure);
+      PolyLineSegment newPolyLine = new() { Points = [] };
 
-      _pathFigure.StartPoint = points[0];
+      newPolyLine.Points.Add(new Point(tlineRight, tlineTop));
+      newPolyLine.Points.Add(new Point(tlineRight, tlineBottom));
+      newPolyLine.Points.Add(new Point(tlineLeft, tlineBottom));
 
-      _polyLine.Points.Clear();
-      for (int i = 1; i < points.Count; i++)
-         _polyLine.Points.Add(points[i]);
+      newPathFig.Segments.Add(newPolyLine);
+
+      return newPathFig;
+
    }
 
-   internal void SetSelection(int start, int end)
-   {
-      for (int parno = 0; parno < FlowDoc.SelectionParagraphs.Count; parno++)
-      {
-         Paragraph p = FlowDoc.SelectionParagraphs[parno];
-         
-
-
-      }
-   }
+   
 }
 

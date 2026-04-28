@@ -5,11 +5,7 @@ using Avalonia.Media.Immutable;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using System;
-using System.Diagnostics;
-using System.Drawing.Imaging;
-using System.IO;
 using System.Linq;
-using System.Net.Mime;
 using System.Text;
 using static AvRichTextBox.HelperMethods;
 

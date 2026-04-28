@@ -1,5 +1,6 @@
 ﻿using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Media.TextFormatting;
 using DocumentFormat.OpenXml.Drawing;
 using DynamicData;
 using System.Collections.ObjectModel;
@@ -47,7 +48,14 @@ public class Paragraph : Block
    public FontFamily FontFamily { get; set { field = value; NotifyPropertyChanged(nameof(FontFamily)); } } = new("Meiryo");
    public double FontSize { get; set { field = value; NotifyPropertyChanged(nameof(FontSize)); } } = 16D;
    public double LineHeight { get; set { field = value; NotifyPropertyChanged(nameof(LineHeight)); } } = 0;  // based on fontsize 
-   
+
+   internal TextLayout TextLayout = null!;
+   internal double DocICRelativeTop = 0;
+   internal double DocICRelativeLeft = 0;
+
+   internal double FlowDocRelativeTop = 0;
+   internal double FlowDocRelativeLeft = 0;
+
    //public double LineSpacing 
    //{ 
    //   get; 
@@ -111,14 +119,14 @@ public class Paragraph : Block
       }
    }
 
-   internal void UpdateUIContainersSelected(int start, int end)
-   {
-      if (this.Inlines != null)
-      {
-         foreach (EditableInlineUIContainer iuc in Inlines.OfType<EditableInlineUIContainer>())
-            iuc.IsSelected = (iuc.TextPositionOfInlineInParagraph >= start && iuc.TextPositionOfInlineInParagraph < end);
-      }
-   }
+   //internal void UpdateUIContainersSelected(int start, int end)
+   //{
+   //   if (this.Inlines != null)
+   //   {
+   //      foreach (EditableInlineUIContainer iuc in Inlines.OfType<EditableInlineUIContainer>())
+   //         iuc.IsSelected = (iuc.TextPositionOfInlineInParagraph >= start && iuc.TextPositionOfInlineInParagraph < end);
+   //   }
+   //}
 
    internal bool RemoveEmptyInlines()
    {

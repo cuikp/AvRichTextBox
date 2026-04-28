@@ -1,11 +1,12 @@
 ﻿using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
 
 namespace AvRichTextBox;
 
-internal partial class EditableParagraph : SelectableTextBlock
+internal partial class EditableParagraph : TextBlock
 {
    public static readonly StyledProperty<bool> TextLayoutInfoStartRequestedProperty = AvaloniaProperty.Register<EditableParagraph, bool>(nameof(TextLayoutInfoStartRequested));
    public bool TextLayoutInfoStartRequested { get => GetValue(TextLayoutInfoStartRequestedProperty); set { SetValue(TextLayoutInfoStartRequestedProperty, value); } }
@@ -14,8 +15,6 @@ internal partial class EditableParagraph : SelectableTextBlock
    public bool TextLayoutInfoEndRequested { get => GetValue(TextLayoutInfoEndRequestedProperty); set { SetValue(TextLayoutInfoEndRequestedProperty, value); } }
 
    public bool IsEditable { get; set; } = true;
-
-   public int SelectionLength => SelectionEnd - SelectionStart;
 
    Paragraph? ThisPar => this.DataContext as Paragraph;
 
@@ -34,24 +33,54 @@ internal partial class EditableParagraph : SelectableTextBlock
 
    }
 
-   private void EditableParagraph_Loaded(object? sender, RoutedEventArgs e)
-   {
-      UpdateInlines();
-      
-      if (this.DataContext is not Paragraph thisPar) return;
+   private ItemsControl myDocIC = null!;
 
-      if (Inlines?.Count == 0)
+   private ItemsControl GetDocIC => ThisPar == null ? null! : ThisPar.IsTableCellBlock switch
+   {
+      //Dig back to get itemscontrol from paragraph cell:
+      true => (this.Parent is EditableCell ecell &&
+               ecell.Parent is Grid gr &&
+               gr.Parent is ContentPresenter grcp &&
+               grcp.Parent is EditableTable etable &&
+               etable.Parent is ContentControl cc &&
+               cc.Parent is ContentPresenter cp &&
+               cp.Parent is ItemsControl ic) ? ic : null!,
+
+      //Dig back to get itemscontrol from normal paragraph:
+      false => (this.Parent is Border b &&
+               b.Parent is ContentControl cc &&
+               cc.Parent is ContentPresenter cp &&
+               cp.Parent is ItemsControl ic) ? ic : null!
+   };
+
+      
+
+   private void EditableParagraph_Loaded(object? sender, RoutedEventArgs e)
+   {            
+      if (this.DataContext is not Paragraph thisPar) return;
+      
+      myDocIC = GetDocIC;
+
+     
+      //Ensure empty runs (paragraphs/linebreaks)
+      if (thisPar.Inlines.Count == 0)
          thisPar.Inlines.Add(new EditableRun(""));
 
-      List<int> lineBreakIndexes = Inlines.OfType<EditableLineBreak>().ToList().ConvertAll(elb => Inlines.IndexOf(elb));
+      List<int> lineBreakIndexes = thisPar.Inlines.OfType<EditableLineBreak>().ToList().ConvertAll(elb => thisPar.Inlines.IndexOf(elb));
       for (int idx = lineBreakIndexes.Count - 1; idx >= 0; idx--)
       {
          int elbIdx = lineBreakIndexes[idx];
-         if (elbIdx == 0 || (Inlines[elbIdx - 1] is EditableRun erun && erun.Text != ""))
+
+         if (elbIdx == thisPar.Inlines.Count - 1 || thisPar.Inlines[elbIdx + 1] is not EditableRun erun)
             thisPar.Inlines.Insert(elbIdx + 1, new EditableRun(""));
       }
+
+      UpdateInlines();
+
+
       thisPar.UpdateEditableRunPositions();
       UpdateInlines();
+
 
    }
      
@@ -85,17 +114,6 @@ internal partial class EditableParagraph : SelectableTextBlock
 
                break;
 
-            case "SelectionStart":
-               UpdateVMFromEPStart();
-               break;
-
-            case "SelectionEnd":
-               UpdateVMFromEPEnd();
-               break;
-
-            case "SelectedText":
-               ThisPar.UpdateUIContainersSelected(SelectionStart, SelectionEnd);  // changes image opacity to visualize its selection
-               break;
 
             case "TextLayoutInfoStartRequested":
                this.SetValue(TextLayoutInfoStartRequestedProperty, false);
@@ -111,6 +129,11 @@ internal partial class EditableParagraph : SelectableTextBlock
                   Dispatcher.UIThread.Post(() => UpdateVMFromEPEnd(), DispatcherPriority.Background);
                else   
                   UpdateVMFromEPEnd();
+               break;
+
+            case "DataContext":
+               //Debug.WriteLine("datacontext changed");
+               ThisPar.TextLayout = this.TextLayout;
                break;
          }
 
@@ -163,7 +186,10 @@ internal partial class EditableParagraph : SelectableTextBlock
          }
          return len;
       }
+
+      
    }
+  
 
 }
 

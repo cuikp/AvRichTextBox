@@ -132,7 +132,6 @@ public partial class FlowDocument
       
       //Debug.WriteLine("\nnewlines created:\n" + string.Join("\n", newInlines.ConvertAll(il=> il.InlineText + " :: " + il.Id + "\nEdge ids = L: " + edgeIds.idLeft + ", R: " + edgeIds.idRight)));  
 
-
       //create property association for undo
       List<IEditablePropertyAssociation> propertyAssociations = [];
       foreach (EditableRun erun in newInlines.OfType<EditableRun>())

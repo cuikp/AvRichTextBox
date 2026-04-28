@@ -39,7 +39,8 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
             
    }
 
-   public bool IsSelected { get; set { field = value; this.Child.Opacity = value ? 0.2 : 1; } } = false;
+   //public bool IsSelected { get; set { field = value; this.Child.Opacity = value ? 0.2 : 1; } } = false;
+   public bool IsSelected { get; set { field = value; } } = false;
 
 #if DEBUG
    // FOR DEBUGGER PANEL

@@ -1,5 +1,4 @@
 ﻿using Avalonia.Controls.Documents;
-using DocumentFormat.OpenXml.Bibliography;
 using DynamicData;
 
 namespace AvRichTextBox;
@@ -283,7 +282,7 @@ internal class ApplyFormattingUndo (FlowDocument flowDoc, List<IEditableProperty
 }
 
 
-internal class InsertLineBreakUndo(int insertParId, int insertedLBId, (int addedInlineLeftId, int addedInlineRightId) addedInlines, int insertIdx, IEditable origInlineClone, FlowDocument flowDoc, int origSelectionStart) : IUndo
+internal class InsertLineBreakUndo(int insertParId, int insertedLBId, List<int> addedInlineIds, int insertIdx, IEditable origInlineClone, FlowDocument flowDoc, int origSelectionStart) : IUndo
 {
    public int UndoEditOffset => -1;
    public bool UpdateTextRanges => true;
@@ -295,11 +294,13 @@ internal class InsertLineBreakUndo(int insertParId, int insertedLBId, (int added
          flowDoc.disableRunTextUndo = true;
          if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == insertParId) is not Paragraph thisPar) return;
          if (thisPar.Inlines.FirstOrDefault(lb => lb.Id == insertedLBId) is not EditableLineBreak thisELB) return;
-         if (thisPar.Inlines.FirstOrDefault(il => il.Id == addedInlines.addedInlineLeftId) is not IEditable iedLeft) return;
-         if (thisPar.Inlines.FirstOrDefault(il => il.Id == addedInlines.addedInlineRightId) is not IEditable iedRight) return;
          
-         thisPar.Inlines.Remove(iedLeft);
-         thisPar.Inlines.Remove(iedRight);
+         foreach (int ilId in addedInlineIds)
+         {
+            if (thisPar.Inlines.FirstOrDefault(il => il.Id == ilId) is IEditable ied)
+               thisPar.Inlines.Remove(ied);
+         }
+         
          thisPar.Inlines.Remove(thisELB);
          thisPar.Inlines.Insert(insertIdx, origInlineClone);
 
@@ -314,7 +315,7 @@ internal class InsertLineBreakUndo(int insertParId, int insertedLBId, (int added
    }
 }
 
-internal class DeleteLineBreakUndo(int parId, int lineBreakId, FlowDocument flowDoc, int origSelectionStart) : IUndo
+internal class DeleteLineBreakUndo(int parId, int lineBreakId, int emptyRunId, FlowDocument flowDoc, int origSelectionStart) : IUndo
 {
    public int UndoEditOffset => -1;
    public bool UpdateTextRanges => true;
@@ -336,6 +337,12 @@ internal class DeleteLineBreakUndo(int parId, int lineBreakId, FlowDocument flow
          }
 
          thisPar.Inlines.Insert(runIdx, new EditableLineBreak() { Id = lineBreakId });
+
+         if (emptyRunId != -1)
+         {
+            EditableRun newErun = new("") { Id = emptyRunId };
+            thisPar.Inlines.Insert(runIdx + 1, newErun);
+         }
 
          thisPar.CallRequestInlinesUpdate();
          flowDoc.UpdateBlockAndInlineStarts(thisPar);

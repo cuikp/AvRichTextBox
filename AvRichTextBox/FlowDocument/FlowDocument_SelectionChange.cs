@@ -1,4 +1,6 @@
 ﻿
+using DocumentFormat.OpenXml.Math;
+
 namespace AvRichTextBox;
 
 public partial class FlowDocument
@@ -11,7 +13,6 @@ public partial class FlowDocument
       Selection.StartParagraph.CallRequestTextLayoutInfoStart();
       Selection.EndParagraph.CallRequestInlinesUpdate();
       Selection.EndParagraph.CallRequestTextLayoutInfoEnd();
-
       Selection.StartParagraph.CallRequestTextBoxFocus();
 
    }
@@ -40,13 +41,15 @@ public partial class FlowDocument
       selRange.GetStartInline();
 
       selRange.StartParagraph?.CallRequestTextLayoutInfoStart();
-      Selection_Changed?.Invoke(selRange);
+      SelectionChanged?.Invoke(selRange);
+
+
 
    }
 
    internal void SelectionEnd_Changed(TextRange selRange, int newEnd)
    {
-      
+
       switch (GetContainingParagraph(newEnd))
       {
          case Paragraph endPar:
@@ -67,7 +70,7 @@ public partial class FlowDocument
       selRange.GetEndInline();
       
       selRange.EndParagraph?.CallRequestTextLayoutInfoEnd();
-      Selection_Changed?.Invoke(selRange);
+      SelectionChanged?.Invoke(selRange);
 
    }
 

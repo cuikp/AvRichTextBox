@@ -128,7 +128,7 @@ public class Block : INotifyPropertyChanged
    internal int StartInDoc { get; set { if (field != value) { field = value; NotifyPropertyChanged(nameof(StartInDoc)); } } }
    internal int EndInDoc => StartInDoc + BlockLength;
 
-   //Bound to SelectableTextBlock SelectionStart/SelectionEnd (visual selection):
+   //Updated on FlowDoc_Selection_Changed
    public int SelectionStartInBlock 
    { 
       get; 
@@ -160,24 +160,8 @@ public class Block : INotifyPropertyChanged
       }  
    }
    
-
    public static bool IsFocusable => false;
-
-   internal void ClearSelection()
-   {
-      this.SelectionStartInBlock = 0;
-      this.SelectionEndInBlock = 0;
-      if (this is Paragraph p)
-      {
-         foreach (EditableInlineUIContainer iuc in p.Inlines.OfType<EditableInlineUIContainer>())
-            iuc.IsSelected = false;
-      }
-      
-   }
-
-   internal void CollapseToStart() { if (SelectionStartInBlock != SelectionEndInBlock) SelectionEndInBlock = SelectionStartInBlock; }
-   internal void CollapseToEnd() { if (SelectionStartInBlock != SelectionEndInBlock) SelectionStartInBlock = SelectionEndInBlock; }
-
+   
 
 
 }

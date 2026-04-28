@@ -1,9 +1,13 @@
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using AvRichTextBox;
 using DemoApp_AvRichtextBox.ViewModels;
+using DynamicData;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace DemoApp_AvRichtextBox.Views;
 
@@ -112,7 +116,6 @@ public partial class MainWindow : Window
             MainRTB.LoadWordDoc(f);
             ShowPagePaddingValue();
          }
-
       }
 
    }

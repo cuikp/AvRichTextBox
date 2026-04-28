@@ -40,7 +40,8 @@ public partial class MainWindow : Window
 
    private void MainWindow_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
    {
-      MainRTB.FlowDocument.Selection_Changed += FlowDocument_Selection_Changed;
+      MainRTB.FlowDocument.SelectionChanged += FlowDocument_Selection_Changed;
+      
 
 #if DEBUG
       
@@ -80,7 +81,7 @@ public partial class MainWindow : Window
    {
       FindTB.Background = Brushes.White;
 
-      if (e.Key == Avalonia.Input.Key.Enter)
+      if (e.Key == Key.Enter)
       {
          PerformFind();
          e.Handled = true;

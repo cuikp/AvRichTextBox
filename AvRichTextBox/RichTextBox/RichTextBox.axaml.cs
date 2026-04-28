@@ -5,6 +5,8 @@ using Avalonia.Controls.Shapes;
 using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Media.TextFormatting;
+using Avalonia.Skia;
 using Avalonia.Styling;
 using Avalonia.VisualTree;
 
@@ -16,16 +18,16 @@ public partial class RichTextBox : UserControl
    private RichTextBoxViewModel RtbVm { get; set; } = new();
 
 #if DEBUG
-   //VISUAL DEBUGGER -Panel for visualization of runs.Hidden / only created in Release mode, default hidden in Debug mode but settable by: RunDebuggerVisible
+   //VISUAL DEBUGGER -Panel for visualization of runs. Only created in Debug mode, default hidden but settable by: RunDebuggerVisible
    private DebuggerPanel debuggerPanel = null!;
-   private void ToggleDebuggerPanel (bool visible) { debuggerPanel?.IsVisible = visible; }
+   private void ToggleDebuggerPanel(bool visible) { debuggerPanel?.IsVisible = visible; }
 #endif
 
 
    public void ScrollToSelection()
    {
       RtbVm.RTBScrollOffset = RtbVm.RTBScrollOffset.WithY(FlowDoc.Selection.StartRect.Y - 50);
-      
+
    }
 
    public RichTextBox()
@@ -38,56 +40,42 @@ public partial class RichTextBox : UserControl
       this.TextInput += RichTextBox_TextInput;
       this.GotFocus += RichTextBox_GotFocus;
       this.LostFocus += RichTextBox_LostFocus;
-         
+
       RtbVm.FlowDocChanged += RtbVM_FlowDocChanged;
-          
+
       MainDP.DataContext = RtbVm;  // bind to child DockPanel, not the UserControl itself
 
       FlowDocSV.SizeChanged += FlowDocSV_SizeChanged;
 
-      ////Selection path
-      //_pathFigure.Segments.Add(_polyLine);
-      //_geometry.Figures.Add(_pathFigure);
-      //SelectionPath = new()
-      //{
-      //   Stroke = Brushes.Red,
-      //   StrokeThickness = 1,
-      //   Fill = Brushes.DeepSkyBlue,
-      //   Opacity = 0.2,
-      //   Data = _geometry,
-      //   IsHitTestVisible = false
-      //};
 
+      InitializeAdornerElements();
 
-      AdornerLayer.SetAdorner(DocIC, _CaretRect);
-      //AdornerLayer.SetAdorner(DocIC, SelectionPath);
-      AdornerLayer.SetIsClipEnabled(_CaretRect, false);
+      this.Focusable = true;
 
+   }
 
-      //SetSelectionPoints([
-      //   new Point(15, 30), 
-      //   new Point(200, 90),
-      //   new Point(200, 120),
-      //   new Point(15, 120),
-      //   //new Point(15, 120),
-
-      // ]);
-
-
+   private void InitializeAdornerElements()
+   {
       InitializeBlinkAnimation();
 
-      blinkAnimation!.RunAsync(_CaretRect);
+      blinkAnimation.RunAsync(_CaretRect);
+
       _CaretRect.Bind(IsVisibleProperty, new Binding("CaretVisible"));
       _CaretRect.Bind(MarginProperty, new Binding("CaretMargin"));
       _CaretRect.Bind(HeightProperty, new Binding("CaretHeight"));
       _CaretRect.DataContext = RtbVm;
 
-      SubscriptTG.Children = [new TranslateTransform(0, 4.8), subscriptScaleTransform];
-      SuperscriptTG.Children = [new TranslateTransform(0, -4.8), subscriptScaleTransform];
+      SelectionPath.Data = _geometry;
 
-      this.Focusable = true;
+      var panel = new Canvas();
+      panel.Children.Add(SelectionPath);
+      panel.Children.Add(_CaretRect);
+      AdornerLayer.SetAdorner(DocIC, panel);
+      //AdornerLayer.SetIsClipEnabled(panel, false);
+
 
    }
+
 
    private void RichTextBox_Initialized(object? sender, EventArgs e)
    {
@@ -96,7 +84,11 @@ public partial class RichTextBox : UserControl
          FlowDocument = new();
          FlowDoc.NewDocument();
       }
+
+      FlowDoc.SelectionChanged += FlowDoc_Selection_Changed;
+
    }
+
 
    private void RichTextBox_Loaded(object? sender, RoutedEventArgs e)
    {
@@ -114,7 +106,7 @@ public partial class RichTextBox : UserControl
          MainDP.Children.Insert(0, debuggerPanel);
          debuggerPanel.DataContext = RtbVm;
          debuggerPanel.Bind(Visual.IsVisibleProperty, new Binding("RunDebuggerVisible"));
-         debuggerPanel.SelEndTB.Bind(TextBlock.TextProperty, new Binding("FlowDoc.Selection.End"){ StringFormat = "DocSelEnd={0}" }); 
+         debuggerPanel.SelEndTB.Bind(TextBlock.TextProperty, new Binding("FlowDoc.Selection.End") { StringFormat = "DocSelEnd={0}" });
          debuggerPanel.SelStartTB.Bind(TextBlock.TextProperty, new Binding("FlowDoc.Selection.Start") { StringFormat = "DocSelStart={0}" });
          debuggerPanel.ParagraphsLB.ItemsSource = FlowDoc.SelectionParagraphs;
          RtbVm.RunDebuggerVisible = ShowDebuggerPanelInDebugMode;
@@ -124,7 +116,7 @@ public partial class RichTextBox : UserControl
 #endif
 
       this.Focus();
-
+      UpdateSelectionIndicators();
 
    }
 
@@ -201,29 +193,29 @@ public partial class RichTextBox : UserControl
    }
 
 
-   public void InvalidateCaret() { RtbVm.CaretVisible = true;  }
+   public void InvalidateCaret() { RtbVm.CaretVisible = true; }
    public void NewDocument() => FlowDoc.NewDocument();
-   public void CreateNewDocument() { FlowDoc.NewDocument();  RtbVm.RTBScrollOffset = new Vector(0, 0);  }
+   public void CreateNewDocument() { FlowDoc.NewDocument(); RtbVm.RTBScrollOffset = new Vector(0, 0); }
    //Load/save
-	public void LoadRtf(string rtf) => FlowDoc.LoadRtf(rtf);
+   public void LoadRtf(string rtf) => FlowDoc.LoadRtf(rtf);
    public void LoadRtfDoc(string fileName) => FlowDoc.LoadRtfFromFile(fileName);
 
-	public string SaveRtf() => FlowDoc.SaveRtf();
+   public string SaveRtf() => FlowDoc.SaveRtf();
    public void SaveRtfDoc(string fileName) => FlowDoc.SaveRtfToFile(fileName);
    public void LoadWordDoc(string fileName) => FlowDoc.LoadWordDocFromFile(fileName);
    public void SaveWordDoc(string filename) => FlowDoc.SaveWordDocToFile(filename);
-	public void LoadHtml(string html) => FlowDoc.LoadHtml(html);
+   public void LoadHtml(string html) => FlowDoc.LoadHtml(html);
 
-	public string SaveHtml() => FlowDoc.SaveHtml();
+   public string SaveHtml() => FlowDoc.SaveHtml();
    public void LoadHtmlDoc(string fileName) => FlowDoc.LoadHtmlDocFromFile(fileName);
    public void SaveHtmlDoc(string filename) => FlowDoc.SaveHtmlDocToFile(filename);
-	
-   public void LoadXaml (string fileName) => FlowDoc.LoadXamlFromFile(fileName);
-   public void SaveXamlPackage (string fileName) => FlowDoc.SaveXamlPackage(fileName);
-	public void LoadXamlString(string xaml) => FlowDoc.LoadXaml(xaml);
-	public string SaveXamlString() => FlowDoc.SaveXaml();
-   public void SaveXaml (string fileName) => FlowDoc.SaveXamlToFile(fileName);
-   public void LoadXamlPackage (string fileName) => FlowDoc.LoadXamlPackage(fileName); 
+
+   public void LoadXaml(string fileName) => FlowDoc.LoadXamlFromFile(fileName);
+   public void SaveXamlPackage(string fileName) => FlowDoc.SaveXamlPackage(fileName);
+   public void LoadXamlString(string xaml) => FlowDoc.LoadXaml(xaml);
+   public string SaveXamlString() => FlowDoc.SaveXaml();
+   public void SaveXaml(string fileName) => FlowDoc.SaveXamlToFile(fileName);
+   public void LoadXamlPackage(string fileName) => FlowDoc.LoadXamlPackage(fileName);
 
    private void MovePage(int direction, bool extend)
    {
@@ -269,15 +261,16 @@ public partial class RichTextBox : UserControl
          TextHitTestResult tres = thisEP.TextLayout.HitTestPoint(new Point(distanceFromLeft, relYInEP));
          int newCharIndexInDoc = ((Paragraph)thisEP.DataContext!).StartInDoc + tres.CharacterHit.FirstCharacterIndex;
          FlowDoc.MovePageSelection(direction, extend, newCharIndexInDoc + (int)(FlowDocSV.Bounds.Height / 2));
-                  
+
       }
 
    }
 
    private void FlowDocSV_SizeChanged(object? sender, SizeChangedEventArgs e)
-   {
+   {      
       RtbVm.ScrollViewerHeight = e.NewSize.Height;
 
+      UpdateSelectionIndicators();
    }
 
    private void ScrollViewer_ScrollChanged(object? sender, ScrollChangedEventArgs e)
@@ -286,7 +279,7 @@ public partial class RichTextBox : UserControl
 
    }
 
-   private Animation blinkAnimation;
+   private Animation blinkAnimation = null!;
 
    private void InitializeBlinkAnimation()
    {
@@ -302,10 +295,12 @@ public partial class RichTextBox : UserControl
                 new KeyFrame { Cue = new (1.0), Setters = { new Setter(Rectangle.OpacityProperty, 0.0) } }
             }
       };
+
+
+      
    }
 
-
-
+  
 
 }
 

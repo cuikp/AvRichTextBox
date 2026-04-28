@@ -101,14 +101,14 @@ public partial class FlowDocument
       foreach (Paragraph p in parClones)
       {
          p.CallRequestInlinesUpdate();
-         p.ClearSelection();
+         //p.ClearSelection();
       }
   
       UpdateBlockAndInlineStarts(blockIndex);
 
    }
 
-   private int ProcessBlocks(List<Block> blocks, Paragraph startPar, int insertIdx, int insertParIndex, List<int> addedBlockIds, List<IEditable> rightSplitRuns)
+   private int ProcessInsertBlocks(List<Block> blocks, Paragraph startPar, int insertIdx, int insertParIndex, List<int> addedBlockIds, List<IEditable> rightSplitRuns)
    {
       int pastedTextLength = 0;
       int blockno = 0;
@@ -133,10 +133,6 @@ public partial class FlowDocument
                   // insert first paragraph into existing paragraph
                   addPar.Inlines.AddOrInsertRange(p.Inlines, insertIdx);
                   break;
-
-               //case int bno when blockno == blocks.Count - 1:
-               //   startPar.Inlines.AddOrInsertRange(rightSplitRuns, insertIdx + blockno);
-               //   break;
 
                default:
                   // create new paragraphs for pars 1 onward
@@ -173,82 +169,5 @@ public partial class FlowDocument
 
       return pastedTextLength;
    }
-
-   private List<Block> GetRtfContent(byte[] rtfbytes)
-   {
-      int textCount = 0;
-      List<Block> rtfBlockList = [];
-
-      string rtfstring = Encoding.ASCII.GetString(rtfbytes);
-      RTFDomDocument rtfdoc = new();
-      rtfdoc.LoadRTFText(rtfstring);
-
-      int domParCount = rtfdoc.Elements.OfType<RTFDomParagraph>().Count();
-      int parno = 0;
-
-      foreach (RTFDomElement rtfelm in rtfdoc.Elements)
-      {
-         switch (rtfelm)
-         {
-            case RTFDomParagraph rtfpar:
-
-               Paragraph rtfPar = RtfConversions.GetParagraphFromRtfDom(rtfpar, this);
-               rtfBlockList.Add(rtfPar);
-               textCount += (rtfBlockList.Count + rtfBlockList.OfType<Paragraph>().ToList().SelectMany(p => p.Inlines).Sum(il => il.InlineLength));
-               parno++;
-
-               break;
-
-            case RTFDomTable rtftable:
-               Table rtfTable = RtfConversions.GetTableFromRtfDom(rtftable, this, rtfdoc.ColorTable);
-               break;
-         }
-      }
-
-      return rtfBlockList;
-   }
-
-
-   internal int InsertXaml(byte[] xamlbytes, Paragraph startPar, Paragraph endPar, TextRange insertRange, int insertParIndex, List<int> addedBlockIds)
-   {
-      (int leftId, int rightId) edgeIds = DeleteRange(insertRange, false, false);
-      int insertIdx = startPar.Inlines.IndexOf(startPar.Inlines.FirstOrDefault(il => il.Id == edgeIds.leftId)!) + 1;
-      List<IEditable> rightSplitRuns = endPar.Inlines.ToList()[insertIdx..];
-
-      string xamlString = Encoding.ASCII.GetString(xamlbytes);
-           
-      List<Block> xamlBlocks = [];
-
-      XmlDocument xamlDocument = new();
-
-      xamlDocument.LoadXml(xamlString);
-      
-      if (xamlDocument.ChildNodes.Count == 1)
-      {
-         XmlNode? SectionNode = xamlDocument.ChildNodes[0];
-         if (SectionNode!.Name == "Section")
-         {
-            foreach (XmlNode blockNode in SectionNode.ChildNodes.OfType<XmlNode>())
-            {
-               switch (blockNode.Name)
-               {
-                  case "Paragraph":
-
-                     xamlBlocks.Add(XamlConversions.GetParagraph(blockNode, this));
-                     break;
-
-                  case "Table":
-
-                     xamlBlocks.Add(XamlConversions.GetTable(blockNode, this));
-                     break;
-               }
-            }
-         }
-      }
-
-      return ProcessBlocks(xamlBlocks, startPar, insertIdx, insertParIndex, addedBlockIds, rightSplitRuns);
-            
-   }
-
 
 }

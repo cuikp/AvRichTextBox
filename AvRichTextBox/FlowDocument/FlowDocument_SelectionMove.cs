@@ -7,9 +7,6 @@ public partial class FlowDocument
    internal void MoveSelectionRight(bool isTextInsertion)
    {
 
-      if (Selection.Length > 0)
-         ResetSelectedParsLengthZero(Selection.EndParagraph);
-
       Selection.BiasForwardStart = !isTextInsertion;
 
       switch (SelectionExtendMode)
@@ -46,7 +43,6 @@ public partial class FlowDocument
       Selection.BiasForwardStart = !isTextInsertion;
       Selection.BiasForwardEnd = Selection.BiasForwardStart;
 
-
    }
 
    internal void MoveSelectionLeft(bool biasForward)
@@ -54,8 +50,6 @@ public partial class FlowDocument
       //Selection.BiasForwardStart = biasForward;
       Selection.BiasForwardStart = true;
 
-      if (Selection.Length > 0)
-         ResetSelectedParsLengthZero(Selection.StartParagraph);
 
       switch (SelectionExtendMode)
       {
@@ -237,13 +231,11 @@ public partial class FlowDocument
       Selection.BiasForwardStart = biasForward;
 
       if (Selection.Length > 0)
-      {
-         ResetSelectedParsLengthZero(Selection.EndParagraph);
          Selection.CollapseToEnd();
-      }
-
 
       int nextEnd = Selection.EndParagraph.StartInDoc + Selection.EndParagraph.CharNextLineEnd;
+
+
       if (Selection.EndParagraph.IsEndAtLastLine)
       {
          List<Paragraph> allPars = AllParagraphs;
@@ -272,10 +264,7 @@ public partial class FlowDocument
       Selection.BiasForwardStart = biasForward;
 
       if (Selection.Length > 0)
-      {
-         ResetSelectedParsLengthZero(Selection.StartParagraph);
          Selection.CollapseToStart();
-      }
 
       if (Selection.StartParagraph.IsStartAtFirstLine)
       {        
@@ -310,8 +299,8 @@ public partial class FlowDocument
       ScrollInDirection?.Invoke(-1);
 
       List<Paragraph> allPars = AllParagraphs;
-      foreach (Paragraph p in allPars)
-         p.ClearSelection();
+      //foreach (Paragraph p in allPars)
+      //   p.ClearSelection();
 
       if (allPars[0] is Paragraph firstPar)
       {
@@ -333,8 +322,8 @@ public partial class FlowDocument
       SelectionExtendMode = ExtendMode.ExtendModeNone;
       ScrollInDirection?.Invoke(1);
 
-      foreach (Paragraph p in allPars)
-         p.ClearSelection();
+      //foreach (Paragraph p in allPars)
+      //   p.ClearSelection();
 
       if (allPars[^1] is Paragraph lastPar)
       {
@@ -362,11 +351,7 @@ public partial class FlowDocument
       Selection.Start = Selection.StartParagraph.StartInDoc + Selection.StartParagraph.FirstIndexStartLine;
 
       if (!selExtend)
-      {
-         if (Selection.Length > 0)
-            ResetSelectedParsLengthZero(Selection.StartParagraph);
          Selection.CollapseToStart();
-      }
       else
          SelectionExtendMode = ExtendMode.ExtendModeLeft;
 
@@ -396,14 +381,8 @@ public partial class FlowDocument
          Selection.End += 1;
       }
 
-      //////***********
-
       if (!selExtend)
-      {
-         if (Selection.Length > 0)
-            ResetSelectedParsLengthZero(Selection.EndParagraph);
          Selection.CollapseToEnd();
-      }
       else
          SelectionExtendMode = ExtendMode.ExtendModeRight;
 

@@ -8,7 +8,7 @@
 			 xmlns:local="using:AvRichTextBox" 
 			 x:Class="AvRichTextBox.RichTextBox" 
 			 PointerReleased="RichTextBox_PointerReleased" PointerExited="RichTextBox_PointerExited" KeyDown="RichTextBox_KeyDown"  Focusable="True"
-			 BorderBrush="Black" BorderThickness="1" Padding="2"   >
+			 BorderBrush="Black" BorderThickness="1" Padding="2"  >
 
 
 
@@ -33,19 +33,15 @@
 
 		 <Style Selector="local|EditableParagraph.paragraphBindings" x:DataType="local:Paragraph">
 			<Setter Property="TextWrapping" Value="Wrap"/>
-			<Setter Property="Margin" Value="5"/>
+			<Setter Property="Margin" Value="{Binding Margin}"/>
 			<Setter Property="LineHeight" Value="{Binding LineHeight}"/>
 			<!--<Setter Property="LineSpacing" Value="{Binding LineSpacing}"/>-->
 			<Setter Property="FontFamily" Value="{Binding FontFamily}"/>
 			<Setter Property="FontWeight" Value="{Binding FontWeight}"/>
 			<Setter Property="FontSize" Value="{Binding FontSize}"/>
-			<Setter Property="Background" Value="{Binding Background}"/>
 			<Setter Property="TextAlignment" Value="{Binding TextAlignment}"/>
-			<Setter Property="SelectionBrush" Value="{Binding SelectionBrush}"/>
 			<Setter Property="VerticalAlignment" Value="{Binding VerticalAlignment}"/>
-
-			<Setter Property="SelectionStart" Value="{Binding SelectionStartInBlock, Mode=TwoWay}"/>
-			<Setter Property="SelectionEnd" Value="{Binding SelectionEndInBlock, Mode=TwoWay}"/>
+		
 		</Style>
 
 	</UserControl.Styles>
@@ -60,14 +56,13 @@
 		</LayoutTransformControl.LayoutTransform>
 
 	
-		<ScrollViewer x:Name="FlowDocSV"  HorizontalScrollBarVisibility="Disabled" Margin="0" Padding="0" Offset="{Binding RTBScrollOffset, Mode=OneWay}"  ScrollChanged="ScrollViewer_ScrollChanged"
-					  PointerPressed="FlowDocSV_PointerPressed" PointerMoved="FlowDocSV_PointerMoved" PointerReleased="FlowDocSV_PointerReleased"  >
+		<ScrollViewer x:Name="FlowDocSV"  HorizontalScrollBarVisibility="Disabled" Margin="0" Padding="5" Offset="{Binding RTBScrollOffset, Mode=OneWay}"  ScrollChanged="ScrollViewer_ScrollChanged" PointerPressed="FlowDocSV_PointerPressed" PointerMoved="FlowDocSV_PointerMoved" PointerReleased="FlowDocSV_PointerReleased"  >
 							
 
 			<Grid VerticalAlignment="Top">
 
 				<!-- The FlowDocument itself -->
-				<ItemsControl x:Name="DocIC" DataContext="{Binding FlowDoc}" VerticalAlignment="Top" ItemsSource="{Binding Blocks}" Margin="0" Padding="{Binding PagePadding}" >
+				<ItemsControl x:Name="DocIC" DataContext="{Binding FlowDoc}" VerticalAlignment="Top" ItemsSource="{Binding Blocks}" Margin="0" Padding="{Binding PagePadding}">
 
 
 					<ItemsControl.ItemsPanel>
@@ -88,13 +83,11 @@
 									<DataTemplate DataType="local:Paragraph">
 									
 										<Border BorderThickness="{Binding BorderThickness}" BorderBrush="{Binding BorderBrush}" CornerRadius="3" Margin="{Binding Margin}"
-											  VerticalAlignment="Top" HorizontalAlignment="Stretch" Padding="0">
+											  VerticalAlignment="Top" HorizontalAlignment="Stretch" Padding="0" Background="{Binding Background}">
 
-											<local:EditableParagraph Classes="paragraphBindings" xml:space="preserve"	
+											<local:EditableParagraph Classes="paragraphBindings" xml:space="preserve" Background="Transparent"	
 													MouseMove="EditableParagraph_MouseMove" 
 													LostFocus="EditableParagraph_LostFocus" 
-													SelectionStartRect_Changed="SelectionStart_RectChanged"
-													SelectionEndRect_Changed="SelectionEnd_RectChanged"
 
 													TextLayoutInfoStartRequested="{Binding RequestTextLayoutInfoStart}"
 													TextLayoutInfoEndRequested="{Binding RequestTextLayoutInfoEnd}"
@@ -126,8 +119,6 @@
 																<local:EditableParagraph x:DataType="local:Paragraph" Classes="paragraphBindings" DataContext="{Binding CellContent}" xml:space="preserve" 
 																	MouseMove="EditableParagraph_MouseMove" 
 																	LostFocus="EditableParagraph_LostFocus" 
-																	SelectionStartRect_Changed="SelectionStart_RectChanged"
-																	SelectionEndRect_Changed="SelectionEnd_RectChanged"
 																
 																	TextLayoutInfoStartRequested="{Binding RequestTextLayoutInfoStart}"
 																	TextLayoutInfoEndRequested="{Binding RequestTextLayoutInfoEnd}"
