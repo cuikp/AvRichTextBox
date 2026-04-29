@@ -14,6 +14,9 @@ public partial class FlowDocument : AvaloniaObject
    public delegate void SelectionChanged_Handler(TextRange selection);
    public event SelectionChanged_Handler? SelectionChanged;
 
+   public delegate void PagePaddingChanged_Handler();
+   public event PagePaddingChanged_Handler? PagePaddingChanged;
+
    public delegate void UpdateRTBCaret_Handler();
    internal event UpdateRTBCaret_Handler? UpdateRTBCaret;
    
@@ -78,6 +81,11 @@ public partial class FlowDocument : AvaloniaObject
          Blocks.CollectionChanged -= Blocks_CollectionChanged;
          Blocks.CollectionChanged += Blocks_CollectionChanged;
       }
+
+      if (e.Property == PagePaddingProperty)
+      {
+         PagePaddingChanged?.Invoke();
+      }
    }
 
    private void Blocks_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -102,7 +110,6 @@ public partial class FlowDocument : AvaloniaObject
       Selection.End = 0;
       SelectionParagraphs.Clear();
       Selection.End = this.DocEndPoint - 1;
-      EnsureSelectionContinuity();
       this.SelectionExtendMode = ExtendMode.ExtendModeRight;
    }
 
@@ -112,8 +119,6 @@ public partial class FlowDocument : AvaloniaObject
 
       Selection.Start = Start;
       Selection.End = Start + Length;
-
-      EnsureSelectionContinuity();
 
       UpdateSelection();
 
@@ -132,35 +137,34 @@ public partial class FlowDocument : AvaloniaObject
 
    }
 
-   internal void CreateTestDocument()
-   {
-      ClearDocument();
+   //internal void CreateTestDocumentWithTable()
+   //{
+   //   ClearDocument();
 
-      Paragraph newPar = new(this);
-      newPar.Inlines.Add(new EditableRun("A ")  );
-      newPar.Inlines.Add(new EditableRun("first") );
-      newPar.Inlines.Add(new EditableRun(" H") );
+   //   Paragraph newPar = new(this);
+   //   newPar.Inlines.Add(new EditableRun("A ")  );
+   //   newPar.Inlines.Add(new EditableRun("first") );
+   //   newPar.Inlines.Add(new EditableRun(" H") );
+        
+   //   newPar.Inlines.Add(new EditableRun("2") { BaselineAlignment = BaselineAlignment.Subscript });
+   //   newPar.Inlines.Add(new EditableRun("O"));
+   //   newPar.Inlines.Add(new EditableRun("3") { BaselineAlignment = BaselineAlignment.Superscript });
 
-  
-      newPar.Inlines.Add(new EditableRun("2") { BaselineAlignment = BaselineAlignment.Subscript });
-      newPar.Inlines.Add(new EditableRun("O"));
-      newPar.Inlines.Add(new EditableRun("3") { BaselineAlignment = BaselineAlignment.Superscript });
+   //   newPar.Inlines.Add(new EditableRun(" simple "));
+   //   newPar.Inlines.Add(new EditableRun("line.") ) ;
+   //   Blocks.Add(newPar);
 
-      newPar.Inlines.Add(new EditableRun(" simple "));
-      newPar.Inlines.Add(new EditableRun("line.") ) ;
-      Blocks.Add(newPar);
+   //   //Test Table
+   //   Blocks.Add(new Table(5, 4, this) { BorderThickness = new(1), BorderBrush = Brushes.ForestGreen, TableAlignment = Avalonia.Layout.HorizontalAlignment.Center });
 
-      //Test Table
-      Blocks.Add(new Table(5, 4, this) { BorderThickness = new(1), BorderBrush = Brushes.ForestGreen, TableAlignment = Avalonia.Layout.HorizontalAlignment.Center });
-
-      Paragraph newPar2 = new(this);
-      newPar2.Inlines.Add(new EditableRun("Some extra text after the table."));
-      Blocks.Add(newPar2);
+   //   Paragraph newPar2 = new(this);
+   //   newPar2.Inlines.Add(new EditableRun("Some extra text after the table."));
+   //   Blocks.Add(newPar2);
 
 
-      InitializeDocument();
+   //   InitializeDocument();
 
-   }
+   //}
 
    internal void ClearDocument()
    {
@@ -228,9 +232,14 @@ public partial class FlowDocument : AvaloniaObject
       {
          return Blocks.SelectMany(b =>
          {
-            if (b is Paragraph p) return [p];
-            if (b is Table t) return t.Cells.Select(c => c.CellContent) ?? Enumerable.Empty<Paragraph>();
+            if (b is Paragraph p)
+               return [p];
+            
+            if (b is Table t) 
+               return t.Cells.Select(c => c.CellContent) ?? Enumerable.Empty<Paragraph>();
+            
             return Enumerable.Empty<Paragraph>();
+
          }).Cast<Paragraph>();
       }
    }

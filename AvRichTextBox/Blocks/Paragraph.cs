@@ -53,9 +53,6 @@ public class Paragraph : Block
    internal double DocICRelativeTop = 0;
    internal double DocICRelativeLeft = 0;
 
-   internal double FlowDocRelativeTop = 0;
-   internal double FlowDocRelativeLeft = 0;
-
    //public double LineSpacing 
    //{ 
    //   get; 
@@ -71,6 +68,11 @@ public class Paragraph : Block
    public FontWeight FontWeight { get; set { field = value; NotifyPropertyChanged(nameof(FontWeight)); } } = FontWeight.Normal;
    public FontStyle FontStyle{ get; set { field = value; NotifyPropertyChanged(nameof(FontStyle)); } } = FontStyle.Normal;
    public TextAlignment TextAlignment { get; set { field = value; NotifyPropertyChanged(nameof(TextAlignment)); } } = TextAlignment.Left;
+
+   /// <summary>
+   /// Note: the attribute 'VerticalAlignment' on Paragraph is rejected (throws error) by Windows WPF TextRange.Load(Stream stream, string dataFormat) if present.<br/>
+   /// Since the Xaml content saved by AvRichTextBox adds VerticalAlignment onto Paragraphs (for alignment in TableCells), it can't be directly loaded by WPF but has to be parsed out.
+   /// </summary>
    public VerticalAlignment VerticalAlignment { get; set { field = value; NotifyPropertyChanged(nameof(VerticalAlignment)); } } = VerticalAlignment.Top;
      
    public IBrush SelectionBrush { get; set { field = value; NotifyPropertyChanged(nameof(SelectionBrush)); } } = LightBlueBrush;
@@ -107,6 +109,7 @@ public class Paragraph : Block
    {
       if (SelectionEndInBlock < SelectionStartInBlock)
          SelectionStartInBlock = SelectionEndInBlock;
+     
    }
 
    internal void UpdateEditableRunPositions()

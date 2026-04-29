@@ -32,9 +32,6 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
    internal void CalculateCaretHeightAndPosition(TextLine currTextLine, double caretMLeft, double glyphRunHeight, BaselineAlignment balign)
    {
       double caretMTop = currTextLine.Start;
-      //if (currTextLine.GetTextBounds(0, 1).FirstOrDefault() is TextBounds tbounds)
-      //   caretMTop = tbounds.Rectangle.DocICRelativeTop;
-
       double textTopY = FlowDoc.Selection.StartRect.Top; 
 
       if (FlowDoc.Selection.IsAtEndOfLineSpace)

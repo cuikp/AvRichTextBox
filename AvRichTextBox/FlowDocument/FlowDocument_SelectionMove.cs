@@ -424,7 +424,6 @@ public partial class FlowDocument
                      Selection.Start = newIndexInDoc;
                      break;
                }
-               EnsureSelectionContinuity();
             }
             else
             {
@@ -452,7 +451,6 @@ public partial class FlowDocument
                      //Debug.WriteLine("Extending back, page up, extend mode right : selection.end = " + Selection.End + " (" + newIndexInDoc);
                      break;
                }
-               EnsureSelectionContinuity();
             }
 
             else

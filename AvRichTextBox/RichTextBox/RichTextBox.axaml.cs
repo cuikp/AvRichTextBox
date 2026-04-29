@@ -86,6 +86,7 @@ public partial class RichTextBox : UserControl
       }
 
       FlowDoc.SelectionChanged += FlowDoc_Selection_Changed;
+      FlowDoc.PagePaddingChanged += FlowDoc_PagePadding_Changed;
 
    }
 
@@ -94,7 +95,7 @@ public partial class RichTextBox : UserControl
    {
 
       ////FOR DEBUGGING
-      //FlowDoc.CreateTestDocument();
+      //FlowDoc.CreateTestDocumentWithTable();
 
 
 #if DEBUG
@@ -263,7 +264,8 @@ public partial class RichTextBox : UserControl
          FlowDoc.MovePageSelection(direction, extend, newCharIndexInDoc + (int)(FlowDocSV.Bounds.Height / 2));
 
       }
-
+      
+      
    }
 
    private void FlowDocSV_SizeChanged(object? sender, SizeChangedEventArgs e)

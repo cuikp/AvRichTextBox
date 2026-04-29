@@ -55,15 +55,12 @@ public partial class Table : Block
                Padding = new(5)
             };
 
-
-            bool skip = GetMergedTestCell2(newPar, newCell, rowno, colno);
-            //bool skip = false;
-          
-
+            //bool skip = GetMergedTestCell2(newPar, newCell, rowno, colno);
+            bool skip = false;
+         
             if (!skip)
                Cells.Add(newCell);
-
-            
+                        
             
             newPar.IsTableCellBlock = true;
             newPar.OwningTable = this;

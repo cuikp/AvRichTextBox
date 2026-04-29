@@ -5,8 +5,8 @@ namespace AvRichTextBox;
 
 public partial class FlowDocument
 {
-   Dictionary<AvaloniaProperty, FormatRunsAction> formatRunsActions = [];
-   Dictionary<AvaloniaProperty, FormatRunAction> formatRunActions = [];
+   Dictionary<AvaloniaProperty, FormatRunsAction> formatRunsActions = [];  // applied to multiple runs
+   Dictionary<AvaloniaProperty, FormatRunAction> formatRunActions = [];  // applied to single run
 
    private void DefineFormatRunActions()
    {
@@ -132,7 +132,7 @@ public partial class FlowDocument
       
       //Debug.WriteLine("\nnewlines created:\n" + string.Join("\n", newInlines.ConvertAll(il=> il.InlineText + " :: " + il.Id + "\nEdge ids = L: " + edgeIds.idLeft + ", R: " + edgeIds.idRight)));  
 
-      //create property association for undo
+      //create property association for undo  $$$$$$$$$$$$$$$$$
       List<IEditablePropertyAssociation> propertyAssociations = [];
       foreach (EditableRun erun in newInlines.OfType<EditableRun>())
       {
@@ -168,12 +168,10 @@ public partial class FlowDocument
          Selection.StartParagraph.SelectionStartInBlock = Selection.Start - Selection.StartParagraph.StartInDoc;
          Selection.EndParagraph.SelectionEndInBlock = Selection.End - Selection.EndParagraph.StartInDoc;
       }
-      
     
       UpdateSelectedParagraphs();
 
       disableRunTextUndo = false;
-
 
    }
   

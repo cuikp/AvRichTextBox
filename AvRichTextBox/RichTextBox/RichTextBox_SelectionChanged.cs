@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
-using Avalonia.VisualTree;
+using Avalonia.Threading;
 
 namespace AvRichTextBox;
 
@@ -9,10 +9,8 @@ public partial class RichTextBox : UserControl
 {
    readonly double EmptyLineWidth = 14;
 
-   private void FlowDoc_Selection_Changed(TextRange selection)
-   {
-      UpdateSelectionIndicators();
-   }
+   private void FlowDoc_Selection_Changed(TextRange selection) { UpdateSelectionIndicators(); }
+   private void FlowDoc_PagePadding_Changed() { Dispatcher.UIThread.Post(() => { UpdateSelectionIndicators(); }); }
 
    private void UpdateSelectionIndicators()
    {
@@ -35,10 +33,14 @@ public partial class RichTextBox : UserControl
          p.CallRequestTextLayoutInfoStart();
          p.CallRequestTextLayoutInfoEnd();
          p.SelectionStartInBlock = Math.Max(0, FlowDoc.Selection.Start - p.StartInDoc);
-         p.SelectionEndInBlock = Math.Max(0, FlowDoc.Selection.End - p.StartInDoc);
+         p.SelectionEndInBlock = Math.Min(p.BlockLength, FlowDoc.Selection.End - p.StartInDoc);
 
          CalculateParagraphLayoutProperties(p, p.TextLayout, parno == 0, parno == FlowDoc.SelectionParagraphs.Count - 1, parIsEmpty);
-                   
+
+         //for full cell selection visibility
+         if (p.IsTableCellBlock)
+            p.OwningCell.Selected = (p.SelectionStartInBlock == 0 && p.SelectionEndInBlock == p.BlockLength);
+
          if (caretOnly)
          {  //only get first selected paragraph 
 
@@ -62,7 +64,7 @@ public partial class RichTextBox : UserControl
                balign = strun.Properties.BaselineAlignment;
             }
 
-            RtbVm.CalculateCaretHeightAndPosition(thisTextLine, p.FlowDocRelativeLeft + selStartRect.X, glyphHeight, balign);
+            RtbVm.CalculateCaretHeightAndPosition(thisTextLine, p.DocICRelativeLeft + selStartRect.X, glyphHeight, balign);
          }
          else
          {
@@ -74,10 +76,10 @@ public partial class RichTextBox : UserControl
                try
                {  //sometimes throws index outside of bounds before update
                   double tlineLeft = p.TextLayout.HitTestTextPosition(p.SelectionStartInBlock).Left;
-                  Rect lineRect = new(p.FlowDocRelativeLeft + tlineLeft, tlineTop, EmptyLineWidth, tline.Height);
+                  Rect lineRect = new(p.DocICRelativeLeft + tlineLeft, tlineTop, EmptyLineWidth, tline.Height);
                   _geometry.Figures?.Add(GetLineRectanglePath(lineRect));
                }
-               catch { Debug.WriteLine("par empty error"); }
+               catch { Debug.WriteLine($"HitTestTextPosition at paragraph Start: {p.SelectionStartInBlock} failed"); }
                continue;
             }
 
@@ -101,7 +103,7 @@ public partial class RichTextBox : UserControl
                   Rect leftRect = new(0, 0, 0, 0);
                   //try { leftRect = p.TextLayout.HitTestTextPosition(0); }
                   try { leftRect = p.TextLayout.HitTestTextPosition(lineStartIndex); }
-                  catch { Debug.WriteLine("hittesttextpos failed"); continue; }
+                  catch { Debug.WriteLine($"HitTestTextPosition at lineStartIndex: {lineStartIndex} failed"); continue; }
 
                   double tlineLeft = leftRect.Left;
                   double tlineWidth = tline.Width;
@@ -116,7 +118,7 @@ public partial class RichTextBox : UserControl
                   if (isLastSelLine)
                      tlineWidth = p.TextLayout.HitTestTextPosition(p.SelectionEndInBlock).Left - tlineLeft;
 
-                  double tlineAdjustedLeft = p.FlowDocRelativeLeft + tlineLeft;
+                  double tlineAdjustedLeft = p.DocICRelativeLeft + tlineLeft;
                   double tlineTop = p.DocICRelativeTop + lineTop;
                   double tlineHeight = tline.Height;
 
@@ -162,8 +164,7 @@ public partial class RichTextBox : UserControl
             }
             catch { Debug.WriteLine("error getting selStartRect (selStartInBlock: " + thisPar.SelectionStartInBlock + ", startlineidx = " + startLineIndex); }
             
-            
-            Point selStartPoint = selStartRect.Position + new Vector(thisPar.FlowDocRelativeLeft, thisPar.FlowDocRelativeTop);
+            Point selStartPoint = selStartRect.Position + new Vector(thisPar.DocICRelativeLeft, thisPar.DocICRelativeTop);
             FlowDoc.Selection.StartRect = new Rect(selStartPoint, selStartRect.Size);
 
             try
@@ -171,7 +172,7 @@ public partial class RichTextBox : UserControl
                if (thisPar.SelectionStartInBlock > 0)
                {
                   Rect prevCharRect = tlayout.HitTestTextPosition(thisPar.SelectionStartInBlock - 1);
-                  Point prevCharPoint = prevCharRect.Position + new Vector(thisPar.FlowDocRelativeLeft, thisPar.FlowDocRelativeTop);
+                  Point prevCharPoint = prevCharRect.Position + new Vector(thisPar.DocICRelativeLeft, thisPar.DocICRelativeTop);
                   FlowDoc.Selection.PrevCharRect = new Rect(prevCharPoint, prevCharRect.Size);
                }
             }
@@ -209,7 +210,7 @@ public partial class RichTextBox : UserControl
          try
          {
             Rect selEndRect = tlayout.HitTestTextPosition(thisPar.SelectionEndInBlock);
-            Point selEndPoint = selEndRect.Position + new Vector(thisPar.FlowDocRelativeLeft, thisPar.FlowDocRelativeTop);
+            Point selEndPoint = selEndRect.Position + new Vector(thisPar.DocICRelativeLeft, thisPar.DocICRelativeTop);
             FlowDoc.Selection.EndRect = new Rect(selEndPoint, selEndRect.Size);
 
             thisPar.DistanceSelectionEndFromLeft = selEndRect.Left;

@@ -213,47 +213,7 @@ public partial class FlowDocument
 
    }
 
-   internal void EnsureSelectionContinuity()
-   {
-
-      //List<Paragraph> allPars = AllParagraphs;
-
-      ////foreach (Paragraph p in allPars.Where(p => !SelectionParagraphs.Contains(p)))
-      ////    p.ClearSelection(); 
-
-      //if (SelectionParagraphs.Count > 1)
-      //{
-      //   for (int i = 0; i < SelectionParagraphs.Count; i++)
-      //   {
-      //      Paragraph selPar = SelectionParagraphs[i];
-      //      switch (i)
-      //      {
-      //         case 0:
-      //            //ensure first par selected to end
-      //            selPar.SelectionEndInBlock = selPar.BlockLength;
-      //            break;
-
-      //         case int last when last == SelectionParagraphs.Count - 1:
-      //            //ensure last par selected from start
-      //            selPar.SelectionStartInBlock = 0;
-      //            break;
-
-      //         default:
-      //            selPar.SelectionStartInBlock = 0;
-      //            selPar.SelectionEndInBlock = selPar.BlockLength;
-      //            break;
-      //      }
-      //   }
-      //}
-
-      foreach (Paragraph p in SelectionParagraphs)
-      {
-         if (p.IsTableCellBlock)
-            p.OwningCell.Selected = (p.SelectionStartInBlock == 0 && p.SelectionEndInBlock == p.BlockLength);
-      }
-
-   }
-
+  
 }
 
 

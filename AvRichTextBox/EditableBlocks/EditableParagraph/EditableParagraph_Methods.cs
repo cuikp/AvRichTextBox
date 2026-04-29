@@ -64,8 +64,6 @@ internal partial class EditableParagraph
       //foreach (Inline thisIL in this.Inlines!)
       //   Debug.WriteLine("1:\n" + ((Run)thisIL).GetText + " ::: " + thisIL.FontWeight);
 
-      //this.Height = this.Inlines[0].get
-
       this.InvalidateMeasure();
       this.InvalidateVisual();
    }
@@ -82,9 +80,6 @@ internal partial class EditableParagraph
             {
                ThisPar.DocICRelativeTop = p.Y + ThisPar.Margin.Top;
                ThisPar.DocICRelativeLeft = p.X + ThisPar.Margin.Left;
-
-               ThisPar.FlowDocRelativeTop = ThisPar.DocICRelativeTop + ThisPar.MyFlowDoc.PagePadding.Top;
-               ThisPar.FlowDocRelativeLeft = ThisPar.DocICRelativeLeft + ThisPar.MyFlowDoc.PagePadding.Left;
             }
          }
       }

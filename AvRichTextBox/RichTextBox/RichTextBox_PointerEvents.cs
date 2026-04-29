@@ -1,5 +1,7 @@
+using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.VisualTree;
+using DocumentFormat.OpenXml.Wordprocessing;
 using System.Text.RegularExpressions;
 
 namespace AvRichTextBox;
@@ -35,9 +37,6 @@ public partial class RichTextBox
       TextHitTestResult hitCarIndex = currentMouseOverEP.TextLayout.HitTestPoint(e.GetPosition(currentMouseOverEP));
       if (currentMouseOverEP.DataContext is not Paragraph thisPar) return;
       SelectionOrigin = thisPar.StartInDoc + hitCarIndex.TextPosition;
-
-      ////Clear all selections in all paragraphs      
-      //foreach (Paragraph p in FlowDoc.AllParagraphs.Where(pp => pp.SelectionLength != 0)) { p.ClearSelection();  }
 
       int sel_start_idx = SelectionOrigin;
       int sel_end_idx = SelectionOrigin;
@@ -80,18 +79,29 @@ public partial class RichTextBox
 
    private void FlowDocSV_PointerMoved(object? sender, PointerEventArgs e)
    {      
-
       if (PointerDownOverRTB)
       {
          EditableParagraph overEP = null!;
 
+         double scaleXTransform = 1;
+         double scaleYTransform = 1;
+         if (FlowDocSV.Parent is LayoutTransformControl ltcont)
+         {
+            if (ltcont.LayoutTransform is ScaleTransform scTrans)
+            {
+               scaleXTransform = scTrans.ScaleX;
+               scaleYTransform = scTrans.ScaleY;
+            }
+         }
+
          double RTBTransformedY = this.GetTransformedBounds()!.Value.Clip.Y;
 
          foreach (KeyValuePair<EditableParagraph, Rect> kvp in VisualHelper.GetVisibleEditableParagraphs(FlowDocSV))
-         {  //Debug.WriteLine("visiPar = " + kvp.Key.GetText);
-
+         {  
             Point ePoint = e.GetCurrentPoint(FlowDocSV).Position;
-            Rect thisEPRect = new(kvp.Value.X - DocIC.Margin.Left, kvp.Value.Y, kvp.Value.Width, kvp.Value.Height);
+            ePoint = ePoint.Transform(Matrix.CreateScale(scaleXTransform, scaleYTransform));
+            
+            Rect thisEPRect = new(kvp.Value.X - this.Padding.Left, kvp.Value.Y - this.Padding.Top, kvp.Value.Width, kvp.Value.Height);
 
             double adjustedMouseY = ePoint.Y + RTBTransformedY;
             bool epContainsPoint = thisEPRect.Top <= adjustedMouseY && thisEPRect.Bottom >= adjustedMouseY;
@@ -102,14 +112,13 @@ public partial class RichTextBox
 
          if (overEP != null)
          {
-
             TextHitTestResult hitCharIndex = overEP.TextLayout.HitTestPoint(e.GetPosition(overEP));
             int charIndex = hitCharIndex.TextPosition;
 
             if (overEP.DataContext is not Paragraph thisPar) return;
          
             if (thisPar.StartInDoc + charIndex < SelectionOrigin)
-            {  //Debug.WriteLine("startindoc = " + ThisPar.StartInDoc + " :::charindex = " +  charIndex + " :::selectionorigin= " + SelectionOrigin);
+            {  
                FlowDoc.SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeLeft;
                FlowDoc.Selection.End = SelectionOrigin;
                FlowDoc.Selection.Start = thisPar.StartInDoc + charIndex;
@@ -120,8 +129,6 @@ public partial class RichTextBox
                FlowDoc.Selection.Start = SelectionOrigin;
                FlowDoc.Selection.End = thisPar.StartInDoc + charIndex;
             }
-
-            FlowDoc.EnsureSelectionContinuity();
          }
       }
 

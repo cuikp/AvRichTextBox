@@ -3,14 +3,23 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:dataannotations="using:System.ComponentModel.DataAnnotations"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:system="using:System"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" Background="White"
+             xmlns:system="using:System" mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" 
 			 xmlns:local="using:AvRichTextBox" 
 			 x:Class="AvRichTextBox.RichTextBox" 
 			 PointerReleased="RichTextBox_PointerReleased" PointerExited="RichTextBox_PointerExited" KeyDown="RichTextBox_KeyDown"  Focusable="True"
-			 BorderBrush="Black" BorderThickness="1" Padding="2"  >
+			 BorderBrush="Black" BorderThickness="1" Background="White" Template="{StaticResource NoPaddingTemplate}" Padding="0" >
 
-
+	<!--Disable user settings for Horiz/VerticalContentAlignment, because that would break internal positioning -->
+	<UserControl.Resources>
+        <ControlTemplate x:Key="NoPaddingTemplate" TargetType="UserControl">
+            <ContentPresenter
+                Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+				BorderThickness="{TemplateBinding BorderThickness}"
+				Background="{TemplateBinding Background}" 
+				Padding="{TemplateBinding Padding}"/>
+        </ControlTemplate>
+    </UserControl.Resources>
 
 	<UserControl.Styles>
 
@@ -114,7 +123,7 @@
 												<ItemsControl.ItemTemplate>
 													<DataTemplate x:DataType="{x:Type local:Cell}">
 														<Grid>
-															<local:EditableCell Padding="{Binding Padding}"  BorderThickness="{Binding BorderThickness}" BorderBrush="{Binding BorderBrush}" Background="{Binding CellBackground}" >
+															<local:EditableCell Padding="{Binding Padding}"  BorderThickness="{Binding BorderThickness}" BorderBrush="{Binding BorderBrush}" Background="{Binding CellBackground}"  >
 															
 																<local:EditableParagraph x:DataType="local:Paragraph" Classes="paragraphBindings" DataContext="{Binding CellContent}" xml:space="preserve" 
 																	MouseMove="EditableParagraph_MouseMove" 
@@ -156,3 +165,4 @@
 
 
 </UserControl>
+ 

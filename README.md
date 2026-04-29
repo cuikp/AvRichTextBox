@@ -151,9 +151,6 @@ Includes changes such as fix to mouse selection (wasn't working in Release mode)
 **[ver 1.4.5] 2026/01/28**
 Multiple/overlapping text formatting and undos now work better being based on `IEditable` Ids rather than using their in-paragraph indexes. Also `Paragraph` Ids instead of indexes.  Fixed erroneous deletion of required empty inline before `EditableLineBreak`.  `Paragraph` text ends with "\r\n" as is proper (rather than "\r").
 
-**[ver 1.4.6] 2026/01/30**
-Further `Undo` improvements
-
 **[ver 1.4.7] 2026/01/30**
 No `DebugPanel` created at all (not just hidden) in Release mode.  Should have been this way from the start...
 
@@ -163,8 +160,7 @@ Can add direct content to `RichTextBox` in Xaml
 **[ver. 1.6.0] 2026/02/xx**
 Can set `SelectionBrush` globally for AvRichTextBox
 
-**[ver.1.6.2] 2026/03/01**
-**[ver.1.6.3]**
+**[ver.1.6.3] 2026/03/01**
 Added preliminary `Table` support.  `Table` can be added as a `Block` in the `FlowDocument`.  (Some bugs remain to be fixed: for example, copying/pasting of tables not supported yet.)
 In addition, `BaselineAlignment.Superscript`/`.Subscript` runs now appear properly as such (raised/lowered text).  (Modification was necessary because Avalonia's `SelectableTextBlock` currently doesn't display them properly).  
 

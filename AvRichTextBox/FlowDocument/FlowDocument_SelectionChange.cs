@@ -1,4 +1,7 @@
 ﻿
+using Avalonia.Controls;
+using Avalonia.Media;
+using Avalonia.Media.TextFormatting;
 using DocumentFormat.OpenXml.Math;
 
 namespace AvRichTextBox;
@@ -73,6 +76,7 @@ public partial class FlowDocument
       SelectionChanged?.Invoke(selRange);
 
    }
+
 
 
 }

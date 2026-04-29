@@ -28,13 +28,13 @@ public partial class MainWindow : Window
       {
          Title = "Open Xaml package file",
          SuggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync(Path.Combine(AppContext.BaseDirectory, "TestFiles")),
-         FileTypeFilter = 
+         FileTypeFilter =
          [
             new("Xaml package files") { Patterns = ["*.xamlp"] },
             new("all files") { Patterns = ["*.*"] }
 
          ],
-         
+
          AllowMultiple = false
       };
 
@@ -167,5 +167,10 @@ public partial class MainWindow : Window
          Process.Start("open", filesPath);
       else
          Process.Start("xdg-open", filesPath);
+   }
+
+   private void RTBZoomNS_UserValueChanged(double value)
+   {
+      MainRTB.Zoom = value;
    }
 }
