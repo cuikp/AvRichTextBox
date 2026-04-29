@@ -5,7 +5,7 @@ using Avalonia.Media.Imaging;
 using HtmlAgilityPack;
 using System.Drawing;
 using System.Globalization;
-using System.Runtime.CompilerServices;
+using System.Net;
 using System.Text.RegularExpressions;
 
 namespace AvRichTextBox;
@@ -294,7 +294,7 @@ internal static partial class HtmlConversions
          switch (inlineNode.Name)
          {
             case "span":
-               EditableRun erun = new() { Text = inlineNode.InnerText };
+               EditableRun erun = new() { Text = WebUtility.HtmlDecode(inlineNode.InnerText) };
 
                foreach (KeyValuePair<string, string> kvp in ParseStyleAttribute(inlineNode.GetAttributeValue("style", "")))
                {
