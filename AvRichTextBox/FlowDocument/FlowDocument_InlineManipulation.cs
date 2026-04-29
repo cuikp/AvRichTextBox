@@ -79,15 +79,19 @@ public partial class FlowDocument
          AllSelectedInlines = [.. AllParagraphs.SelectMany(p => p.Inlines.Where(iline => 
          {
             var ilineAbsoluteStart = p.StartInDoc + iline.TextPositionOfInlineInParagraph;
-            return ilineAbsoluteStart + iline.InlineLength >= trange.Start && ilineAbsoluteStart < trange.End; 
+            return (iline is EditableRun) && ilineAbsoluteStart + iline.InlineLength >= trange.Start && ilineAbsoluteStart < trange.End; 
          }
          ))];
             
 
       if (AllSelectedInlines.Count == 0 ||
          trange.GetStartPar() is not Paragraph startPar ||
-         trange.GetEndPar() is not Paragraph endPar) 
+         trange.GetEndPar() is not Paragraph endPar)
+      {
+         edgeIds.idRight = trange.GetStartInline()!.Id;
          return [];
+      }
+         
 
       //Debug.WriteLine("\ntouched inlines=\n" + string.Join("\n", AllSelectedInlines.ConvertAll(il => il.InlineText + " :: " + il.Id)));
 
@@ -138,8 +142,7 @@ public partial class FlowDocument
          }
       }
       else
-      {
-         
+      {         
          //split last run and remove trailing excess run from list
          if (!RangeEndsAtInlineEnd)
          {
@@ -173,8 +176,8 @@ public partial class FlowDocument
       startPar.CallRequestInlinesUpdate();
       endPar.CallRequestInlinesUpdate();
       UpdateBlockAndInlineStarts(AllParagraphs.IndexOf(startPar));
- 
-    
+
+
       return AllSelectedInlines;
 
    }

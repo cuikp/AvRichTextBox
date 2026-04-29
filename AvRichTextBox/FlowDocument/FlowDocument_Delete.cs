@@ -144,7 +144,6 @@ public partial class FlowDocument
       (int idLeft, int idRight) edgeIds;
       List<IEditable> rangeInlines = GetRangeInlinesAndAddToDoc(trange, out edgeIds);
 
-
       //Delete the created inlines
       foreach (IEditable toDeleteRun in rangeInlines)
       {

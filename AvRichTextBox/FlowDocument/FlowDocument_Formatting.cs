@@ -49,9 +49,9 @@ public partial class FlowDocument
    private ToggleFormatRun? toggleFormatRun;
 
    private delegate void ToggleFormatRun(IEditable ied);
-   private void ToggleApplyBold(IEditable ied) { if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).FontWeight = BoldOn ? FontWeight.Bold : FontWeight.Normal; } }
-   private void ToggleApplyItalic(IEditable ied) { if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).FontStyle = ItalicOn ? FontStyle.Italic : FontStyle.Normal; } }
-   private void ToggleApplyUnderline(IEditable ied) { if (ied.GetType() == typeof(EditableRun)) { ((EditableRun)ied).TextDecorations = UnderliningOn ? TextDecorations.Underline : null; } }
+   private void ToggleApplyBold(IEditable ied) { if (ied is EditableRun erun) { erun.FontWeight = BoldOn ? FontWeight.Bold : FontWeight.Normal; } }
+   private void ToggleApplyItalic(IEditable ied) { if (ied is EditableRun erun) { erun.FontStyle = ItalicOn ? FontStyle.Italic : FontStyle.Normal; } }
+   private void ToggleApplyUnderline(IEditable ied) { if (ied is EditableRun erun) { erun.TextDecorations = UnderliningOn ? TextDecorations.Underline : null; } }
 
    internal void ToggleItalic()
    {
@@ -65,8 +65,8 @@ public partial class FlowDocument
             if (startInline != Selection.StartParagraph.Inlines.Last() && GetCharPosInInline(startInline, Selection.Start) == startInline.InlineText.Length)
             {
                IEditable nextInline = Selection.StartParagraph.Inlines[Selection.StartParagraph.Inlines.IndexOf(startInline) + 1];
-               bool nextRunItalic = nextInline.GetType() == typeof(EditableRun) && ((EditableRun)nextInline).FontStyle == FontStyle.Italic;
-               InsertRunMode = (ItalicOn != nextRunItalic);
+               bool nextRunItalic = nextInline is EditableRun nextrun && nextrun.FontStyle == FontStyle.Italic;
+               InsertRunMode = (ItalicOn != nextRunItalic) || nextInline is not EditableRun;
                Selection.BiasForwardStart = !InsertRunMode;
             }
          }
@@ -80,16 +80,17 @@ public partial class FlowDocument
    {
       if (Selection.Length == 0)
       {
-         toggleFormatRun = ToggleApplyBold;
          BoldOn = !BoldOn;
+         toggleFormatRun = ToggleApplyBold;
+         
          InsertRunMode = true;
          if (Selection.GetStartInline() is IEditable startInline)
          {
             if (startInline != Selection.StartParagraph.Inlines.Last() && GetCharPosInInline(startInline, Selection.Start) == startInline.InlineText.Length)
             {
                IEditable nextInline = Selection.StartParagraph.Inlines[Selection.StartParagraph.Inlines.IndexOf(startInline) + 1];
-               bool nextRunBold = nextInline.GetType() == typeof(EditableRun) && ((EditableRun)nextInline).FontWeight == FontWeight.Bold;
-               InsertRunMode = (BoldOn != nextRunBold);
+               bool nextRunBold = nextInline is EditableRun nextrun && nextrun.FontWeight == FontWeight.Bold;
+               InsertRunMode = (BoldOn != nextRunBold) || nextInline is not EditableRun;
                Selection.BiasForwardStart = !InsertRunMode;
             }
          }
@@ -103,8 +104,9 @@ public partial class FlowDocument
    {
       if (Selection.Length == 0)
       {
-         toggleFormatRun = ToggleApplyUnderline;
          UnderliningOn = !UnderliningOn;
+         toggleFormatRun = ToggleApplyUnderline;
+        
          InsertRunMode = true;
 
          if (Selection.GetStartInline() is IEditable startInline)
@@ -112,8 +114,8 @@ public partial class FlowDocument
             if (startInline != Selection.StartParagraph.Inlines.Last() && GetCharPosInInline(startInline, Selection.Start) == startInline.InlineText.Length)
             {
                IEditable nextInline = Selection.StartParagraph.Inlines[Selection.StartParagraph.Inlines.IndexOf(startInline) + 1];
-               bool nextRunUnderlined = nextInline.GetType() == typeof(EditableRun) && ((EditableRun)nextInline).TextDecorations == TextDecorations.Underline;
-               InsertRunMode = (UnderliningOn != nextRunUnderlined);
+               bool nextRunUnderlined = nextInline is EditableRun nextrun && nextrun.TextDecorations == TextDecorations.Underline;
+               InsertRunMode = (UnderliningOn != nextRunUnderlined) || nextInline is not EditableRun;
                Selection.BiasForwardStart = !InsertRunMode;
             }
          }

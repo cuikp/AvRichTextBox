@@ -1,9 +1,8 @@
-﻿using DocumentFormat.OpenXml.InkML;
+﻿using Avalonia.Threading;
 using DynamicData;
 using RtfDomParserAv;
 using System.Text;
 using System.Xml;
-using Avalonia.Threading;
 
 namespace AvRichTextBox;
 
@@ -105,6 +104,7 @@ public partial class FlowDocument
    internal void InsertText(string? insertText)
    {
       if (Selection.GetStartInline() is not IEditable startInline || startInline.GetType() == typeof(EditableInlineUIContainer)) return;
+     
 
       if (insertText != null)
       {
@@ -118,18 +118,36 @@ public partial class FlowDocument
 
          int insertIdx = 0;
          if (InsertRunMode)
-         {
+         {  
+            disableRunTextUndo = true;
+
+            if (startInline.CloneWithId() is not EditableRun startInlineRunClone) return;
+            int originalStart = Selection.Start;
+            int runIdx = Selection.StartParagraph.Inlines.IndexOf(startInline);
+
             (int idLeft, int idRight) edgeIds;
+
             List<IEditable> applyInlines = GetRangeInlinesAndAddToDoc(Selection, out edgeIds);
+
             if (applyInlines.Count == 0)
             {
                applyInlines.Add(new EditableRun(""));
-               Selection.StartParagraph.Inlines.Insert(0, applyInlines[0]);
+               Selection.StartParagraph.Inlines.Insert(runIdx, applyInlines[0]);
             }
-            startInline = applyInlines[0];
+
+            if (applyInlines.Count > 0 && applyInlines[0] is EditableRun erun)
+               startInline = erun;
+
+            int addedId = applyInlines[0].Id;
+            
+            Undos.Add(new InsertNewFormattedTextUndo(Selection.StartParagraph.Id, startInlineRunClone, edgeIds, addedId, runIdx, this, originalStart));
+                        
             startInline.InlineText = insertText;
-            toggleFormatRun!(startInline);
+
+            toggleFormatRun?.Invoke(startInline);
             InsertRunMode = false;
+
+            disableRunTextUndo = false;
          }
          else
          {

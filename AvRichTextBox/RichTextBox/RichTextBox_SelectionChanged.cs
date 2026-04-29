@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 
 namespace AvRichTextBox;
 
@@ -92,7 +93,7 @@ public partial class RichTextBox : UserControl
                int lineStartIndex = tline.FirstTextSourceIndex;
                int lineEndIndex = lineStartIndex + tline.Length;
 
-               bool isSelectedLine = lineEndIndex >= p.SelectionStartInBlock && lineStartIndex < p.SelectionEndInBlock;
+               bool isSelectedLine = lineEndIndex > p.SelectionStartInBlock && lineStartIndex < p.SelectionEndInBlock;
                bool isFirstSelLine = isSelectedLine && lineStartIndex <= p.SelectionStartInBlock;
                bool isLastSelLine =  isSelectedLine &&  lineEndIndex > p.SelectionEndInBlock;
 

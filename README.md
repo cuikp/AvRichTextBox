@@ -201,3 +201,7 @@ Completely revamped the visual method for displaying text selection (independent
 This new selection method can now properly highlight linebreaks and empty paragraphs as well.
 Caret size and position also fixed for most cases.
 
+**[ver 1.8.1] 2026/04/29**:
+Disabled user setting of `Horizontal/VerticalContentAlignment` directly on `RichTextBox`, which would break internal measurement of caret and selection highlighting.
+Fixed mouse selection relative to `FlowDoc.PagePadding` and `Zoom`.
+Fixed issue with quotes in html/rtf loading.

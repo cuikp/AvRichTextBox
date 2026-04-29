@@ -15,9 +15,9 @@ internal class TextChangedUndo(FlowDocument flowDoc, int parId, int runId, int s
 
       flowDoc.disableRunTextUndo = true;
 
-      if (insertText.Length> 0)
+      if (insertText.Length > 0)
          thisRun.Text = thisRun.Text!.Remove(start, insertText.Length);
-      if (deletedText.Length> 0)
+      if (deletedText.Length > 0)
          thisRun.Text = thisRun.Text!.Insert(start, deletedText);
 
       thisPar.CallRequestInlinesUpdate();
@@ -68,6 +68,39 @@ internal class DeleteRunUndo(int parId, EditableRun removedRunClone, int deleted
          flowDoc.Selection.End = flowDoc.Selection.Start;
       }
       catch { Debug.WriteLine("Failed DeleteImageUndo at delete pos: " + origSelectionStart); }
+   }
+      
+}
+
+internal class InsertNewFormattedTextUndo(int parId, EditableRun removedRunClone, (int leftId, int rightId) edgeIds, int addedRunId, int deletedRunIdx, FlowDocument flowDoc, int origSelectionStart) : IUndo
+{
+   public int UndoEditOffset => 1;
+   public bool UpdateTextRanges => true;
+   
+   public void PerformUndo()
+   {
+      try
+      {
+         flowDoc.disableRunTextUndo = true;
+         if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == parId) is not Paragraph thisPar) return;
+         
+         if (thisPar.Inlines.FirstOrDefault(il => il.Id == edgeIds.leftId) is EditableRun leftRun)
+            thisPar.Inlines.Remove(leftRun);
+         if (thisPar.Inlines.FirstOrDefault(il => il.Id == edgeIds.rightId) is EditableRun rightRun)
+            thisPar.Inlines.Remove(rightRun);
+         if (thisPar.Inlines.FirstOrDefault(il => il.Id == addedRunId) is EditableRun addedRun)
+            thisPar.Inlines.Remove(addedRun);
+         
+         thisPar.Inlines.Insert(deletedRunIdx, removedRunClone);
+
+         flowDoc.disableRunTextUndo = false;
+
+         thisPar.CallRequestInlinesUpdate();
+         flowDoc.UpdateBlockAndInlineStarts(thisPar);
+         flowDoc.Selection.Start = origSelectionStart;
+         flowDoc.Selection.End = flowDoc.Selection.Start;
+      }
+      catch { Debug.WriteLine("Failed InsertNewFormattedTextUndo at delete pos: " + origSelectionStart); }
    }
       
 }
