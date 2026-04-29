@@ -10,7 +10,7 @@ public partial class RichTextBox
    private void RichTextBox_KeyDown(object? sender, KeyEventArgs e)
    {
 
-      if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
+      if (e.KeyModifiers.HasFlag(KeyModifiers.Control) && !e.KeyModifiers.HasFlag(KeyModifiers.Alt))
       {
          e.Handled = true;
 
