@@ -32,6 +32,11 @@ public partial class RichTextBox
                CopyToClipboard();
                break;
 
+            case Key.X:
+               CopyToClipboard();
+               PerformDelete(false);
+               break;
+
             case Key.V:
                PasteFromClipboard();
                break;
