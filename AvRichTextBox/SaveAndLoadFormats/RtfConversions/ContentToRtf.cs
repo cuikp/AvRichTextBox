@@ -484,6 +484,8 @@ internal static partial class RtfConversions
 
          if (c is '\\' or '{' or '}')
             sb.Append(@"\" + c); // RTF control characters
+         else if (c == '"')
+            sb.Append(@"\'22"); // Escape double quote
          else if (c > 127) // Non-ASCII (double-byte characters)
             sb.Append(@"\u" + (int)c + "?"); // Unicode escape
          else
