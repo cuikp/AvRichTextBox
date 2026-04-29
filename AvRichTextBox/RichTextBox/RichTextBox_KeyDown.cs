@@ -36,13 +36,21 @@ public partial class RichTextBox
                PasteFromClipboard();
                break;
 
-            case Key.Home: // Ctrl-Home 
-               FlowDoc.MoveToDocStart();
-               FlowDocSV.ScrollToHome();
+            case Key.Home: // Ctrl-Home / Ctrl-Shift-Home
+               if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+                  FlowDoc.ExtendSelectionToDocStart();
+               else
+               {
+                  FlowDoc.MoveToDocStart();
+                  FlowDocSV.ScrollToHome();
+               }
                break;
 
-            case Key.End: // Ctrl-End 
-               FlowDoc.MoveToDocEnd();
+            case Key.End: // Ctrl-End / Ctrl-Shift-End
+               if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+                  FlowDoc.ExtendSelectionToDocEnd();
+               else
+                  FlowDoc.MoveToDocEnd();
                break;
 
             case Key.Z:
@@ -64,11 +72,17 @@ public partial class RichTextBox
                break;
 
             case Key.Right:
-               FlowDoc.MoveRightWord();
+               if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+                  FlowDoc.ExtendSelectionRightWord();
+               else
+                  FlowDoc.MoveRightWord();
                break;
 
             case Key.Left:
-               FlowDoc.MoveLeftWord();
+               if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
+                  FlowDoc.ExtendSelectionLeftWord();
+               else
+                  FlowDoc.MoveLeftWord();
                break;
          }
       }

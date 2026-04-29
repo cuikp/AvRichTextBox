@@ -59,6 +59,202 @@ public partial class FlowDocument
       ScrollInDirection?.Invoke(-1);
    }
 
+   internal void ExtendSelectionRightWord()
+   {
+      Selection.BiasForwardEnd = true;
+
+      int targetPos = GetNextWordPosition();
+
+      switch (SelectionExtendMode)
+      {
+         case ExtendMode.ExtendModeNone:
+         case ExtendMode.ExtendModeRight:
+            SelectionExtendMode = ExtendMode.ExtendModeRight;
+            Selection.End = targetPos;
+            break;
+
+         case ExtendMode.ExtendModeLeft:
+            if (targetPos >= Selection.End)
+            {
+               Selection.Start = Selection.End;
+               Selection.End = targetPos;
+               SelectionExtendMode = ExtendMode.ExtendModeRight;
+            }
+            else
+               Selection.Start = targetPos;
+            break;
+      }
+
+      ScrollInDirection?.Invoke(1);
+   }
+
+   internal void ExtendSelectionLeftWord()
+   {
+      Selection.BiasForwardEnd = false;
+
+      int targetPos = GetPreviousWordPosition();
+
+      switch (SelectionExtendMode)
+      {
+         case ExtendMode.ExtendModeNone:
+         case ExtendMode.ExtendModeLeft:
+            SelectionExtendMode = ExtendMode.ExtendModeLeft;
+            Selection.Start = targetPos;
+            break;
+
+         case ExtendMode.ExtendModeRight:
+            if (targetPos <= Selection.Start)
+            {
+               Selection.End = Selection.Start;
+               Selection.Start = targetPos;
+               SelectionExtendMode = ExtendMode.ExtendModeLeft;
+            }
+            else
+               Selection.End = targetPos;
+            break;
+      }
+
+      ScrollInDirection?.Invoke(-1);
+   }
+
+   internal void ExtendSelectionToDocStart()
+   {
+      Selection.BiasForwardStart = true;
+      Selection.BiasForwardEnd = true;
+
+      switch (SelectionExtendMode)
+      {
+         case ExtendMode.ExtendModeNone:
+         case ExtendMode.ExtendModeLeft:
+            SelectionExtendMode = ExtendMode.ExtendModeLeft;
+            Selection.Start = 0;
+            break;
+
+         case ExtendMode.ExtendModeRight:
+            // Was extending right, now selecting all the way to doc start
+            // means we flip direction past the anchor
+            Selection.End = Selection.Start;
+            Selection.Start = 0;
+            SelectionExtendMode = ExtendMode.ExtendModeLeft;
+            break;
+      }
+
+      ScrollInDirection?.Invoke(-1);
+   }
+
+   internal void ExtendSelectionToDocEnd()
+   {
+      Selection.BiasForwardStart = false;
+      Selection.BiasForwardEnd = false;
+
+      List<Paragraph> allPars = AllParagraphs;
+      int docEnd = allPars[^1].StartInDoc + allPars[^1].BlockLength - 1;
+
+      switch (SelectionExtendMode)
+      {
+         case ExtendMode.ExtendModeNone:
+         case ExtendMode.ExtendModeRight:
+            SelectionExtendMode = ExtendMode.ExtendModeRight;
+            Selection.End = docEnd;
+            break;
+
+         case ExtendMode.ExtendModeLeft:
+            // Was extending left, now selecting all the way to doc end
+            // means we flip direction past the anchor
+            Selection.Start = Selection.End;
+            Selection.End = docEnd;
+            SelectionExtendMode = ExtendMode.ExtendModeRight;
+            break;
+      }
+
+      ScrollInDirection?.Invoke(1);
+   }
+
+   /// <summary>
+   /// Computes the position of the next word boundary (rightward) from the current selection end.
+   /// </summary>
+   private int GetNextWordPosition()
+   {
+      // Determine the anchor point based on extend mode
+      int currentPos = (SelectionExtendMode == ExtendMode.ExtendModeLeft) ? Selection.Start : Selection.End;
+
+      Paragraph startP = (SelectionExtendMode == ExtendMode.ExtendModeLeft) ? Selection.StartParagraph : Selection.EndParagraph;
+      int posInBlock = currentPos - startP.StartInDoc;
+
+      if (posInBlock >= startP.TextLength)
+      {
+         // At end of paragraph, move to start of next paragraph
+         int nextPos = startP.StartInDoc + startP.BlockLength;
+         return Math.Min(nextPos, DocEndPoint - 1);
+      }
+
+      string parText = startP.Text;
+
+      // Skip any spaces at the current position
+      int searchFrom = posInBlock;
+      while (searchFrom < parText.Length && (parText[searchFrom] == ' ' || parText[searchFrom] == '\n'))
+         searchFrom++;
+
+      if (searchFrom >= parText.Length)
+         return startP.StartInDoc + startP.TextLength;
+
+      // Find next space from the adjusted position
+      int indexNext = parText.IndexOf(' ', searchFrom);
+      if (indexNext == -1)
+      {
+         // No space found - go to end of paragraph text
+         return startP.StartInDoc + startP.TextLength;
+      }
+      else
+      {
+         // Go to position after the space
+         return startP.StartInDoc + indexNext + 1;
+      }
+   }
+
+   /// <summary>
+   /// Computes the position of the previous word boundary (leftward) from the current selection start.
+   /// </summary>
+   private int GetPreviousWordPosition()
+   {
+      // Determine the anchor point based on extend mode
+      int currentPos = (SelectionExtendMode == ExtendMode.ExtendModeRight) ? Selection.End : Selection.Start;
+
+      if (currentPos <= 0)
+         return 0;
+
+      Paragraph startP = (SelectionExtendMode == ExtendMode.ExtendModeRight) ? Selection.EndParagraph : Selection.StartParagraph;
+      int posInBlock = currentPos - startP.StartInDoc;
+
+      if (posInBlock <= 0)
+      {
+         // At start of paragraph, move to end of previous paragraph
+         return Math.Max(0, startP.StartInDoc - 1);
+      }
+
+      // Skip any spaces immediately to the left of current position
+      int searchFrom = posInBlock - 1;
+      string parText = startP.Text;
+      while (searchFrom > 0 && (parText[searchFrom] == ' ' || parText[searchFrom] == '\n'))
+         searchFrom--;
+
+      if (searchFrom <= 0)
+         return startP.StartInDoc;
+
+      // Find previous space from the adjusted position
+      int indexNext = parText.LastIndexOfAny(" \n".ToCharArray(), searchFrom);
+      if (indexNext == -1)
+      {
+         // No space found - go to start of paragraph
+         return startP.StartInDoc;
+      }
+      else
+      {
+         // Go to position after the space (right of space)
+         return startP.StartInDoc + indexNext + 1;
+      }
+   }
+
    internal void ExtendSelectionDown()
    {
       Selection.BiasForwardEnd = true;
