@@ -40,6 +40,7 @@ public partial class RichTextBox : UserControl
       this.TextInput += RichTextBox_TextInput;
       this.GotFocus += RichTextBox_GotFocus;
       this.LostFocus += RichTextBox_LostFocus;
+      this.ActualThemeVariantChanged += RichTextBox_ActualThemeVariantChanged;
 
       RtbVm.FlowDocChanged += RtbVM_FlowDocChanged;
 
@@ -151,8 +152,18 @@ public partial class RichTextBox : UserControl
          CreateClient();
 
       }
-
+   
+      else if (e.Property == CaretBrushProperty)
+      {
+         UpdateCaretBrush();
+      }
    }
+
+   private void RichTextBox_ActualThemeVariantChanged(object? sender, EventArgs e)
+   {
+      UpdateCaretBrush();
+   }
+   
 
    private void RichTextBox_GotFocus(object? sender, FocusChangedEventArgs e)
    {

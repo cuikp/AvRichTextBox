@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using Avalonia.Controls.Shapes;
 using Avalonia.Input.TextInput;
 using Avalonia.Layout;
@@ -122,6 +123,21 @@ public partial class RichTextBox
 
    }
 
-   
+   private void UpdateCaretBrush()
+   {
+      if (CaretBrush != null)
+      {
+         _CaretRect.Stroke = CaretBrush;
+      }
+      else if (this.TryFindResource("TextControlForeground", this.ActualThemeVariant, out var resource) && resource is IBrush brush)
+      {
+         _CaretRect.Stroke = brush;
+      }
+      else
+      {
+         _CaretRect.Stroke = Brushes.Black;
+      }
+   }
+
 }
 
