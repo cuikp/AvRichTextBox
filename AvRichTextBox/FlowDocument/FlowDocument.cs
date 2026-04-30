@@ -26,6 +26,9 @@ public partial class FlowDocument : AvaloniaObject
       
    internal bool IsEditable { get; set; } = true;
 
+   public static readonly DirectProperty<FlowDocument, bool> HasSelectedTextProperty = AvaloniaProperty.RegisterDirect<FlowDocument, bool>(nameof(HasSelectedText), o => o.HasSelectedText);
+   public bool HasSelectedText => Selection.Length > 0;
+
    internal ObservableCollection<IUndo> Undos { get; set; } = [];
    internal ObservableCollection<Paragraph> SelectionParagraphs { get; set; } = [];
    internal List<TextRange> TextRanges = [];

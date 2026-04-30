@@ -31,12 +31,21 @@ public partial class RichTextBox
    private void FlowDocSV_PointerPressed(object? sender, PointerPressedEventArgs e)
    {
       if (currentMouseOverEP == null) return;
-
-      PointerDownOverRTB = true;
+            
 
       TextHitTestResult hitCarIndex = currentMouseOverEP.TextLayout.HitTestPoint(e.GetPosition(currentMouseOverEP));
       if (currentMouseOverEP.DataContext is not Paragraph thisPar) return;
       SelectionOrigin = thisPar.StartInDoc + hitCarIndex.TextPosition;
+
+
+      if (e.Properties.IsRightButtonPressed)
+      {
+         if (FlowDoc.Selection.Length == 0)
+            FlowDoc.Select(SelectionOrigin, 0);
+         return;
+      }
+
+      PointerDownOverRTB = true;
 
       int sel_start_idx = SelectionOrigin;
       int sel_end_idx = SelectionOrigin;
@@ -137,7 +146,7 @@ public partial class RichTextBox
    private void RichTextBox_PointerReleased(object? sender, PointerReleasedEventArgs e)
    {
       PointerDownOverRTB = false;
-      
+
    }
 
    private void FlowDocSV_PointerReleased(object? sender, PointerReleasedEventArgs e)

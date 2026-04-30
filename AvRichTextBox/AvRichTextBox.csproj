@@ -20,7 +20,9 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>ver 1.8.2: Fixed undo not working after toggling formatting on/off while typing</PackageReleaseNotes>
+	  <PackageReleaseNotes>ver 1.8.2: Fixed undo not working after toggling formatting on/off while typing
+Fixed underlining not saving in html.
+Added right-click ContextMenu (Copy/Paste/Cut/Delete)</PackageReleaseNotes>
       
      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 	  <PackageOutputPath>D:\PROG\LocalNuget\AvRichTextBox</PackageOutputPath>

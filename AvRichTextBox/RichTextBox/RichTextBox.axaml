@@ -65,14 +65,22 @@
 		</LayoutTransformControl.LayoutTransform>
 
 	
-		<ScrollViewer x:Name="FlowDocSV"  HorizontalScrollBarVisibility="Disabled" Margin="0" Padding="5" Offset="{Binding RTBScrollOffset, Mode=OneWay}"  ScrollChanged="ScrollViewer_ScrollChanged" PointerPressed="FlowDocSV_PointerPressed" PointerMoved="FlowDocSV_PointerMoved" PointerReleased="FlowDocSV_PointerReleased"  >
-							
+		<ScrollViewer x:Name="FlowDocSV"  HorizontalScrollBarVisibility="Disabled" Margin="0" Padding="5" Offset="{Binding RTBScrollOffset, Mode=OneWay}" ScrollChanged="ScrollViewer_ScrollChanged" PointerPressed="FlowDocSV_PointerPressed" PointerMoved="FlowDocSV_PointerMoved" PointerReleased="FlowDocSV_PointerReleased"  >
+						
 
 			<Grid VerticalAlignment="Top">
 
 				<!-- The FlowDocument itself -->
-				<ItemsControl x:Name="DocIC" DataContext="{Binding FlowDoc}" VerticalAlignment="Top" ItemsSource="{Binding Blocks}" Margin="0" Padding="{Binding PagePadding}">
+				<ItemsControl x:Name="DocIC" DataContext="{Binding FlowDoc}" VerticalAlignment="Top" ItemsSource="{Binding Blocks}" Margin="0" Padding="{Binding PagePadding}" >
 
+					<ItemsControl.ContextMenu>
+						<ContextMenu>
+							<MenuItem Header="Copy" Click="CopySelectionMenuItem_Click" IsEnabled="{Binding HasSelectedText}"/>
+							<MenuItem Header="Paste" Click="PasteSelectionMenuItem_Click" />
+							<MenuItem Header="Cut" Click="CutSelectionMenuItem_Click" IsEnabled="{Binding HasSelectedText}"/>
+							<MenuItem Header="Delete" Click="DeleteSelectionMenuItem_Click" IsEnabled="{Binding HasSelectedText}"/>
+						</ContextMenu>
+					</ItemsControl.ContextMenu>
 
 					<ItemsControl.ItemsPanel>
 						<ItemsPanelTemplate>

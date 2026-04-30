@@ -18,12 +18,10 @@ public partial class FlowDocument
       bool firstParEmpty = startPar.Inlines[0] is EditableRun erun && erun.Text == "";
       bool firstParWasDeleted = startPar.StartInDoc == rangeStart && startPar.EndInDoc <= rangeEnd && !firstParEmpty; 
 
-      //Undos.Add(new PasteUndo(GetOverlappingParagraphsInRange(tRange), parIndex, this, rangeStart, deleteRangeLength - newText.Length, firstParEmpty, [], firstParWasDeleted));
-
       //Delete any selected text first
       if (tRange.Length > 0)
       {
-         DeleteRange(tRange, false, false);
+         DeleteRange(tRange, false, false);  // no undo, handled by PasteUndo
          tRange.CollapseToStart();
          SelectionExtendMode = ExtendMode.ExtendModeNone;
       }
@@ -99,10 +97,7 @@ public partial class FlowDocument
       Blocks.AddOrInsertRange(parClones, blockIndex);
 
       foreach (Paragraph p in parClones)
-      {
          p.CallRequestInlinesUpdate();
-         //p.ClearSelection();
-      }
   
       UpdateBlockAndInlineStarts(blockIndex);
 

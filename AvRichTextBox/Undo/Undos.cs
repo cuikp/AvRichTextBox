@@ -141,7 +141,7 @@ internal class PasteUndo(List<Paragraph> keptPars, int parIndex, FlowDocument fl
                   
 
       }
-      catch { Debug.WriteLine("Failed PasteUndo at OrigSelectionStart: " + origSelectionStart); }
+      catch { Debug.WriteLine("Failed Undo at OrigSelectionStart: " + origSelectionStart); }
    }
 }
 

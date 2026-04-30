@@ -46,10 +46,11 @@ public partial class FlowDocument
       selRange.StartParagraph?.CallRequestTextLayoutInfoStart();
       SelectionChanged?.Invoke(selRange);
 
+      UpdateHasSelectedText();
 
 
    }
-
+    
    internal void SelectionEnd_Changed(TextRange selRange, int newEnd)
    {
 
@@ -65,18 +66,27 @@ public partial class FlowDocument
 
       UpdateSelectedParagraphs();
 
-      ////Make sure start is not greater than end
-      //if (Selection.Length > 0)
-      //   if (selRange.EndParagraph.SelectionEndInBlock < selRange.EndParagraph.SelectionStartInBlock)
-      //      selRange.EndParagraph.SelectionStartInBlock = selRange.EndParagraph.SelectionEndInBlock;
-
       selRange.GetEndInline();
       
       selRange.EndParagraph?.CallRequestTextLayoutInfoEnd();
       SelectionChanged?.Invoke(selRange);
 
+      UpdateHasSelectedText();
+
    }
 
+   bool _lastHasSelectedText = false;
+   private void UpdateHasSelectedText()
+   {
+      var oldValue = _lastHasSelectedText;
+      var newValue = Selection.Length > 0;
+
+      if (oldValue != newValue)
+      {
+         _lastHasSelectedText = newValue;
+         RaisePropertyChanged(HasSelectedTextProperty, oldValue, newValue);
+      }
+   }
 
 
 }

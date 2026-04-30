@@ -141,8 +141,8 @@ internal partial class EditableParagraph : TextBlock
 
    }
 
-   protected override void OnPointerPressed(PointerPressedEventArgs e) { /*Prevent default behavior*/  }
-   protected override void OnPointerReleased(PointerReleasedEventArgs e) { /* Prevent default behavior*/ }
+   //protected override void OnPointerPressed(PointerPressedEventArgs e) { /*Prevent default behavior*/  }
+   //protected override void OnPointerReleased(PointerReleasedEventArgs e) { /* Prevent default behavior*/ }
 
    protected override void OnKeyDown(KeyEventArgs e)
    {

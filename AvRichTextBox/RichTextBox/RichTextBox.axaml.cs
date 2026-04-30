@@ -59,7 +59,7 @@ public partial class RichTextBox : UserControl
       InitializeBlinkAnimation();
 
       blinkAnimation.RunAsync(_CaretRect);
-      
+
       _CaretRect.Bind(IsVisibleProperty, new Binding("CaretVisible"));
       _CaretRect.Bind(MarginProperty, new Binding("CaretMargin"));
       _CaretRect.Bind(HeightProperty, new Binding("CaretHeight"));
@@ -264,12 +264,12 @@ public partial class RichTextBox : UserControl
          FlowDoc.MovePageSelection(direction, extend, newCharIndexInDoc + (int)(FlowDocSV.Bounds.Height / 2));
 
       }
-      
-      
+
+
    }
 
    private void FlowDocSV_SizeChanged(object? sender, SizeChangedEventArgs e)
-   {      
+   {
       RtbVm.ScrollViewerHeight = e.NewSize.Height;
 
       UpdateSelectionIndicators();
@@ -298,11 +298,33 @@ public partial class RichTextBox : UserControl
             }
       };
 
-
-      
    }
 
-  
+   
+   private void CopySelectionMenuItem_Click(object? sender, RoutedEventArgs e)
+   {
+      if (DisableUserCopy) return;
+      CopyToClipboard();
+   }
+   
+   private void PasteSelectionMenuItem_Click(object? sender, RoutedEventArgs e)
+   {
+      if (IsReadOnly) return;
+      PasteFromClipboard();
+   }
+
+   private void CutSelectionMenuItem_Click(object? sender, RoutedEventArgs e)
+   {
+      if (IsReadOnly) return;
+      CopyToClipboard();
+      FlowDoc.DeleteSelection();
+   }
+   
+   private void DeleteSelectionMenuItem_Click(object? sender, RoutedEventArgs e)
+   {
+      if (IsReadOnly) return;
+      FlowDoc.DeleteSelection();
+   }
 
 }
 
