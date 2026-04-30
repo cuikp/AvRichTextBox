@@ -32,17 +32,17 @@ public partial class RichTextBox
 
    }
 
-   
+
    private void CopyToClipboard()
-   {      
+   {
       if (DisableUserCopy) return;
-     
+
       var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
       if (clipboard == null) return;
       //create rtf string
       List<IEditable> newInlines = FlowDoc.GetRangeInlines(FlowDoc.Selection);
       string rtfString = RtfConversions.GetRtfFromInlines(newInlines);
-      
+
       var dataTransfer = new DataTransfer();
 
       // Rtf format
@@ -58,8 +58,8 @@ public partial class RichTextBox
    }
 
    readonly static DataFormat<byte[]> richTextFormat = DataFormat.CreateBytesPlatformFormat("Rich Text Format");
-   
-  
+
+
    private async void PasteFromClipboard()
    {
       if (IsReadOnly) return;
@@ -72,7 +72,7 @@ public partial class RichTextBox
       int originalSelectionStart = FlowDoc.Selection.Start;
       int originalSelectionEnd = FlowDoc.Selection.End;
       TextRange insertRange = FlowDoc.Selection;
-      List<Paragraph> originalRangeParagraphs = FlowDoc.GetOverlappingParagraphsInRange(insertRange).ConvertAll(op=>op.FullClone());
+      List<Paragraph> originalRangeParagraphs = FlowDoc.GetOverlappingParagraphsInRange(insertRange).ConvertAll(op => op.FullClone());
       int deleteRangeLength = insertRange.Length;
       Paragraph startPar = insertRange.StartParagraph;
       int insertParIndex = FlowDoc.Blocks.IndexOf(startPar);
@@ -92,7 +92,7 @@ public partial class RichTextBox
          contentPasted = true;
       }
 
-      else if (await clipboard.TryGetBitmapAsync() is Bitmap pasteBitmap) 
+      else if (await clipboard.TryGetBitmapAsync() is Bitmap pasteBitmap)
       {
          Image pasteImage = new() { Source = pasteBitmap };
          EditableInlineUIContainer newEIUC = new(pasteImage);
@@ -147,6 +147,13 @@ public partial class RichTextBox
 
 
    }
-    
-  
+
+   private void CutToClipboard()
+   {
+      if (IsReadOnly) return;
+      CopyToClipboard();
+      PerformDelete(false);
+   }
+
+
 }
