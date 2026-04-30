@@ -356,6 +356,13 @@ internal static partial class HtmlConversions
                               break;
                         }
                         break;
+
+                     case "text-decoration":
+                        if (kvp.Value.Contains("underline"))
+                           erun.TextDecorations = TextDecorations.Underline;
+                        else if (kvp.Value.Contains("line-through"))
+                           erun.TextDecorations = TextDecorations.Strikethrough;
+                        break;
                   }
                }
 
