@@ -11,10 +11,7 @@ public partial class FlowDocument
    internal int InsertRTF(byte[] rtfbytes, Paragraph startPar, TextRange insertRange, int insertParIndex, List<int> addedBlockIds)
    {
       (int leftId, int rightId) edgeIds = DeleteRange(insertRange, false, false);
-
-      IEditable leftInline = startPar.Inlines.FirstOrDefault(il => il.Id == edgeIds.leftId)!;
-      int insertIdx = (insertRange.Start == startPar.StartInDoc) ? 0 : startPar.Inlines.IndexOf(leftInline) + 1;
-      //Debug.WriteLine("insertidx = " + insertIdx + "\nleftinline = " + startPar.Inlines.FirstOrDefault(il => il.Id == edgeIds.leftId)!.InlineText);
+      int insertIdx = GetInsertIndexAfterDelete(startPar, edgeIds.leftId, insertRange);
 
       List<IEditable> rightSplitRuns = startPar.Inlines.ToList()[insertIdx..];
 
@@ -22,6 +19,23 @@ public partial class FlowDocument
 
       return ProcessInsertBlocks(rtfBlocks, startPar, insertIdx, insertParIndex, addedBlockIds, rightSplitRuns);
 
+   }
+
+
+   private int GetInsertIndexAfterDelete(Paragraph startPar, int leftId, TextRange insertRange)
+   {
+      if (insertRange.Start == startPar.StartInDoc)
+         return 0;
+
+      IEditable? leftInline = startPar.Inlines.FirstOrDefault(il => il.Id == leftId);
+      if (leftInline != null)
+         return startPar.Inlines.IndexOf(leftInline) + 1;
+
+      // The inline referenced by leftId was fully deleted.
+      // Calculate insert index from the character position instead.
+      int posInPar = insertRange.Start - startPar.StartInDoc;
+      IEditable? precedingInline = startPar.Inlines.LastOrDefault(il => il.TextPositionOfInlineInParagraph + il.InlineLength <= posInPar);
+      return precedingInline != null ? startPar.Inlines.IndexOf(precedingInline) + 1 : 0;
    }
 
 
@@ -63,7 +77,8 @@ public partial class FlowDocument
    internal int InsertXaml(byte[] xamlbytes, Paragraph startPar, Paragraph endPar, TextRange insertRange, int insertParIndex, List<int> addedBlockIds)
    {
       (int leftId, int rightId) edgeIds = DeleteRange(insertRange, false, false);
-      int insertIdx = startPar.Inlines.IndexOf(startPar.Inlines.FirstOrDefault(il => il.Id == edgeIds.leftId)!) + 1;
+      int insertIdx = GetInsertIndexAfterDelete(startPar, edgeIds.leftId, insertRange);
+
       List<IEditable> rightSplitRuns = endPar.Inlines.ToList()[insertIdx..];
 
       string xamlString = Encoding.ASCII.GetString(xamlbytes);
