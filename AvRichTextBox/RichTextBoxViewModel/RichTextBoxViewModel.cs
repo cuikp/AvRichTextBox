@@ -59,14 +59,7 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
 
 
    }
-
-   //// FOR VISUAL CARET TESTING////////////////////////////////////////
-   //public double LineHeightRectHeight { get; set { field = value; NotifyPropertyChanged(nameof(LineHeightRectHeight)); } } = 5;
-   //public Thickness LineHeightRectMargin { get; set { field = value; NotifyPropertyChanged(nameof(LineHeightRectMargin)); } } = new(0);
-   //public double BaseLineRectHeight { get; set { field = value; NotifyPropertyChanged(nameof(BaseLineRectHeight)); } } = 5; 
-   //public Thickness BaseLineRectMargin { get; set { field = value; NotifyPropertyChanged(nameof(BaseLineRectMargin)); } } = new(0);
-   ////////////////////////////////////////////////////////////////////
-
+     
    internal void FlowDoc_UpdateRTBCaret() { UpdateCaretVisible(); }
 
    internal void UpdateCaretVisible()

@@ -59,7 +59,7 @@ public partial class RichTextBox : UserControl
       InitializeBlinkAnimation();
 
       blinkAnimation.RunAsync(_CaretRect);
-
+      
       _CaretRect.Bind(IsVisibleProperty, new Binding("CaretVisible"));
       _CaretRect.Bind(MarginProperty, new Binding("CaretMargin"));
       _CaretRect.Bind(HeightProperty, new Binding("CaretHeight"));
