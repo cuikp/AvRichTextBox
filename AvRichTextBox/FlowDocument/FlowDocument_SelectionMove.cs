@@ -352,12 +352,37 @@ public partial class FlowDocument
 
       Selection.BiasForwardStart = true;
       Selection.BiasForwardEnd = true;
-      Selection.Start = Selection.StartParagraph.StartInDoc + Selection.StartParagraph.FirstIndexStartLine;
+
+      int lineStart = Selection.StartParagraph.StartInDoc + Selection.StartParagraph.FirstIndexStartLine;
 
       if (!selExtend)
+      {
+         Selection.Start = lineStart;
          Selection.CollapseToStart();
+         SelectionExtendMode = ExtendMode.ExtendModeNone;
+      }
       else
-         SelectionExtendMode = ExtendMode.ExtendModeLeft;
+      {
+         switch (SelectionExtendMode)
+         {
+            case ExtendMode.ExtendModeNone:
+            case ExtendMode.ExtendModeLeft:
+               Selection.Start = lineStart;
+               SelectionExtendMode = ExtendMode.ExtendModeLeft;
+               break;
+
+            case ExtendMode.ExtendModeRight:
+               // Was extending right; now SHIFT+Home should flip direction.
+               // The anchor is Selection.Start, the active end was Selection.End.
+               // We need to move the active end to line start, which is before the anchor,
+               // so flip: new End = old Start (anchor), new Start = lineStart.
+               int anchor = Selection.Start;
+               Selection.End = anchor;
+               Selection.Start = lineStart;
+               SelectionExtendMode = ExtendMode.ExtendModeLeft;
+               break;
+         }
+      }
 
       ScrollInDirection?.Invoke(-1);
 
@@ -370,6 +395,14 @@ public partial class FlowDocument
       Selection.BiasForwardEnd = false;
 
       if (Selection.StartParagraph.TextLength == 0) return;
+
+      // When flipping from ExtendModeLeft, the anchor is Selection.End.
+      // We need to reset Start to the anchor before computing the new End.
+      if (selExtend && SelectionExtendMode == ExtendMode.ExtendModeLeft)
+      {
+         int anchor = Selection.End;
+         Selection.Start = anchor;
+      }
 
       Paragraph thisEndPar = Selection.EndParagraph;
 
@@ -386,7 +419,10 @@ public partial class FlowDocument
       }
 
       if (!selExtend)
+      {
          Selection.CollapseToEnd();
+         SelectionExtendMode = ExtendMode.ExtendModeNone;
+      }
       else
          SelectionExtendMode = ExtendMode.ExtendModeRight;
 

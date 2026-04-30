@@ -2,6 +2,7 @@
 using Avalonia.Input.Platform;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using DynamicData;
 using System.Text;
 using static AvRichTextBox.FlowDocument;
@@ -32,17 +33,17 @@ public partial class RichTextBox
 
    }
 
-   
+
    private void CopyToClipboard()
-   {      
+   {
       if (DisableUserCopy) return;
-     
+
       var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
       if (clipboard == null) return;
       //create rtf string
       List<IEditable> newInlines = FlowDoc.GetRangeInlines(FlowDoc.Selection);
       string rtfString = RtfConversions.GetRtfFromInlines(newInlines);
-      
+
       var dataTransfer = new DataTransfer();
 
       // Rtf format
@@ -58,8 +59,8 @@ public partial class RichTextBox
    }
 
    readonly static DataFormat<byte[]> richTextFormat = DataFormat.CreateBytesPlatformFormat("Rich Text Format");
-   
-  
+
+
    private async void PasteFromClipboard()
    {
       if (IsReadOnly) return;
@@ -72,7 +73,7 @@ public partial class RichTextBox
       int originalSelectionStart = FlowDoc.Selection.Start;
       int originalSelectionEnd = FlowDoc.Selection.End;
       TextRange insertRange = FlowDoc.Selection;
-      List<Paragraph> originalRangeParagraphs = FlowDoc.GetOverlappingParagraphsInRange(insertRange).ConvertAll(op=>op.FullClone());
+      List<Paragraph> originalRangeParagraphs = FlowDoc.GetOverlappingParagraphsInRange(insertRange).ConvertAll(op => op.FullClone());
       int deleteRangeLength = insertRange.Length;
       Paragraph startPar = insertRange.StartParagraph;
       int insertParIndex = FlowDoc.Blocks.IndexOf(startPar);
@@ -92,7 +93,7 @@ public partial class RichTextBox
          contentPasted = true;
       }
 
-      else if (await clipboard.TryGetBitmapAsync() is Bitmap pasteBitmap) 
+      else if (await clipboard.TryGetBitmapAsync() is Bitmap pasteBitmap)
       {
          Image pasteImage = new() { Source = pasteBitmap };
          EditableInlineUIContainer newEIUC = new(pasteImage);
@@ -119,33 +120,33 @@ public partial class RichTextBox
 
       FlowDoc.disableRunTextUndo = false;
 
-      //Update based on pasted content
-      if (contentPasted)
-      {
-         if (addUndo)
-            FlowDoc.Undos.Add(new PasteUndo(originalRangeParagraphs, insertParIndex, FlowDoc, originalSelectionStart, deleteRangeLength - pastedTextLength, firstParEmpty, addedBlockIds, firstParWasDeleted));
+       //Update based on pasted content
+       if (contentPasted)
+       {
+          if (addUndo)
+             FlowDoc.Undos.Add(new PasteUndo(originalRangeParagraphs, insertParIndex, FlowDoc, originalSelectionStart, deleteRangeLength - pastedTextLength, firstParEmpty, addedBlockIds, firstParWasDeleted));
 
          this.DocIC.UpdateLayout();
          FlowDoc.UpdateBlockAndInlineStarts(insertParIndex);
          FlowDoc.UpdateSelection();
+         FlowDoc.Select(originalSelectionStart + pastedTextLength, 0);
+         FlowDoc.Selection.BiasForwardStart = false;
+         FlowDoc.Selection.BiasForwardEnd = false;
+         FlowDoc.SelectionExtendMode = ExtendMode.ExtendModeNone;
+         FlowDoc.ScrollFlowDocInDirection(1);
 
-         Dispatcher.UIThread.Post(() =>
-         {
-            FlowDoc.Select(originalSelectionStart + pastedTextLength, 0);
-            FlowDoc.Selection.BiasForwardStart = false;
-            FlowDoc.Selection.BiasForwardEnd = false;
-            FlowDoc.SelectionExtendMode = ExtendMode.ExtendModeNone;
-            FlowDoc.ScrollFlowDocInDirection(1);
+         CreateClient();
 
-            CreateClient();
+         _ = FlowDoc.AsyncUpdateCaret(FlowDoc.Selection);
 
-            _ = FlowDoc.AsyncUpdateCaret(FlowDoc.Selection);
-
-         });
       }
 
-
+   private void CutToClipboard()
+   {
+      if (IsReadOnly) return;
+      CopyToClipboard();
+      PerformDelete(false);
    }
-    
-  
+
+
 }
