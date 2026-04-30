@@ -27,8 +27,6 @@ public class Paragraph : Block
       Inlines.CollectionChanged += Inlines_CollectionChanged;
       Id = ++FlowDocument.ParagraphIdCounter;
 
-      SelectionBrush = owningFlowDoc.SelectionBrush;
-
    }
 
    private void Inlines_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -75,9 +73,6 @@ public class Paragraph : Block
    /// </summary>
    public VerticalAlignment VerticalAlignment { get; set { field = value; NotifyPropertyChanged(nameof(VerticalAlignment)); } } = VerticalAlignment.Top;
      
-   public IBrush SelectionBrush { get; set { field = value; NotifyPropertyChanged(nameof(SelectionBrush)); } } = LightBlueBrush;
-   internal static SolidColorBrush LightBlueBrush = new(Colors.LightBlue);
-
    internal double DistanceSelectionEndFromLeft = 0;
    internal double DistanceSelectionStartFromLeft = 0;
    internal int CharNextLineEnd = 0;

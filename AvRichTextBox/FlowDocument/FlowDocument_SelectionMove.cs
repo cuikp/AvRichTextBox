@@ -1,4 +1,5 @@
-﻿using static AvRichTextBox.HelperMethods;
+﻿using HtmlAgilityPack;
+using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;
 
@@ -88,12 +89,15 @@ public partial class FlowDocument
       if (AllParagraphs.FirstOrDefault(p => p.Id == inline.MyParagraphId) is not Block myBlock) return -1;
       return absTextPos - myBlock.StartInDoc - inline.TextPositionOfInlineInParagraph;
    }
-
+     
    internal void MoveRightWord()
    {
       if (Selection.Start >= Selection.StartParagraph.StartInDoc + Selection.StartParagraph.BlockLength)
          return;
 
+      //Select(GetNextWordPosition(), 0);
+      //return;
+      
       Selection.BiasForwardStart = true;
       Selection.BiasForwardEnd = true;
 

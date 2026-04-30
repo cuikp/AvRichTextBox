@@ -141,7 +141,7 @@ public partial class FlowDocument
             int addedId = applyInlines[0].Id;
             
             Undos.Add(new InsertNewFormattedTextUndo(Selection.StartParagraph.Id, startInlineRunClone, edgeIds, addedId, runIdx, this, originalStart));
-                        
+
             startInline.InlineText = insertText;
 
             toggleFormatRun?.Invoke(startInline);
@@ -156,7 +156,7 @@ public partial class FlowDocument
                insertIdx = GetCharPosInInline(startInline, Selection.Start);
                startInline.InlineText = startInline.InlineText.Insert(insertIdx, insertText); // undo handled by PropertyChanged: Text
             }
-            catch(Exception ex){ Debug.WriteLine("insert Error: startInlinetext = " + startInline.InlineText + ", idx = " + insertIdx + "\n" + ex.Message + "*");}
+            catch (Exception ex){ Debug.WriteLine("insert Error: startInlinetext = " + startInline.InlineText + ", idx = " + insertIdx + "\n" + ex.Message + "*");}
          }
 
          UpdateTextRanges(Selection.Start, insertText.Length);

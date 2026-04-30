@@ -54,7 +54,7 @@ public partial class RichTextBox
    }
 
 
-   public static readonly StyledProperty<IBrush> SelectionBrushProperty = AvaloniaProperty.Register<RichTextBox, IBrush>(nameof(SelectionBrush), defaultValue: Brushes.LightSteelBlue, defaultBindingMode: BindingMode.OneWay);
+   public static readonly StyledProperty<IBrush> SelectionBrushProperty = AvaloniaProperty.Register<RichTextBox, IBrush>(nameof(SelectionBrush), defaultValue: Brushes.DeepSkyBlue, defaultBindingMode: BindingMode.OneWay);
    public IBrush SelectionBrush
    {
       get => GetValue(SelectionBrushProperty);

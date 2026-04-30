@@ -48,7 +48,6 @@ internal partial class EditableParagraph
          BaselineAlignment = erun.BaselineAlignment == BaselineAlignment.Superscript ? BaselineAlignment.Superscript : BaselineAlignment.Subscript
       };
 
-
       return scriptRun;
 
    }

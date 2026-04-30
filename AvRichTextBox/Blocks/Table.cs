@@ -18,7 +18,7 @@ public partial class Table : Block
    public double Width { get; set; } = 500;
    public HorizontalAlignment TableAlignment { get; set; } = HorizontalAlignment.Left;
 
-   internal IBrush SelectionBrush = Brushes.LightBlue;
+   internal IBrush SelectionBrush = Brushes.LightSteelBlue;
 
    public Table() {  }
    
@@ -244,9 +244,9 @@ public class Cell(Table owningTable): INotifyPropertyChanged
    public int ColSpan { get; set; } = 1;
    public int RowSpan { get; set; } = 1;
 
-   public bool Selected {  get; set { field = value; NotifyPropertyChanged(nameof(Selected)); } } = false;
+   public bool Selected {  get; set { field = value;  NotifyPropertyChanged(nameof(Selected)); } } = false;
 
-   public IBrush SelectionBrush { get; set; } = Brushes.LightSteelBlue;
+   public IBrush SelectionBrush => OwningTable.SelectionBrush;
 
    //public double Width { get; set; } = 100;
    public double Height { get; set; } = 60;

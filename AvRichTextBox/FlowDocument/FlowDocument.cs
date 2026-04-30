@@ -58,7 +58,7 @@ public partial class FlowDocument : AvaloniaObject
    public int DocEndPoint => ((Paragraph)Blocks.Last()).EndInDoc;
 
    public TextRange Selection { get; set; }
-   internal IBrush SelectionBrush = Brushes.LightSteelBlue; 
+   internal IBrush SelectionBrush = Brushes.LightSteelBlue;  // default
    
    public FlowDocument()
    {

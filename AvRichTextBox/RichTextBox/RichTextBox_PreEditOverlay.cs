@@ -86,12 +86,9 @@ public partial class RichTextBox
       IsHitTestVisible = false
    };
 
-     
 
    internal readonly Avalonia.Controls.Shapes.Path SelectionPath = new()
    {
-      Stroke = Brushes.Black,
-      Fill = Brushes.DeepSkyBlue,
       Opacity = 0.35,
       IsHitTestVisible = false
    };

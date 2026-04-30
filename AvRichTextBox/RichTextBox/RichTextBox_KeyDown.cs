@@ -49,7 +49,7 @@ public partial class RichTextBox
                if (IsReadOnly) return;
                FlowDoc.Undo();
                break;
-
+           
             case Key.A:
                FlowDoc.SelectAll();
                break;

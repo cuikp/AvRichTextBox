@@ -64,7 +64,7 @@ public partial class RichTextBox : UserControl
       _CaretRect.Bind(MarginProperty, new Binding("CaretMargin"));
       _CaretRect.Bind(HeightProperty, new Binding("CaretHeight"));
       _CaretRect.DataContext = RtbVm;
-
+            
       SelectionPath.Data = _geometry;
 
       var panel = new Canvas();
@@ -117,6 +117,8 @@ public partial class RichTextBox : UserControl
 #endif
 
       this.Focus();
+
+      SelectionPath.Fill = this.SelectionBrush;
       UpdateSelectionIndicators();
 
    }
@@ -150,27 +152,6 @@ public partial class RichTextBox : UserControl
 
       }
 
-      else if (e.Property == SelectionBrushProperty && FlowDoc != null)
-      {
-         foreach (Block b in FlowDoc.Blocks)
-         {
-            switch (b)
-            {
-               case Paragraph p:
-                  p.SelectionBrush = this.SelectionBrush;
-                  break;
-               case Table t:
-                  foreach (Cell c in t.Cells)
-                  {
-                     c.SelectionBrush = this.SelectionBrush;
-                     if (c.CellContent is Paragraph p)
-                        p.SelectionBrush = this.SelectionBrush;
-                  }
-                  break;
-            }
-         }
-
-      }
    }
 
    private void RichTextBox_GotFocus(object? sender, FocusChangedEventArgs e)

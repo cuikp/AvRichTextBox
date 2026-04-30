@@ -5,6 +5,7 @@ using Avalonia.Media.Imaging;
 using DynamicData;
 using System.Text;
 using static AvRichTextBox.FlowDocument;
+using Avalonia.Threading;
 
 namespace AvRichTextBox;
 
@@ -127,16 +128,20 @@ public partial class RichTextBox
          this.DocIC.UpdateLayout();
          FlowDoc.UpdateBlockAndInlineStarts(insertParIndex);
          FlowDoc.UpdateSelection();
-         FlowDoc.Select(originalSelectionStart + pastedTextLength, 0);
-         FlowDoc.Selection.BiasForwardStart = false;
-         FlowDoc.Selection.BiasForwardEnd = false;
-         FlowDoc.SelectionExtendMode = ExtendMode.ExtendModeNone;
-         FlowDoc.ScrollFlowDocInDirection(1);
 
-         CreateClient();
+         Dispatcher.UIThread.Post(() =>
+         {
+            FlowDoc.Select(originalSelectionStart + pastedTextLength, 0);
+            FlowDoc.Selection.BiasForwardStart = false;
+            FlowDoc.Selection.BiasForwardEnd = false;
+            FlowDoc.SelectionExtendMode = ExtendMode.ExtendModeNone;
+            FlowDoc.ScrollFlowDocInDirection(1);
 
-         _ = FlowDoc.AsyncUpdateCaret(FlowDoc.Selection);
+            CreateClient();
 
+            _ = FlowDoc.AsyncUpdateCaret(FlowDoc.Selection);
+
+         });
       }
 
 
