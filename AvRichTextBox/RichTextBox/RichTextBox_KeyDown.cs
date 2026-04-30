@@ -33,6 +33,7 @@ public partial class RichTextBox
                break;
 
             case Key.X:
+               if (IsReadOnly) return;
                CopyToClipboard();
                PerformDelete(false);
                break;
