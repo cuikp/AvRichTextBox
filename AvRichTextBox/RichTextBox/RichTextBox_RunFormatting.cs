@@ -120,26 +120,32 @@ public partial class RichTextBox
 
       FlowDoc.disableRunTextUndo = false;
 
-       //Update based on pasted content
-       if (contentPasted)
-       {
-          if (addUndo)
-             FlowDoc.Undos.Add(new PasteUndo(originalRangeParagraphs, insertParIndex, FlowDoc, originalSelectionStart, deleteRangeLength - pastedTextLength, firstParEmpty, addedBlockIds, firstParWasDeleted));
+      //Update based on pasted content
+      if (contentPasted)
+      {
+         if (addUndo)
+            FlowDoc.Undos.Add(new PasteUndo(originalRangeParagraphs, insertParIndex, FlowDoc, originalSelectionStart, deleteRangeLength - pastedTextLength, firstParEmpty, addedBlockIds, firstParWasDeleted));
 
          this.DocIC.UpdateLayout();
          FlowDoc.UpdateBlockAndInlineStarts(insertParIndex);
          FlowDoc.UpdateSelection();
-         FlowDoc.Select(originalSelectionStart + pastedTextLength, 0);
-         FlowDoc.Selection.BiasForwardStart = false;
-         FlowDoc.Selection.BiasForwardEnd = false;
          FlowDoc.SelectionExtendMode = ExtendMode.ExtendModeNone;
-         FlowDoc.ScrollFlowDocInDirection(1);
-
+         
          CreateClient();
 
-         _ = FlowDoc.AsyncUpdateCaret(FlowDoc.Selection);
+         // Defer caret positioning to after layout has completed for newly inserted paragraphs.
+         // Without this, the caret can appear at the wrong position.
+         Dispatcher.UIThread.Post(() =>
+         {
+            FlowDoc.Select(originalSelectionStart + pastedTextLength, 0);
+            FlowDoc.Selection.BiasForwardStart = false;
+            FlowDoc.Selection.BiasForwardEnd = false;
+            FlowDoc.ScrollFlowDocInDirection(1);
+            _ = FlowDoc.AsyncUpdateCaret(FlowDoc.Selection);
+         });
 
       }
+   }
 
    private void CutToClipboard()
    {

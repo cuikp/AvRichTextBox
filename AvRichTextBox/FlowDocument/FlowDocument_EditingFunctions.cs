@@ -2,6 +2,7 @@
 using RtfDomParserAv;
 using System.Text;
 using System.Xml;
+using Avalonia.Threading;
 
 namespace AvRichTextBox;
 
@@ -77,8 +78,8 @@ public partial class FlowDocument
          Undos.RemoveAt(Undos.Count - 1);
 
          UpdateSelectedParagraphs();
-         
-
+                  
+                  
          ScrollInDirection?.Invoke(1);
          ScrollInDirection?.Invoke(-1);
 

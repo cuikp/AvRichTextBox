@@ -1,8 +1,6 @@
-﻿
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
-using DocumentFormat.OpenXml.Math;
 
 namespace AvRichTextBox;
 

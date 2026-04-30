@@ -1,7 +1,6 @@
 using Avalonia.Input;
 using System.Diagnostics;
 
-
 namespace AvRichTextBox;
 
 public partial class RichTextBox
@@ -10,36 +9,61 @@ public partial class RichTextBox
    private void RichTextBox_KeyDown(object? sender, KeyEventArgs e)
    {
 
-      if (e.KeyModifiers.HasFlag(KeyModifiers.Control) && !e.KeyModifiers.HasFlag(KeyModifiers.Alt))
+      if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
       {
          e.Handled = true;
 
+         if (!(e.KeyModifiers.HasFlag(KeyModifiers.Alt) || e.KeyModifiers.HasFlag(KeyModifiers.Shift)))
+         {
+            switch (e.Key)
+            {
+               case Key.I:
+                  ToggleItalics();
+                  break;
+
+               case Key.B:
+                  ToggleBold();
+                  break;
+
+               case Key.U:
+                  ToggleUnderlining();
+                  break;
+
+               case Key.C:
+                  CopyToClipboard();
+                  break;
+
+               case Key.X:
+                  CutToClipboard();
+                  break;
+
+               case Key.V:
+                  PasteFromClipboard();
+                  break;
+
+               case Key.Z:
+                  if (IsReadOnly) return;
+                  FlowDoc.Undo();
+                  break;
+
+               case Key.A:
+                  FlowDoc.SelectAll();
+                  break;
+
+               case Key.Delete:
+                  if (IsReadOnly) return;
+                  FlowDoc.DeleteWord(false);
+                  break;
+
+               case Key.Back:
+                  FlowDoc.DeleteWord(true);
+                  break;
+
+            }
+         }
+
          switch (e.Key)
          {
-            case Key.I:
-               ToggleItalics();
-               break;
-
-            case Key.B:
-               ToggleBold();
-               break;
-
-            case Key.U:
-               ToggleUnderlining();
-               break;
-
-            case Key.C:
-               CopyToClipboard();
-               break;
-
-            case Key.X:
-               CutToClipboard();
-               break;
-
-            case Key.V:
-               PasteFromClipboard();
-               break;
-
             case Key.Home: // Ctrl-Home / Ctrl-Shift-Home
                if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
                   FlowDoc.ExtendSelectionToDocStart();
@@ -57,24 +81,6 @@ public partial class RichTextBox
                   FlowDoc.MoveToDocEnd();
                break;
 
-            case Key.Z:
-               if (IsReadOnly) return;
-               FlowDoc.Undo();
-               break;
-           
-            case Key.A:
-               FlowDoc.SelectAll();
-               break;
-
-            case Key.Delete:
-               if (IsReadOnly) return;
-               FlowDoc.DeleteWord(false);
-               break;
-
-            case Key.Back:
-               FlowDoc.DeleteWord(true);
-               break;
-
             case Key.Right:
                if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
                   FlowDoc.ExtendSelectionRightWord();
@@ -90,9 +96,9 @@ public partial class RichTextBox
                break;
          }
       }
+
       else
       {
-
          switch (e.Key)
          {
             case Key.Escape:

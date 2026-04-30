@@ -95,95 +95,11 @@ public partial class FlowDocument
       if (Selection.Start >= Selection.StartParagraph.StartInDoc + Selection.StartParagraph.BlockLength)
          return;
 
-      //Select(GetNextWordPosition(), 0);
-      //return;
-      
       Selection.BiasForwardStart = true;
       Selection.BiasForwardEnd = true;
 
-      Paragraph startP = Selection.StartParagraph;
-
-      if (startP.SelectionStartInBlock == startP.TextLength)
-         Selection.End += 1;
-      else
-      {
-         if (Selection.GetStartInline() is IEditable startInline)
-         {
-            if (startInline.IsUIContainer || startInline.IsLineBreak)
-               Selection.End += 1;
-            else
-            {
-               int currentTextPos = Selection.Start;
-
-               int foundNextIndex = GetRelativeTextPos(startInline, currentTextPos);
-
-               bool breakWhile = false;
-               while (startInline?.InlineText.IndexOf(' ', foundNextIndex) is int IndexNext)
-               {
-                  if (IndexNext == -1)
-                  {
-                     currentTextPos += (startInline.InlineLength - foundNextIndex);
-
-                     startInline = GetNextInline(startInline) ?? null!;
-
-                     if (startInline != null)
-                     {
-                        switch (startInline)
-                        {
-                           case EditableRun erun:
-                              if (startP.Id != startInline.MyParagraphId)
-                              {
-                                 startP = GetNextParagraph(startP)!;
-                                 startInline = startP.Inlines[0];
-                                 currentTextPos = startP.StartInDoc + startInline.TextPositionOfInlineInParagraph;
-                                 foundNextIndex = 0;
-                                 breakWhile = true;
-                              }
-                              else
-                                 foundNextIndex = GetRelativeTextPos(startInline, currentTextPos);
-                              break;
-
-                           case EditableLineBreak elb:
-                              startInline = GetNextInline(startInline) ?? null!;
-                              currentTextPos += 2;
-                              foundNextIndex = 0;
-                              breakWhile = true;
-                              break;
-
-                           default:
-                              foundNextIndex = startInline!.InlineLength;
-                              breakWhile = true;
-                              break;
-                        }
-                     }
-
-                     if (breakWhile) break;
-                  }
-                  else
-                  {
-                     currentTextPos += IndexNext;
-                     foundNextIndex = IndexNext;
-                     break;
-                  }
-
-               }
-
-               if (!breakWhile)
-                  foundNextIndex += 1;  // go beyond the space if found
-
-               int NextWordEndPoint = 0;
-               if (startInline != null)
-                  NextWordEndPoint = startP.StartInDoc + startInline!.TextPositionOfInlineInParagraph + foundNextIndex;
-               else
-                  NextWordEndPoint = startP.StartInDoc + startP.BlockLength;
-
-               Selection.Start = NextWordEndPoint;
-               Selection.End = NextWordEndPoint;
-
-            }
-         }
-      }
-
+      Select(GetNextWordPosition(), 0);
+     
       Selection.CollapseToEnd();
       ScrollInDirection?.Invoke(1);
 
@@ -197,32 +113,8 @@ public partial class FlowDocument
       Selection.BiasForwardStart = false;
       Selection.BiasForwardEnd = false;
 
-      int IndexNext = -1;
-      Paragraph startP = (Paragraph)Selection.StartParagraph;
-
-      if (startP.SelectionStartInBlock == 0)
-         Selection.Start -= 1;
-      else
-      {
-         Selection.Start -= 1;
-         Selection.CollapseToStart();
-
-         startP = (Paragraph)Selection.StartParagraph;
-
-         if (Selection.GetStartInline() is IEditable startInline && !startInline.IsUIContainer)
-         {
-            IndexNext = startP.Text.LastIndexOfAny(" \n".ToCharArray(), startP.SelectionStartInBlock - 1);
-            if (IndexNext == -1)
-               IndexNext = 0;
-            else
-               IndexNext += 1;  // go to right of space
-
-            int NextWordEndPoint = Selection.StartParagraph.StartInDoc + IndexNext;
-            Selection.Start = NextWordEndPoint;
-         }
-
-      }
-
+      Select(GetPreviousWordPosition(), 0);
+  
       Selection.CollapseToStart();
       ScrollInDirection?.Invoke(-1);
 
@@ -325,10 +217,7 @@ public partial class FlowDocument
       Selection.CollapseToEnd();
       SelectionExtendMode = ExtendMode.ExtendModeNone;
       ScrollInDirection?.Invoke(1);
-
-      //foreach (Paragraph p in allPars)
-      //   p.ClearSelection();
-
+         
       if (allPars[^1] is Paragraph lastPar)
       {
          lastPar.SelectionStartInBlock = lastPar.BlockLength - 1;
@@ -488,7 +377,6 @@ public partial class FlowDocument
                      if (newIndexInDoc < Selection.Start)
                         SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeLeft;
                      Selection.End = newIndexInDoc;
-                     //Debug.WriteLine("Extending back, page up, extend mode right : selection.end = " + Selection.End + " (" + newIndexInDoc);
                      break;
                }
             }

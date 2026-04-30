@@ -1,4 +1,5 @@
 ﻿using Avalonia.Controls.Documents;
+using Avalonia.Threading;
 using DynamicData;
 
 namespace AvRichTextBox;
@@ -20,11 +21,16 @@ internal class TextChangedUndo(FlowDocument flowDoc, int parId, int runId, int s
       if (deletedText.Length > 0)
          thisRun.Text = thisRun.Text!.Insert(start, deletedText);
 
+      flowDoc.disableRunTextUndo = false;
+
       thisPar.CallRequestInlinesUpdate();
       flowDoc.UpdateBlockAndInlineStarts(thisPar);
-      flowDoc.Selection.Start = origSelectionStart;
-      flowDoc.Selection.End = flowDoc.Selection.Start;
-      flowDoc.disableRunTextUndo = false;
+      Dispatcher.UIThread.Post(() =>
+      {
+         flowDoc.Selection.Start = origSelectionStart;
+         flowDoc.Selection.End = flowDoc.Selection.Start;
+      });
+      
    }
 }
 
@@ -43,8 +49,12 @@ internal class DeleteImageUndo(int parId, IEditable deletedIUC, int deletedInlin
          thisPar.Inlines.Insert(deletedInlineIdx, deletedIUC);
          thisPar.CallRequestInlinesUpdate();
          flowDoc.UpdateBlockAndInlineStarts(thisPar);
-         flowDoc.Selection.Start = origSelectionStart;
-         flowDoc.Selection.End = flowDoc.Selection.Start;
+
+         Dispatcher.UIThread.Post(() =>
+         {
+            flowDoc.Selection.Start = origSelectionStart;
+            flowDoc.Selection.End = flowDoc.Selection.Start;
+         });
       }
       catch { Debug.WriteLine("Failed DeleteImageUndo at delete pos: " + origSelectionStart); }
    }
@@ -131,14 +141,16 @@ internal class PasteUndo(List<Paragraph> keptPars, int parIndex, FlowDocument fl
                run.Text = "";
          }
 
-         flowDoc.Selection.Start = 0;  //??? why necessary for caret?
-         flowDoc.Selection.End = 0;
-         flowDoc.Selection.Start = origSelectionStart;
-         flowDoc.Selection.End = origSelectionStart;
-         flowDoc.UpdateSelection();
-         
          flowDoc.disableRunTextUndo = false;
-                  
+
+         Dispatcher.UIThread.Post(() =>
+         {
+            flowDoc.Selection.Start = 0;  //??? why necessary for caret?
+            flowDoc.Selection.End = 0;
+            flowDoc.Selection.Start = origSelectionStart;
+            flowDoc.Selection.End = origSelectionStart;
+            flowDoc.UpdateSelection();
+         });         
 
       }
       catch { Debug.WriteLine("Failed Undo at OrigSelectionStart: " + origSelectionStart); }
@@ -156,16 +168,17 @@ internal class DeleteRangeUndo (List<Paragraph> keptParClones, int startParIndex
       try
       {
          flowDoc.disableRunTextUndo = true;
-
          flowDoc.RestoreDeletedBlocks(keptParClones, startParIndex, firstParWasDeleted);
-
-         flowDoc.Selection.Start = Math.Max (0, origSelectionStart -1);  //necessary to reset caret
-         flowDoc.Selection.CollapseToStart();
-         flowDoc.Selection.Start = origSelectionStart;
-         flowDoc.Selection.End = origSelectionStart;
-         flowDoc.UpdateSelection();
-         
          flowDoc.disableRunTextUndo = false;
+
+         Dispatcher.UIThread.Post(() =>
+         {
+            flowDoc.Selection.Start = Math.Max(0, origSelectionStart - 1);  //necessary to reset caret
+            flowDoc.Selection.CollapseToStart();
+            flowDoc.UpdateSelection();
+            flowDoc.Selection.Start = origSelectionStart;
+            flowDoc.Selection.End = origSelectionStart;
+         });
 
       }
       catch { Debug.WriteLine("Failed DeleteRangeUndo at Par index: " + startParIndex); }
