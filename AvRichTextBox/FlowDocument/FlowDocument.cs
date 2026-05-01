@@ -131,16 +131,21 @@ public partial class FlowDocument : AvaloniaObject
    {
       ClearDocument();
 
-      Paragraph newpar = new(this);
-      EditableRun newerun = new("");
-      newpar.Inlines.Add(newerun);
-      Blocks.Add(newpar);
+      AddDefaultParagraph();
 
       InitializeDocument();
 
    }
 
- 
+   private void AddDefaultParagraph()
+   {
+      Paragraph newpar = new(this);
+      EditableRun newerun = new("");
+      newpar.Inlines.Add(newerun);
+      Blocks.Add(newpar);
+
+   }
+
    internal void ClearDocument()
    {
       Blocks.Clear();
@@ -162,6 +167,10 @@ public partial class FlowDocument : AvaloniaObject
 
    internal async void InitializeDocument()
    {
+
+      //Fail-safe in case imported document has no content
+      if (AllParagraphs.Count == 0)
+         AddDefaultParagraph();
 
       Selection.Start = 0;  //necessary
       Selection.CollapseToStart();

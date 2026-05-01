@@ -31,19 +31,29 @@ internal static partial class HtmlConversions
                case "padding":
                   var paddings = kvp.Value.Split(' ').Select(val => int.TryParse(val.Replace("px", ""), out var px) ? px : 0).ToList();
                   if (paddings.Count == 4)
-                     fdoc.PagePadding = new Avalonia.Thickness(paddings[3], paddings[0], paddings[1], paddings[2]);
+                     fdoc.PagePadding = new Thickness(paddings[3], paddings[0], paddings[1], paddings[2]);
                   break;
             }
          }
 
-         //foreach (HtmlNode tableNode in bodyNode.ChildNodes.Where(cn => cn.Name == "par"))
          foreach (HtmlNode childNode in bodyNode.ChildNodes)
-         {
+         //foreach (HtmlNode childNode in bodyNode.Descendants())
+         {            
             switch (childNode.Name)
             {
                case "p":
                   Paragraph p = GetParagraphFromNode(childNode, fdoc);
                   fdoc.Blocks.Add(p);
+                  break;
+
+               case "img":
+                  Paragraph imgPar = new(fdoc);
+                  if (GetImage(childNode) is Image img)
+                     imgPar.Inlines.Add(new EditableInlineUIContainer(img));
+                  else
+                     imgPar.Inlines.Add(new EditableRun(""));
+                  fdoc.Blocks.Add(imgPar);
+
                   break;
 
                case "table":
@@ -291,6 +301,7 @@ internal static partial class HtmlConversions
 
       foreach (HtmlNode inlineNode in childNode.ChildNodes.Where(cn => cn.NodeType is HtmlNodeType.Element or HtmlNodeType.Text))
       {
+      
          switch (inlineNode.Name)
          {
             case "span":
@@ -375,35 +386,34 @@ internal static partial class HtmlConversions
 
             case "img":
 
-               var src = inlineNode.GetAttributeValue("src", null!);
-               if (!string.IsNullOrEmpty(src) && src.StartsWith("data:image"))
-               {
-                  var base64Index = src.IndexOf("base64,", StringComparison.OrdinalIgnoreCase);
-                  if (base64Index >= 0)
-                  {
-                     var base64 = src[(base64Index + 7)..];
-
-                     byte[] imageBytes = Convert.FromBase64String(base64);
-                     using var ms = new MemoryStream(imageBytes);
-                     var bitmap = new Bitmap(ms);
-
-                     var img = new Image
-                     {
-                        Source = bitmap,
-                        IsVisible = true,
-                     };
-
-                     if (inlineNode.GetAttributeValue("width", null!) is string w && double.TryParse(w, out var width))
-                        img.Width = width;
-
-                     if (inlineNode.GetAttributeValue("height", null!) is string h && double.TryParse(h, out var height))
-                        img.Height = height;
-
-                     par.Inlines.Add(new EditableInlineUIContainer(img));
-                  }
-               }
-
+               if (GetImage(inlineNode) is Image img)
+                  par.Inlines.Add(new EditableInlineUIContainer(img));
                break;
+
+            case "#text":
+               EditableRun textrun = new() { Text = WebUtility.HtmlDecode(inlineNode.InnerText) };
+               par.Inlines.Add(textrun);
+               break;
+
+            case "a":
+               EditableRun linkrun = new() { Text = WebUtility.HtmlDecode(inlineNode.InnerText) };
+               par.Inlines.Add(linkrun);
+               break;
+
+            case "em":
+               EditableRun emrun = new() { Text = WebUtility.HtmlDecode(inlineNode.InnerText), FontStyle = FontStyle.Italic };
+               par.Inlines.Add(emrun);
+               break;
+
+            case "strong":
+               EditableRun strongrun = new() { Text = WebUtility.HtmlDecode(inlineNode.InnerText), FontWeight = FontWeight.Bold };
+               par.Inlines.Add(strongrun);
+               break;
+
+            default:
+               Debug.WriteLine("Unknown inlinenode name = " + inlineNode.Name);
+               break;
+
          }
 
       }
@@ -470,6 +480,42 @@ internal static partial class HtmlConversions
       }
 
       return par;
+
+   }
+
+   private static Image GetImage(HtmlNode inlineNode)
+   {
+      Image returnImage = null!;
+
+      var src = inlineNode.GetAttributeValue("src", null!);
+      if (!string.IsNullOrEmpty(src) && src.StartsWith("data:image"))
+      {
+         var base64Index = src.IndexOf("base64,", StringComparison.OrdinalIgnoreCase);
+         if (base64Index >= 0)
+         {
+            var base64 = src[(base64Index + 7)..];
+
+            byte[] imageBytes = Convert.FromBase64String(base64);
+            using var ms = new MemoryStream(imageBytes);
+            var bitmap = new Bitmap(ms);
+
+            var img = new Image
+            {
+               Source = bitmap,
+               IsVisible = true,
+            };
+
+            if (inlineNode.GetAttributeValue("width", null!) is string w && double.TryParse(w, out var width))
+               img.Width = width;
+
+            if (inlineNode.GetAttributeValue("height", null!) is string h && double.TryParse(h, out var height))
+               img.Height = height;
+
+            returnImage  = img;
+         }
+
+      }
+      return returnImage;
 
    }
 
