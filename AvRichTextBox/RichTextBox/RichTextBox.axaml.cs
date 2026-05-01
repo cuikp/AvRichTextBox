@@ -230,9 +230,9 @@ public partial class RichTextBox : UserControl
       double newScrollY = RtbVm.RTBScrollOffset.Y + FlowDocSV.Bounds.Height * direction;
       double newCaretY = newScrollY + distanceFromTop;
 
-      double scrollToY = Math.Min(FlowDocSV.Bounds.Height, Math.Max(0, newScrollY));
-      RtbVm.RTBScrollOffset = RtbVm.RTBScrollOffset.WithY(scrollToY);
+      double scrollToY = Math.Min(DocIC.Bounds.Height, Math.Max(0, newScrollY));
 
+      RtbVm.RTBScrollOffset = RtbVm.RTBScrollOffset.WithY(scrollToY);
       //Debug.WriteLine("\nnewCaretY = " + newCaretY + "\nnewscrollY= " + newScrollY + "\ndistanceTop=" + distanceFromTop);
 
       EditableParagraph? thisEP = DocIC.GetVisualDescendants().OfType<EditableParagraph>().Where(ep => ep.TranslatePoint(ep.Bounds.Position, DocIC)!.Value.Y <= newScrollY).LastOrDefault();
