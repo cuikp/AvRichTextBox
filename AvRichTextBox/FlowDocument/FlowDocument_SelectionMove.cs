@@ -334,8 +334,8 @@ public partial class FlowDocument
 
    internal void MovePageSelection(int direction, bool extend, int newIndexInDoc)
    {
-
-      newIndexInDoc = Math.Min(newIndexInDoc, this.DocEndPoint - 1);
+      
+      newIndexInDoc = Math.Max(0, Math.Min(newIndexInDoc, this.DocEndPoint - 1));
 
       switch (direction)
       {
@@ -367,6 +367,7 @@ public partial class FlowDocument
             break;
 
          case -1:
+
             if (extend)
             {
                switch (SelectionExtendMode)
@@ -391,11 +392,8 @@ public partial class FlowDocument
                Selection.CollapseToStart();
             }
 
-
             break;
-
       }
-
 
    }
 

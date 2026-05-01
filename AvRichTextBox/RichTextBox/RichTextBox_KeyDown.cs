@@ -64,6 +64,7 @@ public partial class RichTextBox
 
          switch (e.Key)
          {
+
             case Key.Home: // Ctrl-Home / Ctrl-Shift-Home
                if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
                   FlowDoc.ExtendSelectionToDocStart();
