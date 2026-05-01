@@ -1,20 +1,14 @@
 ﻿using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
-using DocumentFormat.OpenXml.Drawing;
 using DynamicData;
 using System.Collections.ObjectModel;
 
 namespace AvRichTextBox;
 
-
 public class Paragraph : Block
 {
-   public string ParToolTip => $"Background: {Background}\nLineHeight: {LineHeight}";
-
-//#if DEBUG
-//   public string ParToolTip => $"Background: {Background}\nLineHeight: {LineHeight}";
-//#endif
+   internal string ParToolTip => $"Background: {Background}\nLineHeight: {LineHeight}";
 
    public ObservableCollection<IEditable> Inlines { get; set; } = [];
 
@@ -68,7 +62,7 @@ public class Paragraph : Block
    public TextAlignment TextAlignment { get; set { field = value; NotifyPropertyChanged(nameof(TextAlignment)); } } = TextAlignment.Left;
 
    /// <summary>
-   /// Note: the attribute 'VerticalAlignment' on Paragraph is rejected (throws error) by Windows WPF TextRange.Load(Stream stream, string dataFormat) if present.<br/>
+   /// Note: the attribute 'VerticalAlignment' on Paragraph is rejected (throws error) by Windows WPF TextRange.Load(stream, Xaml/XamlPackage) if present.<br/>
    /// Since the Xaml content saved by AvRichTextBox adds VerticalAlignment onto Paragraphs (for alignment in TableCells), it can't be directly loaded by WPF but has to be parsed out.
    /// </summary>
    public VerticalAlignment VerticalAlignment { get; set { field = value; NotifyPropertyChanged(nameof(VerticalAlignment)); } } = VerticalAlignment.Top;
@@ -116,15 +110,6 @@ public class Paragraph : Block
          sum += Inlines[edx].InlineLength;
       }
    }
-
-   //internal void UpdateUIContainersSelected(int start, int end)
-   //{
-   //   if (this.Inlines != null)
-   //   {
-   //      foreach (EditableInlineUIContainer iuc in Inlines.OfType<EditableInlineUIContainer>())
-   //         iuc.IsSelected = (iuc.TextPositionOfInlineInParagraph >= start && iuc.TextPositionOfInlineInParagraph < end);
-   //   }
-   //}
 
    internal bool RemoveEmptyInlines()
    {

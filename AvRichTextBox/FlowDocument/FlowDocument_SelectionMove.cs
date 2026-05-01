@@ -8,7 +8,10 @@ public partial class FlowDocument
    internal void MoveSelectionRight(bool isTextInsertion)
    {
 
-      Selection.BiasForwardStart = !isTextInsertion;
+      //Selection.BiasForwardStart = !isTextInsertion;
+      //$$$$$$$$$$$$$$$$$$$$$$$$$$
+      Selection.BiasForwardStart = false;
+      Selection.BiasForwardEnd = Selection.BiasForwardStart;
 
       switch (SelectionExtendMode)
       {
@@ -41,8 +44,9 @@ public partial class FlowDocument
       SelectionExtendMode = ExtendMode.ExtendModeNone;
       ScrollInDirection?.Invoke(1);
 
-      Selection.BiasForwardStart = !isTextInsertion;
-      Selection.BiasForwardEnd = Selection.BiasForwardStart;
+      //$$$$$$$$$$$$$$$$$$
+      //Selection.BiasForwardStart = false; // !isTextInsertion;
+      //Selection.BiasForwardEnd = Selection.BiasForwardStart;
 
    }
 

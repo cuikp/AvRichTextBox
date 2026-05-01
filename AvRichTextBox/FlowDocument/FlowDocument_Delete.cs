@@ -128,7 +128,7 @@ public partial class FlowDocument
       
       disableRunTextUndo = true;
 
-      List <Table> tablesFullyInRange = GetFullTablesInRange(trange);
+      List<Table> tablesFullyInRange = GetFullTablesInRange(trange);
       List<Paragraph> paragraphsFullyInRange = GetFullParagraphsInRange(trange);
 
       bool firstParDeleted = paragraphsFullyInRange.Count > 0 && paragraphsFullyInRange.First().StartInDoc == originalSelectionStart;

@@ -249,7 +249,7 @@ internal class MergeParagraphUndo (int origMergedParInlinesCount, int mergedParI
 }
 
 
-internal class ApplyFormattingUndo (FlowDocument flowDoc, List<IEditablePropertyAssociation> propertyAssociations, (int LeftId, int RightId) edgeIds, int originalSelection, TextRange tRange) : IUndo 
+internal class ApplyFormattingUndo (FlowDocument flowDoc, List<EditablePropertyAssociation> propertyAssociations, (int LeftId, int RightId) edgeIds, int originalSelection, TextRange tRange) : IUndo 
 {
    public int UndoEditOffset => 0;
    public bool UpdateTextRanges => false;
@@ -263,10 +263,10 @@ internal class ApplyFormattingUndo (FlowDocument flowDoc, List<IEditableProperty
 
       List<Paragraph> allPars = flowDoc.AllParagraphs;
 
-      foreach (IEditablePropertyAssociation propassoc in propertyAssociations)
+      foreach (EditablePropertyAssociation propassoc in propertyAssociations)
       { 
          if (allPars.FirstOrDefault(bl => bl.Id == propassoc.BlockId) is Paragraph p && p.Inlines.FirstOrDefault(il => il.Id == propassoc.InlineId) is IEditable iline)
-            flowDoc.ApplyFormattingInline(propassoc.FormatRun, iline, propassoc.PropertyValue);
+            flowDoc.ApplyFormattingInlines(propassoc.FormatRuns, [iline], propassoc.PropertyValue);
       }
 
       if (allPars.FirstOrDefault(bl => bl.Id == propertyAssociations[0].BlockId) is not Paragraph firstPar ||

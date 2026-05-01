@@ -18,7 +18,7 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
 
    public FlowDocument FlowDoc { get; set { field = value; NotifyPropertyChanged(nameof(FlowDoc)); FlowDocChanged?.Invoke(); } } = null!;
    
-   public bool RunDebuggerVisible { get; set { field = value; NotifyPropertyChanged(nameof(RunDebuggerVisible)); } }
+   internal bool RunDebuggerVisible { get; set { field = value; NotifyPropertyChanged(nameof(RunDebuggerVisible)); } }
    public double MinWidth => RunDebuggerVisible ? 500 : 100;
 
    public RichTextBoxViewModel() {  }

@@ -5,8 +5,7 @@ namespace AvRichTextBox;
 
 public partial class FlowDocument
 {
-   Dictionary<AvaloniaProperty, FormatRunsAction> formatRunsActions = [];  // applied to multiple runs
-   Dictionary<AvaloniaProperty, FormatRunAction> formatRunActions = [];  // applied to single run
+   Dictionary<AvaloniaProperty, FormatRunsAction> formatRunsActions = [];  
 
    private void DefineFormatRunActions()
    {
@@ -22,22 +21,6 @@ public partial class FlowDocument
            { Inline.FontStretchProperty, ApplyFontStretchRuns },
            { Inline.BaselineAlignmentProperty, ApplyBaselineAlignmentRuns }
        };
-
-
-      formatRunActions = new Dictionary<AvaloniaProperty, FormatRunAction>
-       {
-           { Inline.FontFamilyProperty, ApplyFontFamilyRun },
-           { Inline.FontWeightProperty, ApplyBoldRun },
-           { Inline.FontStyleProperty, ApplyItalicRun },
-           { Inline.TextDecorationsProperty, ApplyTextDecorationRun },
-           { Inline.FontSizeProperty, ApplyFontSizeRun },
-           { Inline.BackgroundProperty, ApplyBackgroundRun },
-           { Inline.ForegroundProperty, ApplyForegroundRun },
-           { Inline.FontStretchProperty, ApplyFontStretchRun },
-           { Inline.BaselineAlignmentProperty, ApplyBaselineAlignmentRun }
-       };
-
-
    }
 
 
@@ -134,17 +117,18 @@ public partial class FlowDocument
       
       //Debug.WriteLine("\nnewlines created:\n" + string.Join("\n", newInlines.ConvertAll(il=> il.InlineText + " :: " + il.Id + "\nEdge ids = L: " + edgeIds.idLeft + ", R: " + edgeIds.idRight)));  
 
-      //create property association for undo  $$$$$$$$$$$$$$$$$
-      List<IEditablePropertyAssociation> propertyAssociations = [];
+      //create property association for undo 
+      List<EditablePropertyAssociation> propertyAssociations = [];
       foreach (EditableRun erun in newInlines.OfType<EditableRun>())
       {
-         IEditablePropertyAssociation iedPropAssoc = new(erun.MyParagraphId, erun.Id, null!, null!);
-         propertyAssociations.Add(iedPropAssoc);
+         EditablePropertyAssociation edPropAssoc = new(erun.MyParagraphId, erun.Id, null!, null!);
+         propertyAssociations.Add(edPropAssoc);
 
-         if (formatRunActions.TryGetValue(avProperty, out var runAction))
-            iedPropAssoc.FormatRun = runAction;
+         if (formatRunsActions.TryGetValue(avProperty, out var runsAction))
+            edPropAssoc.FormatRuns = runsAction;
+
          if (erun.GetValue(avProperty) is object o)
-            iedPropAssoc.PropertyValue = o;
+            edPropAssoc.PropertyValue = o;
       }
 
       Undos.Add(new ApplyFormattingUndo(this, propertyAssociations, edgeIds, Selection.Start, textRange));
@@ -176,27 +160,14 @@ public partial class FlowDocument
       disableRunTextUndo = false;
 
    }
-  
-   
-   internal void ApplyFormattingInline(FormatRunAction? formatRun, IEditable inlineItem, object value)
+     
+   internal void ApplyFormattingInlines(FormatRunsAction? formatRunsAction, List<IEditable> inlineItems, object value)
    {
-      formatRun?.Invoke(inlineItem, value);
+      formatRunsAction?.Invoke(inlineItems, value);
       Selection.BiasForwardStart = true;
       Selection.BiasForwardEnd = true;
 
    }
-
-   internal delegate void FormatRunAction(IEditable ied, object value);
-   private void ApplyFontFamilyRun(IEditable ied, object fontfamily ) { if (ied is EditableRun edrun) { edrun.FontFamily = (FontFamily)fontfamily; } }
-   private void ApplyBoldRun(IEditable ied, object fontWeight) { if (ied is EditableRun edrun) { edrun.FontWeight = (FontWeight)fontWeight; } }
-   private void ApplyItalicRun(IEditable ied, object fontStyle) { if (ied is EditableRun edrun) { edrun.FontStyle = (FontStyle)fontStyle; } }
-   private void ApplyTextDecorationRun(IEditable ied, object textDecoration) { if (ied is EditableRun edrun) { edrun.TextDecorations = (TextDecorationCollection)textDecoration; } }
-   private void ApplyFontSizeRun(IEditable ied, object fontsize) { if (ied is EditableRun edrun) { edrun.FontSize = (double)fontsize; } }
-   private void ApplyBackgroundRun(IEditable ied, object background) { if (ied is EditableRun edrun) { edrun.Background = (ISolidColorBrush)background; } }
-   private void ApplyForegroundRun(IEditable ied, object foreground) { if (ied is EditableRun edrun) { edrun.Foreground = (ISolidColorBrush)foreground; } }
-   private void ApplyFontStretchRun(IEditable ied, object fontstretch) { if (ied is EditableRun edrun) { edrun.FontStretch = (FontStretch)fontstretch; } }
-   private void ApplyBaselineAlignmentRun(IEditable ied, object baselinealignment) { if (ied is EditableRun edrun) { edrun.BaselineAlignment = (BaselineAlignment)baselinealignment ; } }
-
 
    internal delegate void FormatRunsAction(List<IEditable> ieds, object value);
    

@@ -205,3 +205,12 @@ Caret size and position also fixed for most cases.
 Disabled user setting of `Horizontal/VerticalContentAlignment` directly on `RichTextBox`, which would break internal measurement of caret and selection highlighting.
 Fixed mouse selection relative to `FlowDoc.PagePadding` and `Zoom`.
 Fixed issue with quotes in html/rtf loading.
+
+
+**[ver 1.8.3] 2026/05/01**: 
+Fixed undo not working after toggling formatting on/off while typing
+Fixed underlining not saving in html.
+Added right-click ContextMenu (Copy/Paste/Cut/Delete)
+Shift+Ctrl-Right/Left to select next(previous word)
+Shift+Ctrl-Home/End to select to Home/End
+Caret color is customizable  (CaretBrush)

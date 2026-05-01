@@ -22,12 +22,15 @@
 	  <RepositoryType>git</RepositoryType>
 	  <PackageReleaseNotes>ver 1.8.2: Fixed undo not working after toggling formatting on/off while typing
 Fixed underlining not saving in html.
-Added right-click ContextMenu (Copy/Paste/Cut/Delete)</PackageReleaseNotes>
+Added right-click ContextMenu (Copy/Paste/Cut/Delete)
+Shift+Ctrl-Right/Left to select next(previous word)
+Shift+Ctrl-Home/End to select to Home/End
+Caret color is customizable  (CaretBrush)</PackageReleaseNotes>
       
      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 	  <PackageOutputPath>D:\PROG\LocalNuget\AvRichTextBox</PackageOutputPath>
 	  
-	  <Version>1.8.2</Version>
+	  <Version>1.8.3</Version>
 	  <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
 	  

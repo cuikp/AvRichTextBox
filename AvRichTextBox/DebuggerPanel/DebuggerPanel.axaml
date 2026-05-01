@@ -28,8 +28,18 @@
 			<Border DockPanel.Dock="Top" BorderBrush="Black" BorderThickness="0.8">
 				<DockPanel x:DataType="local:FlowDocument">
 					<DockPanel DockPanel.Dock="Left">
-						<TextBlock x:Name="SelStartTB" DockPanel.Dock="Top" Background="LightGray" />
-						<TextBlock x:Name="SelEndTB" Background="LightGray"/>
+						
+						<DockPanel DockPanel.Dock="Top">
+							<TextBlock DockPanel.Dock="Left" Width="150" x:Name="SelStartTB"  Background="LightGray" />
+							<TextBlock x:Name="BiasForwardStartTB"  Background="LightGray" />
+						</DockPanel>
+						
+						<DockPanel>
+							<TextBlock DockPanel.Dock="Left" Width="150" x:Name="SelEndTB" Background="LightGray"/>
+							<TextBlock x:Name="BiasForwardEndTB" Background="LightGray" />
+						</DockPanel>
+						
+						
 					</DockPanel>
 				</DockPanel>
 			</Border>

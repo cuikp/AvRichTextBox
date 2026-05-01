@@ -7,18 +7,19 @@ public interface IUndo
    public bool UpdateTextRanges { get; }
 }
 
-internal class IEditablePropertyAssociation
+internal class EditablePropertyAssociation
 {
    internal int InlineId { get; set; }
    internal int BlockId { get; set; }
    internal object PropertyValue { get; set; }
-   internal FlowDocument.FormatRunAction? FormatRun { get; set; }  
+   //internal FlowDocument.FormatRunAction? FormatRuns { get; set; }  
+   internal FlowDocument.FormatRunsAction? FormatRuns { get; set; }  
 
-   internal IEditablePropertyAssociation(int blockId, int inlineId, FlowDocument.FormatRunAction formatRunAction, object propertyValue)
+   internal EditablePropertyAssociation(int blockId, int inlineId, FlowDocument.FormatRunsAction formatRunsAction, object propertyValue)
    {
       BlockId = blockId;
       InlineId = inlineId;
-      FormatRun = formatRunAction;
+      FormatRuns = formatRunsAction;
       PropertyValue = propertyValue;
    }
 }

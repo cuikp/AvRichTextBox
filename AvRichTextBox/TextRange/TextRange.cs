@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.Math;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Text;
 using static AvRichTextBox.XamlConversions;
 
@@ -11,6 +10,9 @@ public class TextRange : INotifyPropertyChanged, IDisposable
    private void InvokeProperty(PropertyChangedEventArgs pceArgs) { PropertyChanged?.Invoke(this, pceArgs); }
    private static readonly PropertyChangedEventArgs StartChangedArgs = new(nameof(Start));
    private static readonly PropertyChangedEventArgs EndChangedArgs = new(nameof(End));
+
+   private static readonly PropertyChangedEventArgs BiasForwardStartChangedArgs = new(nameof(BiasForwardStart));
+   private static readonly PropertyChangedEventArgs BiasForwardEndChangedArgs = new(nameof(BiasForwardEnd));
 
    internal delegate void Start_ChangedHandler(TextRange sender, int newStart);
    internal event Start_ChangedHandler? Start_Changed;
@@ -31,10 +33,14 @@ public class TextRange : INotifyPropertyChanged, IDisposable
    }
 
    internal FlowDocument myFlowDoc;
-   public int Length  => End - Start;
- 
-   public int Start { get;  set {  field = value; Start_Changed?.Invoke(this, value); InvokeProperty(StartChangedArgs);  } }
-   public int End { get; set {  field = value; End_Changed?.Invoke(this, value); InvokeProperty(EndChangedArgs);  } }
+   public int Length => End - Start;
+
+   // Always invoke Start_Changed / End_Changed even if field=value (for caret updating)
+   public int Start { get; set { field = value; Start_Changed?.Invoke(this, value); InvokeProperty(StartChangedArgs); } } 
+   public int End { get; set { field = value; End_Changed?.Invoke(this, value); InvokeProperty(EndChangedArgs); } } 
+
+   internal bool BiasForwardStart { get; set { if (field == value) return; field = value; InvokeProperty(BiasForwardStartChangedArgs); } }
+   internal bool BiasForwardEnd { get; set { if (field == value) return; field = value; InvokeProperty(BiasForwardEndChangedArgs); } }
 
    internal Paragraph StartParagraph = null!;
    internal Paragraph EndParagraph = null!;
@@ -47,8 +53,6 @@ public class TextRange : INotifyPropertyChanged, IDisposable
    internal bool IsAtLineBreak = false;
    internal bool IsAtCellBreak = false;
 
-   internal bool BiasForwardStart = true;
-   internal bool BiasForwardEnd = true;
    public void CollapseToStart() { End = Start;  }
    public void CollapseToEnd() { Start = End ; }
 
@@ -70,7 +74,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 
       if (GetStartPar() is not Paragraph startPar) return null;
       IEditable? startInline = null;
-      
+
       if (BiasForwardStart)
       {
          IEditable? startInlineReal = startPar.Inlines.LastOrDefault(ied => startPar.StartInDoc + ied.TextPositionOfInlineInParagraph <= Start);
