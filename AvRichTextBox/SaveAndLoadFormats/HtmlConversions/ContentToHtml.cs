@@ -17,7 +17,7 @@ internal static partial class HtmlConversions
    {
 
       HtmlDocument hdoc = new();
-      
+
       HtmlNode html = hdoc.CreateElement("html");
       HtmlNode head = hdoc.CreateElement("head");
       HtmlNode body = hdoc.CreateElement("body");
@@ -51,14 +51,14 @@ internal static partial class HtmlConversions
                break;
          }
       }
-      
+
       return hdoc;
-        
+
    }
 
    private static HtmlNode GetTableNode(Table t, HtmlDocument hdoc)
    {
-    
+
       int noCols = t.ColDefs.Count;
       double colWidthPerc = Math.Round(100D / noCols);
 
@@ -77,7 +77,7 @@ internal static partial class HtmlConversions
       string tabBorderCol = ColorToCss(t.BorderBrush.Color);
 
       HtmlNode tableNode = hdoc.CreateElement("table");
-      string tableStyleString = 
+      string tableStyleString =
          "border-spacing: 0;" +
          "border-collapse: collapse;" +
          $"border: {tabBorderThickness}px solid {tabBorderCol};" +
@@ -109,7 +109,7 @@ internal static partial class HtmlConversions
             {
                HtmlNode cellNode = hdoc.CreateElement("td");
 
-               string valignString = thisCell.CellVerticalAlignment switch { VerticalAlignment.Top => "top", VerticalAlignment.Center => "center" , VerticalAlignment.Bottom => "bottom", _=> "center"};
+               string valignString = thisCell.CellVerticalAlignment switch { VerticalAlignment.Top => "top", VerticalAlignment.Center => "center", VerticalAlignment.Bottom => "bottom", _ => "center" };
 
                string cellStyleString =
                   $"border-width: {thisCell.BorderThickness.Top}px {thisCell.BorderThickness.Right}px {thisCell.BorderThickness.Bottom}px {thisCell.BorderThickness.Left}px;" +
@@ -136,55 +136,72 @@ internal static partial class HtmlConversions
       }
 
       return tableNode;
-      
+
 
    }
 
- 
+
    private static HtmlNode GetParagraphNode(Paragraph p, HtmlDocument hdoc)
    {
       HtmlNode parnode = hdoc.CreateElement("p");
 
+      bool hasContent = false;
+
       foreach (IEditable ied in p.Inlines)
       {
-         HtmlNode spanNode = hdoc.CreateElement("span");
-
          switch (ied)
          {
             case EditableRun erun:
-               spanNode.InnerHtml = WebUtility.HtmlEncode(erun.Text ?? "");
-               spanNode.SetAttributeValue("style", GetInlineStyle(erun));
-               break;
+               {
+                  if (!string.IsNullOrEmpty(erun.Text))
+                  {
+                     var spanNode = hdoc.CreateElement("span");
+                     spanNode.InnerHtml = WebUtility.HtmlEncode(erun.Text ?? "");
+                     spanNode.SetAttributeValue("style", GetInlineStyle(erun));
+                     parnode.AppendChild(spanNode);
+                     hasContent = true;
+                  }
+                  break;
+               }
 
-            case EditableLineBreak elbreak:
-               spanNode = hdoc.CreateElement("br");
-               break;
+            case EditableLineBreak:
+               {
+                  var brNode = hdoc.CreateElement("br");
+                  parnode.AppendChild(brNode);
+                  hasContent = true;
+                  break;
+               }
 
             case EditableInlineUIContainer eUIC:
-
-               if (eUIC.Child is Image img && img.Source is Bitmap bmp)
                {
-                  using var memStream = new MemoryStream();
-                  bmp.Save(memStream);
-                  var base64 = Convert.ToBase64String(memStream.ToArray());
+                  if (eUIC.Child is Image img && img.Source is Bitmap bmp)
+                  {
+                     using var memStream = new MemoryStream();
+                     bmp.Save(memStream);
+                     var base64 = Convert.ToBase64String(memStream.ToArray());
 
-                  var imgNode = hdoc.CreateElement("img");
-                  imgNode.SetAttributeValue("src", $"data:image/png;base64,{base64}");
-                  imgNode.SetAttributeValue("width", img.Width.ToString());
-                  imgNode.SetAttributeValue("height", img.Height.ToString());
+                     var imgNode = hdoc.CreateElement("img");
+                     imgNode.SetAttributeValue("src", $"data:image/png;base64,{base64}");
+                     imgNode.SetAttributeValue("width", img.Width.ToString());
+                     imgNode.SetAttributeValue("height", img.Height.ToString());
 
-                  parnode.AppendChild(imgNode);
+                     parnode.AppendChild(imgNode);
+                     hasContent = true;
+                  }
+                  break;
                }
-               break;
          }
-         parnode.AppendChild(spanNode);
+      }
+
+      if (!hasContent)
+      {
+         parnode.AppendChild(hdoc.CreateElement("br"));
       }
 
       parnode.SetAttributeValue("style", GetParStyle(p));
-
       return parnode;
-
    }
+
 
    private static string GetParStyle(Paragraph p)
    {
@@ -245,7 +262,7 @@ internal static partial class HtmlConversions
 
       string? foregroundColor = ToCssColor(run.Foreground, Brushes.Black);
       if (foregroundColor != null)
-         sb.Append($"color:{foregroundColor};"); 
+         sb.Append($"color:{foregroundColor};");
 
       string? backgroundColor = ToCssColor(run.Background, Brushes.Transparent);
       if (backgroundColor != null)
