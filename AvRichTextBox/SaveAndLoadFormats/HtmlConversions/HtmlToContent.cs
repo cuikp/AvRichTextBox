@@ -63,7 +63,7 @@ internal static partial class HtmlConversions
    private static Table GetTableFromNode(HtmlNode tableNode, FlowDocument fdoc)
    {
       Table newTable = new(fdoc);
-      
+
       int noCols = 0;
       var colNodes = tableNode.SelectNodes("./colgroup/col");
       if (colNodes != null && colNodes.Count > 0)
@@ -115,7 +115,7 @@ internal static partial class HtmlConversions
          int rowSpan = 1;
 
          foreach (var td in cellNodes)
-         {          
+         {
             while (colNo < noCols && rowNo < nextAvailableRows[colNo])
                colNo++;
 
@@ -127,7 +127,7 @@ internal static partial class HtmlConversions
                   rowSpan = Math.Max(1, Int32.Parse(att.Value));
             }
 
-        
+
             var newCell = new Cell(newTable)
             {
                RowNo = rowNo,
@@ -140,10 +140,10 @@ internal static partial class HtmlConversions
 
 
             Dictionary<string, string> parsedCellStyles = ParseStyleAttribute(td.GetAttributeValue("style", ""));
-            
+
             ISolidColorBrush cellBorderBrush = Brushes.Black;
             Thickness cellBorderThickness = new(1);
-            
+
             GetBordersFromCssStyle(parsedCellStyles, ref cellBorderBrush, ref cellBorderThickness);
             newCell.BorderBrush = cellBorderBrush;
             newCell.BorderThickness = cellBorderThickness;
@@ -152,8 +152,8 @@ internal static partial class HtmlConversions
             if (parsedCellStyles.TryGetValue("background-color", out var backgroundColorString))
                if (ParseCssColor(backgroundColorString) is ISolidColorBrush bgc)
                   newCell.CellBackground = bgc;
-            
-            
+
+
             if (parsedCellStyles.TryGetValue("padding", out var paddingString))
             {
                if (paddingString.Contains(' '))
@@ -168,8 +168,8 @@ internal static partial class HtmlConversions
                      newCell.Padding = new Thickness(padding);
                }
             }
-                           
-           
+
+
             if (parsedCellStyles.TryGetValue("vertical-align", out var cellVerticalAlign))
                switch (cellVerticalAlign)
                {
@@ -177,7 +177,7 @@ internal static partial class HtmlConversions
                   case "center": newCell.CellVerticalAlignment = VerticalAlignment.Center; break;
                   case "bottom": newCell.CellVerticalAlignment = VerticalAlignment.Bottom; break;
                }
-            
+
 
             HtmlNode? contentNode = td.ChildNodes.FirstOrDefault(n => n.NodeType == HtmlNodeType.Element);
 
@@ -202,9 +202,9 @@ internal static partial class HtmlConversions
 
       return newTable;
 
-   }   
+   }
 
-   private static void GetBordersFromCssStyle(Dictionary<string, string> parsedStyles, ref ISolidColorBrush cellBorderBrush, ref Thickness  cellBorderThickness)
+   private static void GetBordersFromCssStyle(Dictionary<string, string> parsedStyles, ref ISolidColorBrush cellBorderBrush, ref Thickness cellBorderThickness)
    {
       foreach (KeyValuePair<string, string> kvp in parsedStyles)
       {
@@ -245,7 +245,7 @@ internal static partial class HtmlConversions
       if (styles.TryGetValue("margin", out var marginVal))
       {
          var parts = marginVal.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(p => p.Trim().ToLowerInvariant()).ToArray();
-              
+
          if (parts.Length == 1)
          {
             ml ??= parts[0];
@@ -277,7 +277,7 @@ internal static partial class HtmlConversions
 
       if (leftAuto && rightAuto)
          tableHorizAlignment = HorizontalAlignment.Center;
-       else if (leftAuto && !rightAuto)
+      else if (leftAuto && !rightAuto)
          tableHorizAlignment = HorizontalAlignment.Right;
       else
          tableHorizAlignment = HorizontalAlignment.Left;
@@ -517,14 +517,34 @@ internal static partial class HtmlConversions
       }
    }
 
+   /// <summary>
+   /// special case: <p><br></p> => empty paragraph
+   /// </summary>
+   /// <param name="paragraphNode"></param>
+   /// <returns></returns>
+   private static bool IsHtmlEmptyParagraph(HtmlNode paragraphNode)
+   {
+      var elementChildren = paragraphNode.ChildNodes
+          .Where(n => n.NodeType == HtmlNodeType.Element)
+          .ToList();
+
+      var textContent = WebUtility.HtmlDecode(paragraphNode.InnerText);
+
+      return elementChildren.Count == 1
+          && elementChildren[0].Name.Equals("br", StringComparison.OrdinalIgnoreCase)
+          && string.IsNullOrWhiteSpace(textContent);
+   }
+
 
    private static Paragraph GetParagraphFromNode(HtmlNode childNode, FlowDocument fdoc)
    {
-      
       Paragraph par = new(fdoc);
 
-      InlineFormatting defaultFormatting = new();
-      AddInlinesFromNode(childNode, par, defaultFormatting);
+      if (!IsHtmlEmptyParagraph(childNode))
+      {
+         InlineFormatting defaultFormatting = new();
+         AddInlinesFromNode(childNode, par, defaultFormatting);
+      }
 
       foreach (KeyValuePair<string, string> kvp in ParseStyleAttribute(childNode.GetAttributeValue("style", "")))
       {
@@ -535,7 +555,7 @@ internal static partial class HtmlConversions
                if (par.Inlines.Count > 0)
                {
                   double lineHeight = Double.TryParse(kvp.Value.Replace("px", ""), out var px) ? px : 0;
-                  double maxInlineHeight = par.Inlines.Max(ilh => ilh.InlineHeight);
+                  //double maxInlineHeight = par.Inlines.Max(ilh => ilh.InlineHeight);
                   //par.LineHeight = LineHeightToLineSpacing(lineHeight, maxInlineHeight);
                   par.LineHeight = lineHeight;
                }
@@ -567,7 +587,7 @@ internal static partial class HtmlConversions
                   if (int.Parse(marginString.Replace("px", "")) is int padding)
                      par.Margin = new Thickness(padding);
                }
-               
+
                break;
 
             case "background-color":
@@ -591,17 +611,17 @@ internal static partial class HtmlConversions
 
    }
 
-   private static Thickness GetBorderThickness (string val)
+   private static Thickness GetBorderThickness(string val)
    {
-      Thickness returnThickness = new (1);
-      
+      Thickness returnThickness = new(1);
+
       var bwidths = val.Split(' ').Select(val => int.TryParse(val.Replace("px", ""), out var px) ? px : 0).ToList();
       if (bwidths.Count == 4)
          returnThickness = new Thickness(bwidths[3], bwidths[0], bwidths[1], bwidths[2]);
 
       return returnThickness;
 
-      
+
    }
 
    private static Dictionary<string, string> ParseStyleAttribute(string? style)
