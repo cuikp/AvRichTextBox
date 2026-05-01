@@ -168,7 +168,7 @@ public partial class FlowDocument : AvaloniaObject
    internal async void InitializeDocument()
    {
 
-      //Fail-safe in case imported document has no content
+      //Fail-safe in case imported document has no content.
       if (AllParagraphs.Count == 0)
          AddDefaultParagraph();
 
