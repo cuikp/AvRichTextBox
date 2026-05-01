@@ -277,96 +277,78 @@ internal static partial class HtmlConversions
 
       if (leftAuto && rightAuto)
          tableHorizAlignment = HorizontalAlignment.Center;
-      else if (leftAuto && !rightAuto)
+       else if (leftAuto && !rightAuto)
          tableHorizAlignment = HorizontalAlignment.Right;
       else
          tableHorizAlignment = HorizontalAlignment.Left;
    }
 
 
-   private static Paragraph GetParagraphFromNode(HtmlNode childNode, FlowDocument fdoc)
+   /// <summary>
+   /// Holds accumulated inline formatting state while recursing through nested HTML elements.
+   /// </summary>
+   private class InlineFormatting
    {
-      
-      Paragraph par = new(fdoc);
+      public FontWeight FontWeight { get; set; } = FontWeight.Normal;
+      public FontStyle FontStyle { get; set; } = FontStyle.Normal;
+      public TextDecorationCollection? TextDecorations { get; set; }
+      public BaselineAlignment BaselineAlignment { get; set; } = BaselineAlignment.Baseline;
+      public FontFamily? FontFamily { get; set; }
+      public double? FontSize { get; set; }
+      public SolidColorBrush? Foreground { get; set; }
+      public SolidColorBrush? Background { get; set; }
 
-      foreach (HtmlNode inlineNode in childNode.ChildNodes.Where(cn => cn.NodeType is HtmlNodeType.Element or HtmlNodeType.Text))
+      public InlineFormatting Clone()
       {
-         switch (inlineNode.Name)
+         return new InlineFormatting
          {
-            case "span":
-               EditableRun erun = new() { Text = WebUtility.HtmlDecode(inlineNode.InnerText) };
+            FontWeight = FontWeight,
+            FontStyle = FontStyle,
+            TextDecorations = TextDecorations,
+            BaselineAlignment = BaselineAlignment,
+            FontFamily = FontFamily,
+            FontSize = FontSize,
+            Foreground = Foreground,
+            Background = Background,
+         };
+      }
 
-               foreach (KeyValuePair<string, string> kvp in ParseStyleAttribute(inlineNode.GetAttributeValue("style", "")))
+      public void ApplyTo(EditableRun run)
+      {
+         run.FontWeight = FontWeight;
+         run.FontStyle = FontStyle;
+         if (TextDecorations != null)
+            run.TextDecorations = TextDecorations;
+         run.BaselineAlignment = BaselineAlignment;
+         if (FontFamily != null)
+            run.FontFamily = FontFamily;
+         if (FontSize.HasValue)
+            run.FontSize = FontSize.Value;
+         if (Foreground != null)
+            run.Foreground = Foreground;
+         if (Background != null)
+            run.Background = Background;
+      }
+   }
+
+   /// <summary>
+   /// Recursively processes inline HTML nodes, accumulating formatting from nested tags
+   /// like <b>, <i>, <u>, <sup>, <sub>, <span>, etc.
+   /// </summary>
+   private static void AddInlinesFromNode(HtmlNode parentNode, Paragraph par, InlineFormatting formatting)
+   {
+      foreach (HtmlNode node in parentNode.ChildNodes.Where(cn => cn.NodeType is HtmlNodeType.Element or HtmlNodeType.Text))
+      {
+         switch (node.Name)
+         {
+            case "#text":
+               string textContent = WebUtility.HtmlDecode(node.InnerText);
+               if (!string.IsNullOrEmpty(textContent))
                {
-                  switch (kvp.Key)
-                  {
-                     case "font-weight":
-
-                        erun.FontWeight = kvp.Value switch
-                        {
-                           "bold" => FontWeight.Bold,
-                           "normal" => FontWeight.Normal,
-                           _ => FontWeight.Normal
-                        };
-
-                        break;
-
-                     case "font-style":
-                        erun.FontStyle = kvp.Value == "italic" ? FontStyle.Italic : FontStyle.Normal;
-                        break;
-
-                     case "font-family":
-                        //Debug.WriteLine("fontfam = " + kvp.Value);
-                        var fontName = kvp.Value;
-                        if (fontName.StartsWith("compositefont:", StringComparison.OrdinalIgnoreCase))
-                           fontName = fontName["compositefont:".Length..];
-
-                        var hashIndex = fontName.IndexOf('#');
-                        if (hashIndex >= 0)
-                           fontName = fontName[(hashIndex + 1)..];
-
-                        erun.FontFamily = new FontFamily(fontName.Trim());
-
-                        break;
-
-                     case "font-size":
-                        if (double.TryParse(kvp.Value.Replace("px", ""), out var size))
-                           erun.FontSize = size;
-                        break;
-
-                     case "color":
-                        if (ParseCssColor(kvp.Value) is SolidColorBrush foreSCB)
-                           erun.Foreground = foreSCB;
-                        break;
-
-                     case "background-color":
-                        if (ParseCssColor(kvp.Value) is SolidColorBrush backSCB)
-                           erun.Background = backSCB;
-                        break;
-
-                     case "vertical-align":
-                        switch (kvp.Value)
-                        {
-                           case "super":
-                              erun.BaselineAlignment = BaselineAlignment.Superscript;
-                              break;
-
-                           case "sub":
-                              erun.BaselineAlignment = BaselineAlignment.Subscript;
-                              break;
-                        }
-                        break;
-
-                     case "text-decoration":
-                        if (kvp.Value.Contains("underline"))
-                           erun.TextDecorations = TextDecorations.Underline;
-                        else if (kvp.Value.Contains("line-through"))
-                           erun.TextDecorations = TextDecorations.Strikethrough;
-                        break;
-                  }
+                  EditableRun textRun = new() { Text = textContent };
+                  formatting.ApplyTo(textRun);
+                  par.Inlines.Add(textRun);
                }
-
-               par.Inlines.Add(erun);
                break;
 
             case "br":
@@ -374,8 +356,7 @@ internal static partial class HtmlConversions
                break;
 
             case "img":
-
-               var src = inlineNode.GetAttributeValue("src", null!);
+               var src = node.GetAttributeValue("src", null!);
                if (!string.IsNullOrEmpty(src) && src.StartsWith("data:image"))
                {
                   var base64Index = src.IndexOf("base64,", StringComparison.OrdinalIgnoreCase);
@@ -393,20 +374,157 @@ internal static partial class HtmlConversions
                         IsVisible = true,
                      };
 
-                     if (inlineNode.GetAttributeValue("width", null!) is string w && double.TryParse(w, out var width))
+                     if (node.GetAttributeValue("width", null!) is string w && double.TryParse(w, out var width))
                         img.Width = width;
 
-                     if (inlineNode.GetAttributeValue("height", null!) is string h && double.TryParse(h, out var height))
+                     if (node.GetAttributeValue("height", null!) is string h && double.TryParse(h, out var height))
                         img.Height = height;
 
                      par.Inlines.Add(new EditableInlineUIContainer(img));
                   }
                }
+               break;
 
+            case "span":
+               var spanFormatting = formatting.Clone();
+               ApplyStyleToFormatting(node.GetAttributeValue("style", ""), spanFormatting);
+               AddInlinesFromNode(node, par, spanFormatting);
+               break;
+
+            case "b":
+            case "strong":
+               var boldFormatting = formatting.Clone();
+               boldFormatting.FontWeight = FontWeight.Bold;
+               ApplyStyleToFormatting(node.GetAttributeValue("style", ""), boldFormatting);
+               AddInlinesFromNode(node, par, boldFormatting);
+               break;
+
+            case "i":
+            case "em":
+               var italicFormatting = formatting.Clone();
+               italicFormatting.FontStyle = FontStyle.Italic;
+               ApplyStyleToFormatting(node.GetAttributeValue("style", ""), italicFormatting);
+               AddInlinesFromNode(node, par, italicFormatting);
+               break;
+
+            case "u":
+               var underlineFormatting = formatting.Clone();
+               underlineFormatting.TextDecorations = Avalonia.Media.TextDecorations.Underline;
+               ApplyStyleToFormatting(node.GetAttributeValue("style", ""), underlineFormatting);
+               AddInlinesFromNode(node, par, underlineFormatting);
+               break;
+
+            case "s":
+            case "strike":
+            case "del":
+               var strikeFormatting = formatting.Clone();
+               strikeFormatting.TextDecorations = Avalonia.Media.TextDecorations.Strikethrough;
+               ApplyStyleToFormatting(node.GetAttributeValue("style", ""), strikeFormatting);
+               AddInlinesFromNode(node, par, strikeFormatting);
+               break;
+
+            case "sup":
+               var supFormatting = formatting.Clone();
+               supFormatting.BaselineAlignment = BaselineAlignment.Superscript;
+               ApplyStyleToFormatting(node.GetAttributeValue("style", ""), supFormatting);
+               AddInlinesFromNode(node, par, supFormatting);
+               break;
+
+            case "sub":
+               var subFormatting = formatting.Clone();
+               subFormatting.BaselineAlignment = BaselineAlignment.Subscript;
+               ApplyStyleToFormatting(node.GetAttributeValue("style", ""), subFormatting);
+               AddInlinesFromNode(node, par, subFormatting);
+               break;
+
+            default:
+               // For any unrecognized inline element, recurse into its children
+               // preserving current formatting
+               AddInlinesFromNode(node, par, formatting);
                break;
          }
-
       }
+   }
+
+   /// <summary>
+   /// Applies CSS style properties to an InlineFormatting instance.
+   /// </summary>
+   private static void ApplyStyleToFormatting(string style, InlineFormatting formatting)
+   {
+      if (string.IsNullOrEmpty(style))
+         return;
+
+      foreach (KeyValuePair<string, string> kvp in ParseStyleAttribute(style))
+      {
+         switch (kvp.Key)
+         {
+            case "font-weight":
+               formatting.FontWeight = kvp.Value switch
+               {
+                  "bold" => FontWeight.Bold,
+                  "normal" => FontWeight.Normal,
+                  _ => FontWeight.Normal
+               };
+               break;
+
+            case "font-style":
+               formatting.FontStyle = kvp.Value == "italic" ? FontStyle.Italic : FontStyle.Normal;
+               break;
+
+            case "font-family":
+               var fontName = kvp.Value;
+               if (fontName.StartsWith("compositefont:", StringComparison.OrdinalIgnoreCase))
+                  fontName = fontName["compositefont:".Length..];
+
+               var hashIndex = fontName.IndexOf('#');
+               if (hashIndex >= 0)
+                  fontName = fontName[(hashIndex + 1)..];
+
+               formatting.FontFamily = new FontFamily(fontName.Trim());
+               break;
+
+            case "font-size":
+               if (double.TryParse(kvp.Value.Replace("px", ""), out var size))
+                  formatting.FontSize = size;
+               break;
+
+            case "color":
+               if (ParseCssColor(kvp.Value) is SolidColorBrush foreSCB)
+                  formatting.Foreground = foreSCB;
+               break;
+
+            case "background-color":
+               if (ParseCssColor(kvp.Value) is SolidColorBrush backSCB)
+                  formatting.Background = backSCB;
+               break;
+
+            case "vertical-align":
+               formatting.BaselineAlignment = kvp.Value switch
+               {
+                  "super" => BaselineAlignment.Superscript,
+                  "sub" => BaselineAlignment.Subscript,
+                  _ => formatting.BaselineAlignment
+               };
+               break;
+
+            case "text-decoration":
+               if (kvp.Value.Contains("underline"))
+                  formatting.TextDecorations = TextDecorations.Underline;
+               else if (kvp.Value.Contains("line-through"))
+                  formatting.TextDecorations = TextDecorations.Strikethrough;
+               break;
+         }
+      }
+   }
+
+
+   private static Paragraph GetParagraphFromNode(HtmlNode childNode, FlowDocument fdoc)
+   {
+      
+      Paragraph par = new(fdoc);
+
+      InlineFormatting defaultFormatting = new();
+      AddInlinesFromNode(childNode, par, defaultFormatting);
 
       foreach (KeyValuePair<string, string> kvp in ParseStyleAttribute(childNode.GetAttributeValue("style", "")))
       {
