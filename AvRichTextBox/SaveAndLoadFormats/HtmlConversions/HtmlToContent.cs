@@ -36,9 +36,9 @@ internal static partial class HtmlConversions
             }
          }
 
-         //foreach (HtmlNode tableNode in bodyNode.ChildNodes.Where(cn => cn.Name == "par"))
          foreach (HtmlNode childNode in bodyNode.ChildNodes)
          {
+            ProcessRecursive(childNode, fdoc);
             switch (childNode.Name)
             {
                case "p":
@@ -50,14 +50,49 @@ internal static partial class HtmlConversions
                   Table t = GetTableFromNode(childNode, fdoc);
                   fdoc.Blocks.Add(t);
                   break;
+            
             }
-
          }
-
 
       }
       catch (Exception ex) { Debug.WriteLine($"Error getting flow doc: \n{ex.Message}"); }
 
+   }
+
+   static void ProcessRecursive(HtmlNode node, FlowDocument fdoc)
+   {
+      foreach (var child in node.ChildNodes)
+      {
+         switch (child.Name.ToLowerInvariant())
+         {
+            case "p":
+               Paragraph p = GetParagraphFromNode(child, fdoc);
+               fdoc.Blocks.Add(p);
+               break;
+            case "table":
+               Table t = GetTableFromNode(child, fdoc);
+               fdoc.Blocks.Add(t);
+               break;
+            case "div":
+            case "article":
+            case "section":
+            case "span":
+               ProcessRecursive(child, fdoc);
+               break;
+
+            case "br":  //ignore outside of paragraph
+               break;
+
+            case "script":
+            case "style":
+            case "noscript":
+               break;
+
+            default:
+               ProcessRecursive(child, fdoc);
+               break;
+         }
+      }
    }
 
    private static Table GetTableFromNode(HtmlNode tableNode, FlowDocument fdoc)
@@ -345,7 +380,8 @@ internal static partial class HtmlConversions
                string textContent = WebUtility.HtmlDecode(node.InnerText);
                if (!string.IsNullOrEmpty(textContent))
                {
-                  EditableRun textRun = new() { Text = textContent };
+                  //EditableRun textRun = new() { Text = textContent.Trim(['\r', '\n', '\v']) };
+                  EditableRun textRun = new() { Text = Regex.Replace(textContent, @"\s+", " ") };
                   formatting.ApplyTo(textRun);
                   par.Inlines.Add(textRun);
                }
@@ -775,5 +811,6 @@ internal static partial class HtmlConversions
 
       return null;
    }
+
 
 }
