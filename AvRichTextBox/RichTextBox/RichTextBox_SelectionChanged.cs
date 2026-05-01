@@ -13,12 +13,25 @@ public partial class RichTextBox : UserControl
    private void FlowDoc_Selection_Changed(TextRange selection) { UpdateSelectionIndicators(); }
    private void FlowDoc_PagePadding_Changed() { Dispatcher.UIThread.Post(() => { UpdateSelectionIndicators(); }); }
 
+   private void ClearSelectionHighlighting()
+   {
+      _geometry.Figures = [];
+
+      foreach (Table t in FlowDoc.Blocks.OfType<Table>())
+      {
+         foreach (Cell tcell in t.Cells)
+            tcell.Selected = false;
+      }
+
+   }
+
    private void UpdateSelectionIndicators()
    {
       this.UpdateLayout();
-       
+
       //caret & highlighting visibility
-      _geometry.Figures = [];
+      ClearSelectionHighlighting();
+
       bool caretOnly = FlowDoc.Selection.Length == 0;
       SelectionPath.IsVisible = !caretOnly;
       RtbVm.CaretVisible = caretOnly;
@@ -37,10 +50,6 @@ public partial class RichTextBox : UserControl
          p.SelectionEndInBlock = Math.Min(p.BlockLength, FlowDoc.Selection.End - p.StartInDoc);
 
          CalculateParagraphLayoutProperties(p, p.TextLayout, parno == 0, parno == FlowDoc.SelectionParagraphs.Count - 1, parIsEmpty);
-
-         //for full cell selection visibility
-         if (p.IsTableCellBlock)
-            p.OwningCell.Selected = (p.SelectionStartInBlock == 0 && p.SelectionEndInBlock == p.BlockLength);
 
          if (caretOnly)
          {  //only get first selected paragraph 
@@ -67,8 +76,14 @@ public partial class RichTextBox : UserControl
 
             RtbVm.CalculateCaretHeightAndPosition(thisTextLine, p.DocICRelativeLeft + selStartRect.X, glyphHeight, balign);
          }
+
          else
+
          {
+            //visible selection for table cells
+            if (p.IsTableCellBlock)
+               p.OwningCell.Selected = (p.SelectionStartInBlock == 0 && p.SelectionEndInBlock == p.BlockLength);
+
             if (parIsEmpty)
             {
                TextLine tline = p.TextLayout.TextLines[0];

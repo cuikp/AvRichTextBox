@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Avalonia.Threading;
 
 namespace DemoApp_AvRichtextBox.Views;
 
@@ -58,9 +59,46 @@ public partial class MainWindow : Window
 #endif
 
       progChange = false;
-            
+
+
+      //DEBUG
+      //CreateTestDocumentWithTable();
 
    }
+
+   internal void CreateTestDocumentWithTable()
+   {
+      //MainRTB.NewDocument();
+
+      Paragraph newPar = new(MainRTB.FlowDocument);
+      newPar.Inlines.Add(new EditableRun("A "));
+      newPar.Inlines.Add(new EditableRun("first"));
+      newPar.Inlines.Add(new EditableRun(" H"));
+
+      newPar.Inlines.Add(new EditableRun("2") { BaselineAlignment = BaselineAlignment.Subscript });
+      newPar.Inlines.Add(new EditableRun("O"));
+      newPar.Inlines.Add(new EditableRun("3") { BaselineAlignment = BaselineAlignment.Superscript });
+
+      newPar.Inlines.Add(new EditableRun(" simple "));
+      newPar.Inlines.Add(new EditableRun("line."));
+      MainRTB.FlowDocument.Blocks.Add(newPar);
+
+      //Test Table
+      MainRTB.FlowDocument.Blocks.Add(new Table(5, 4, MainRTB.FlowDocument) { BorderThickness = new(1), BorderBrush = Brushes.ForestGreen, TableAlignment = Avalonia.Layout.HorizontalAlignment.Center });
+
+      Paragraph newPar2 = new(MainRTB.FlowDocument);
+      newPar2.Inlines.Add(new EditableRun("Some extra text after the table."));
+      MainRTB.FlowDocument.Blocks.Add(newPar2);
+
+      Dispatcher.UIThread.Post(() =>
+      {
+
+         MainRTB.UpdateLayout();
+         MainRTB.FlowDocument.Select(0, 0);
+      });                  
+
+   }
+
 
    private void CreateNewDocumentMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
    {

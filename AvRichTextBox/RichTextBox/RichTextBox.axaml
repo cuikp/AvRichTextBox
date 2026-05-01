@@ -144,7 +144,7 @@
 																	local:RequestExtensions.InvalidateVisualRequested="{Binding RequestInvalidateVisual}"
 																	/>  
 															</local:EditableCell>
-															<Rectangle Fill="{Binding SelectionBrush}" Opacity="0.45" IsVisible="{Binding Selected}"/>
+															<Rectangle Fill="{Binding SelectionBrush}" Opacity="0.45" IsVisible="{Binding Selected}" IsHitTestVisible="False"/>
 														</Grid>
 													</DataTemplate>
 												</ItemsControl.ItemTemplate>

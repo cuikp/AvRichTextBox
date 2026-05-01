@@ -140,35 +140,7 @@ public partial class FlowDocument : AvaloniaObject
 
    }
 
-   //internal void CreateTestDocumentWithTable()
-   //{
-   //   ClearDocument();
-
-   //   Paragraph newPar = new(this);
-   //   newPar.Inlines.Add(new EditableRun("A ")  );
-   //   newPar.Inlines.Add(new EditableRun("first") );
-   //   newPar.Inlines.Add(new EditableRun(" H") );
-        
-   //   newPar.Inlines.Add(new EditableRun("2") { BaselineAlignment = BaselineAlignment.Subscript });
-   //   newPar.Inlines.Add(new EditableRun("O"));
-   //   newPar.Inlines.Add(new EditableRun("3") { BaselineAlignment = BaselineAlignment.Superscript });
-
-   //   newPar.Inlines.Add(new EditableRun(" simple "));
-   //   newPar.Inlines.Add(new EditableRun("line.") ) ;
-   //   Blocks.Add(newPar);
-
-   //   //Test Table
-   //   Blocks.Add(new Table(5, 4, this) { BorderThickness = new(1), BorderBrush = Brushes.ForestGreen, TableAlignment = Avalonia.Layout.HorizontalAlignment.Center });
-
-   //   Paragraph newPar2 = new(this);
-   //   newPar2.Inlines.Add(new EditableRun("Some extra text after the table."));
-   //   Blocks.Add(newPar2);
-
-
-   //   InitializeDocument();
-
-   //}
-
+ 
    internal void ClearDocument()
    {
       Blocks.Clear();

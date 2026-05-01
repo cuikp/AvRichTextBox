@@ -94,7 +94,6 @@ public partial class RichTextBox : UserControl
       AdornerLayer.SetAdorner(DocIC, panel);
       //AdornerLayer.SetIsClipEnabled(panel, false);
 
-
    }
 
 
@@ -111,11 +110,8 @@ public partial class RichTextBox : UserControl
 
    }
 
-
    private void RichTextBox_Loaded(object? sender, RoutedEventArgs e)
-   {
-      ////FOR DEBUGGING
-      //FlowDoc.CreateTestDocumentWithTable();
+   {      
 
 #if DEBUG
       BindSelectionPropertiesToDebuggerPanel();
