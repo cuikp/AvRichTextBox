@@ -59,7 +59,9 @@ public partial class RichTextBox
    readonly static DataFormat<byte[]> richTextFormat = DataFormat.CreateBytesPlatformFormat("Rich Text Format");
 
 
-   private async void PasteFromClipboard()
+   private void PasteFromClipboardAsPlainText() => PasteFromClipboard(plainTextOnly: true);
+
+   private async void PasteFromClipboard(bool plainTextOnly = false)
    {
       if (IsReadOnly) return;
       if (FlowDoc.Selection.StartInline is not IEditable startInline) return;
@@ -67,7 +69,7 @@ public partial class RichTextBox
       var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
       if (clipboard == null) return;
 
-      //get paste location properties
+      // Get paste location properties
       int originalSelectionStart = FlowDoc.Selection.Start;
       int originalSelectionEnd = FlowDoc.Selection.End;
       TextRange insertRange = FlowDoc.Selection;
@@ -78,20 +80,19 @@ public partial class RichTextBox
       bool firstParEmpty = startPar.Inlines[0] is EditableRun erun && erun.Text == "";
       int pastedTextLength = 0;
       List<int> addedBlockIds = [];
-      bool firstParWasDeleted = startPar.StartInDoc == originalSelectionStart && startPar.EndInDoc <= originalSelectionEnd && !firstParEmpty;
+      bool firstParWasDeleted = startPar.StartInDoc == originalSelectionStart && startPar.EndInDoc <= originalSelectionEnd && !firstParEmpty;     
       bool addUndo = true;
       bool contentPasted = false;
 
       FlowDoc.disableRunTextUndo = true;
 
-      //Get clipboard content
-      if (await clipboard.TryGetValueAsync(richTextFormat) is byte[] rtfbytes)
+      // Get clipboard content
+      if (!plainTextOnly && await clipboard.TryGetValueAsync(richTextFormat) is byte[] rtfbytes)
       {
          pastedTextLength = FlowDoc.InsertRTF(rtfbytes, startPar, insertRange, insertParIndex, addedBlockIds);
          contentPasted = true;
       }
-
-      else if (await clipboard.TryGetBitmapAsync() is Bitmap pasteBitmap)
+      else if (!plainTextOnly && await clipboard.TryGetBitmapAsync() is Bitmap pasteBitmap)
       {
          Image pasteImage = new() { Source = pasteBitmap };
          EditableInlineUIContainer newEIUC = new(pasteImage);
@@ -105,7 +106,6 @@ public partial class RichTextBox
          pastedTextLength = 2;
          contentPasted = true;
       }
-
       else if (await clipboard.TryGetTextAsync() is string pasteText)
       {
          FlowDoc.disableRunTextUndo = true;
@@ -121,18 +121,18 @@ public partial class RichTextBox
       //Update based on pasted content
       if (contentPasted)
       {
-         
+
          if (addUndo)
             FlowDoc.Undos.Add(new PasteUndo(originalRangeParagraphs, insertParIndex, FlowDoc, originalSelectionStart, deleteRangeLength - pastedTextLength, firstParEmpty, addedBlockIds, firstParWasDeleted));
 
          this.DocIC.UpdateLayout();
-         
+
          FlowDoc.UpdateBlockAndInlineStarts(insertParIndex);
          FlowDoc.UpdateSelection();
          FlowDoc.UpdateTextRanges(originalSelectionStart, pastedTextLength - deleteRangeLength);
 
          FlowDoc.SelectionExtendMode = ExtendMode.ExtendModeNone;
-         
+
          CreateClient();
 
          FlowDoc.RestoreCaret(originalSelectionStart + pastedTextLength);
