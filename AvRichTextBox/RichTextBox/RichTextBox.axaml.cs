@@ -319,6 +319,12 @@ public partial class RichTextBox : UserControl
       if (IsReadOnly) return;
       PasteFromClipboard();
    }
+   
+   private void PasteSelectionAsPlainTextMenuItem_Click(object? sender, RoutedEventArgs e)
+   {
+      if (IsReadOnly) return;
+      PasteFromClipboardAsPlainText();
+   }
 
    private void CutSelectionMenuItem_Click(object? sender, RoutedEventArgs e)
    {
