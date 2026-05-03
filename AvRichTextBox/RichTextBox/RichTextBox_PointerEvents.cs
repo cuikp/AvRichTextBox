@@ -1,7 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.VisualTree;
-using DocumentFormat.OpenXml.Wordprocessing;
 using System.Text.RegularExpressions;
 
 namespace AvRichTextBox;
@@ -31,10 +30,28 @@ public partial class RichTextBox
    private void FlowDocSV_PointerPressed(object? sender, PointerPressedEventArgs e)
    {
       if (currentMouseOverEP == null) return;
-            
-
-      TextHitTestResult hitCarIndex = currentMouseOverEP.TextLayout.HitTestPoint(e.GetPosition(currentMouseOverEP));
       if (currentMouseOverEP.DataContext is not Paragraph thisPar) return;
+
+      // Hyperlink mouse down processing
+      if (currentMouseOverEP.IsOverHyperlink)
+      {
+         EditableHyperlink thisHyperlink = currentMouseOverEP.CurrentOverHyperlink;
+         if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
+         {
+            var psi = new ProcessStartInfo { FileName = thisHyperlink.NavigateUri, UseShellExecute = true };
+            Process.Start(psi);
+         }
+         else
+         {
+            int hyperlinkStart = thisPar.StartInDoc + thisHyperlink.TextPositionOfInlineInParagraph;
+            FlowDoc.Select(hyperlinkStart, thisHyperlink.InlineLength);
+         }
+         return; 
+      }
+
+      // Normal mouse down processing
+      TextHitTestResult hitCarIndex = currentMouseOverEP.TextLayout.HitTestPoint(e.GetPosition(currentMouseOverEP));
+      
       SelectionOrigin = thisPar.StartInDoc + hitCarIndex.TextPosition;
 
 

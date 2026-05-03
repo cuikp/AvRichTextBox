@@ -43,7 +43,7 @@ public partial class FlowDocument
          ItalicOn = !ItalicOn;
          toggleFormatRun = ToggleApplyItalic;
          InsertRunMode = true;
-         if (Selection.GetStartInline() is IEditable startInline)
+         if (Selection.StartInline is IEditable startInline)
          {
             if (startInline != Selection.StartParagraph.Inlines.Last() && GetCharPosInInline(startInline, Selection.Start) == startInline.InlineText.Length)
             {
@@ -67,7 +67,7 @@ public partial class FlowDocument
          toggleFormatRun = ToggleApplyBold;
          
          InsertRunMode = true;
-         if (Selection.GetStartInline() is IEditable startInline)
+         if (Selection.StartInline is IEditable startInline)
          {
             if (startInline != Selection.StartParagraph.Inlines.Last() && GetCharPosInInline(startInline, Selection.Start) == startInline.InlineText.Length)
             {
@@ -92,7 +92,7 @@ public partial class FlowDocument
         
          InsertRunMode = true;
 
-         if (Selection.GetStartInline() is IEditable startInline)
+         if (Selection.StartInline is IEditable startInline)
          {
             if (startInline != Selection.StartParagraph.Inlines.Last() && GetCharPosInInline(startInline, Selection.Start) == startInline.InlineText.Length)
             {
@@ -113,7 +113,7 @@ public partial class FlowDocument
       disableRunTextUndo = true;
 
       (int idLeft, int idRight) edgeIds;
-      List<IEditable> newInlines = GetRangeInlinesAndAddToDoc(textRange, out edgeIds);
+      List<IEditable> newInlines = GetTextRangeInlinesAndAddToDoc(textRange, out edgeIds);
       
       //Debug.WriteLine("\nnewlines created:\n" + string.Join("\n", newInlines.ConvertAll(il=> il.InlineText + " :: " + il.Id + "\nEdge ids = L: " + edgeIds.idLeft + ", R: " + edgeIds.idRight)));  
 
@@ -139,7 +139,7 @@ public partial class FlowDocument
       else
          throw new NotSupportedException($"Formatting for {avProperty.Name} is not supported.");
 
-      UpdateBlockAndInlineStarts(AllParagraphs.IndexOf(AllParagraphs.LastOrDefault(p => p.StartInDoc <= textRange.Start)!));
+      //UpdateBlockAndInlineStarts(AllParagraphs.IndexOf(AllParagraphs.LastOrDefault(p => p.StartInDoc <= textRange.Start)!));
       
       foreach (Paragraph p in GetOverlappingParagraphsInRange(textRange).OfType<Paragraph>())
          p.CallRequestInlinesUpdate();

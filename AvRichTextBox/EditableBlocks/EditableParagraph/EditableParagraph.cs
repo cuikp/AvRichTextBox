@@ -24,12 +24,36 @@ internal partial class EditableParagraph : TextBlock
    {
       this.Loaded += EditableParagraph_Loaded;
       this.PropertyChanged += EditableParagraph_PropertyChanged;
+      this.MouseMove += EditableParagraph_MouseMove;
 
       FontFeatures = [ new FontFeature { Tag = "liga", Value = 0 } ]; // fix wrong hit testing with some font/letter combinations
 
       //this.KeyDown += EditableParagraph_KeyDown;
 
       LineSpacing = 0;
+
+   }
+
+   internal bool IsOverHyperlink = false;
+   internal EditableHyperlink CurrentOverHyperlink = null!;
+   private readonly Cursor HyperlinkCursor = new (StandardCursorType.Hand);
+
+   private void EditableParagraph_MouseMove(EditableParagraph sender, int charIndex)
+   {
+
+      if (ThisPar?.Inlines.FirstOrDefault(il=> il.TextPositionOfInlineInParagraph <= charIndex && il.TextPositionOfInlineInParagraph + il.InlineLength >= charIndex) is EditableHyperlink currentHyperlink)
+      {
+         IsOverHyperlink = true;
+         this.Cursor = HyperlinkCursor;
+         CurrentOverHyperlink = currentHyperlink;
+      }
+      else
+      {
+         IsOverHyperlink = false;
+         this.Cursor = Cursor.Default;
+         CurrentOverHyperlink = null!;
+      }
+
 
    }
 
@@ -169,6 +193,7 @@ internal partial class EditableParagraph : TextBlock
    {
       TextHitTestResult result = this.TextLayout.HitTestPoint(e.GetPosition(this));
       MouseMove?.Invoke(this, result.TextPosition);
+            
    }
 
  

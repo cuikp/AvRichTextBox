@@ -18,16 +18,14 @@ public partial class FlowDocument
          {
             //Debug.WriteLine("inlineDisplayText = " + ied.InlineText + " --- " + ied.DisplayInlineText + " ---");
 
-            IEditable? startInline = Selection.GetStartInline();
-            IEditable? endInline = Selection.GetEndInline();
             int thisRunIndex = p.Inlines.IndexOf(ied);
             ied.InlineVP.IsTableCellInline = p.IsTableCellBlock;
-            ied.InlineVP.IsStartInline = ied == startInline;
-            ied.InlineVP.IsEndInline = ied == endInline;
+            ied.InlineVP.IsStartInline = ied == Selection.StartInline;
+            ied.InlineVP.IsEndInline = ied == Selection.EndInline;
             ied.InlineVP.IsWithinSelectionInline =
-               startInline != null &&
-               endInline != null &&
-               thisRunIndex > p.Inlines.IndexOf(startInline) && thisRunIndex < p.Inlines.IndexOf(endInline);
+               Selection.StartInline != null &&
+               Selection.EndInline != null &&
+               thisRunIndex > p.Inlines.IndexOf(Selection.StartInline) && thisRunIndex < p.Inlines.IndexOf(Selection.EndInline);
          }
       }
 

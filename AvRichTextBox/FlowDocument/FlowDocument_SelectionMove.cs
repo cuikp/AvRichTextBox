@@ -1,5 +1,4 @@
-﻿using HtmlAgilityPack;
-using static AvRichTextBox.HelperMethods;
+﻿using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;
 
@@ -7,11 +6,9 @@ public partial class FlowDocument
 {
    internal void MoveSelectionRight(bool isTextInsertion)
    {
-
-      //Selection.BiasForwardStart = !isTextInsertion;
-      //$$$$$$$$$$$$$$$$$$$$$$$$$$
+      bool previousBiasForwardEnd = Selection.BiasForwardEnd;
+      Selection.BiasForwardEnd = false;
       Selection.BiasForwardStart = false;
-      Selection.BiasForwardEnd = Selection.BiasForwardStart;
 
       switch (SelectionExtendMode)
       {
@@ -21,14 +18,18 @@ public partial class FlowDocument
             if (endBlock == AllParagraphs.ToList()[^1] && endBlock.SelectionEndInBlock == endBlock.BlockLength - 1)
                return;  // End of document
 
-            if (!isTextInsertion && (Selection.IsAtLineBreak || Selection.IsAtCellBreak))
+            if (!isTextInsertion)
             {
-               Selection.End += 1;
-               Selection.CollapseToEnd();
-               Selection.BiasForwardStart = !isTextInsertion;
-               Selection.BiasForwardEnd = Selection.BiasForwardStart;
+               if (Selection.IsAtLineBreakForward || Selection.IsAtCellBreakForward)
+               {
+                  Selection.End += 1; // extra to pass beyond LineBreak and TableCell boundary
+               }
+               else if (Selection.IsAtHyperlinkForward && Selection.StartInline is IEditable startInline && startInline.NextInline is IEditable nextInline)
+               {
+                  Selection.End += previousBiasForwardEnd ? startInline.InlineLength - 1 : nextInline.InlineLength - 1;
+               }
             }
-
+      
             Selection.End += 1;
 
             break;
@@ -44,16 +45,16 @@ public partial class FlowDocument
       SelectionExtendMode = ExtendMode.ExtendModeNone;
       ScrollInDirection?.Invoke(1);
 
-      //$$$$$$$$$$$$$$$$$$
-      //Selection.BiasForwardStart = false; // !isTextInsertion;
-      //Selection.BiasForwardEnd = Selection.BiasForwardStart;
+      
+            
 
    }
 
    internal void MoveSelectionLeft(bool biasForward)
    {
-      //Selection.BiasForwardStart = biasForward;
+      bool previousBiasForwardStart = Selection.BiasForwardStart;
       Selection.BiasForwardStart = true;
+      Selection.BiasForwardEnd = true;
 
 
       switch (SelectionExtendMode)
@@ -61,25 +62,33 @@ public partial class FlowDocument
          case ExtendMode.ExtendModeNone:
 
             if (Selection.Start == 0)
-               return;  // Start of document
-
-            Selection.Start -= 1;
-
-            if (Selection.IsAtLineBreak || Selection.IsAtCellBreak)
             {
+               // Start of document
+            }
+            else
+            {
+               if (Selection.IsAtLineBreakBackward || Selection.IsAtCellBreakBackward)
+               {
+                  Selection.Start -= 1; //extra to pass beyond LineBreak and TableCell boundary
+               }
+               else if (Selection.IsAtHyperlinkBackward && Selection.StartInline is IEditable startInline && startInline.PreviousInline is IEditable prevInline)
+               {
+                  Selection.Start -= previousBiasForwardStart ? prevInline.InlineText.Length - 1: startInline.InlineLength - 1;
+               }
                Selection.Start -= 1;
-               Selection.CollapseToStart();
             }
 
             break;
 
          case ExtendMode.ExtendModeRight:
-         case ExtendMode.ExtendModeLeft:
-            Selection.CollapseToStart();
+            Selection.Start = Math.Max(Selection.Start, 0);
             break;
-      }
+         case ExtendMode.ExtendModeLeft:
+            //Do nothing just collapse
+            break;
 
-      Selection.BiasForwardEnd = Selection.BiasForwardStart;
+      }
+            
       Selection.CollapseToStart();
       SelectionExtendMode = ExtendMode.ExtendModeNone;
       ScrollInDirection?.Invoke(-1);
@@ -326,9 +335,8 @@ public partial class FlowDocument
 
       Selection.IsAtEndOfLineSpace = false;
 
-      IEditable? startInline = Selection.GetStartInline();
-      IEditable? nextInline = startInline == null ? null : GetNextInline(startInline);
-      Selection.IsAtLineBreak = nextInline != null && nextInline.IsLineBreak;
+      IEditable? startInline = Selection.StartInline;
+      IEditable? nextInline = startInline == null ? null : startInline.NextInline; 
 
    }
 

@@ -1,6 +1,4 @@
 ﻿using Avalonia.Controls;
-using Avalonia.Media;
-using Avalonia.Media.TextFormatting;
 
 namespace AvRichTextBox;
 
@@ -8,14 +6,13 @@ public partial class FlowDocument
 {
    internal void UpdateSelection()
    {
-      UpdateBlockAndInlineStarts(Selection.StartParagraph);
-
       Selection.StartParagraph.CallRequestInlinesUpdate();
       Selection.StartParagraph.CallRequestTextLayoutInfoStart();
       Selection.EndParagraph.CallRequestInlinesUpdate();
       Selection.EndParagraph.CallRequestTextLayoutInfoEnd();
       Selection.StartParagraph.CallRequestTextBoxFocus();
 
+      UpdateBlockAndInlineStarts(Selection.StartParagraph);
    }
 
    internal void SelectionStart_Changed(TextRange selRange, int newStart)
@@ -33,13 +30,11 @@ public partial class FlowDocument
 
       UpdateSelectedParagraphs();
 
+
       //Make sure end is not less than start
       if (selRange.Length > 0)
          if (selRange.StartParagraph.SelectionEndInBlock < selRange.StartParagraph.SelectionStartInBlock)
             selRange.StartParagraph.SelectionEndInBlock = selRange.StartParagraph.SelectionStartInBlock;
-
-
-      selRange.GetStartInline();
 
       selRange.StartParagraph?.CallRequestTextLayoutInfoStart();
       SelectionChanged?.Invoke(selRange);
@@ -64,8 +59,7 @@ public partial class FlowDocument
 
       UpdateSelectedParagraphs();
 
-      selRange.GetEndInline();
-      
+           
       selRange.EndParagraph?.CallRequestTextLayoutInfoEnd();
       SelectionChanged?.Invoke(selRange);
 

@@ -20,17 +20,14 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>ver 1.8.2: Fixed undo not working after toggling formatting on/off while typing
-Fixed underlining not saving in html.
-Added right-click ContextMenu (Copy/Paste/Cut/Delete)
-Shift+Ctrl-Right/Left to select next(previous word)
-Shift+Ctrl-Home/End to select to Home/End
-Caret color is customizable  (CaretBrush)</PackageReleaseNotes>
+	  <PackageReleaseNotes>ver 1.8.10: Updated Avalonia 12.0.2
+Revamped internal inline calculations
+Added EditableHyperlink</PackageReleaseNotes>
       
      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 	  <PackageOutputPath>D:\PROG\LocalNuget\AvRichTextBox</PackageOutputPath>
 	  
-	  <Version>1.8.4</Version>
+	  <Version>1.8.10</Version>
 	  <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
 	  
@@ -68,12 +65,12 @@ Caret color is customizable  (CaretBrush)</PackageReleaseNotes>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="12.0.1" />
+    <PackageReference Include="Avalonia" Version="12.0.2" />
     <PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="12.0.0" />
-    <PackageReference Include="Avalonia.Desktop" Version="12.0.1" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="11.2.8" />
-    <PackageReference Include="Avalonia.Skia" Version="12.0.1" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.1" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.0.2" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.8" />
+    <PackageReference Include="Avalonia.Skia" Version="12.0.2" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.2" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Include="DocumentFormat.OpenXml" Version="3.5.1" />
     <PackageReference Include="HtmlAgilityPack" Version="1.12.0" />

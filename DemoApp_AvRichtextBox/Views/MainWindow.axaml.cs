@@ -63,12 +63,13 @@ public partial class MainWindow : Window
 
       //DEBUG
       //CreateTestDocumentWithTable();
+      
 
    }
 
    internal void CreateTestDocumentWithTable()
    {
-      //MainRTB.NewDocument();
+      MainRTB.FlowDocument.Blocks.Clear();
 
       Paragraph newPar = new(MainRTB.FlowDocument);
       newPar.Inlines.Add(new EditableRun("A "));
@@ -80,7 +81,8 @@ public partial class MainWindow : Window
       newPar.Inlines.Add(new EditableRun("3") { BaselineAlignment = BaselineAlignment.Superscript });
 
       newPar.Inlines.Add(new EditableRun(" simple "));
-      newPar.Inlines.Add(new EditableRun("line."));
+      newPar.Inlines.Add(new EditableHyperlink("hyperlink text", "www.google.com"));
+      newPar.Inlines.Add(new EditableRun(" line."));
       MainRTB.FlowDocument.Blocks.Add(newPar);
 
       //Test Table
@@ -90,12 +92,14 @@ public partial class MainWindow : Window
       newPar2.Inlines.Add(new EditableRun("Some extra text after the table."));
       MainRTB.FlowDocument.Blocks.Add(newPar2);
 
+
       Dispatcher.UIThread.Post(() =>
       {
-
          MainRTB.UpdateLayout();
          MainRTB.FlowDocument.Select(0, 0);
-      });                  
+      });
+
+      //InitializeDocument();
 
    }
 

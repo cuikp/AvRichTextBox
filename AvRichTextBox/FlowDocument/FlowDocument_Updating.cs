@@ -1,4 +1,5 @@
-﻿using DynamicData;
+﻿using DocumentFormat.OpenXml.Drawing.Charts;
+using DynamicData;
 using System.Reactive.Linq;
 
 namespace AvRichTextBox;
@@ -9,7 +10,7 @@ public partial class FlowDocument
    internal void UpdateBlockAndInlineStarts(int fromBlockIndex)
    {
       if (fromBlockIndex >= Blocks.Count) return;
-
+      
       int blockSum = fromBlockIndex == 0 ? 0 : Blocks[fromBlockIndex - 1].StartInDoc + Blocks[fromBlockIndex - 1].BlockLength;
       
       for (int blockIndex = fromBlockIndex; blockIndex < Blocks.Count; blockIndex++)
@@ -40,6 +41,8 @@ public partial class FlowDocument
          blockSum += (Blocks[blockIndex].BlockLength);
 
       }
+          
+
    }
 
    internal void UpdateBlockAndInlineStarts(Paragraph thisPar)
@@ -70,37 +73,38 @@ public partial class FlowDocument
 
    }
 
-   internal void UpdateTextRanges(int editCharIndexStart, int offset)
+   internal void UpdateTextRanges(int fromAbsCharIndex, int offset)
    {
       List<TextRange> toRemoveRanges = [];
       
-      int editCharIndexEnd = offset == 1 ? editCharIndexStart : editCharIndexStart - offset;
+      int editCharIndexEnd = offset == 1 ? fromAbsCharIndex : fromAbsCharIndex - offset;
 
       foreach (TextRange trange in TextRanges)
       {
-         if (trange.Equals(this.Selection)) continue;  //Don't update the selection range
+         //if (trange.Equals(this.Selection)) continue;  //Don't update the selection range
 
-         if (trange.Start >= editCharIndexStart && trange.End <= editCharIndexEnd)
+         if (trange.Start >= fromAbsCharIndex && trange.End <= editCharIndexEnd)
             { toRemoveRanges.Add(trange); continue; }
 
-         if (trange.Start >= editCharIndexStart)
+         if (trange.Start >= fromAbsCharIndex)
          {
             if (trange.Start >= editCharIndexEnd)
                trange.Start += offset;
             else
-               trange.Start = editCharIndexStart;
+               trange.Start = fromAbsCharIndex;
          }
             
-         if (trange.End >= editCharIndexStart)
+         if (trange.End >= fromAbsCharIndex)
          {
             if (trange.End >= editCharIndexEnd)
                trange.End += offset;
             else
-               trange.End = editCharIndexStart;
+               trange.End = fromAbsCharIndex;
          }
 
          if (trange.Start > trange.End)
             trange.End = trange.Start;
+
       }
 
       for (int trangeNo = toRemoveRanges.Count - 1; trangeNo >=0; trangeNo--)
@@ -108,10 +112,11 @@ public partial class FlowDocument
          if (!toRemoveRanges[trangeNo].Equals(Selection))
             toRemoveRanges[trangeNo].Dispose();
       }
-         
+
+      UpdateAllRangeContexts();
 
    }
 
-
+  
 }
 

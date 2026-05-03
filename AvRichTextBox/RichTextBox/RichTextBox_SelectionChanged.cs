@@ -52,7 +52,7 @@ public partial class RichTextBox : UserControl
          CalculateParagraphLayoutProperties(p, p.TextLayout, parno == 0, parno == FlowDoc.SelectionParagraphs.Count - 1, parIsEmpty);
 
          if (caretOnly)
-         {  //only get first selected paragraph 
+         {  //only get first selected paragraph (SelectionParagraphs count is 1)
 
             int lineIndex = p.TextLayout.GetLineIndexFromCharacterIndex(p.SelectionStartInBlock, false);
             TextLine thisTextLine = p.TextLayout.TextLines[lineIndex];
@@ -75,6 +75,9 @@ public partial class RichTextBox : UserControl
             }
 
             RtbVm.CalculateCaretHeightAndPosition(thisTextLine, p.DocICRelativeLeft + selStartRect.X, glyphHeight, balign);
+
+            break;
+
          }
 
          else
@@ -268,7 +271,7 @@ public partial class RichTextBox : UserControl
       debuggerPanel?.ParagraphsLB.ScrollIntoView(thisPar);
       if (debuggerPanel?.ParagraphsLB.ContainerFromItem(thisPar) is ListBoxItem lbi)
          if (lbi.GetVisualChildren().OfType<ItemsControl>().FirstOrDefault(c => c.Name == "InlinesIC") is ItemsControl inlinesIC)
-            if (FlowDoc.Selection.GetEndInline() is IEditable ied)
+            if (FlowDoc.Selection.EndInline is IEditable ied)
                inlinesIC.ScrollIntoView(ied);
 #endif
 

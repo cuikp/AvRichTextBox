@@ -25,7 +25,9 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
    public bool IsLastInlineOfParagraph { get; set; }
    //public double InlineHeight => (this.Child != null && this.Child.GetType() == typeof(Image) ? : this.Child.Bounds.Height;
    public double InlineHeight => Child == null ? 0 : this.Child.Bounds.Height;
-   
+
+   internal IEditable PreviousInline { get; set; } = null!;
+   internal IEditable NextInline { get; set; } = null!;
 
    public int ImageNo;
 
@@ -46,6 +48,8 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
    public InlineVisualizationProperties InlineVP { get; set; } = new();
    public string InlineToolTip => "";
    public string DisplayInlineText { get => $"<UICONTAINER> => {(this.Child != null && this.Child.GetType() == typeof(Image) ? "Image" : "NoChild")}"; }
+   IEditable IEditable.PreviousInline { get => PreviousInline; set => PreviousInline = value; }
+   IEditable IEditable.NextInline { get => NextInline; set => NextInline = value; }
 #endif
 
 

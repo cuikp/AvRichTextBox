@@ -29,7 +29,7 @@ public partial class FlowDocument
 
       //Debug.WriteLine("first par deleted: " + firstParWasDeleted);
 
-      if (tRange.GetStartInline() is not IEditable startInline) return;
+      if (tRange.StartInline is not IEditable startInline) return;
 
       List<IEditable> splitInlines = SplitRunAtPos(tRange.Start, startInline, GetCharPosInInline(startInline, tRange.Start));
 
@@ -58,6 +58,7 @@ public partial class FlowDocument
       startPar.CallRequestInvalidateVisual();
       startPar.CallRequestTextLayoutInfoStart();
       startPar.CallRequestInlinesUpdate();
+      
       UpdateBlockAndInlineStarts(startPar);
 
    }
@@ -90,6 +91,7 @@ public partial class FlowDocument
 
    internal void RestoreDeletedBlocks(List<Paragraph> parClones, int blockIndex, bool firstParWasDeleted)
    {
+      int lengthBefore = Text.Length;
       //If first paragraph was not deleted, it needs to be removed before restoring previous state
       if (!firstParWasDeleted)
          Blocks.RemoveAt(blockIndex);
@@ -100,8 +102,10 @@ public partial class FlowDocument
       foreach (Paragraph p in parClones)
          p.CallRequestInlinesUpdate();
   
-      UpdateBlockAndInlineStarts(blockIndex);
+      int lengthAfter = Text.Length;
 
+      UpdateBlockAndInlineStarts(blockIndex);
+      UpdateTextRanges(parClones[0].StartInDoc, lengthAfter - lengthBefore);
    }
 
    private int ProcessInsertBlocks(List<Block> blocks, Paragraph startPar, int insertIdx, int insertParIndex, List<int> addedBlockIds, List<IEditable> rightSplitRuns)

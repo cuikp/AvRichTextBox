@@ -64,7 +64,7 @@ public partial class RichTextBox
    private async void PasteFromClipboard()
    {
       if (IsReadOnly) return;
-      if (FlowDoc.Selection.GetStartInline() is not IEditable startInline) return;
+      if (FlowDoc.Selection.StartInline is not IEditable startInline) return;
 
       var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
       if (clipboard == null) return;
@@ -127,8 +127,10 @@ public partial class RichTextBox
             FlowDoc.Undos.Add(new PasteUndo(originalRangeParagraphs, insertParIndex, FlowDoc, originalSelectionStart, deleteRangeLength - pastedTextLength, firstParEmpty, addedBlockIds, firstParWasDeleted));
 
          this.DocIC.UpdateLayout();
+         
          FlowDoc.UpdateBlockAndInlineStarts(insertParIndex);
          FlowDoc.UpdateSelection();
+         
          FlowDoc.SelectionExtendMode = ExtendMode.ExtendModeNone;
          
          CreateClient();

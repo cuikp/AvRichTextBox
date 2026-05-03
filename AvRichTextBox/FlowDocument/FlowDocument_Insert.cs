@@ -118,9 +118,9 @@ public partial class FlowDocument
 
    internal void InsertText(string? insertText)
    {
-      if (Selection.GetStartInline() is not IEditable startInline || startInline.GetType() == typeof(EditableInlineUIContainer)) return;
+      if (Selection.StartInline is not IEditable startInline || startInline is EditableInlineUIContainer) return;
      
-
+      
       if (insertText != null)
       {
          if (Selection.Length > 0)
@@ -128,7 +128,7 @@ public partial class FlowDocument
             DeleteRange(Selection, true, false);
             Selection.CollapseToStart();
             SelectionExtendMode = ExtendMode.ExtendModeNone;
-            startInline = Selection.GetStartInline() ?? startInline;
+            //startInline = Selection.StartInline ?? startInline;
          }
 
          int insertIdx = 0;
@@ -142,7 +142,7 @@ public partial class FlowDocument
 
             (int idLeft, int idRight) edgeIds;
 
-            List<IEditable> applyInlines = GetRangeInlinesAndAddToDoc(Selection, out edgeIds);
+            List<IEditable> applyInlines = GetTextRangeInlinesAndAddToDoc(Selection, out edgeIds);
 
             if (applyInlines.Count == 0)
             {
@@ -169,15 +169,17 @@ public partial class FlowDocument
             try
             {
                insertIdx = GetCharPosInInline(startInline, Selection.Start);
-               startInline.InlineText = startInline.InlineText.Insert(insertIdx, insertText); // undo handled by PropertyChanged: Text
+               if (insertIdx > -1 && insertIdx <= startInline.InlineLength)  //$$$$$$$$$$$$$$$$$$$$$$$$
+                  startInline.InlineText = startInline.InlineText.Insert(insertIdx, insertText); // undo handled by PropertyChanged: Text
             }
-            catch (Exception ex){ Debug.WriteLine("insert Error: startInlinetext = " + startInline.InlineText + ", idx = " + insertIdx + "\n" + ex.Message + "*");}
+            catch (Exception ex){ Debug.WriteLine($"insert Error: startInlinetext = {startInline.InlineText}, idx = {insertIdx}\n{ex.Message}***");}
          }
-
-         UpdateTextRanges(Selection.Start, insertText.Length);
+                  
 
          Selection.StartParagraph.CallRequestInlinesUpdate();
+         
          UpdateBlockAndInlineStarts(Selection.StartParagraph);
+         UpdateTextRanges(Selection.Start, insertText.Length);
 
          for (int i = 0; i < insertText.Length; i++) 
             MoveSelectionRight(true);
@@ -194,7 +196,7 @@ public partial class FlowDocument
       if (startPar.Inlines.Count == 1 && startPar.Inlines[0] is EditableInlineUIContainer euic)
          return; // Don't mess container edges
 
-      if (Selection.GetStartInline() is not IEditable startInline) 
+      if (Selection.StartInline is not IEditable startInline) 
          return; 
 
       int runIdx = startPar.Inlines.IndexOf(startInline);
@@ -219,7 +221,6 @@ public partial class FlowDocument
       
       Undos.Add(new InsertLineBreakUndo(Selection.StartParagraph.Id, newELB.Id, addedRuns, runIdx, originalInlineClone, this, Selection.Start));
 
-      UpdateTextRanges(Selection.Start, 1);
 
       SelectionExtendMode = ExtendMode.ExtendModeNone;
 
@@ -227,6 +228,9 @@ public partial class FlowDocument
       startPar.CallRequestInlinesUpdate();
       startPar.CallRequestTextLayoutInfoStart();
       startPar.CallRequestTextLayoutInfoEnd();
+
+      UpdateBlockAndInlineStarts(startPar);
+      UpdateTextRanges(Selection.Start, 1);
 
       Select(Selection.Start + 2, 0);
       Selection.BiasForwardStart = true;
@@ -300,7 +304,6 @@ public partial class FlowDocument
       }
       
       UpdateTextRanges(insertCharIndex, 1);
-      
       UpdateBlockAndInlineStarts(parIndex);
 
       originalPar.CallRequestInlinesUpdate();

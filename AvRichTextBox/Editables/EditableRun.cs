@@ -57,11 +57,14 @@ public class EditableRun : Run, IEditable
    public int MyParagraphId { get; set; }
    public FlowDocument MyFlowDoc { get; set; } = null!;
    public int TextPositionOfInlineInParagraph { get; set; }
-   public string InlineText { get => Text!; set => Text = value; }
-
-   public int InlineLength => InlineText.Length;
-   //public int InlineLength { get { Debug.WriteLine("Inline: " + this.Text + " ::: len = " + InlineText.Length); return InlineText.Length; } }
+   
+   public virtual string InlineText { get => Text!; set => Text = value; }
+   public virtual int InlineLength => InlineText.Length;
    public double InlineHeight => FontSize;
+
+   internal IEditable PreviousInline { get; set; } = null!;
+   internal IEditable NextInline { get; set; } = null!;
+
    public bool IsEmpty => InlineText.Length == 0;
    public string FontName => FontFamily?.Name == null ? "" : FontFamily?.Name!;
       
@@ -69,7 +72,7 @@ public class EditableRun : Run, IEditable
    public bool IsTableCellInline { get; set; } = false;
 
 
-   public IEditable Clone() => 
+   public virtual IEditable Clone() => 
 
       new EditableRun(this.Text!)
       {
@@ -87,7 +90,7 @@ public class EditableRun : Run, IEditable
          Foreground = this.Foreground,
       };
    
-   public IEditable CloneWithId()
+   public virtual IEditable CloneWithId()
    {
       IEditable IdClone = this.Clone();
       IdClone.Id = this.Id;
@@ -98,8 +101,11 @@ public class EditableRun : Run, IEditable
 #if DEBUG
    // FOR DEBUGGER PANEL
    public InlineVisualizationProperties InlineVP { get; set; } = new();
-   public string InlineToolTip => $"Background: {Background}\nForeground: {Foreground}\nFontFamily: {FontFamily}";
-   public string DisplayInlineText => IsEmpty ? "{>EMPTY<}" : (InlineText.Length == 1 ? Text!.Replace(" ", "{>SPACE<}").Replace("\t", "{>TAB<}") : Text!.Replace("\t", "{>TAB<}"));
+   public string InlineToolTip => $"Background: {Background}\nForeground: {Foreground}\nFontFamily: {FontFamily}\nPrevInlineLineBreak?: {PreviousInline?.IsLineBreak}\nNextInlineLineBreak?: {NextInline?.IsLineBreak}";
+   public virtual string DisplayInlineText => IsEmpty ? "{>EMPTY<}" : (InlineText.Length == 1 ? Text!.Replace(" ", "{>SPACE<}").Replace("\t", "{>TAB<}") : Text!.Replace("\t", "{>TAB<}"));
+
+   IEditable IEditable.PreviousInline { get => PreviousInline; set => PreviousInline = value; }
+   IEditable IEditable.NextInline { get => NextInline; set => NextInline = value; }
 #endif
 
 

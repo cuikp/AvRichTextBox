@@ -25,13 +25,17 @@ public class Paragraph : Block
 
    private void Inlines_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
    {
-      foreach (IEditable ied in Inlines)
+      for (int ilineno = 0;  ilineno < Inlines.Count; ilineno++)
       {
+         IEditable ied = Inlines[ilineno];
          ied.MyParagraphId = this.Id;
          ied.MyFlowDoc = this.MyFlowDoc;
          ied.IsTableCellInline = this.IsTableCellBlock;
          ied.IsLastInlineOfParagraph = ied == this.Inlines[^1];
+         ied.PreviousInline = ilineno == 0 ? null! : Inlines[ilineno - 1];
+         ied.NextInline = ilineno == Inlines.Count - 1 ? null! : Inlines[ilineno + 1];
       }
+
    }
 
    public Thickness BorderThickness { get;  set { field = value; NotifyPropertyChanged(nameof(BorderThickness)); } } = new(0);

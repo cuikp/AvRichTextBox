@@ -1,6 +1,4 @@
-﻿using DocumentFormat.OpenXml.InkML;
-using DocumentFormat.OpenXml.Wordprocessing;
-using DynamicData;
+﻿using DynamicData;
 
 namespace AvRichTextBox;
 
@@ -20,10 +18,13 @@ public partial class FlowDocument
       if (backspace)
          MoveSelectionLeft(true);
 
+      //Change bias to be forward for delete
       Selection.BiasForwardStart = true;
       Selection.BiasForwardEnd = true;
+      Selection.UpdateContextStart();
+      Selection.UpdateContextEnd();
 
-      if (Selection.GetStartInline() is not IEditable startInline) return;
+      if (Selection.StartInline is not IEditable startInline) return;
 
       Paragraph startP = Selection.StartParagraph;
 
@@ -31,6 +32,7 @@ public partial class FlowDocument
          MergeParagraphForward(Selection.Start, true, originalSelectionStart);
       else
       {  //Delete one unit
+         
          int startInlineIdx = startP.Inlines.IndexOf(startInline);
          int selectionStartInInline = 0;
 
@@ -51,28 +53,31 @@ public partial class FlowDocument
          {
             bool isSelectionAtInlineEnd = GetCharPosInInline(startInline, Selection.End) == startInline.InlineLength;
 
-            if (GetNextInline(startInline) is EditableLineBreak lbreak && isSelectionAtInlineEnd)
+            if (startInline.NextInline is EditableLineBreak lbreak && isSelectionAtInlineEnd)
             {  //Delete linebreak
-               IEditable? lbnext = GetNextInline(lbreak);
-               startP.Inlines.Remove(lbreak);
-               int emptyRunId = -1;
+               ((Type t1, int id1), (Type t2, int id2)) types = new(new(typeof(EditableLineBreak), lbreak.Id), new());
+               int lbIndex = startP.Inlines.IndexOf(lbreak);
+               IEditable? lbnext = lbreak.NextInline;
+               
                if (lbnext != null && lbnext.IsEmpty)
                {
                   startP.Inlines.Remove(lbnext);
-                  emptyRunId = lbnext.Id;
+                  types = new(new(typeof(EditableLineBreak), lbreak.Id), new (typeof(EditableRun), lbnext.Id));
                }
                else if (startInline.IsEmpty)
                {
+                  lbIndex = startP.Inlines.IndexOf(startInline);
                   startP.Inlines.Remove(startInline);
-                  emptyRunId = startInline.Id;
+                  types = new(new(typeof(EditableRun), startInline.Id), new(typeof(EditableLineBreak), lbreak.Id));
                }
+               startP.Inlines.Remove(lbreak);
 
-               Undos.Add(new DeleteLineBreakUndo(startP.Id, lbreak.Id, emptyRunId, this, originalSelectionStart));
+               Undos.Add(new DeleteLineBreakUndo(startP.Id, types, lbIndex, this, originalSelectionStart));
 
             }
             else
             {  // delete normal run char
-               if (startInline.InlineLength == 1 && GetNextInline(startInline) is not EditableLineBreak elb)  // keep empty run on linebreak
+               if (startInline.InlineLength == 1 && startInline.NextInline is not EditableLineBreak elb)  // keep empty run on linebreak
                {
                   if (startInline.CloneWithId() is EditableRun removedRunClone)
                   {
@@ -93,25 +98,30 @@ public partial class FlowDocument
             }
          }
 
+         UpdateSelection();
          UpdateTextRanges(Selection.Start, -1);
-
-         UpdateBlockAndInlineStarts(AllParagraphs.ToList().IndexOf(startP));
       }
 
       SelectionStart_Changed(Selection, Selection.Start);
       Selection.StartParagraph.CallRequestInlinesUpdate();
       Selection.StartParagraph.CallRequestTextLayoutInfoStart();
-
-
+            
 
    }
 
    internal void DeleteSelection()
    {
+      int lengthBefore = Text.Length;
       DeleteRange(Selection, true, true);
       SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeNone;
-      UpdateBlockAndInlineStarts(Selection.StartParagraph);
       Selection.CollapseToStart();
+
+      int lengthAfter = Text.Length;
+
+      UpdateBlockAndInlineStarts(Selection.StartParagraph);
+      UpdateTextRanges(Selection.StartParagraph.StartInDoc, lengthAfter - lengthBefore);
+            
+
       Selection.BiasForwardStart = false;  
       Selection.BiasForwardEnd = false;  
 
@@ -142,7 +152,7 @@ public partial class FlowDocument
          Undos.Add(new DeleteRangeUndo(rangePars.ConvertAll(rpar=> rpar.FullClone()), firstParIndex, this, originalSelectionStart, originalTRangeLength, firstParDeleted));
 
       (int idLeft, int idRight) edgeIds;
-      List<IEditable> rangeInlines = GetRangeInlinesAndAddToDoc(trange, out edgeIds);
+      List<IEditable> rangeInlines = GetTextRangeInlinesAndAddToDoc(trange, out edgeIds);
 
       //Delete the created inlines
       foreach (IEditable toDeleteRun in rangeInlines)
@@ -197,20 +207,11 @@ public partial class FlowDocument
 
       disableRunTextUndo = false;
 
-      UpdateBlockAndInlineStarts(firstParIndex);
-
-      //if (firstParDeleted) // && adjustCursor)
-      //{ // fix caret position if 1st paragraph was deleted
-      //   Selection.Start = Math.Max(0, Selection.Start - 1);
-      //   Selection.CollapseToStart();
-      //}
-            
-      Selection.Start = Selection.Start;
-
-      SelectionExtendMode = ExtendMode.ExtendModeNone;
-
-      UpdateTextRanges(originalSelectionStart, -originalTRangeLength);
       UpdateSelection();
+      UpdateTextRanges(originalSelectionStart, -originalTRangeLength);
+
+      Selection.Start = Selection.Start;
+      SelectionExtendMode = ExtendMode.ExtendModeNone;
 
 
       _ = AsyncUpdateCaret(trange);
@@ -271,11 +272,11 @@ public partial class FlowDocument
       Selection.BiasForwardStart = true;
       Selection.BiasForwardEnd = true;
 
-      UpdateTextRanges(mergeCharIndex, -1);
-
       thisPar.CallRequestInlinesUpdate();
-      UpdateBlockAndInlineStarts(thisParIndex);
 
+      UpdateBlockAndInlineStarts(thisParIndex);
+      UpdateTextRanges(mergeCharIndex, -1);
+      
       thisPar.CallRequestTextBoxFocus();
 
       UpdateSelectedParagraphs();
@@ -307,7 +308,7 @@ public partial class FlowDocument
       else
       {
          int NextWordEndPoint = -1;
-         if (Selection.GetStartInline() is IEditable startInline && (startInline.IsUIContainer || startInline.IsLineBreak))
+         if (Selection.StartInline is IEditable startInline && (startInline.IsUIContainer || startInline.IsLineBreak))
             NextWordEndPoint = Selection.Start + 1;
          else
          {
@@ -323,9 +324,8 @@ public partial class FlowDocument
          //   startP.RemoveEmptyInlines();
          
          TextRange deleteTextRange = new (this, Selection.Start, NextWordEndPoint);
-         DeleteRange(deleteTextRange, true, true);  // updates all text ranges and adds undo
-                           
-         UpdateBlockAndInlineStarts(AllParagraphs.IndexOf(startP));
+         DeleteRange(deleteTextRange, true, true);  // updates all text ranges, block/inline starts, and adds undo
+        
       }
 
       SelectionStart_Changed(Selection, Selection.Start);

@@ -1,5 +1,6 @@
 ﻿using Avalonia.Data;
 using Avalonia.Media;
+using Avalonia.Threading;
 using DynamicData;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
@@ -93,6 +94,7 @@ public partial class FlowDocument : AvaloniaObject
 
    private void Blocks_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
    {
+     
       foreach (Block block in Blocks)
       {
          block.MyFlowDoc = this;
@@ -103,7 +105,26 @@ public partial class FlowDocument : AvaloniaObject
          }
       }
 
+      int lengthOffset = 0;
+      if (e.NewItems != null)
+      {
+         foreach (Block b in e.NewItems)
+            lengthOffset += b.BlockLength;
+      }
+      
+      if (e.OldItems != null)
+      {
+         foreach (Block b in e.OldItems)
+            lengthOffset -= b.BlockLength;
+      }
+      
       AllParagraphs = [.. GetAllParagraphs];  //update collection of all paragraphs
+
+      //Auto update blocks and ranges when collection changed
+      UpdateBlockAndInlineStarts(Math.Max(0, e.NewStartingIndex)); 
+      if (Blocks.Count > 0 && e.NewStartingIndex > -1)
+         UpdateTextRanges(Blocks[e.NewStartingIndex].StartInDoc, lengthOffset);
+      
 
    }
 
@@ -183,17 +204,31 @@ public partial class FlowDocument : AvaloniaObject
       SelectionStart_Changed(Selection, 0);
       SelectionEnd_Changed(Selection, 0);
 
-      await Task.Delay(70);  // For caret
+      Dispatcher.UIThread.Post(() =>
+      {
+         if (AllParagraphs.ToList()[0] is Paragraph firstPar)
+         {  //Required for initial cursor display 
+            firstPar.CallRequestTextBoxFocus();
+            firstPar.CallRequestTextLayoutInfoStart();
+            firstPar.CallRequestTextLayoutInfoEnd();
+         }
+         UpdateRTBCaret?.Invoke();
+      }, DispatcherPriority.Background);
 
-      if (AllParagraphs.ToList()[0] is Paragraph firstPar)
-      {  //Required for initial cursor display 
-         firstPar.CallRequestTextBoxFocus();
-         firstPar.CallRequestTextLayoutInfoStart();
-         firstPar.CallRequestTextLayoutInfoEnd();
+      UpdateAllRangeContexts();
+     
+   }
+
+   private void UpdateAllRangeContexts()
+   {
+      Selection.UpdateContextStart();
+      Selection.UpdateContextEnd();
+
+      foreach (TextRange trange in this.TextRanges)
+      {
+         trange.UpdateContextStart();
+         trange.UpdateContextEnd();
       }
-
-      UpdateRTBCaret?.Invoke();
-
    }
 
    internal string GetText(TextRange tRange) => string.Join("", GetRangeInlines(tRange).ConvertAll(il => il.InlineText));
