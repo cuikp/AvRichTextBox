@@ -437,11 +437,41 @@ internal static partial class HtmlConversions
                AddInlinesFromNode(node, par, subFormatting);
                break;
 
-            default:
-               // For any unrecognized inline element, recurse into its children
-               // preserving current formatting
-               AddInlinesFromNode(node, par, formatting);
-               break;
+             case "a":
+                var href = node.GetAttributeValue("href", "");
+                if (!string.IsNullOrEmpty(href))
+                {
+                   string linkText = WebUtility.HtmlDecode(node.InnerText);
+                   if (!string.IsNullOrEmpty(linkText))
+                   {
+                      var hyperlink = new EditableHyperlink(linkText, href);
+                      var aFormatting = formatting.Clone();
+                      ApplyStyleToFormatting(node.GetAttributeValue("style", ""), aFormatting);
+                      // Apply formatting except foreground/decorations (EditableHyperlink forces those)
+                      hyperlink.FontWeight = aFormatting.FontWeight;
+                      hyperlink.FontStyle = aFormatting.FontStyle;
+                      hyperlink.BaselineAlignment = aFormatting.BaselineAlignment;
+                      if (aFormatting.FontFamily != null)
+                         hyperlink.FontFamily = aFormatting.FontFamily;
+                      if (aFormatting.FontSize.HasValue)
+                         hyperlink.FontSize = aFormatting.FontSize.Value;
+                      if (aFormatting.Background != null)
+                         hyperlink.Background = aFormatting.Background;
+                      par.Inlines.Add(hyperlink);
+                   }
+                }
+                else
+                {
+                   // No href — treat as generic inline, recurse preserving formatting
+                   AddInlinesFromNode(node, par, formatting);
+                }
+                break;
+
+             default:
+                // For any unrecognized inline element, recurse into its children
+                // preserving current formatting
+                AddInlinesFromNode(node, par, formatting);
+                break;
          }
       }
    }
