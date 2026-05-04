@@ -4,7 +4,8 @@ namespace AvRichTextBox;
 
 public partial class FlowDocument
 {
-   internal void MoveSelectionRight(bool isTextInsertion)
+   //internal void MoveSelectionRight(bool isTextInsertion)
+   internal void MoveSelectionRight()
    {
       bool previousBiasForwardEnd = Selection.BiasForwardEnd;
       Selection.BiasForwardStart = false;
@@ -15,13 +16,11 @@ public partial class FlowDocument
          case ExtendMode.ExtendModeNone:
 
             Block endBlock = GetContainingParagraph(Selection.End);
+         
             if (endBlock == AllParagraphs.ToList()[^1] && endBlock.SelectionEndInBlock == endBlock.BlockLength - 1)
                return;  // End of document
 
             Selection.End = GetNextPosition();
-
-            if (!isTextInsertion)
-            {  }
       
             break;
          case ExtendMode.ExtendModeRight:
@@ -38,9 +37,8 @@ public partial class FlowDocument
 
    }
 
-   internal void MoveSelectionLeft(bool biasForward)
+   internal void MoveSelectionLeft()
    {
-      bool previousBiasForwardStart = Selection.BiasForwardStart;
       Selection.BiasForwardStart = true;
       Selection.BiasForwardEnd = true;
       Selection.UpdateContextStart();
@@ -49,15 +47,8 @@ public partial class FlowDocument
       {
          case ExtendMode.ExtendModeNone:
 
-            if (Selection.Start == 0)
-            {
-               // Start of document
-            }
-            else
-            {
+            if (Selection.Start > 0)
                Selection.Start = GetPreviousPosition();
-            }
-
             break;
 
          case ExtendMode.ExtendModeRight:

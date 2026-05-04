@@ -13,7 +13,10 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
    public int MyParagraphId { get; set; }
    public FlowDocument MyFlowDoc { get; set; } = null!;
    public int TextPositionOfInlineInParagraph { get; set; }
-   public string InlineText { get; set; } = "@";
+
+   internal string InlineText { get; private set; } = "@"; 
+   string IEditable.InlineText { get => InlineText; set { InlineText = value; } }
+
    public bool IsTableCellInline { get; set; } = false;
    public object Tag { get; set; } = null!;
 

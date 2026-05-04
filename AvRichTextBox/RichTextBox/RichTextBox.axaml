@@ -65,7 +65,7 @@
 		</LayoutTransformControl.LayoutTransform>
 
 	
-		<ScrollViewer x:Name="FlowDocSV"  HorizontalScrollBarVisibility="Disabled" Margin="0" Padding="5" Offset="{Binding RTBScrollOffset, Mode=OneWay}" ScrollChanged="ScrollViewer_ScrollChanged" PointerPressed="FlowDocSV_PointerPressed" PointerMoved="FlowDocSV_PointerMoved" PointerReleased="FlowDocSV_PointerReleased"  >
+		<ScrollViewer x:Name="FlowDocSV"  HorizontalScrollBarVisibility="Disabled" Margin="0" Padding="0" Offset="{Binding RTBScrollOffset, Mode=OneWay}" ScrollChanged="ScrollViewer_ScrollChanged" PointerPressed="FlowDocSV_PointerPressed" PointerMoved="FlowDocSV_PointerMoved" PointerReleased="FlowDocSV_PointerReleased"  >
 						
 
 			<Grid VerticalAlignment="Top">
@@ -84,7 +84,7 @@
 
 					<ItemsControl.ItemsPanel>
 						<ItemsPanelTemplate>
-							<StackPanel Orientation="Vertical" Margin="0, 0, 0, 15"  />
+							<StackPanel Orientation="Vertical" Margin="5, 5, 15, 15"  />  <!--Margin needed to prevent text off screen at right and bottom -->
 						</ItemsPanelTemplate>
 					</ItemsControl.ItemsPanel>
 

@@ -52,23 +52,24 @@ public partial class RichTextBox : UserControl
          CalculateParagraphLayoutProperties(p, p.TextLayout, parno == 0, parno == FlowDoc.SelectionParagraphs.Count - 1, parIsEmpty);
 
          if (caretOnly)
-         {  //only get first selected paragraph (SelectionParagraphs count is 1)
+         {  //only get first selected paragraph (SelectionParagraphs count will be 1)
 
             int lineIndex = p.TextLayout.GetLineIndexFromCharacterIndex(p.SelectionStartInBlock, false);
             TextLine thisTextLine = p.TextLayout.TextLines[lineIndex];
-
             Rect selStartRect = p.TextLayout.HitTestTextPosition(p.SelectionStartInBlock);
 
             double glyphHeight = thisTextLine.Height;
-            int IdxInThisLine = FlowDoc.Selection.Start - p.StartInDoc;   // GetTextBounds counts charindex from start of paragraph
+            int IdxInThisLine = FlowDoc.Selection.Start - p.StartInDoc;   // GetTextBounds() below counts charindex from start of paragraph
             BaselineAlignment balign = BaselineAlignment.Baseline;
 
             bool endOfPar = p.EndInDoc - FlowDoc.Selection.Start == 1 && !(FlowDoc.Selection.Start == p.StartInDoc);
-
+            
             if (endOfPar)
                IdxInThisLine -= 1;
 
-            if (thisTextLine.GetTextBounds(IdxInThisLine, 1).FirstOrDefault() is TextBounds tbounds && tbounds.TextRunBounds.Count > 0 && tbounds.TextRunBounds[0].TextRun is ShapedTextRun strun)
+            if (thisTextLine.GetTextBounds(IdxInThisLine, 1).FirstOrDefault() is TextBounds tbounds &&
+               tbounds.TextRunBounds.Count > 0 &&
+               tbounds.TextRunBounds[0].TextRun is ShapedTextRun strun)
             {
                glyphHeight = strun.GlyphRun.Bounds.Height - 2;
                balign = strun.Properties.BaselineAlignment;
@@ -85,7 +86,7 @@ public partial class RichTextBox : UserControl
          {
             //visible selection for table cells
             if (p.IsTableCellBlock)
-               p.OwningCell.Selected = (p.SelectionStartInBlock == 0 && p.SelectionEndInBlock == p.BlockLength);
+               p.OwningCell.Selected = (p.SelectionStartInBlock == 0 && p.SelectionEndInBlock >= p.BlockLength - 1);
 
             if (parIsEmpty)
             {

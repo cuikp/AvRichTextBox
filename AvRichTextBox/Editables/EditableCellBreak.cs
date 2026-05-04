@@ -2,9 +2,9 @@
 
 namespace AvRichTextBox;
 
-public class EditableLineBreak : LineBreak, IEditable
+public class EditableCellBreak : IEditable
 {
-   public EditableLineBreak() { Id = ++FlowDocument.InlineIdCounter; }
+   public EditableCellBreak() { Id = ++FlowDocument.InlineIdCounter; }
    
    public FlowDocument MyFlowDoc { get; set; } = null!;
 
@@ -12,24 +12,21 @@ public class EditableLineBreak : LineBreak, IEditable
    public int MyParagraphId { get; set; }
    
    public int TextPositionOfInlineInParagraph { get; set; }
-   public bool IsTableCellInline { get; set; } = false;
+   public bool IsTableCellInline { get; set; } = true;
 
-   internal string InlineText { get; private set; } = @"\n"; //make literal to count as 2 characters
+   internal string InlineText { get; private set; } = @"\a"; // (char)7
    string IEditable.InlineText { get => InlineText; set { InlineText = value; } }
 
-   public int InlineLength => 2;  //because LineBreak acts as a double character in TextBlock
-   public double InlineHeight => FontSize;
+   public int InlineLength => 1;  
+   public double InlineHeight => 16; // arbitrary 
 
    public IEditable? PreviousInline { get; set; }
    public IEditable? NextInline { get; set; }
 
-   [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static")]
-   public string FontName => "---";
-
-   public bool IsEmpty => false;
+   public bool IsEmpty => true;
    public bool IsLastInlineOfParagraph { get; set; }
 
-   public IEditable Clone() => new EditableLineBreak() { MyParagraphId = this.MyParagraphId, MyFlowDoc = this.MyFlowDoc, }; 
+   public IEditable Clone() => new EditableCellBreak() { MyParagraphId = this.MyParagraphId, MyFlowDoc = this.MyFlowDoc, }; 
 
    public IEditable CloneWithId()
    {
@@ -43,7 +40,7 @@ public class EditableLineBreak : LineBreak, IEditable
    // FOR DEBUGGER PANEL
    public InlineVisualizationProperties InlineVP { get; set; } = new();
    public string InlineToolTip => "";
-   public string DisplayInlineText => "{>LINEBREAK<}";
+   public string DisplayInlineText => "{>CELLBREAK<}";
 
 #endif
 

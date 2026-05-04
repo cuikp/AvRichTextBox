@@ -149,7 +149,7 @@ public partial class RichTextBox
                if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
                   FlowDoc.ExtendSelectionRight();
                else
-                  FlowDoc.MoveSelectionRight(false);
+                  FlowDoc.MoveSelectionRight();
                FlowDoc.ResetInsertFormatting();
                break;
 
@@ -157,7 +157,7 @@ public partial class RichTextBox
                if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
                   FlowDoc.ExtendSelectionLeft();
                else
-                  FlowDoc.MoveSelectionLeft(false);
+                  FlowDoc.MoveSelectionLeft();
                FlowDoc.ResetInsertFormatting();
                break;
 

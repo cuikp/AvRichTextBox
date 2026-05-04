@@ -1,4 +1,6 @@
 
+using DocumentFormat.OpenXml.Wordprocessing;
+
 namespace AvRichTextBox;
 
 public partial class FlowDocument
@@ -196,8 +198,23 @@ public partial class FlowDocument
       int computedPrevious = startP.StartInDoc + posInBlock - 1;
 
       // skip special
-      if (GetStartInline(computedPrevious) is EditableHyperlink hyperlink)
-         computedPrevious = startP.StartInDoc + hyperlink.TextPositionOfInlineInParagraph;
+      if (Selection.Length > 0)
+      {
+         if (GetStartInline(computedPrevious) is EditableHyperlink hyperlink)
+         {
+            int absHyperlinkStart = startP.StartInDoc + hyperlink.TextPositionOfInlineInParagraph;
+            int absHyperlinkEnd = absHyperlinkStart + hyperlink.InlineLength; 
+
+            if (Selection.End <= absHyperlinkEnd)
+            {
+               if (Selection.Start == absHyperlinkStart + 1)
+                  Selection.End = absHyperlinkEnd;
+            }
+            else
+               computedPrevious = absHyperlinkStart;
+         }
+      }
+
 
       if (GetStartInline(computedPrevious) is EditableLineBreak)
          computedPrevious -= 1;
@@ -222,8 +239,23 @@ public partial class FlowDocument
       int computedNext = startP.StartInDoc + posInBlock + 1;
 
       // skip special
-      if (GetStartInline(computedNext - 1) is EditableHyperlink hyperlink)
-         computedNext = Selection.StartParagraph.StartInDoc + hyperlink.TextPositionOfInlineInParagraph + hyperlink.InlineLength;
+      if (Selection.Length > 0)
+      {
+         if (GetStartInline(computedNext - 1) is EditableHyperlink hyperlink)
+         {
+            int absHyperlinkStart = startP.StartInDoc + hyperlink.TextPositionOfInlineInParagraph;
+            int absHyperlinkEnd = absHyperlinkStart + hyperlink.InlineLength; 
+
+            if (Selection.Start >= absHyperlinkStart)
+            {
+               if (Selection.End == absHyperlinkEnd - 1)
+                  Selection.Start = absHyperlinkStart;
+            }
+            else
+               computedNext = absHyperlinkEnd;
+         }
+
+      }
 
       if (GetStartInline(computedNext - 1) is EditableLineBreak)
          computedNext += 1;
@@ -404,6 +436,14 @@ public partial class FlowDocument
 
             Selection.End = GetNextDown();
 
+            ////hyperlink encountered (select hyperlink)
+            //if (GetStartInline(nextEnd) is EditableHyperlink hyperlink)
+            //{
+            //   if (AllParagraphs.LastOrDefault(p=> p.StartInDoc <= nextEnd) is Paragraph thisPar)
+            //      Select(thisPar.StartInDoc + hyperlink.TextPositionOfInlineInParagraph, hyperlink.InlineLength);
+            //   return;
+            //}
+
             break;
 
          case ExtendMode.ExtendModeLeft:  // Hitting Down key reduces selection range from top 
@@ -449,6 +489,14 @@ public partial class FlowDocument
 
             Selection.Start = GetNextUp();
 
+            ////hyperlink encountered (select hyperlink)
+            //if (GetStartInline(nextStart) is EditableHyperlink hyperlink)
+            //{
+            //   if (AllParagraphs.LastOrDefault(p => p.StartInDoc <= nextStart) is Paragraph thisPar)
+            //      Select(thisPar.StartInDoc + hyperlink.TextPositionOfInlineInParagraph, hyperlink.InlineLength);
+            //   return;
+            //}
+
             SelectionExtendMode = ExtendMode.ExtendModeLeft;
 
             break;
@@ -457,19 +505,6 @@ public partial class FlowDocument
          case ExtendMode.ExtendModeRight: // Hitting up key reduces selection range from bottom 
 
             int newEnd = GetNextUp();
-
-            //int newEnd = Selection.EndParagraph.StartInDoc + Selection.EndParagraph.CharPrevLineEnd;
-
-            //if (AllParagraphs.IndexOf(Selection.EndParagraph) > 0)
-            //{
-            //   prevPar = allPars[allPars.IndexOf(Selection.EndParagraph) - 1];
-            //   int charsFromStart = Selection.EndParagraph.SelectionEndInBlock;
-            //   if (Selection.EndParagraph.IsEndAtFirstLine)
-            //   {
-            //      charsFromStart = Math.Min(charsFromStart, prevPar.TextLength);
-            //      newEnd = prevPar.StartInDoc + prevPar.FirstIndexLastLine + charsFromStart;
-            //   }
-            //}
 
             if (newEnd < Selection.Start)
             {

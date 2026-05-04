@@ -32,7 +32,7 @@ public partial class FlowDocument
                   {
                      cellPar.StartInDoc = blockSum + innerSum;
                      cellPar.UpdateEditableRunPositions();
-                     innerSum += cellPar.BlockLength;
+                     innerSum += cellPar.BlockLength - 1;
                   }
                }
                break;
@@ -63,7 +63,8 @@ public partial class FlowDocument
    internal void UpdateSelectedParagraphs()
    {
       SelectionParagraphs.Clear();
-      SelectionParagraphs.AddRange(AllParagraphs.Where(p => p.StartInDoc + p.BlockLength > Selection.Start && p.StartInDoc <= Selection.End));
+      //SelectionParagraphs.AddRange(AllParagraphs.Where(p => p.StartInDoc + p.BlockLength > Selection.Start && p.StartInDoc <= Selection.End));  //$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+      SelectionParagraphs.AddRange(AllParagraphs.Where(p => p.StartInDoc + p.BlockLength - (p.IsTableCellBlock ? 1 : 0) > Selection.Start && p.StartInDoc <= Selection.End));
 
 
 #if DEBUG

@@ -118,8 +118,11 @@ public partial class FlowDocument
 
    internal void InsertText(string? insertText)
    {
-      if (Selection.StartInline is not IEditable startInline || startInline is EditableInlineUIContainer || startInline is EditableHyperlink) return;
+      //if (Selection.StartInline is EditableInlineUIContainer or EditableHyperlink) return;
+      if (Selection.StartInline is not IEditable startInline || startInline is EditableInlineUIContainer) return;
       
+      if (startInline is EditableHyperlink hyperlink && Selection.GetIsStartAtStartOfStartInline) return;
+
       if (insertText != null)
       {
          if (Selection.Length > 0)
@@ -180,7 +183,7 @@ public partial class FlowDocument
          UpdateTextRanges(Selection.Start, insertText.Length);
 
          for (int i = 0; i < insertText.Length; i++) 
-            MoveSelectionRight(true);
+            MoveSelectionRight();
          
 
       }
@@ -300,7 +303,9 @@ public partial class FlowDocument
          erun.Text = "";
          parToInsert.Inlines.Add(erun);
       }
-      
+
+      disableRunTextUndo = false;
+
       UpdateTextRanges(insertCharIndex, 1);
       UpdateBlockAndInlineStarts(parIndex);
 
@@ -319,17 +324,15 @@ public partial class FlowDocument
 
       Selection.BiasForwardStart = true;
       Selection.BiasForwardEnd = true;
-                  
- 
+
+      //disableRunTextUndo = false;  //moved to above
+
       Dispatcher.UIThread.Post(() =>
       {
          Selection.End += 1;
          Selection.CollapseToEnd();
+         ScrollInDirection?.Invoke(1);
       });
-            
-      ScrollInDirection?.Invoke(1);
-
-      disableRunTextUndo = false;
 
 
    }

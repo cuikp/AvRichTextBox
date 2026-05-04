@@ -70,7 +70,6 @@ public class TextRange : INotifyPropertyChanged, IDisposable
    internal bool BiasForwardStart { get; set { if (field == value) return; field = value; InvokeProperty(BiasForwardStartChangedArgs); } }
    internal bool BiasForwardEnd { get; set { if (field == value) return; field = value; InvokeProperty(BiasForwardEndChangedArgs); } }
 
-
    internal Rect PrevCharRect;
    internal Rect StartRect { get; set; }
    internal Rect EndRect { get; set; }
@@ -86,20 +85,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
    
    internal bool IsAtEndOfLineSpace = false;
    internal bool IsAtEndOfLine = false;
-   
-   internal bool IsAtCellBreakForward = false;
-   internal bool IsAtCellBreakBackward = false;
-
-   internal bool StartAtLineBreakAhead = false;
-   internal bool StartAtLineBreakBehind = false;
-   internal bool EndAtLineBreakAhead = false;
-   internal bool EndAtLineBreakBehind = false;
-
-   internal bool StartAtHyperlinkAhead = false;
-   internal bool StartAtHyperlinkBehind = false;
-   internal bool EndAtHyperlinkAhead = false;
-   internal bool EndAtHyperlinkBehind = false;
-   //////////////////////////////////////////
+   /////////////////////////////////////////  
 
    public void CollapseToStart() { End = Start;  }
    public void CollapseToEnd() { Start = End ; }
@@ -115,21 +101,18 @@ public class TextRange : INotifyPropertyChanged, IDisposable
       if (StartParagraph.Inlines.LastOrDefault(ied => StartParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph <= Start) is IEditable startinline)
       {
          StartInline = startinline;
-         
-         StartAtHyperlinkAhead = GetIsStartAtStartOfStartInline && StartInline.IsHyperlink;
-         StartAtLineBreakAhead = GetIsStartAtStartOfStartInline && StartInline.IsLineBreak;
 
          if (StartInline is EditableLineBreak elb)
             StartInline = elb.PreviousInline;
+
+         //if (StartInline is EditableCellBreak ecb)
+         //   StartInline = ecb.PreviousInline;
 
       }
 
       if (StartParagraph.Inlines.LastOrDefault(ied => StartParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph < Start) is IEditable startinlineprev)
       {
          StartInlinePrevious = startinlineprev;
-         
-         StartAtHyperlinkBehind = GetIsStartAtStartOfStartInline && StartInlinePrevious.IsHyperlink;
-         StartAtLineBreakBehind = GetIsStartAtStartOfStartInline && StartInlinePrevious.IsLineBreak;
       }
 
    }
@@ -142,20 +125,17 @@ public class TextRange : INotifyPropertyChanged, IDisposable
       if (EndParagraph.Inlines.LastOrDefault(ied => EndParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph <= End) is IEditable endinline)
       {
          EndInline = endinline;
-        
-         EndAtHyperlinkAhead = GetIsEndAtStartOfEndInline && EndInline.IsHyperlink;
-         EndAtLineBreakAhead = GetIsEndAtStartOfEndInline && EndInline.IsLineBreak;
 
          if (EndInline is EditableLineBreak elb)
             EndInline = elb.PreviousInline;
+
+         //if (EndInline is EditableCellBreak ecb)
+         //   EndInline = ecb.PreviousInline;
+
       }
       if (EndParagraph.Inlines.LastOrDefault(ied => EndParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph < End) is IEditable endinlineprev)
       {
          EndInlinePrevious = endinlineprev;
-
-         EndAtHyperlinkBehind = GetIsEndAtStartOfEndInline && EndInlinePrevious.IsHyperlink;
-         EndAtLineBreakBehind = GetIsEndAtStartOfEndInline && EndInlinePrevious.IsLineBreak;
-
       }
 
    }

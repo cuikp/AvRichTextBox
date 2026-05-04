@@ -16,7 +16,7 @@ public partial class FlowDocument
       }
 
       if (backspace)
-         MoveSelectionLeft(true);
+         MoveSelectionLeft();
 
       //Change bias to be forward for delete
       Selection.BiasForwardStart = true;
@@ -25,6 +25,14 @@ public partial class FlowDocument
       Selection.UpdateContextEnd();
 
       if (Selection.StartInline is not IEditable startInline) return;
+
+      if (startInline is EditableHyperlink hyperlink && hyperlink.InlineLength < 2)
+      {
+         if (backspace)
+            MoveSelectionRight();
+         return;
+      }
+
 
       Paragraph startP = Selection.StartParagraph;
 
@@ -213,6 +221,8 @@ public partial class FlowDocument
       Selection.Start = Selection.Start;
       SelectionExtendMode = ExtendMode.ExtendModeNone;
 
+      if (adjustCursor)
+         Selection.CollapseToStart();
 
       _ = AsyncUpdateCaret(trange);
 

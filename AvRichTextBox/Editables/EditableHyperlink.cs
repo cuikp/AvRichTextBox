@@ -22,8 +22,6 @@ public class EditableHyperlink : EditableRun
       //force hyperlink visual formatting
       this.Foreground = displayBrush;
       this.TextDecorations = displayDecoration;
-
-      
    }
 
    //public EditableHyperlink() { }

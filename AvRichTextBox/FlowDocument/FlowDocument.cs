@@ -1,7 +1,6 @@
 ﻿using Avalonia.Data;
 using Avalonia.Media;
 using Avalonia.Threading;
-using DocumentFormat.OpenXml.InkML;
 using DynamicData;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
