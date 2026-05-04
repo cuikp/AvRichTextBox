@@ -205,7 +205,7 @@ public partial class FlowDocument
             int absHyperlinkStart = startP.StartInDoc + hyperlink.TextPositionOfInlineInParagraph;
             int absHyperlinkEnd = absHyperlinkStart + hyperlink.InlineLength; 
 
-            if (Selection.End <= absHyperlinkEnd)
+            if (Selection.End <= absHyperlinkEnd && SelectionExtendMode == ExtendMode.ExtendModeLeft)
             {
                if (Selection.Start == absHyperlinkStart + 1)
                   Selection.End = absHyperlinkEnd;
@@ -246,7 +246,7 @@ public partial class FlowDocument
             int absHyperlinkStart = startP.StartInDoc + hyperlink.TextPositionOfInlineInParagraph;
             int absHyperlinkEnd = absHyperlinkStart + hyperlink.InlineLength; 
 
-            if (Selection.Start >= absHyperlinkStart)
+            if (Selection.Start >= absHyperlinkStart && SelectionExtendMode == ExtendMode.ExtendModeRight)
             {
                if (Selection.End == absHyperlinkEnd - 1)
                   Selection.Start = absHyperlinkStart;

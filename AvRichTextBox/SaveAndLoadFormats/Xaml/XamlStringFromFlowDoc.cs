@@ -252,28 +252,36 @@ public partial class XamlConversions
 
       foreach (IEditable ied in parInlines)
       {
-         switch (ied.GetType())
+         switch (ied)
          {
-            case Type t when t == typeof(EditableRun):
+            case EditableRun erun:
 
-               EditableRun erun = (EditableRun)ied;
-               StringBuilder RunHeader = new("<Run ");
+               StringBuilder RunHeader = new();
+               if (erun is EditableHyperlink elink)
+               {
+                  RunHeader.Append("<Hyperlink ");
+                  RunHeader.Append($"NavigateUri=\"{elink.NavigateUri}\">");
+               }
+
+               RunHeader.Append("<Run ");
                RunHeader.Append(GetRunAttributesString(erun));
-               //Debug.WriteLine("runheader= " + GetRunAttributesString(erun));
                runXamlBuilder.Append(RunHeader);
                runXamlBuilder.Append(erun.Text!.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;"));
                runXamlBuilder.Append("</Run>");
+
+               if (erun is EditableHyperlink)
+                  runXamlBuilder.Append("</Hyperlink>");
+
                break;
 
-            case Type t when t == typeof(EditableLineBreak):
+            case EditableLineBreak:
                runXamlBuilder.Append("<LineBreak/>");
                break;
 
-            case Type t when t == typeof(EditableInlineUIContainer):
+            case EditableInlineUIContainer eIUC:
 
                if (isXamlPackage)
                {
-                  EditableInlineUIContainer eIUC = (EditableInlineUIContainer)ied;
                   string InlineUIHeader = $"<InlineUIContainer FontFamily=\"{eIUC.FontFamily.Name}\" BaselineAlignment=\"{eIUC.BaselineAlignment}\">";
                   runXamlBuilder.Append(InlineUIHeader);
 

@@ -2,6 +2,8 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using DocumentFormat.OpenXml.Bibliography;
+using DocumentFormat.OpenXml.Office2010.CustomUI;
 using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -350,113 +352,46 @@ public partial class XamlConversions
          IEditable? newIED = null;
          switch (inlineNode.Name)
          {
-            case "Run":
-               EditableRun erun = new(inlineNode.InnerText);
-
+            case "Hyperlink":
+               EditableHyperlink elink = new();
                foreach (XmlAttribute att in inlineNode.Attributes!)
                {
                   switch (att.Name)
                   {
-                     case "FontFamily":
-                        
-                        switch (att.Value)
-                        {
-                           case "$Default":
-                              //do nothing - inherit paragraph font
-                              break;
-                           default:
-                              erun.FontFamily = new FontFamily(att.Value);
-                              break;
-                        }
-                        break;
-
-                     case "FontWeight":
-                        switch (att.Value)
-                        {
-                           case "Normal": erun.FontWeight = FontWeight.Normal; break;
-                           case "Bold": erun.FontWeight = FontWeight.Bold; break;
-                           case "DemiBold": erun.FontWeight = FontWeight.DemiBold; break;
-                           case "ExtraBold": erun.FontWeight = FontWeight.ExtraBold; break;
-                           case "Light": erun.FontWeight = FontWeight.Light; break;
-                           case "Thin": erun.FontWeight = FontWeight.Thin; break;
-                           case "Black": erun.FontWeight = FontWeight.Black; break;
-                           case "ExtraBlack": erun.FontWeight = FontWeight.ExtraBlack; break;
-                           case "UltraLight": erun.FontWeight = FontWeight.UltraLight; break;
-                           case "ExtraLight": erun.FontWeight = FontWeight.ExtraLight; break;
-                           case "SemiLight": erun.FontWeight = FontWeight.SemiLight; break;
-                           case "Heavy": erun.FontWeight = FontWeight.Heavy; break;
-                        }
-                        break;
-
-                     case "FontSize":
-                        erun.FontSize = double.Parse(att.Value);
-                        break;
-
-                     case "FontStyle":
-                        switch (att.Value)
-                        {
-                           case "Normal": erun.FontStyle = FontStyle.Normal; break;
-                           case "Italic": erun.FontStyle = FontStyle.Italic; break;
-                           case "Oblique": erun.FontStyle = FontStyle.Oblique; break;
-                        }
-                        break;
-
-                     case "TextDecorations":
-                        switch (att.Value)
-                        {
-                           case "Underline": erun.TextDecorations = TextDecorations.Underline; break;
-                           case "Overline": erun.TextDecorations = TextDecorations.Overline; break;
-                           case "Baseline": erun.TextDecorations = TextDecorations.Baseline; break;
-                           case "Strikethrough": erun.TextDecorations = TextDecorations.Strikethrough; break;
-                        }
-                        break;
-
-                     case "Foreground":
-                        erun.Foreground = new SolidColorBrush(Color.Parse(att.Value));
-                        break;
-
-                     case "Background":
-                        erun.Background = new SolidColorBrush(Color.Parse(att.Value));
-                        break;
-
-                     case "FontStretch":
-                        switch (att.Value)
-                        {
-                           case "Normal": erun.FontStretch = FontStretch.Normal; break;
-                           case "Condensed": erun.FontStretch = FontStretch.Condensed; break;
-                           case "SemiCondensed": erun.FontStretch = FontStretch.SemiCondensed; break;
-                           case "ExtraCondensed": erun.FontStretch = FontStretch.ExtraCondensed; break;
-                           case "UltraCondensed": erun.FontStretch = FontStretch.UltraCondensed; break;
-                           case "Expanded": erun.FontStretch = FontStretch.Expanded; break;
-                           case "SemiExpanded": erun.FontStretch = FontStretch.SemiExpanded; break;
-                           case "ExtraExpanded": erun.FontStretch = FontStretch.ExtraExpanded; break;
-                           case "UltraExpanded": erun.FontStretch = FontStretch.UltraExpanded; break;
-                        }
-                        break;
-
-                     case "BaselineAlignment":
-                        switch (att.Value)
-                        {
-                           case "Baseline": erun.BaselineAlignment = BaselineAlignment.Baseline; break;
-                           case "Bottom": erun.BaselineAlignment = BaselineAlignment.Bottom; break;
-                           case "Top": erun.BaselineAlignment = BaselineAlignment.Top; break;
-                           case "Center": erun.BaselineAlignment = BaselineAlignment.Center; break;
-                           case "TextTop": erun.BaselineAlignment = BaselineAlignment.TextTop; break;
-                           case "TextBottom": erun.BaselineAlignment = BaselineAlignment.TextBottom; break;
-                           case "Superscript": erun.BaselineAlignment = BaselineAlignment.Superscript; break;
-                           case "Subscript": erun.BaselineAlignment = BaselineAlignment.Subscript; break;
-                        }
-
+                     case "NavigateUri":
+                        elink.NavigateUri = att.Value;
                         break;
                   }
                }
-               newIED = erun;
+               foreach (XmlNode runNode in inlineNode.ChildNodes.OfType<XmlNode>())
+               {
+                  switch (runNode.Name)
+                  {
+                     case "Run":
+                        EditableRun linkRun = GetRun(runNode);
+                        elink.Text = linkRun.Text;
+                        elink.FontStyle = linkRun.FontStyle;
+                        elink.FontWeight = linkRun.FontWeight;
+                        elink.TextDecorations = linkRun.TextDecorations;
+                        elink.FontSize = linkRun.FontSize;
+                        elink.FontFamily = linkRun.FontFamily;
+                        elink.Background = linkRun.Background;
+                        elink.BaselineAlignment = linkRun.BaselineAlignment;
+                        elink.Foreground = linkRun.Foreground;
+                        break;
+                  }
+               }
+               newIED = elink;
+               break;
+
+            case "Run":
+               
+               newIED = GetRun(inlineNode);
                break;
 
             case "LineBreak":
-               //EditableRun eLineBreak = new(@"\n");
-               EditableLineBreak eLineBreak = new();
-               newIED = eLineBreak;
+
+               newIED = new EditableLineBreak();
                break;
 
             case "InlineUIContainer":
@@ -534,7 +469,111 @@ public partial class XamlConversions
 
       return newPar;
    }
-    
+
+   internal static EditableRun GetRun(XmlNode inlineNode)
+   {
+      EditableRun erun = new (inlineNode.InnerText);
+
+      foreach (XmlAttribute att in inlineNode.Attributes!)
+      {
+         switch (att.Name)
+         {
+            case "FontFamily":
+
+               switch (att.Value)
+               {
+                  case "$Default":
+                     //do nothing - inherit paragraph font
+                     break;
+                  default:
+                     erun.FontFamily = new FontFamily(att.Value);
+                     break;
+               }
+               break;
+
+            case "FontWeight":
+               switch (att.Value)
+               {
+                  case "Normal": erun.FontWeight = FontWeight.Normal; break;
+                  case "Bold": erun.FontWeight = FontWeight.Bold; break;
+                  case "DemiBold": erun.FontWeight = FontWeight.DemiBold; break;
+                  case "ExtraBold": erun.FontWeight = FontWeight.ExtraBold; break;
+                  case "Light": erun.FontWeight = FontWeight.Light; break;
+                  case "Thin": erun.FontWeight = FontWeight.Thin; break;
+                  case "Black": erun.FontWeight = FontWeight.Black; break;
+                  case "ExtraBlack": erun.FontWeight = FontWeight.ExtraBlack; break;
+                  case "UltraLight": erun.FontWeight = FontWeight.UltraLight; break;
+                  case "ExtraLight": erun.FontWeight = FontWeight.ExtraLight; break;
+                  case "SemiLight": erun.FontWeight = FontWeight.SemiLight; break;
+                  case "Heavy": erun.FontWeight = FontWeight.Heavy; break;
+               }
+               break;
+
+            case "FontSize":
+               erun.FontSize = double.Parse(att.Value);
+               break;
+
+            case "FontStyle":
+               switch (att.Value)
+               {
+                  case "Normal": erun.FontStyle = FontStyle.Normal; break;
+                  case "Italic": erun.FontStyle = FontStyle.Italic; break;
+                  case "Oblique": erun.FontStyle = FontStyle.Oblique; break;
+               }
+               break;
+
+            case "TextDecorations":
+               switch (att.Value)
+               {
+                  case "Underline": erun.TextDecorations = TextDecorations.Underline; break;
+                  case "Overline": erun.TextDecorations = TextDecorations.Overline; break;
+                  case "Baseline": erun.TextDecorations = TextDecorations.Baseline; break;
+                  case "Strikethrough": erun.TextDecorations = TextDecorations.Strikethrough; break;
+               }
+               break;
+
+            case "Foreground":
+               erun.Foreground = new SolidColorBrush(Color.Parse(att.Value));
+               break;
+
+            case "Background":
+               erun.Background = new SolidColorBrush(Color.Parse(att.Value));
+               break;
+
+            case "FontStretch":
+               switch (att.Value)
+               {
+                  case "Normal": erun.FontStretch = FontStretch.Normal; break;
+                  case "Condensed": erun.FontStretch = FontStretch.Condensed; break;
+                  case "SemiCondensed": erun.FontStretch = FontStretch.SemiCondensed; break;
+                  case "ExtraCondensed": erun.FontStretch = FontStretch.ExtraCondensed; break;
+                  case "UltraCondensed": erun.FontStretch = FontStretch.UltraCondensed; break;
+                  case "Expanded": erun.FontStretch = FontStretch.Expanded; break;
+                  case "SemiExpanded": erun.FontStretch = FontStretch.SemiExpanded; break;
+                  case "ExtraExpanded": erun.FontStretch = FontStretch.ExtraExpanded; break;
+                  case "UltraExpanded": erun.FontStretch = FontStretch.UltraExpanded; break;
+               }
+               break;
+
+            case "BaselineAlignment":
+               switch (att.Value)
+               {
+                  case "Baseline": erun.BaselineAlignment = BaselineAlignment.Baseline; break;
+                  case "Bottom": erun.BaselineAlignment = BaselineAlignment.Bottom; break;
+                  case "Top": erun.BaselineAlignment = BaselineAlignment.Top; break;
+                  case "Center": erun.BaselineAlignment = BaselineAlignment.Center; break;
+                  case "TextTop": erun.BaselineAlignment = BaselineAlignment.TextTop; break;
+                  case "TextBottom": erun.BaselineAlignment = BaselineAlignment.TextBottom; break;
+                  case "Superscript": erun.BaselineAlignment = BaselineAlignment.Superscript; break;
+                  case "Subscript": erun.BaselineAlignment = BaselineAlignment.Subscript; break;
+               }
+
+               break;
+         }
+      }
+
+      return erun;
+   }   
 
 }
 

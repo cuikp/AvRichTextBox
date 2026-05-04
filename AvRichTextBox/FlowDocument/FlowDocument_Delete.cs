@@ -135,7 +135,7 @@ public partial class FlowDocument
 
    }
 
-   internal (int idLeft, int idRight) DeleteRange(TextRange trange, bool addUndo, bool adjustCursor)
+   internal (int idLeft, int idRight) DeleteRange(TextRange trange, bool addUndo, bool adjustCaret)
    {
       bool docContainsOneBlock = Blocks.Count == 1;
       int originalSelectionStart = Selection.Start;
@@ -221,7 +221,7 @@ public partial class FlowDocument
       Selection.Start = Selection.Start;
       SelectionExtendMode = ExtendMode.ExtendModeNone;
 
-      if (adjustCursor)
+      if (adjustCaret)
          Selection.CollapseToStart();
 
       _ = AsyncUpdateCaret(trange);

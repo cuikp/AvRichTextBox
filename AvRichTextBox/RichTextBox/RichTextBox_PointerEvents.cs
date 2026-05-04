@@ -33,20 +33,12 @@ public partial class RichTextBox
       if (currentMouseOverEP.DataContext is not Paragraph thisPar) return;
 
       // Hyperlink mouse down processing
-      if (currentMouseOverEP.IsOverHyperlink)
+      if (HyperlinkClickable)
       {
          EditableHyperlink thisHyperlink = currentMouseOverEP.CurrentOverHyperlink;
-         if (e.KeyModifiers.HasFlag(KeyModifiers.Control))
-         {
-            var psi = new ProcessStartInfo { FileName = thisHyperlink.NavigateUri, UseShellExecute = true };
-            Process.Start(psi);
-         }
-         else
-         {
-            int hyperlinkStart = thisPar.StartInDoc + thisHyperlink.TextPositionOfInlineInParagraph;
-            FlowDoc.Select(hyperlinkStart, thisHyperlink.InlineLength);
-         }
-         return; 
+         var psi = new ProcessStartInfo { FileName = currentMouseOverEP.CurrentOverHyperlink.NavigateUri, UseShellExecute = true };
+         Process.Start(psi);
+         return;
       }
 
       // Normal mouse down processing
@@ -104,7 +96,7 @@ public partial class RichTextBox
    }
 
    private void FlowDocSV_PointerMoved(object? sender, PointerEventArgs e)
-   {      
+   {
       if (PointerDownOverRTB)
       {
          EditableParagraph overEP = null!;
@@ -123,17 +115,17 @@ public partial class RichTextBox
          double RTBTransformedY = this.GetTransformedBounds()!.Value.Clip.Y;
 
          foreach (KeyValuePair<EditableParagraph, Rect> kvp in VisualHelper.GetVisibleEditableParagraphs(FlowDocSV))
-         {  
+         {
             Point ePoint = e.GetCurrentPoint(FlowDocSV).Position;
             ePoint = ePoint.Transform(Matrix.CreateScale(scaleXTransform, scaleYTransform));
-            
+
             Rect thisEPRect = new(kvp.Value.X - this.Padding.Left, kvp.Value.Y - this.Padding.Top, kvp.Value.Width, kvp.Value.Height);
 
             double adjustedMouseY = ePoint.Y + RTBTransformedY;
             bool epContainsPoint = thisEPRect.Top <= adjustedMouseY && thisEPRect.Bottom >= adjustedMouseY;
-            
+
             if (epContainsPoint)
-               { overEP = kvp.Key; break; }
+            { overEP = kvp.Key; break; }
          }
 
          if (overEP != null)
@@ -142,7 +134,7 @@ public partial class RichTextBox
             int charIndex = hitCharIndex.TextPosition;
 
             if (overEP.DataContext is not Paragraph thisPar) return;
-         
+
             if (thisPar.StartInDoc + charIndex < SelectionOrigin)
             {
                FlowDoc.Selection.BiasForwardStart = true;
@@ -171,8 +163,29 @@ public partial class RichTextBox
             }
          }
       }
-
+      else
+      {
+         if (currentMouseOverEP == null)
+         {
+            this.Cursor = Cursor.Default; 
+            return;
+         }
+       
+         // Hyperlink mouse down processing
+         if (currentMouseOverEP.IsOverHyperlink)
+         {
+            if (e.KeyModifiers.HasFlag(KeyModifiers.Control) || !CtrlKeyOpensHyperlink)
+               HyperlinkClickable = true;
+            else
+               HyperlinkClickable = false;
+         }
+         else
+            HyperlinkClickable = false;
+      }
    }
+
+   private readonly Cursor HyperlinkCursor = new(StandardCursorType.Hand);
+   private bool HyperlinkClickable { get; set { field = value; this.Cursor = value ? HyperlinkCursor : Cursor.Default; } }
 
    private void RichTextBox_PointerReleased(object? sender, PointerReleasedEventArgs e)
    {

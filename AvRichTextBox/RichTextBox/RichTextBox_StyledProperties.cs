@@ -40,6 +40,13 @@ public partial class RichTextBox
       set { SetValue(LineBreakOnShiftEnterProperty, value);  }
    }
 
+   public static readonly StyledProperty<bool> CtrlKeyOpensHyperlinkProperty = AvaloniaProperty.Register<RichTextBox, bool>(nameof(CtrlKeyOpensHyperlink), false);
+   public bool CtrlKeyOpensHyperlink
+   {
+      get => GetValue(CtrlKeyOpensHyperlinkProperty);
+      set { SetValue(CtrlKeyOpensHyperlinkProperty, value);  }
+   }
+
    public static readonly StyledProperty<bool> ShowDebuggerPanelInDebugModeProperty = AvaloniaProperty.Register<RichTextBox, bool>(nameof(ShowDebuggerPanelInDebugMode), false);
    public bool ShowDebuggerPanelInDebugMode
    {

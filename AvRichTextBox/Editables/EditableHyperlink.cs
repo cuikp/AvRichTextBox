@@ -19,12 +19,17 @@ public class EditableHyperlink : EditableRun
       Text = displayText;
       NavigateUri = navigateUri;
 
-      //force hyperlink visual formatting
+      ForceFormatting();
+      
+   }
+
+   private void ForceFormatting()
+   {
       this.Foreground = displayBrush;
       this.TextDecorations = displayDecoration;
    }
 
-   //public EditableHyperlink() { }
+   internal EditableHyperlink() { ForceFormatting(); }
 
    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
    {

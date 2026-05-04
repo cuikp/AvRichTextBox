@@ -36,24 +36,20 @@ internal partial class EditableParagraph : TextBlock
 
    internal bool IsOverHyperlink = false;
    internal EditableHyperlink CurrentOverHyperlink = null!;
-   private readonly Cursor HyperlinkCursor = new (StandardCursorType.Hand);
-
+  
    private void EditableParagraph_MouseMove(EditableParagraph sender, int charIndex)
    {
 
       if (ThisPar?.Inlines.FirstOrDefault(il=> il.TextPositionOfInlineInParagraph <= charIndex && il.TextPositionOfInlineInParagraph + il.InlineLength >= charIndex) is EditableHyperlink currentHyperlink)
       {
          IsOverHyperlink = true;
-         this.Cursor = HyperlinkCursor;
          CurrentOverHyperlink = currentHyperlink;
       }
       else
       {
          IsOverHyperlink = false;
-         this.Cursor = Cursor.Default;
          CurrentOverHyperlink = null!;
       }
-
 
    }
 

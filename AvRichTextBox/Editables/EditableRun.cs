@@ -98,6 +98,7 @@ public class EditableRun : Run, IEditable
 
    }
 
+
 #if DEBUG
    // FOR DEBUGGER PANEL
    public InlineVisualizationProperties InlineVP { get; set; } = new();
