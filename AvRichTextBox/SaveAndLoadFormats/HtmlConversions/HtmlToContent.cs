@@ -374,10 +374,10 @@ internal static partial class HtmlConversions
                         IsVisible = true,
                      };
 
-                     if (node.GetAttributeValue("width", null!) is string w && double.TryParse(w, out var width))
+                     if (node.GetAttributeValue("width", null!) is string w && double.TryParse(w, NumberStyles.Float, CultureInfo.InvariantCulture, out var width))
                         img.Width = width;
 
-                     if (node.GetAttributeValue("height", null!) is string h && double.TryParse(h, out var height))
+                     if (node.GetAttributeValue("height", null!) is string h && double.TryParse(h, NumberStyles.Float, CultureInfo.InvariantCulture, out var height))
                         img.Height = height;
 
                      par.Inlines.Add(new EditableInlineUIContainer(img));
@@ -484,7 +484,7 @@ internal static partial class HtmlConversions
                break;
 
             case "font-size":
-               if (double.TryParse(kvp.Value.Replace("px", ""), out var size))
+               if (double.TryParse(kvp.Value.Replace("px", ""), NumberStyles.Float, CultureInfo.InvariantCulture, out var size))
                   formatting.FontSize = size;
                break;
 
@@ -554,7 +554,7 @@ internal static partial class HtmlConversions
 
                if (par.Inlines.Count > 0)
                {
-                  double lineHeight = Double.TryParse(kvp.Value.Replace("px", ""), out var px) ? px : 0;
+                  double lineHeight = double.TryParse(kvp.Value.Replace("px", ""), NumberStyles.Float, CultureInfo.InvariantCulture, out var px) ? px : 0;
                   //double maxInlineHeight = par.Inlines.Max(ilh => ilh.InlineHeight);
                   //par.LineHeight = LineHeightToLineSpacing(lineHeight, maxInlineHeight);
                   par.LineHeight = lineHeight;
@@ -642,7 +642,6 @@ internal static partial class HtmlConversions
 
    private static readonly Regex Rgba = new(@"^\s*rgba?\(\s*(?<r>\d{1,3})\s*,\s*(?<g>\d{1,3})\s*,\s*(?<b>\d{1,3})\s*(?:,\s*(?<a>[-+]?\d*\.?\d+)\s*)?\)\s*;?\s*$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-   private static ColorConverter colConverter = new();
 
    private static SolidColorBrush? ParseCssColor(string cssColor)
    {
@@ -661,7 +660,9 @@ internal static partial class HtmlConversions
          double aD = 1.0;
          if (m.Groups["a"].Success &&
              !double.TryParse(m.Groups["a"].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out aD))
+         {
             return null;
+         }
 
          aD = Math.Clamp(aD, 0.0, 1.0);
          var a = (byte)Math.Round(aD * 255.0);
@@ -672,8 +673,8 @@ internal static partial class HtmlConversions
       // hex (#RGB, #RRGGBB, #AARRGGBB) and named colors (Red, etc.)
       try
       {
-         var obj = colConverter.ConvertFromString(cssColor.TrimEnd(';'));
-         if (obj is Avalonia.Media.Color c) return new SolidColorBrush(c);
+         if (Avalonia.Media.Color.TryParse(cssColor.TrimEnd(';'), out var avColor))
+            return new SolidColorBrush(avColor);
       }
       catch { }
 
