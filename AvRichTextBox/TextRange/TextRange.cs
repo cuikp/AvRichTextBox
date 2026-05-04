@@ -78,19 +78,29 @@ public class TextRange : INotifyPropertyChanged, IDisposable
    //Context awareness flags   //////////////
    internal Paragraph StartParagraph = null!;
    internal Paragraph EndParagraph = null!;
+   
    internal IEditable? StartInline = null!;
    internal IEditable? EndInline = null!;
+   internal IEditable? StartInlinePrevious = null!;
+   internal IEditable? EndInlinePrevious = null!;
    
    internal bool IsAtEndOfLineSpace = false;
    internal bool IsAtEndOfLine = false;
-   internal bool IsAtLineBreakForward = false;
-   internal bool IsAtLineBreakBackward = false;
+   
    internal bool IsAtCellBreakForward = false;
    internal bool IsAtCellBreakBackward = false;
-   internal bool IsAtHyperlinkForward = false;
-   internal bool IsAtHyperlinkBackward = false;
+
+   internal bool StartAtLineBreakAhead = false;
+   internal bool StartAtLineBreakBehind = false;
+   internal bool EndAtLineBreakAhead = false;
+   internal bool EndAtLineBreakBehind = false;
+
+   internal bool StartAtHyperlinkAhead = false;
+   internal bool StartAtHyperlinkBehind = false;
+   internal bool EndAtHyperlinkAhead = false;
+   internal bool EndAtHyperlinkBehind = false;
    //////////////////////////////////////////
-   
+
    public void CollapseToStart() { End = Start;  }
    public void CollapseToEnd() { Start = End ; }
         
@@ -101,133 +111,60 @@ public class TextRange : INotifyPropertyChanged, IDisposable
    {
       if (GetStartPar() is not Paragraph startPar) return;
       this.StartParagraph = startPar;
-
-      IsAtLineBreakBackward = false;
-      IsAtCellBreakBackward = false;
-      IsAtHyperlinkBackward = false;
-      
-      if (BiasForwardStart)
-      {  // Start is biased right
-         if (StartParagraph.Inlines.LastOrDefault(ied => StartParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph <= Start) is IEditable ied)
-         {
-            StartInline = ied;
-            if (StartInline.IsLineBreak)
-               StartInline = StartInline.PreviousInline ?? null!;
-         }
-            
-      }
-      else
-      { // Start is biased left
-         if (Start == StartParagraph.StartInDoc && StartParagraph.Inlines.FirstOrDefault() is IEditable startinline)
-            StartInline = startinline;
-         else
-         {
-            if (StartParagraph.Inlines.LastOrDefault(ied => StartParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph < Start) is IEditable ied)
-            {
-               StartInline = ied;
-               if (StartInline.IsLineBreak)
-                  StartInline = StartInline.NextInline ?? null!;
-            }
-               
-         }
-      }
-
-
-      if (StartInline is not null)
+   
+      if (StartParagraph.Inlines.LastOrDefault(ied => StartParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph <= Start) is IEditable startinline)
       {
-         switch (BiasForwardStart)
-         {
-            case true:  // moved left
-               bool isAtStartOfStartInline = Start == startPar.StartInDoc + StartInline.TextPositionOfInlineInParagraph;
-               if (StartInline.PreviousInline is IEditable prevInline)
-               {
-                  IsAtLineBreakBackward = isAtStartOfStartInline && prevInline.IsLineBreak;
-                  IsAtCellBreakBackward = isAtStartOfStartInline && prevInline.IsTableCellInline;
-                  IsAtHyperlinkBackward = isAtStartOfStartInline && prevInline.IsHyperlink;
-               }
-               break;
+         StartInline = startinline;
+         
+         StartAtHyperlinkAhead = GetIsStartAtStartOfStartInline && StartInline.IsHyperlink;
+         StartAtLineBreakAhead = GetIsStartAtStartOfStartInline && StartInline.IsLineBreak;
 
-            case false:  // moved right
-               bool isAtEndOfStartInline = Start == startPar.StartInDoc + StartInline.TextPositionOfInlineInParagraph + StartInline.InlineLength;
-               IsAtLineBreakBackward = isAtEndOfStartInline && StartInline.IsLineBreak;
-               IsAtCellBreakBackward = isAtEndOfStartInline && StartInline.IsTableCellInline;
-               IsAtHyperlinkBackward = isAtEndOfStartInline && StartInline.IsHyperlink;
-
-               break;
-         }
+         if (StartInline is EditableLineBreak elb)
+            StartInline = elb.PreviousInline;
 
       }
 
+      if (StartParagraph.Inlines.LastOrDefault(ied => StartParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph < Start) is IEditable startinlineprev)
+      {
+         StartInlinePrevious = startinlineprev;
+         
+         StartAtHyperlinkBehind = GetIsStartAtStartOfStartInline && StartInlinePrevious.IsHyperlink;
+         StartAtLineBreakBehind = GetIsStartAtStartOfStartInline && StartInlinePrevious.IsLineBreak;
+      }
 
    }
 
    internal void UpdateContextEnd()
    {
-
       if (GetEndPar() is not Paragraph endPar) return;
       this.EndParagraph = endPar;
 
-      IsAtLineBreakForward = false;
-      IsAtCellBreakForward = false;
-      IsAtHyperlinkForward = false;
-
-      if (BiasForwardEnd)
-      {  // End is biased right
-         if (EndParagraph.Inlines.LastOrDefault(ied => EndParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph <= End) is IEditable ied)
-         {
-            EndInline = ied;
-
-            if (EndInline.IsLineBreak)
-               EndInline = EndInline.PreviousInline ?? null!;
-         }
-      }
-      else
-      {  // End is biased left
-         if (End == EndParagraph.EndInDoc && EndParagraph.Inlines.LastOrDefault() is IEditable lastinline)
-            EndInline = lastinline;
-         else
-         {
-            if (EndParagraph.Inlines.LastOrDefault(ied => EndParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph < End) is IEditable ied)
-            {
-               EndInline = ied;
-               
-               if (EndInline.IsLineBreak)
-                  EndInline = EndInline.NextInline ?? null!;
-            }
-               
-         }
-      }
-
-      if (EndInline is not null)
+      if (EndParagraph.Inlines.LastOrDefault(ied => EndParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph <= End) is IEditable endinline)
       {
-         switch (BiasForwardEnd)
-         {
-            case true:  // moved left
-               bool isAtStartOfEndInline = (End == endPar.StartInDoc + EndInline.TextPositionOfInlineInParagraph);
-               IsAtLineBreakForward = isAtStartOfEndInline && EndInline.IsLineBreak;
-               IsAtCellBreakForward = isAtStartOfEndInline && EndInline.IsTableCellInline;
-               IsAtHyperlinkForward = isAtStartOfEndInline && EndInline.IsHyperlink;
+         EndInline = endinline;
+        
+         EndAtHyperlinkAhead = GetIsEndAtStartOfEndInline && EndInline.IsHyperlink;
+         EndAtLineBreakAhead = GetIsEndAtStartOfEndInline && EndInline.IsLineBreak;
 
-               break;
-            
-            case false:  // moved right
-
-               bool isAtEndOfEndInline = (End == endPar.StartInDoc + EndInline.TextPositionOfInlineInParagraph + EndInline.InlineLength);
-               if (EndInline.NextInline is IEditable nextInline)
-               {
-                  IsAtLineBreakForward = isAtEndOfEndInline && nextInline.IsLineBreak;
-                  IsAtCellBreakForward = isAtEndOfEndInline && nextInline.IsTableCellInline;
-                  IsAtHyperlinkForward = isAtEndOfEndInline && nextInline.IsHyperlink;
-               }
-
-               break;
-         }
+         if (EndInline is EditableLineBreak elb)
+            EndInline = elb.PreviousInline;
       }
-      
+      if (EndParagraph.Inlines.LastOrDefault(ied => EndParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph < End) is IEditable endinlineprev)
+      {
+         EndInlinePrevious = endinlineprev;
+
+         EndAtHyperlinkBehind = GetIsEndAtStartOfEndInline && EndInlinePrevious.IsHyperlink;
+         EndAtLineBreakBehind = GetIsEndAtStartOfEndInline && EndInlinePrevious.IsLineBreak;
+
+      }
+
    }
 
    public Paragraph? GetStartPar() => myFlowDoc.AllParagraphs.LastOrDefault(p => p.StartInDoc <= Start);
-   public Paragraph? GetEndPar() => myFlowDoc.AllParagraphs.LastOrDefault(p => p.StartInDoc < End);
+   public Paragraph? GetEndPar() => myFlowDoc.AllParagraphs.LastOrDefault(p => p.StartInDoc <= End);
+
+   public bool GetIsEndAtStartOfEndInline => End == EndParagraph.StartInDoc + EndInline?.TextPositionOfInlineInParagraph;
+   public bool GetIsStartAtStartOfStartInline => Start == StartParagraph.StartInDoc + StartInline?.TextPositionOfInlineInParagraph;
 
    public object? GetFormatting(AvaloniaProperty avProp)
    {
@@ -372,6 +309,8 @@ public class TextRange : INotifyPropertyChanged, IDisposable
       {
          StartParagraph = null!;
          EndParagraph = null!;
+
+
 
          Start_Changed = null;
          End_Changed = null;

@@ -6,8 +6,8 @@ public partial class FlowDocument
 
    internal void ExtendSelectionRight()
    {
-      Selection.BiasForwardEnd = true;
-
+      Selection.BiasForwardEnd = false;
+      
       switch (SelectionExtendMode)
       {
          case ExtendMode.ExtendModeNone:
@@ -18,13 +18,16 @@ public partial class FlowDocument
             if (Selection.EndParagraph == AllParagraphs.ToList()[^1] && Selection.EndParagraph.SelectionEndInBlock == Selection.EndParagraph.TextLength)
                return;  // End of document
 
-            Selection.End += 1;
+            Selection.End = GetNextPosition();
 
             break;
 
          case ExtendMode.ExtendModeLeft:
 
-            Selection.Start += 1;
+            Selection.BiasForwardStart = false;
+
+            Selection.Start = GetNextPosition();
+
             if (Selection.Start == Selection.End)
                SelectionExtendMode = ExtendMode.ExtendModeRight;
 
@@ -38,19 +41,26 @@ public partial class FlowDocument
    internal void ExtendSelectionLeft()
    {
       Selection.BiasForwardEnd = false;
+      Selection.BiasForwardStart = true;
 
       switch (SelectionExtendMode)
       {
          case ExtendMode.ExtendModeNone:
          case ExtendMode.ExtendModeLeft:
             if (Selection.Start == 0) return;
-            Selection.Start -= 1;
+
+            Selection.Start = GetPreviousPosition();
+
             SelectionExtendMode = ExtendMode.ExtendModeLeft;
             break;
 
          case ExtendMode.ExtendModeRight:
             if (Selection.End == 0) return;
-            Selection.End -= 1;
+
+            Selection.BiasForwardEnd = true;
+
+            Selection.End = GetPreviousPosition();
+
             if (Selection.Start == Selection.End)
                SelectionExtendMode = ExtendMode.ExtendModeLeft;
             break;
@@ -170,6 +180,121 @@ public partial class FlowDocument
       ScrollInDirection?.Invoke(1);
    }
 
+   private int GetPreviousPosition()
+   {
+      int currentPos = (SelectionExtendMode == ExtendMode.ExtendModeRight) ? Selection.End : Selection.Start;
+      if (currentPos <= 0)
+         return 0;
+      Paragraph startP = (SelectionExtendMode == ExtendMode.ExtendModeRight) ? Selection.EndParagraph : Selection.StartParagraph;
+      int posInBlock = currentPos - startP.StartInDoc;
+
+      if (posInBlock <= 0)
+      {  // At start of paragraph, move to end of previous paragraph
+         return Math.Max(0, startP.StartInDoc - 1);
+      }
+      
+      int computedPrevious = startP.StartInDoc + posInBlock - 1;
+
+      // skip special
+      if (GetStartInline(computedPrevious) is EditableHyperlink hyperlink)
+         computedPrevious = startP.StartInDoc + hyperlink.TextPositionOfInlineInParagraph;
+
+      if (GetStartInline(computedPrevious) is EditableLineBreak)
+         computedPrevious -= 1;
+
+      return computedPrevious;
+
+   }
+   
+   private int GetNextPosition()
+   {      
+      int currentPos = (SelectionExtendMode == ExtendMode.ExtendModeLeft) ? Selection.Start : Selection.End;
+
+      Paragraph startP = (SelectionExtendMode == ExtendMode.ExtendModeLeft) ? Selection.StartParagraph : Selection.EndParagraph;
+      int posInBlock = currentPos - startP.StartInDoc;
+
+      if (posInBlock >= startP.TextLength)
+      {  // At end of paragraph, move to start of next paragraph
+         int nextPos = startP.StartInDoc + startP.BlockLength;
+         return Math.Min(nextPos, DocEndPoint - 1);
+      }
+
+      int computedNext = startP.StartInDoc + posInBlock + 1;
+
+      // skip special
+      if (GetStartInline(computedNext - 1) is EditableHyperlink hyperlink)
+         computedNext = Selection.StartParagraph.StartInDoc + hyperlink.TextPositionOfInlineInParagraph + hyperlink.InlineLength;
+
+      if (GetStartInline(computedNext - 1) is EditableLineBreak)
+         computedNext += 1;
+
+      return computedNext;
+
+   }
+
+   private int GetNextDown()
+   {
+      int currentPos = (SelectionExtendMode == ExtendMode.ExtendModeLeft) ? Selection.Start : Selection.End;
+
+      Paragraph relPar = (SelectionExtendMode == ExtendMode.ExtendModeLeft) ? Selection.StartParagraph : Selection.EndParagraph;
+      bool atParBottom = (SelectionExtendMode == ExtendMode.ExtendModeLeft) ? relPar.IsStartAtLastLine : relPar.IsEndAtLastLine;
+
+      int posNextLineInBlock = (SelectionExtendMode == ExtendMode.ExtendModeLeft) ? Selection.StartParagraph.CharNextLineStart : Selection.EndParagraph.CharNextLineEnd; ;
+      int computedNext = relPar.StartInDoc + posNextLineInBlock;
+
+      if (atParBottom)
+      {
+         double currLeft = relPar.TextLayout.HitTestTextPosition(currentPos - relPar.StartInDoc).Left;
+         int parIdx = AllParagraphs.IndexOf(relPar);
+         if (parIdx < AllParagraphs.Count -1)
+         {
+            relPar = AllParagraphs[parIdx + 1];
+            int textPosNewPar = Math.Min(relPar.BlockLength, relPar.TextLayout.HitTestPoint(new Point (currLeft, 0)).TextPosition);
+            computedNext = relPar.StartInDoc + textPosNewPar;
+         }
+      }
+
+      // skip special
+      if (GetStartInline(computedNext - 1) is EditableHyperlink hyperlink)
+         computedNext = Selection.StartParagraph.StartInDoc + hyperlink.TextPositionOfInlineInParagraph + hyperlink.InlineLength;
+
+      return computedNext;
+
+
+   }
+
+   private int GetNextUp()
+   {
+      int currentPos = (SelectionExtendMode == ExtendMode.ExtendModeRight) ? Selection.End : Selection.Start;
+      Paragraph relPar = (SelectionExtendMode == ExtendMode.ExtendModeRight) ? Selection.EndParagraph : Selection.StartParagraph;
+
+      int posPrevLineInBlock = (SelectionExtendMode == ExtendMode.ExtendModeRight) ? Selection.EndParagraph.CharPrevLineEnd: Selection.StartParagraph.CharPrevLineStart;
+      int computedPrev = relPar.StartInDoc + posPrevLineInBlock;
+
+      bool atParTop = (SelectionExtendMode == ExtendMode.ExtendModeRight) ? relPar.IsEndAtFirstLine : relPar.IsStartAtFirstLine;
+
+      if (atParTop)
+      {
+         double currLeft = relPar.TextLayout.HitTestTextPosition(currentPos - relPar.StartInDoc).Left;
+         int parIdx = AllParagraphs.IndexOf(relPar);
+         if (parIdx > 0)
+         {
+            relPar = AllParagraphs[parIdx - 1];
+            int textPosNewPar = Math.Min(relPar.BlockLength, relPar.TextLayout.HitTestPoint(new Point(currLeft, relPar.TextLayout.Height)).TextPosition);
+            computedPrev = relPar.StartInDoc + textPosNewPar;
+         }
+      }
+
+            
+      // skip special
+      if (GetStartInline(computedPrev - 1) is EditableHyperlink hyperlink)
+         computedPrev = Selection.StartParagraph.StartInDoc + hyperlink.TextPositionOfInlineInParagraph;
+
+      return computedPrev;
+
+   }
+
+
    /// <summary>
    /// Computes the position of the next word boundary (rightward) from the current selection end.
    /// </summary>
@@ -201,17 +326,21 @@ public partial class FlowDocument
       // Find next space from the adjusted position
       int indexNext = parText.IndexOf(' ', searchFrom);
       if (indexNext == -1)
-      {
-         // No space found - go to end of paragraph text
+      {  // No space found - go to end of paragraph text
          return startP.StartInDoc + startP.TextLength;
       }
       else
-      {
-         // Go to position after the space
-         return startP.StartInDoc + indexNext + 1;
+      {  // Go to position after the space
+         int computedNext = startP.StartInDoc + indexNext + 1;
+
+         // skip special
+         if (GetStartInline(computedNext - 1) is EditableHyperlink hyperlink)
+            computedNext = Selection.StartParagraph.StartInDoc + hyperlink.TextPositionOfInlineInParagraph + hyperlink.InlineLength;
+
+         return computedNext;
       }
    }
-
+     
    /// <summary>
    /// Computes the position of the previous word boundary (leftward) from the current selection start.
    /// </summary>
@@ -244,14 +373,18 @@ public partial class FlowDocument
       // Find previous space from the adjusted position
       int indexNext = parText.LastIndexOfAny(" \n".ToCharArray(), searchFrom);
       if (indexNext == -1)
-      {
-         // No space found - go to start of paragraph
+      {  // No space found - go to start of paragraph
          return startP.StartInDoc;
       }
       else
-      {
-         // Go to position after the space (right of space)
-         return startP.StartInDoc + indexNext + 1;
+      {  // Go to position after the space (right of space)
+         int computedPrevious = startP.StartInDoc + indexNext + 1;
+
+         // skip special
+         if (GetStartInline(computedPrevious - 1) is EditableHyperlink hyperlink)
+            computedPrevious = Selection.StartParagraph.StartInDoc + hyperlink.TextPositionOfInlineInParagraph;
+
+         return computedPrevious;
       }
    }
 
@@ -269,55 +402,16 @@ public partial class FlowDocument
 
             SelectionExtendMode = ExtendMode.ExtendModeRight;
 
-            if (Selection.EndParagraph == allPars[^1] && Selection.StartParagraph.IsEndAtLastLine)
-            {
-               Selection.End = Selection.EndParagraph.StartInDoc + Selection.EndParagraph.TextLength;
-               return;  // last line of document
-            }
-            
-            Paragraph origEndPar = Selection.EndParagraph;
-            
-            int nextEnd = Selection.EndParagraph.StartInDoc + Selection.EndParagraph.CharNextLineEnd;
-   
-            if (Selection.EndParagraph.IsEndAtLastLine)
-            {
-               if (Selection.EndParagraph != allPars[^1])
-               {
-                  int nextParIndex = Blocks.IndexOf(Selection.EndParagraph) + 1;
-                  Paragraph nextPar = (Paragraph)allPars[nextParIndex];
-                  Selection.End = Math.Min(nextPar.StartInDoc + nextPar.BlockLength - 1, nextEnd);
-               }
-            }
-            else
-               Selection.End = nextEnd;
-
-
-            //for selection continuity
-            if (Selection.EndParagraph != origEndPar)
-            {
-               origEndPar.SelectionEndInBlock = origEndPar.TextLength;
-               Selection.EndParagraph.SelectionStartInBlock = 0;
-            }
+            Selection.End = GetNextDown();
 
             break;
 
-         case ExtendMode.ExtendModeLeft:  // Hitting down key reduces selection range from top 
+         case ExtendMode.ExtendModeLeft:  // Hitting Down key reduces selection range from top 
 
             if (Selection.StartParagraph == allPars[^1] && Selection.StartParagraph.IsStartAtLastLine)
                return;  // last line of document
 
-            int newStart = Selection.StartParagraph.StartInDoc + Selection.StartParagraph.CharNextLineStart;
-
-            if (AllParagraphs.IndexOf(Selection.StartParagraph) < AllParagraphs.Count - 1)
-            {
-               Paragraph nextPar = allPars[allPars.IndexOf(Selection.StartParagraph) + 1];
-               int charsFromStart = Selection.StartParagraph.SelectionStartInBlock - Selection.StartParagraph.FirstIndexLastLine;
-               if (Selection.StartParagraph.IsStartAtLastLine)
-               {
-                  charsFromStart = Math.Min(charsFromStart, nextPar.TextLength);
-                  newStart = nextPar.StartInDoc + charsFromStart;
-               }
-            }
+            int newStart = GetNextDown();
 
             if (newStart > Selection.End)
             {
@@ -338,7 +432,6 @@ public partial class FlowDocument
 
    internal void ExtendSelectionUp()
    {
-      Paragraph? prevPar = null;
       Selection.BiasForwardEnd = false;
 
       List<Paragraph> allPars = AllParagraphs;
@@ -353,43 +446,30 @@ public partial class FlowDocument
                Selection.Start = 0;
                return;  // first line of document
             }
-               
 
-            Paragraph origStartPar = Selection.StartParagraph;
-            if (Selection.StartParagraph.IsStartAtFirstLine)
-            {
-               prevPar = allPars[allPars.IndexOf(Selection.StartParagraph) - 1];
-               Selection.Start = Math.Min(prevPar.StartInDoc + prevPar.BlockLength - 2, prevPar.StartInDoc + prevPar.FirstIndexLastLine + Selection.StartParagraph.CharPrevLineStart);
-            }
-            else
-               Selection.Start = Selection.StartParagraph.StartInDoc + Selection.StartParagraph.CharPrevLineStart;
+            Selection.Start = GetNextUp();
 
-            //for selection continuity
             SelectionExtendMode = ExtendMode.ExtendModeLeft;
-            if (Selection.StartParagraph != origStartPar)
-            {
-               origStartPar.SelectionStartInBlock = 0;
-               Selection.StartParagraph.SelectionEndInBlock = Selection.StartParagraph.TextLength;
-            }
 
             break;
 
 
          case ExtendMode.ExtendModeRight: // Hitting up key reduces selection range from bottom 
 
-            int newEnd = Selection.EndParagraph.StartInDoc + Selection.EndParagraph.CharPrevLineEnd;
+            int newEnd = GetNextUp();
 
-            if (AllParagraphs.IndexOf(Selection.EndParagraph) > 0)
-            {
-               prevPar = allPars[allPars.IndexOf(Selection.EndParagraph) - 1];
-               int charsFromStart = Selection.EndParagraph.SelectionEndInBlock;
-               if (Selection.EndParagraph.IsEndAtFirstLine)
-               {
-                  charsFromStart = Math.Min(charsFromStart, prevPar.TextLength);
-                  newEnd = prevPar.StartInDoc + prevPar.FirstIndexLastLine + charsFromStart;
-               }
-                  
-            }
+            //int newEnd = Selection.EndParagraph.StartInDoc + Selection.EndParagraph.CharPrevLineEnd;
+
+            //if (AllParagraphs.IndexOf(Selection.EndParagraph) > 0)
+            //{
+            //   prevPar = allPars[allPars.IndexOf(Selection.EndParagraph) - 1];
+            //   int charsFromStart = Selection.EndParagraph.SelectionEndInBlock;
+            //   if (Selection.EndParagraph.IsEndAtFirstLine)
+            //   {
+            //      charsFromStart = Math.Min(charsFromStart, prevPar.TextLength);
+            //      newEnd = prevPar.StartInDoc + prevPar.FirstIndexLastLine + charsFromStart;
+            //   }
+            //}
 
             if (newEnd < Selection.Start)
             {

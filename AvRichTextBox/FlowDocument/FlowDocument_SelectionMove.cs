@@ -7,9 +7,9 @@ public partial class FlowDocument
    internal void MoveSelectionRight(bool isTextInsertion)
    {
       bool previousBiasForwardEnd = Selection.BiasForwardEnd;
-      Selection.BiasForwardEnd = false;
       Selection.BiasForwardStart = false;
-
+      Selection.BiasForwardEnd = false;
+      
       switch (SelectionExtendMode)
       {
          case ExtendMode.ExtendModeNone:
@@ -18,20 +18,11 @@ public partial class FlowDocument
             if (endBlock == AllParagraphs.ToList()[^1] && endBlock.SelectionEndInBlock == endBlock.BlockLength - 1)
                return;  // End of document
 
-            if (!isTextInsertion)
-            {
-               if (Selection.IsAtLineBreakForward || Selection.IsAtCellBreakForward)
-               {
-                  Selection.End += 1; // extra to pass beyond LineBreak and TableCell boundary
-               }
-               else if (Selection.IsAtHyperlinkForward && Selection.StartInline is IEditable startInline && startInline.NextInline is IEditable nextInline)
-               {
-                  Selection.End += previousBiasForwardEnd ? startInline.InlineLength - 1 : nextInline.InlineLength - 1;
-               }
-            }
-      
-            Selection.End += 1;
+            Selection.End = GetNextPosition();
 
+            if (!isTextInsertion)
+            {  }
+      
             break;
          case ExtendMode.ExtendModeRight:
             Selection.End = Math.Min(Selection.End, this.DocEndPoint - 1);
@@ -45,9 +36,6 @@ public partial class FlowDocument
       SelectionExtendMode = ExtendMode.ExtendModeNone;
       ScrollInDirection?.Invoke(1);
 
-      
-            
-
    }
 
    internal void MoveSelectionLeft(bool biasForward)
@@ -55,7 +43,7 @@ public partial class FlowDocument
       bool previousBiasForwardStart = Selection.BiasForwardStart;
       Selection.BiasForwardStart = true;
       Selection.BiasForwardEnd = true;
-
+      Selection.UpdateContextStart();
 
       switch (SelectionExtendMode)
       {
@@ -67,15 +55,7 @@ public partial class FlowDocument
             }
             else
             {
-               if (Selection.IsAtLineBreakBackward || Selection.IsAtCellBreakBackward)
-               {
-                  Selection.Start -= 1; //extra to pass beyond LineBreak and TableCell boundary
-               }
-               else if (Selection.IsAtHyperlinkBackward && Selection.StartInline is IEditable startInline && startInline.PreviousInline is IEditable prevInline)
-               {
-                  Selection.Start -= previousBiasForwardStart ? prevInline.InlineText.Length - 1: startInline.InlineLength - 1;
-               }
-               Selection.Start -= 1;
+               Selection.Start = GetPreviousPosition();
             }
 
             break;
@@ -108,10 +88,15 @@ public partial class FlowDocument
       if (Selection.Start >= Selection.StartParagraph.StartInDoc + Selection.StartParagraph.BlockLength)
          return;
 
-      Selection.BiasForwardStart = true;
-      Selection.BiasForwardEnd = true;
+      Selection.BiasForwardStart = false;
+      Selection.BiasForwardEnd = false;
 
-      Select(GetNextWordPosition(), 0);
+      int nextPos = GetNextWordPosition();
+
+      //if (GetStartInline(nextPos - 1) is EditableHyperlink hyperlink)
+      //   nextPos = Selection.StartParagraph.StartInDoc + hyperlink.TextPositionOfInlineInParagraph + hyperlink.InlineLength;
+
+      Select(nextPos, 0);
      
       Selection.CollapseToEnd();
       ScrollInDirection?.Invoke(1);
@@ -123,42 +108,34 @@ public partial class FlowDocument
       if (Selection.Start <= 0)
          return;
 
-      Selection.BiasForwardStart = false;
-      Selection.BiasForwardEnd = false;
+      Selection.BiasForwardStart = true;
+      Selection.BiasForwardEnd = true;
 
       Select(GetPreviousWordPosition(), 0);
-  
+
       Selection.CollapseToStart();
       ScrollInDirection?.Invoke(-1);
 
    }
 
-
    internal void MoveSelectionDown(bool biasForward)
    {
-
       Selection.BiasForwardStart = biasForward;
 
       if (Selection.Length > 0)
          Selection.CollapseToEnd();
 
-      int nextEnd = Selection.EndParagraph.StartInDoc + Selection.EndParagraph.CharNextLineEnd;
+      int nextEnd = GetNextDown();
 
+      ////hyperlink encountered (select hyperlink)
+      //if (GetStartInline(nextEnd) is EditableHyperlink hyperlink)
+      //{
+      //   if (AllParagraphs.LastOrDefault(p=> p.StartInDoc <= nextEnd) is Paragraph thisPar)
+      //      Select(thisPar.StartInDoc + hyperlink.TextPositionOfInlineInParagraph, hyperlink.InlineLength);
+      //   return;
+      //}
 
-      if (Selection.EndParagraph.IsEndAtLastLine)
-      {
-         List<Paragraph> allPars = AllParagraphs;
-
-         if (Selection.EndParagraph != allPars[^1])
-         {
-            int nextParIndex = allPars.IndexOf(Selection.EndParagraph) + 1;
-            Paragraph nextPar = allPars[nextParIndex];
-            Selection.End = Math.Min(nextPar.StartInDoc + nextPar.BlockLength - 1, nextEnd);  // change BlockLength to be length of first line
-         }
-      }
-      else
-         Selection.End = nextEnd;
-
+      Selection.End = nextEnd;
 
       Selection.CollapseToEnd();
       SelectionExtendMode = ExtendMode.ExtendModeNone;
@@ -169,26 +146,22 @@ public partial class FlowDocument
 
    internal void MoveSelectionUp(bool biasForward)
    {
-
       Selection.BiasForwardStart = biasForward;
 
       if (Selection.Length > 0)
          Selection.CollapseToStart();
 
-      if (Selection.StartParagraph.IsStartAtFirstLine)
-      {        
-         List<Paragraph> allPars = AllParagraphs;
-         if (Selection.StartParagraph != allPars[0])
-         {            
-            int prevParIndex = allPars.IndexOf(Selection.StartParagraph) - 1;
-            if (allPars[prevParIndex] is Paragraph prevPar)
-               Selection.Start = Math.Min(prevPar.StartInDoc + prevPar.BlockLength - 1, prevPar.StartInDoc + prevPar.FirstIndexLastLine + Selection.StartParagraph.CharPrevLineStart);
-         }
-      }
-      else
-      {
-         Selection.Start = Selection.StartParagraph.StartInDoc + Selection.StartParagraph.CharPrevLineStart;
-      }
+      int nextStart = GetNextUp();
+
+      ////hyperlink encountered (select hyperlink)
+      //if (GetStartInline(nextStart) is EditableHyperlink hyperlink)
+      //{
+      //   if (AllParagraphs.LastOrDefault(p => p.StartInDoc <= nextStart) is Paragraph thisPar)
+      //      Select(thisPar.StartInDoc + hyperlink.TextPositionOfInlineInParagraph, hyperlink.InlineLength);
+      //   return;
+      //}
+
+      Selection.Start = nextStart;
 
       Selection.CollapseToStart();
 

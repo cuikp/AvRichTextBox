@@ -1,6 +1,7 @@
 ﻿using Avalonia.Data;
 using Avalonia.Media;
 using Avalonia.Threading;
+using DocumentFormat.OpenXml.InkML;
 using DynamicData;
 using System.Collections.ObjectModel;
 using System.Reactive.Linq;
@@ -32,7 +33,7 @@ public partial class FlowDocument : AvaloniaObject
 
    internal ObservableCollection<IUndo> Undos { get; set; } = [];
    internal ObservableCollection<Paragraph> SelectionParagraphs { get; set; } = [];
-   internal List<TextRange> TextRanges = [];
+   internal ObservableCollection<TextRange> TextRanges = [];
 
    internal bool disableRunTextUndo = false;
 
@@ -75,7 +76,7 @@ public partial class FlowDocument : AvaloniaObject
       InlineIdCounter = 1; //reset on new flowdoc
 
       Blocks.CollectionChanged += Blocks_CollectionChanged;
-
+      TextRanges.CollectionChanged += TextRanges_CollectionChanged;
    }
 
    private void FlowDocument_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
@@ -84,6 +85,8 @@ public partial class FlowDocument : AvaloniaObject
       {
          Blocks.CollectionChanged -= Blocks_CollectionChanged;
          Blocks.CollectionChanged += Blocks_CollectionChanged;
+         TextRanges.CollectionChanged -= TextRanges_CollectionChanged;
+         TextRanges.CollectionChanged += TextRanges_CollectionChanged;
       }
 
       if (e.Property == PagePaddingProperty)
@@ -125,6 +128,24 @@ public partial class FlowDocument : AvaloniaObject
       if (Blocks.Count > 0 && e.NewStartingIndex > -1)
          UpdateTextRanges(Blocks[e.NewStartingIndex].StartInDoc, lengthOffset);
       
+
+   }
+
+   private void TextRanges_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+   {
+      if (e.NewItems != null)
+      {
+      }
+
+      if (e.OldItems != null)
+      {
+         foreach (TextRange trange in e.OldItems)
+         {
+            trange.Dispose();
+         }
+            
+      }
+
 
    }
 

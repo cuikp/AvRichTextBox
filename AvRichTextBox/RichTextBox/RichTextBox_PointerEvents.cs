@@ -144,16 +144,30 @@ public partial class RichTextBox
             if (overEP.DataContext is not Paragraph thisPar) return;
          
             if (thisPar.StartInDoc + charIndex < SelectionOrigin)
-            {  
+            {
+               FlowDoc.Selection.BiasForwardStart = true;
+               FlowDoc.Selection.UpdateContextStart();
                FlowDoc.SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeLeft;
                FlowDoc.Selection.End = SelectionOrigin;
                FlowDoc.Selection.Start = thisPar.StartInDoc + charIndex;
+
+               //leap over hyperlink
+               if (FlowDoc.GetStartInline(FlowDoc.Selection.Start) is EditableHyperlink hyperlink)
+                  FlowDoc.Selection.Start = thisPar.StartInDoc + hyperlink.TextPositionOfInlineInParagraph;
+
             }
             else
             {
+               FlowDoc.Selection.BiasForwardEnd = false;
+               FlowDoc.Selection.UpdateContextEnd();
                FlowDoc.SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeRight;
                FlowDoc.Selection.Start = SelectionOrigin;
                FlowDoc.Selection.End = thisPar.StartInDoc + charIndex;
+
+               //leap over hyperlink
+               if (FlowDoc.GetStartInline(FlowDoc.Selection.End - 1) is EditableHyperlink hyperlink)
+                  FlowDoc.Selection.End = thisPar.StartInDoc + hyperlink.TextPositionOfInlineInParagraph + hyperlink.InlineLength;
+
             }
          }
       }

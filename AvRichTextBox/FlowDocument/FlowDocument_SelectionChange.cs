@@ -65,6 +65,7 @@ public partial class FlowDocument
 
       UpdateHasSelectedText();
 
+     
    }
 
    bool _lastHasSelectedText = false;

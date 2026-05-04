@@ -61,16 +61,16 @@ public class EditableRun : Run, IEditable
    public virtual string InlineText { get => Text!; set => Text = value; }
    public virtual int InlineLength => InlineText.Length;
    public double InlineHeight => FontSize;
-
-   internal IEditable PreviousInline { get; set; } = null!;
-   internal IEditable NextInline { get; set; } = null!;
-
+     
+   
    public bool IsEmpty => InlineText.Length == 0;
    public string FontName => FontFamily?.Name == null ? "" : FontFamily?.Name!;
       
    public bool IsLastInlineOfParagraph { get; set; }
    public bool IsTableCellInline { get; set; } = false;
-
+   
+   public IEditable? PreviousInline { get; set; } = null!;
+   public IEditable? NextInline { get; set; } = null!;
 
    public virtual IEditable Clone() => 
 
@@ -103,9 +103,7 @@ public class EditableRun : Run, IEditable
    public InlineVisualizationProperties InlineVP { get; set; } = new();
    public string InlineToolTip => $"Background: {Background}\nForeground: {Foreground}\nFontFamily: {FontFamily}\nPrevInlineLineBreak?: {PreviousInline?.IsLineBreak}\nNextInlineLineBreak?: {NextInline?.IsLineBreak}";
    public virtual string DisplayInlineText => IsEmpty ? "{>EMPTY<}" : (InlineText.Length == 1 ? Text!.Replace(" ", "{>SPACE<}").Replace("\t", "{>TAB<}") : Text!.Replace("\t", "{>TAB<}"));
-
-   IEditable IEditable.PreviousInline { get => PreviousInline; set => PreviousInline = value; }
-   IEditable IEditable.NextInline { get => NextInline; set => NextInline = value; }
+      
 #endif
 
 

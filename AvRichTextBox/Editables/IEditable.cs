@@ -23,8 +23,8 @@ public interface IEditable
    internal IEditable Clone();
    internal IEditable CloneWithId();
 
-   internal IEditable? PreviousInline { get; set; }
-   internal IEditable? NextInline { get; set;}
+   IEditable? PreviousInline { get; set; }
+   IEditable? NextInline { get; set;}
 
 
 #if DEBUG

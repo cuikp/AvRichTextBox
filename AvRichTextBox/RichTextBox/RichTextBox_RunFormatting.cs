@@ -123,6 +123,7 @@ public partial class RichTextBox
       //Update based on pasted content
       if (contentPasted)
       {
+         
          if (addUndo)
             FlowDoc.Undos.Add(new PasteUndo(originalRangeParagraphs, insertParIndex, FlowDoc, originalSelectionStart, deleteRangeLength - pastedTextLength, firstParEmpty, addedBlockIds, firstParWasDeleted));
 
@@ -130,7 +131,8 @@ public partial class RichTextBox
          
          FlowDoc.UpdateBlockAndInlineStarts(insertParIndex);
          FlowDoc.UpdateSelection();
-         
+         FlowDoc.UpdateTextRanges(originalSelectionStart, pastedTextLength - deleteRangeLength);
+
          FlowDoc.SelectionExtendMode = ExtendMode.ExtendModeNone;
          
          CreateClient();

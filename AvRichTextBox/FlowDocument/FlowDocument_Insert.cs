@@ -118,8 +118,7 @@ public partial class FlowDocument
 
    internal void InsertText(string? insertText)
    {
-      if (Selection.StartInline is not IEditable startInline || startInline is EditableInlineUIContainer) return;
-     
+      if (Selection.StartInline is not IEditable startInline || startInline is EditableInlineUIContainer || startInline is EditableHyperlink) return;
       
       if (insertText != null)
       {
@@ -128,7 +127,6 @@ public partial class FlowDocument
             DeleteRange(Selection, true, false);
             Selection.CollapseToStart();
             SelectionExtendMode = ExtendMode.ExtendModeNone;
-            //startInline = Selection.StartInline ?? startInline;
          }
 
          int insertIdx = 0;

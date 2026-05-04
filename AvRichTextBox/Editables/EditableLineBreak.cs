@@ -15,11 +15,11 @@ public class EditableLineBreak : LineBreak, IEditable
    public bool IsTableCellInline { get; set; } = false;
 
    public string InlineText { get; set; } = @"\n"; //make literal to count as 2 characters
-   public int InlineLength => 2;  //because LineBreak acts as a double character in TextBlock? - anyway don't use LineBreak, use \n instead
+   public int InlineLength => 2;  //because LineBreak acts as a double character in TextBlock
    public double InlineHeight => FontSize;
 
-   internal IEditable PreviousInline { get; set; } = null!;
-   internal IEditable NextInline { get; set; } = null!;
+   public IEditable? PreviousInline { get; set; }
+   public IEditable? NextInline { get; set; }
 
    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static")]
    public string FontName => "---";
@@ -42,9 +42,6 @@ public class EditableLineBreak : LineBreak, IEditable
    public InlineVisualizationProperties InlineVP { get; set; } = new();
    public string InlineToolTip => "";
    public string DisplayInlineText => "{>LINEBREAK<}";
-
-   IEditable IEditable.PreviousInline { get => PreviousInline; set => PreviousInline = value; }
-   IEditable IEditable.NextInline { get => NextInline; set => NextInline = value; }
 
 #endif
 
