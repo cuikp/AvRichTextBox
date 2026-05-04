@@ -11,9 +11,15 @@ public partial class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
    public new event PropertyChangedEventHandler? PropertyChanged;
    public void NotifyPropertyChanged([CallerMemberName] String propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
-
-   private string _CurrentOpenFilePath = Path.Combine(AppContext.BaseDirectory, "TestFiles", "NewFile");
-   public string CurrentOpenFilePath { get => _CurrentOpenFilePath; set { _CurrentOpenFilePath = value; NotifyPropertyChanged(nameof(CurrentOpenFileNameExt)); } }
+   public string CurrentOpenFilePath 
+   { 
+      get; 
+      set 
+      { 
+         field = value; 
+         NotifyPropertyChanged(nameof(CurrentOpenFileNameExt)); 
+      } 
+   } = Path.Combine(AppContext.BaseDirectory, "TestFiles", "NewFile");
 
    internal string CurrentOpenFileName => Path.GetFileNameWithoutExtension(CurrentOpenFilePath);
    string CurrentExt => Path.GetExtension(CurrentOpenFilePath);

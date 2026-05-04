@@ -315,4 +315,11 @@ public partial class MainWindow : Window
       
 
    }
+
+   internal void RTBZoomNS_UserValueChanged(double value)
+   {
+      MainRTB.Zoom = value;
+   }
+
+
 }

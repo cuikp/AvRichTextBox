@@ -126,7 +126,7 @@
 											</ComboBox>
 											<TextBlock  Text="Just." VerticalAlignment="Center" HorizontalAlignment="Right"/>
 										</DockPanel>
-										<ColorPicker  x:Name="ParBackgroundCP" ColorChanged="ParBackground_ColorChanged" Color="Transparent" DockPanel.Dock="Right" Width="70"  Height="25" Background="White" VerticalAlignment="Center"/>
+										<ColorPicker  x:Name="ParBackgroundCP" ColorChanged="ParBackground_ColorChanged" Color="Transparent" DockPanel.Dock="Right" Width="70"  Height="25" Background="White" VerticalAlignment="Center"  Focusable="False"/>
 										<TextBlock Text="Back-ground:" Width="52"  TextWrapping="Wrap"  HorizontalAlignment="Right" Margin="3,0" VerticalAlignment="Center"/>
 									</DockPanel>
 
@@ -139,7 +139,8 @@
 								</DockPanel>
 
 								<DockPanel DockPanel.Dock="Top" Margin="4">
-									<ColorPicker Color="Black" x:Name="ParBorderCP" ColorChanged="ParBorder_ColorChanged" DockPanel.Dock="Right" Width="70"  Height="25" Background="White"/>
+									<ColorPicker Color="Black" x:Name="ParBorderCP" ColorChanged="ParBorder_ColorChanged" DockPanel.Dock="Right" Width="70"  Height="25" Background="White"
+										Focusable="False" />
 									<TextBlock Text="Border color:" Width="50" TextAlignment="Right" TextWrapping="Wrap" HorizontalAlignment="Right" Margin="3,0" VerticalAlignment="Center"/>
 								</DockPanel>
 
@@ -190,6 +191,8 @@
 								<cc:NumericSpinner Width="50" MinValue="0.3" Step="0.1" MaxValue="12" Margin="1" Value="1" Height="28" FontSize="16"
 												   UserValueChanged="RTBZoomNS_UserValueChanged"/>
 							</DockPanel>
+							<CheckBox Content="ReadOnly" DockPanel.Dock="Top" IsCheckedChanged="CheckBox_IsCheckedChanged" Focusable="False" />
+							
 						</DockPanel>
 					</Border>
 				</StackPanel>

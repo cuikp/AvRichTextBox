@@ -169,8 +169,9 @@ public partial class MainWindow : Window
          Process.Start("xdg-open", filesPath);
    }
 
-   private void RTBZoomNS_UserValueChanged(double value)
+   private void CheckBox_IsCheckedChanged(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
    {
-      MainRTB.Zoom = value;
+      if (sender is CheckBox cbox && cbox.IsChecked is bool b)
+         MainRTB.IsReadOnly = b;
    }
 }

@@ -1,4 +1,5 @@
-﻿using DynamicData;
+﻿using Avalonia.Threading;
+using DynamicData;
 
 namespace AvRichTextBox;
 
@@ -138,7 +139,7 @@ public partial class FlowDocument
    internal (int idLeft, int idRight) DeleteRange(TextRange trange, bool addUndo, bool adjustCaret)
    {
       bool docContainsOneBlock = Blocks.Count == 1;
-      int originalSelectionStart = Selection.Start;
+      int originalRangeStart = trange.Start;
       int originalTRangeLength = trange.Length;
       List<Paragraph> rangePars = GetOverlappingParagraphsInRange(trange);
       int firstParId = rangePars.First().Id;
@@ -149,15 +150,15 @@ public partial class FlowDocument
       List<Table> tablesFullyInRange = GetFullTablesInRange(trange);
       List<Paragraph> paragraphsFullyInRange = GetFullParagraphsInRange(trange);
 
-      bool firstParDeleted = paragraphsFullyInRange.Count > 0 && paragraphsFullyInRange.First().StartInDoc == originalSelectionStart;
+      bool firstParDeleted = paragraphsFullyInRange.Count > 0 && paragraphsFullyInRange.First().StartInDoc == originalRangeStart;
 
       IEditable lastInline = rangePars[0].Inlines.Last();
       
-      if (rangePars.Count == 1 && rangePars[0].Inlines.Count == 1 && GetCharPosInInline(lastInline, Selection.Start) ==  lastInline.InlineLength) 
+      if (rangePars.Count == 1 && rangePars[0].Inlines.Count == 1 && GetCharPosInInline(lastInline, trange.Start) ==  lastInline.InlineLength) 
          return (lastInline.Id, -1);      
 
       if (addUndo) 
-         Undos.Add(new DeleteRangeUndo(rangePars.ConvertAll(rpar=> rpar.FullClone()), firstParIndex, this, originalSelectionStart, originalTRangeLength, firstParDeleted));
+         Undos.Add(new DeleteRangeUndo(rangePars.ConvertAll(rpar=> rpar.FullClone()), firstParIndex, this, originalRangeStart, originalTRangeLength, firstParDeleted));
 
       (int idLeft, int idRight) edgeIds;
       List<IEditable> rangeInlines = GetTextRangeInlinesAndAddToDoc(trange, out edgeIds);
@@ -215,16 +216,24 @@ public partial class FlowDocument
 
       disableRunTextUndo = false;
 
-      UpdateSelection();
-      UpdateTextRanges(originalSelectionStart, -originalTRangeLength);
+      UpdateTextRanges(originalRangeStart, -originalTRangeLength);
 
-      Selection.Start = Selection.Start;
+
+      //////Move this section out of this method  $$$$$$$$$$$$$$$$$$$$$$
+      UpdateSelection();
+
       SelectionExtendMode = ExtendMode.ExtendModeNone;
 
-      if (adjustCaret)
-         Selection.CollapseToStart();
+      Dispatcher.UIThread.Post(() => 
+      {
+         if (adjustCaret)
+            Select(originalRangeStart, 0); 
+         
+         _ = AsyncUpdateCaret(trange); 
 
-      _ = AsyncUpdateCaret(trange);
+      }, DispatcherPriority.Background);
+
+      ///////////////////////////////
 
       return edgeIds;
 
