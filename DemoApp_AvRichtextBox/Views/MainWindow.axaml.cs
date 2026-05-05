@@ -69,7 +69,7 @@ public partial class MainWindow : Window
 
 
       //DEBUG
-      CreateTestDocumentWithTable();
+      //CreateTestDocumentWithTable();
       
 
    }
