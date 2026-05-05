@@ -197,11 +197,35 @@ public partial class FlowDocument
 
    private void ApplyTextDecorationRuns(List<IEditable> ieds, object textdecoration)
    {
-      TextDecorationCollection? applyTextDecs = null;
-      if (textdecoration == TextDecorations.Underline)
-         applyTextDecs = (!ieds.Where(ar => ar is EditableRun edrun && edrun.TextDecorations == null).Any()) ? null! : TextDecorations.Underline;
-      foreach (IEditable ied in ieds)
-         if (ied is EditableRun edrun) { edrun.TextDecorations = applyTextDecs; }
+      //TextDecorationCollection? applyTextDecs = null;
+
+      if (textdecoration is TextDecorationCollection tdec)
+      //   applyTextDecs = (!ieds.Where(ar => ar is EditableRun edrun && edrun.TextDecorations == null).Any()) ? null! : tdec;
+      {
+
+         foreach (EditableRun run in ieds)
+         {
+            var current = run.TextDecorations != null
+                ? new (run.TextDecorations)
+                : new TextDecorationCollection();
+
+            foreach (var dec in tdec)
+            {
+               bool alreadyHasDecoration = current.Any(x => x.Location == dec.Location);
+
+               if (!alreadyHasDecoration)
+                  current.Add(dec);
+            }
+
+            run.TextDecorations = current.Count > 0 ? current : null;
+         }
+      }
+
+
+
+      //foreach (IEditable ied in ieds)
+      //   if (ied is EditableRun edrun) { edrun.TextDecorations = applyTextDecs; }
+
    }
    
    private void ApplyFontSizeRuns(List<IEditable> ieds, object fontsize)

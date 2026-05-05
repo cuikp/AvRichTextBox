@@ -1,7 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Documents;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Threading;
 using AvRichTextBox;
 using System;
 using System.Collections.Generic;
@@ -9,7 +12,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Avalonia.Threading;
 
 namespace DemoApp_AvRichtextBox.Views;
 
@@ -36,6 +38,11 @@ public partial class MainWindow : Window
       Loaded += MainWindow_Loaded;
     
       FontsCB.ItemsSource = GetAllFonts;
+
+      UnderCB.AddHandler(InputElement.PointerReleasedEvent, UnderCB_PointerReleased, RoutingStrategies.Tunnel);
+      StrikeCB.AddHandler(InputElement.PointerReleasedEvent, StrikeCB_PointerReleased, RoutingStrategies.Tunnel);
+      OverCB.AddHandler(InputElement.PointerReleasedEvent, OverCB_PointerReleased, RoutingStrategies.Tunnel);
+      
 
    }
 
@@ -209,6 +216,20 @@ public partial class MainWindow : Window
          FontsCB.SelectedItem = ffamily.ToString();
       }
 
+      if (selection.GetFormatting(Inline.TextDecorationsProperty) is TextDecorationCollection tdc)
+      {
+         StrikeCB.IsChecked = tdc.Any(tc => tc.Location == TextDecorationLocation.Strikethrough);
+         UnderCB.IsChecked = tdc.Any(tc => tc.Location == TextDecorationLocation.Underline);
+         OverCB.IsChecked = tdc.Any(tc => tc.Location == TextDecorationLocation.Overline);
+      }
+      else
+      {
+         StrikeCB.IsChecked = false;
+         UnderCB.IsChecked = false;
+         OverCB.IsChecked = false;
+      }
+
+
       if (selection.GetStartPar() is not Paragraph selPar) return;
       if (!progChange)
       {
@@ -219,6 +240,8 @@ public partial class MainWindow : Window
          ParBackgroundCP.Color = selPar.Background.Color;
          progChange = false;
       }
+
+      
 
    }
 
@@ -319,6 +342,76 @@ public partial class MainWindow : Window
    internal void RTBZoomNS_UserValueChanged(double value)
    {
       MainRTB.Zoom = value;
+   }
+
+   private void CheckBox_IsCheckedChanged(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+   {
+      if (sender is CheckBox cbox && cbox.IsChecked is bool b)
+         MainRTB.IsReadOnly = b;
+   }
+
+   private void StrikeCB_PointerReleased(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
+   {
+      if (MainRTB.FlowDocument.Selection.Length == 0) return;
+      if (sender is CheckBox cb && cb.IsChecked is bool b)
+      {
+         ApplyDecoration(!b, TextDecorationLocation.Strikethrough); // checkbox not yet changed on PointerReleased
+      }
+
+   }
+
+   private void UnderCB_PointerReleased(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
+   {
+      if (MainRTB.FlowDocument.Selection.Length == 0) return;
+      if (sender is CheckBox cb && cb.IsChecked is bool b)
+      {
+         ApplyDecoration(!b, TextDecorationLocation.Underline); // checkbox not yet changed on PointerReleased
+      }
+   }
+
+   private void OverCB_PointerReleased(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
+   {
+      if (MainRTB.FlowDocument.Selection.Length == 0) return;
+      if (sender is CheckBox cb && cb.IsChecked is bool b)
+      {
+         ApplyDecoration(!b, TextDecorationLocation.Overline); // checkbox not yet changed on PointerReleased
+      }
+
+   }
+
+   private void ApplyDecoration(bool on, TextDecorationLocation textDecLoc)
+   {
+      if (MainRTB.FlowDocument.Selection.GetFormatting(Inline.TextDecorationsProperty) is TextDecorationCollection tdc)
+      {
+         switch (on)  
+         {
+            case true:
+               tdc.Add(new() { Location = textDecLoc });
+               MainRTB.FlowDocument.Selection.ApplyFormatting(Inline.TextDecorationsProperty, tdc);
+               break;
+
+            case false:
+               if (tdc.Where(td => td.Location == textDecLoc) is TextDecoration removeTD)
+                  tdc.Remove(removeTD);
+               MainRTB.FlowDocument.Selection.ApplyFormatting(Inline.TextDecorationsProperty, tdc);
+               break;
+         }
+      }
+      else
+      {
+         //Debug.WriteLine("textdecloc = " + textDecLoc.ToString());
+
+         var tdec = textDecLoc switch
+         {
+            TextDecorationLocation.Underline => TextDecorations.Underline,
+            TextDecorationLocation.Strikethrough => TextDecorations.Strikethrough,
+            TextDecorationLocation.Overline => TextDecorations.Overline,
+            TextDecorationLocation.Baseline => TextDecorations.Baseline,
+            _ => TextDecorations.Underline
+         };
+
+         MainRTB.FlowDocument.Selection.ApplyFormatting(Inline.TextDecorationsProperty, tdec);
+      }
    }
 
 

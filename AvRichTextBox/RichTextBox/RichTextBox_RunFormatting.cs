@@ -6,7 +6,6 @@ using Avalonia.Threading;
 using DynamicData;
 using System.Text;
 using static AvRichTextBox.FlowDocument;
-using Avalonia.Threading;
 
 namespace AvRichTextBox;
 
@@ -32,7 +31,6 @@ public partial class RichTextBox
       FlowDoc.ToggleUnderlining();
 
    }
-
 
    private void CopyToClipboard()
    {

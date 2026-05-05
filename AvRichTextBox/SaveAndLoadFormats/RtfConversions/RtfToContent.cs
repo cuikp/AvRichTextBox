@@ -237,13 +237,13 @@ internal static partial class RtfConversions
 
       if (newpar.Inlines.Count == 0) newpar.Inlines.Add(new EditableRun(""));
 
-      //double rtfLineHeight = TwipToPix(rtfpar.Format.LineSpacing);
-      double rtfLineHeightUnits = (double)rtfpar.Format.LineSpacing / 240;
-
-      //Debug.WriteLine("rtfparlinespacing = " + rtfpar.Format.LineSpacing);
       double ilineH = newpar.Inlines.First().InlineHeight;
-      double lheight = ilineH * rtfLineHeightUnits * 1.25;
-      newpar.LineHeight = lheight;
+
+      if (rtfpar.Format.MultipleLineSpacing) 
+         newpar.LineHeight = ilineH * (rtfpar.Format.LineSpacing / 240.0);
+      else
+         newpar.LineHeight = Math.Abs(rtfpar.Format.LineSpacing) / 15.0;
+
 
       return newpar;
    }
@@ -257,9 +257,23 @@ internal static partial class RtfConversions
 
          if (domelm is RTFDomField rtfField)
          {
+            Debug.WriteLine("rtffield elements count = " + rtfField.Elements.Count);
+            Debug.WriteLine("rtffield instructions = " + rtfField.Instructions);
+            Debug.WriteLine("rtffield atts count =  " + rtfField.Attributes.Count);
+            
+            foreach (RTFDomElement rtfelm in rtfField.Elements)
+            {
+               Debug.WriteLine("elem1 = " + rtfelm.InnerText);
+               Debug.WriteLine("rtfelm = " + rtfelm.Elements.Count);
+               Debug.WriteLine("rtfelm = " + rtfelm.Elements[0].GetType());
+            }
+             
             RTFDomElementContainer rcont = rtfField.Result;
 
-            Debug.WriteLine("innert text=" + rcont.InnerText);
+            Debug.WriteLine("rtf field inner text=" + rcont.InnerText);
+            Debug.WriteLine("rtf field name=" + rcont.Name);
+            Debug.WriteLine("rtf field elements=" + rcont.Elements.Count);
+            Debug.WriteLine("rtf field attributes=" + rcont.Attributes.Count);
 
 
             foreach (RTFDomElement rtfelm in rcont.Elements)
@@ -274,12 +288,12 @@ internal static partial class RtfConversions
                }
                else
                {
-                  Debug.WriteLine("other=" + rtfelm.GetType().ToString());
+                  //Debug.WriteLine("other=" + rtfelm.GetType().ToString());
                }
             }
 
          }
-
+                  
          else if (domelm is RTFDomLineBreak rtflineBreak)
          {
             EditableLineBreak elinebreak = new();
@@ -308,7 +322,6 @@ internal static partial class RtfConversions
 
          else if (domelm is RTFDomText rtftext2)
          {            
-            //EditableRun erun = new(DecodeRtfUnicode(rtftext2.GetText))
             EditableRun erun = new(rtftext2.Text)
             {
                FontSize = rtftext2.Format.FontSize
@@ -325,6 +338,7 @@ internal static partial class RtfConversions
 
             if (rtftext2.Format.Strikeout)
                erun.TextDecorations = TextDecorations.Strikethrough;
+               //erun.TextDecorations?.Add(TextDecorations.Strikethrough);
 
             if (rtftext2.Format.Subscript)
                erun.BaselineAlignment = BaselineAlignment.Subscript;

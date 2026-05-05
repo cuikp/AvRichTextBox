@@ -169,6 +169,7 @@ internal static partial class RtfConversions
       bool BoldOn = false;
       bool ItalicOn = false;
       bool UnderlineOn = false;
+      bool StrikeoutOn = false;
       bool SuperscriptOn = false;
       bool SubscriptOn = false;
       int CurrentLang = 1033;
@@ -186,11 +187,11 @@ internal static partial class RtfConversions
       });
 
 
-      double maxHeight = par.Inlines.Max(il => il.IsRun ? ((EditableRun)il).FontSize : par.LineHeight);
-      double lineHeightPx = maxHeight == 0 ? 0 : (int)(par.LineHeight / maxHeight * 2 * 240D);
-      //Debug.WriteLine("\nlineheightPx = " + lineHeightPx + "\nmaxHeight= " + maxHeight + "\nlineHeight = " + par.LineHeight);
+      double lineHeight = par.LineHeight;
+      double lineHeightTwips = (int)Math.Round(lineHeight * 15.0); 
+      parRtf.Append(@$"\sl{lineHeightTwips}\slmult0");
 
-      parRtf.Append(@$"\sl{lineHeightPx}\slmult0");
+      //Debug.WriteLine("\nlineheightPx = " + lineHeightTwips + "\nmaxHeight= " + maxHeight + "\nlineHeight = " + par.LineHeight);
 
       if (par.BorderBrush is ISolidColorBrush borderBrush && borderBrush.Color != Colors.Transparent)
       {
@@ -217,7 +218,7 @@ internal static partial class RtfConversions
       }
 
       foreach (IEditable ied in par.Inlines)
-         parRtf.Append(GetIEditableRtf(ied, ref BoldOn, ref ItalicOn, ref UnderlineOn, ref SuperscriptOn, ref SubscriptOn, ref CurrentLang, fontMap, colorMap));
+         parRtf.Append(GetIEditableRtf(ied, ref BoldOn, ref ItalicOn, ref UnderlineOn, ref StrikeoutOn, ref SuperscriptOn, ref SubscriptOn, ref CurrentLang, fontMap, colorMap));
 
       if (!isTablePar)
          parRtf.Append(@"\par ");
@@ -238,6 +239,7 @@ internal static partial class RtfConversions
       bool BoldOn = false;
       bool ItalicOn = false;
       bool UnderlineOn = false;
+      bool StrikeoutOn = false;
       bool SuperscriptOn = false;
       bool SubscriptOn = false;
       int CurrentLang = 1033;
@@ -245,7 +247,7 @@ internal static partial class RtfConversions
       foreach (IEditable ied in inlines)
       {
 
-         sb.Append(GetIEditableRtf(ied, ref BoldOn, ref ItalicOn, ref UnderlineOn, ref SuperscriptOn, ref SubscriptOn, ref CurrentLang, fontMap, colorMap));
+         sb.Append(GetIEditableRtf(ied, ref BoldOn, ref ItalicOn, ref UnderlineOn, ref StrikeoutOn, ref SuperscriptOn, ref SubscriptOn, ref CurrentLang, fontMap, colorMap));
          
          if (ied.InlineText.EndsWith("\r\n"))
             sb.Append(@"\par ");
@@ -256,13 +258,27 @@ internal static partial class RtfConversions
       return sb.ToString();
    }
 
-   //private static string GetIEditableRtf(IEditable ied, ref bool BoldOn, ref bool ItalicOn, ref bool UnderlineOn, ref int currentLang, Dictionary<string, int> fontMap, Dictionary<Color, int> colorMap)
-   private static string GetIEditableRtf(IEditable ied, ref bool BoldOn, ref bool ItalicOn, ref bool UnderlineOn, ref bool SuperscriptOn, ref bool SubscriptOn, ref int currentLang, Dictionary<string, int> fontMap, Dictionary<Color, int> colorMap)
+   private static string GetIEditableRtf(
+      IEditable ied, 
+      ref bool BoldOn, 
+      ref bool ItalicOn, 
+      ref bool UnderlineOn, 
+      ref bool StrikeoutOn, 
+      ref bool SuperscriptOn, 
+      ref bool SubscriptOn, 
+      ref int currentLang, 
+      Dictionary<string, int> fontMap, 
+      Dictionary<Color, int> colorMap)
    {
       StringBuilder iedSB = new();
 
       switch (ied)
       {
+         case EditableHyperlink elink:
+            iedSB.Append($@"{{\field{{\*\fldinst HYPERLINK ""{EscapeRtf(elink.NavigateUri)}""}}{{\fldrslt {EscapeRtf(elink.Text ?? "link")}}}}}");
+            //elink
+            break;
+
          case EditableLineBreak:
             return @"\line";
 
@@ -297,38 +313,9 @@ internal static partial class RtfConversions
             }
             break;
 
-         case EditableRun run:
+         case EditableRun erun:
 
-            if (!BoldOn && run.FontWeight == FontWeight.Bold) { iedSB.Append(@"\b "); BoldOn = true; }
-            if (!ItalicOn && run.FontStyle == FontStyle.Italic) { iedSB.Append(@"\i "); ; ItalicOn = true; }
-            if (!UnderlineOn && run.TextDecorations == TextDecorations.Underline) { iedSB.Append(@"\ul "); ; UnderlineOn = true; }
-            if (!SuperscriptOn && run.BaselineAlignment == BaselineAlignment.Superscript) { iedSB.Append(@"\super "); SuperscriptOn = true; }
-            if (!SubscriptOn && run.BaselineAlignment == BaselineAlignment.Subscript) { iedSB.Append(@"\sub ");; SubscriptOn = true; }
-
-            if (BoldOn && run.FontWeight == FontWeight.Normal) { iedSB.Append(@"\b0 "); BoldOn = false; }
-            if (ItalicOn && run.FontStyle == FontStyle.Normal) { iedSB.Append(@"\i0 "); ItalicOn = false; }
-            if (UnderlineOn && run.TextDecorations != TextDecorations.Underline) { iedSB.Append(@"\ul0 "); UnderlineOn = false; }
-            if (SuperscriptOn && run.BaselineAlignment != BaselineAlignment.Superscript) { iedSB.Append(@"\nosupersub "); SuperscriptOn = false; }
-            if (SubscriptOn && run.BaselineAlignment != BaselineAlignment.Subscript) { iedSB.Append(@"\nosupersub "); SubscriptOn = false; }
-
-            if (run.FontSize > 0) iedSB.Append($@"\fs{(int)(run.FontSize * 2)} ");
-
-            if (fontMap.TryGetValue(run.FontFamily.Name, out int fontIndex))
-               iedSB.Append($@"\f{fontIndex} ");
-
-            if (run.Foreground is ISolidColorBrush foregroundBrush && colorMap.TryGetValue(foregroundBrush.Color, out int colorIndexF))
-               iedSB.Append($@"\cf{colorIndexF} ");
-            else
-               iedSB.Append(@"\cf0 "); // Reset to default
-
-            if (run.Background is ISolidColorBrush backgroundBrush && backgroundBrush.Color != Colors.Transparent && colorMap.TryGetValue(backgroundBrush.Color, out int colorIndexB))
-               iedSB.Append($@"\highlight{colorIndexB} ");
-            else
-               iedSB.Append(@"\highlight0 "); // Reset background to default
-
-            if (!string.IsNullOrEmpty(run.Text))
-               iedSB.Append(GetRtfRunText(run.Text!, ref currentLang));
-
+            AppendRun(ref iedSB, erun, ref BoldOn, ref ItalicOn, ref UnderlineOn, ref StrikeoutOn, ref SuperscriptOn, ref SubscriptOn, ref currentLang, fontMap, colorMap);
             break;
 
       }
@@ -336,6 +323,63 @@ internal static partial class RtfConversions
       return iedSB.ToString();
    }
 
+   private static string EscapeRtf(string rtfstring) => rtfstring.Replace("\\", "\\\\").Replace("{", "\\{").Replace("}", "\\}");
+   
+
+   private static void AppendRun(
+      ref StringBuilder iedSB, 
+      EditableRun erun, 
+      ref bool BoldOn,
+      ref bool ItalicOn,
+      ref bool UnderlineOn,
+      ref bool StrikeoutOn,
+      ref bool SuperscriptOn,
+      ref bool SubscriptOn,
+      ref int currentLang,
+      Dictionary<string, int> fontMap,
+      Dictionary<Color, int> colorMap)
+   {
+      if (erun.TextDecorations is TextDecorationCollection decs)
+      {
+         if (!UnderlineOn && decs.Any(d => d.Location == TextDecorationLocation.Underline)) { iedSB.Append(@"\ul "); ; UnderlineOn = true; }
+         if (UnderlineOn && !decs.Any(d => d.Location == TextDecorationLocation.Underline)) { iedSB.Append(@"\ul0 "); UnderlineOn = false; }
+         if (!StrikeoutOn && decs.Any(d => d.Location == TextDecorationLocation.Strikethrough)) { iedSB.Append(@"\strike "); ; StrikeoutOn = true; }
+         if (StrikeoutOn && !decs.Any(d => d.Location == TextDecorationLocation.Strikethrough)) { iedSB.Append(@"\strike0 "); UnderlineOn = false; }
+      }
+      else
+      {
+         if (UnderlineOn) { iedSB.Append(@"\ul0 "); UnderlineOn = false; }
+         if (StrikeoutOn) { iedSB.Append(@"\strike0 "); UnderlineOn = false; }
+      }
+
+      if (!SuperscriptOn && erun.BaselineAlignment == BaselineAlignment.Superscript) { iedSB.Append(@"\super "); SuperscriptOn = true; }
+      if (SuperscriptOn && erun.BaselineAlignment != BaselineAlignment.Superscript) { iedSB.Append(@"\nosupersub "); SuperscriptOn = false; }
+      if (!SubscriptOn && erun.BaselineAlignment == BaselineAlignment.Subscript) { iedSB.Append(@"\sub "); ; SubscriptOn = true; }
+      if (SubscriptOn && erun.BaselineAlignment != BaselineAlignment.Subscript) { iedSB.Append(@"\nosupersub "); SubscriptOn = false; }
+      if (!BoldOn && erun.FontWeight == FontWeight.Bold) { iedSB.Append(@"\b "); BoldOn = true; }
+      if (BoldOn && erun.FontWeight == FontWeight.Normal) { iedSB.Append(@"\b0 "); BoldOn = false; }
+      if (!ItalicOn && erun.FontStyle == FontStyle.Italic) { iedSB.Append(@"\i "); ; ItalicOn = true; }
+      if (ItalicOn && erun.FontStyle == FontStyle.Normal) { iedSB.Append(@"\i0 "); ItalicOn = false; }
+
+      if (erun.FontSize > 0) iedSB.Append($@"\fs{(int)(erun.FontSize * 2)} ");
+
+      if (fontMap.TryGetValue(erun.FontFamily.Name, out int fontIndex))
+         iedSB.Append($@"\f{fontIndex} ");
+
+      if (erun.Foreground is ISolidColorBrush foregroundBrush && colorMap.TryGetValue(foregroundBrush.Color, out int colorIndexF))
+         iedSB.Append($@"\cf{colorIndexF} ");
+      else
+         iedSB.Append(@"\cf0 "); // Reset to default
+
+      if (erun.Background is ISolidColorBrush backgroundBrush && backgroundBrush.Color != Colors.Transparent && colorMap.TryGetValue(backgroundBrush.Color, out int colorIndexB))
+         iedSB.Append($@"\highlight{colorIndexB} ");
+      else
+         iedSB.Append(@"\highlight0 "); // Reset background to default
+
+      if (!string.IsNullOrEmpty(erun.Text))
+         iedSB.Append(GetRtfRunText(erun.Text!, ref currentLang));
+
+   }
 
    private static string GetFontAndColorTables(IEnumerable<Block> allBlocks, ref Dictionary<string, int> fontMap, ref Dictionary<Color, int> colorMap)
    {

@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Controls.Documents;
 using Avalonia.Platform.Storage;
 using AvRichTextBox;
 using DemoApp_AvRichtextBox.ViewModels;
@@ -169,9 +170,5 @@ public partial class MainWindow : Window
          Process.Start("xdg-open", filesPath);
    }
 
-   private void CheckBox_IsCheckedChanged(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-   {
-      if (sender is CheckBox cbox && cbox.IsChecked is bool b)
-         MainRTB.IsReadOnly = b;
-   }
+   
 }

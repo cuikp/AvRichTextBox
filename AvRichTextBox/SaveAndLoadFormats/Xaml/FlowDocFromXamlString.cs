@@ -2,8 +2,6 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using DocumentFormat.OpenXml.Bibliography;
-using DocumentFormat.OpenXml.Office2010.CustomUI;
 using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;

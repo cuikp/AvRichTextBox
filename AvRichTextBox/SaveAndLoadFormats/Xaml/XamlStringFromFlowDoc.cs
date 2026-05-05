@@ -335,6 +335,9 @@ public partial class XamlConversions
             textDecString = " TextDecorations=\"";
             switch (erun.TextDecorations[0].Location)
             {
+               case TextDecorationLocation.Strikethrough:
+
+                  break;
                case TextDecorationLocation.Underline:
                   textDecString += "Underline";
                   break;

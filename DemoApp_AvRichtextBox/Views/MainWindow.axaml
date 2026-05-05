@@ -62,7 +62,7 @@
 
 
 							<DockPanel DockPanel.Dock="Top">
-								<TextBlock DockPanel.Dock="Top" TextAlignment="Center" Text="Run"/>
+								<TextBlock DockPanel.Dock="Top" HorizontalAlignment="Center" Text="Run"/>
 								<TextBlock Text="Font:" Margin="3,0" VerticalAlignment="Center"/>
 								<ComboBox x:Name="FontsCB" Height="35" Width="170" FontSize="16" DropDownClosed="FontsComboBox_DropDownClosed" Focusable="False" />
 							</DockPanel>
@@ -76,7 +76,7 @@
 									
 								</DockPanel>
 
-								<DockPanel>
+								<DockPanel DockPanel.Dock="Top">
 									<DockPanel DockPanel.Dock="Top" Margin="4">
 										<ColorPicker Color="Black" ColorChanged="FontCP_ColorChanged" DockPanel.Dock="Right" Width="70"  Height="25" Background="White"/>
 										<TextBlock Text="Font color:" HorizontalAlignment="Right" Margin="3,0" VerticalAlignment="Center"/>
@@ -91,7 +91,14 @@
 								</DockPanel>
 
 							</DockPanel>
-							
+
+							<Border BorderBrush="Black" BorderThickness="1" >
+								<DockPanel>
+									<CheckBox x:Name="StrikeCB" Margin="3, 0" Padding="1" DockPanel.Dock="Left" Content="Strike" />
+									<CheckBox x:Name="UnderCB"  Margin="3, 0"  Padding="1" DockPanel.Dock="Left" Content="Underline"  />
+									<CheckBox x:Name="OverCB"  Margin="3, 0"  Padding="1" Content="Overline"  />
+								</DockPanel>
+							</Border>
 						</DockPanel>
 
 					</Border>

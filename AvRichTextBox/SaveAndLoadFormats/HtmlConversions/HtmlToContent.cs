@@ -2,6 +2,7 @@
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using DynamicData;
 using HtmlAgilityPack;
 using System.Drawing;
 using System.Globalization;
