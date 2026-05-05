@@ -124,7 +124,7 @@ public partial class FlowDocument
       UpdateTextRanges(Selection.Start, displayText.Length);
 
       // Move caret to end of inserted hyperlink
-      Select(Selection.Start + displayText.Length, 0);
+      Select(origSelStart + displayText.Length, 0);
 
       disableRunTextUndo = false;
 
