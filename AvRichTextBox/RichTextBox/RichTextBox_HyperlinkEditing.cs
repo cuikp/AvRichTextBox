@@ -31,15 +31,11 @@ public partial class RichTextBox
 
       HyperlinkUrlBox.Text = existing?.NavigateUri ?? "";
 
-      // Update popup title and button visibility
       HyperlinkPopupTitle.Text = isEdit ? "Edit Hyperlink" : "Insert Hyperlink";
       HyperlinkDeleteButton.IsVisible = isEdit;
 
-      // Show the popup
       HyperlinkPopup.IsOpen = true;
-
-      // Focus URL field when editing an existing link (text is already known),
-      // otherwise focus the text field (or URL field if text is pre-filled from selection).
+      
       if (isEdit)
          HyperlinkUrlBox.Focus();
       else if (string.IsNullOrEmpty(HyperlinkTextBox.Text))

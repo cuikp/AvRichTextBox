@@ -167,52 +167,30 @@
 			<TextBlock x:Name="PreeditOverlay" Padding="4, 0, 4, 2" Height="24" FontSize="15" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Black" Background="#DDDDDD" IsHitTestVisible="False" IsVisible="False"/>
 
 			<!-- Hyperlink insert/edit popup -->
-			<Popup x:Name="HyperlinkPopup"
-				   Placement="Bottom"
-				   PlacementTarget="{Binding ElementName=DocIC}"
-				   IsLightDismissEnabled="True">
-				<Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
-						BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
-						BorderThickness="1"
-						CornerRadius="4"
-						Padding="10"
-						BoxShadow="0 2 8 0 #40000000">
-					<StackPanel Orientation="Vertical" Spacing="8" Width="320"
-								KeyDown="HyperlinkPopup_KeyDown">
+			<Popup x:Name="HyperlinkPopup" Placement="Pointer" PlacementTarget="{Binding #DocIC}" IsLightDismissEnabled="True">
+				<Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}" BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+						BorderThickness="1" CornerRadius="4" Padding="10" BoxShadow="0 2 8 0 #40000000">
+					<StackPanel Orientation="Vertical" Spacing="8" Width="320" KeyDown="HyperlinkPopup_KeyDown">
 
-						<!-- Title -->
 						<TextBlock x:Name="HyperlinkPopupTitle" Text="Insert Hyperlink" FontWeight="SemiBold" FontSize="13"/>
 
 						<!-- Text field -->
 						<StackPanel Orientation="Vertical" Spacing="3">
 							<TextBlock Text="Text" FontSize="12"/>
-							<TextBox x:Name="HyperlinkTextBox"
-									 PlaceholderText="Display text"
-									 FontSize="13"
-									 KeyDown="HyperlinkPopup_KeyDown"/>
+							<TextBox x:Name="HyperlinkTextBox" PlaceholderText="Display text" FontSize="13" KeyDown="HyperlinkPopup_KeyDown"/>
 						</StackPanel>
 
 						<!-- URL field -->
 						<StackPanel Orientation="Vertical" Spacing="3">
 							<TextBlock Text="URL" FontSize="12"/>
-							<TextBox x:Name="HyperlinkUrlBox"
-									 PlaceholderText="https://"
-									 FontSize="13"
-									 KeyDown="HyperlinkPopup_KeyDown"/>
+							<TextBox x:Name="HyperlinkUrlBox" PlaceholderText="https://" FontSize="13" KeyDown="HyperlinkPopup_KeyDown"/>
 						</StackPanel>
 
 						<!-- Buttons -->
 						<StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
-							<Button x:Name="HyperlinkDeleteButton"
-									Content="Remove Link"
-									Click="HyperlinkDeleteButton_Click"
-									IsVisible="False"/>
-							<Button x:Name="HyperlinkCancelButton"
-									Content="Cancel"
-									Click="HyperlinkCancelButton_Click"/>
-							<Button x:Name="HyperlinkOkButton"
-									Content="OK"
-									Click="HyperlinkOkButton_Click"/>
+							<Button x:Name="HyperlinkDeleteButton" Content="Remove Link" Click="HyperlinkDeleteButton_Click" IsVisible="False"/>
+							<Button x:Name="HyperlinkCancelButton" Content="Cancel" Click="HyperlinkCancelButton_Click"/>
+							<Button x:Name="HyperlinkOkButton" Content="OK" Click="HyperlinkOkButton_Click"/>
 						</StackPanel>
 
 					</StackPanel>
