@@ -409,6 +409,61 @@ internal class InsertLineBreakUndo(int insertParId, int insertedLBId, List<int> 
    }
 }
 
+/// <summary>
+/// Undo for hyperlink insert, update (text/URL), and remove operations.
+/// Restores the full set of affected paragraph(s) from clones taken before the edit.
+/// </summary>
+internal class HyperlinkParagraphUndo : IUndo
+{
+   // Convenience constructor for single-paragraph operations (update / remove)
+   internal HyperlinkParagraphUndo(Paragraph parClone, int parIndex, FlowDocument flowDoc, int origSelectionStart, int undoEditOffset)
+      : this([parClone], parIndex, flowDoc, origSelectionStart, undoEditOffset, false) { }
+
+   private readonly List<Paragraph> parClones;
+   private readonly int parIndex;
+   private readonly FlowDocument flowDoc;
+   private readonly int origSelectionStart;
+   private readonly bool firstParWasDeleted;
+
+   public int UndoEditOffset { get; }
+   // UpdateTextRanges is handled inside PerformUndo via Dispatcher.UIThread.Post;
+   // returning false prevents Undo() from issuing a second, conflicting UpdateTextRanges call.
+   public bool UpdateTextRanges => false;
+
+   internal HyperlinkParagraphUndo(List<Paragraph> parClones, int parIndex, FlowDocument flowDoc, int origSelectionStart, int undoEditOffset, bool firstParWasDeleted = false)
+   {
+      this.parClones           = parClones;
+      this.parIndex            = parIndex;
+      this.flowDoc             = flowDoc;
+      this.origSelectionStart  = origSelectionStart;
+      this.firstParWasDeleted  = firstParWasDeleted;
+      UndoEditOffset           = undoEditOffset;
+   }
+
+   public void PerformUndo()
+   {
+      try
+      {
+         flowDoc.disableRunTextUndo = true;
+
+         int lengthBefore = flowDoc.Text.Length;
+         flowDoc.RestoreDeletedBlocks(parClones, parIndex, firstParWasDeleted);
+         flowDoc.disableRunTextUndo = false;
+         int lengthAfter = flowDoc.Text.Length;
+
+         Dispatcher.UIThread.Post(() =>
+         {
+            flowDoc.Selection.Start = origSelectionStart;
+            flowDoc.Selection.End   = origSelectionStart;
+            flowDoc.UpdateSelection();
+            flowDoc.UpdateTextRanges(parClones[0].StartInDoc, lengthAfter - lengthBefore);
+         });
+      }
+      catch { Debug.WriteLine("Failed HyperlinkParagraphUndo at parIndex: " + parIndex); }
+   }
+}
+
+
 internal class DeleteLineBreakUndo(int parId, ((Type t1, int id1), (Type t2, int id2)) types, int lineBreakIdx, FlowDocument flowDoc, int origSelectionStart) : IUndo
 {
    public int UndoEditOffset => -1;

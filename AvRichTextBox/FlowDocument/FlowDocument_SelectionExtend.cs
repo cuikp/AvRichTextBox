@@ -286,10 +286,6 @@ public partial class FlowDocument
          }
       }
 
-      // skip special
-      if (GetStartInline(computedNext - 1) is EditableHyperlink hyperlink)
-         computedNext = Selection.StartParagraph.StartInDoc + hyperlink.TextPositionOfInlineInParagraph + hyperlink.InlineLength;
-
       return computedNext;
 
 
@@ -318,10 +314,6 @@ public partial class FlowDocument
       }
 
             
-      // skip special
-      if (GetStartInline(computedPrev - 1) is EditableHyperlink hyperlink)
-         computedPrev = Selection.StartParagraph.StartInDoc + hyperlink.TextPositionOfInlineInParagraph;
-
       return computedPrev;
 
    }
