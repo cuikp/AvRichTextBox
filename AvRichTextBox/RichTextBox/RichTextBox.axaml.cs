@@ -297,6 +297,17 @@ public partial class RichTextBox : UserControl
    }
 
    
+   // ── Context menu ─────────────────────────────────────────────────────────
+
+   private void DocContextMenu_Opening(object? sender, System.ComponentModel.CancelEventArgs e)
+   {
+      bool overHyperlink = FlowDoc.GetHyperlinkAtSelection() != null;
+
+      InsertHyperlinkMenuItem.IsVisible  = !overHyperlink;
+      EditHyperlinkMenuItem.IsVisible    =  overHyperlink;
+      RemoveHyperlinkMenuItem.IsVisible  =  overHyperlink;
+   }
+
    private void CopySelectionMenuItem_Click(object? sender, RoutedEventArgs e)
    {
       if (DisableUserCopy) return;
