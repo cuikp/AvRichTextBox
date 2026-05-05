@@ -121,7 +121,28 @@ public partial class FlowDocument
       //if (Selection.StartInline is EditableInlineUIContainer or EditableHyperlink) return;
       if (Selection.StartInline is not IEditable startInline || startInline is EditableInlineUIContainer) return;
       
-      if (startInline is EditableHyperlink hyperlink && Selection.GetIsStartAtStartOfStartInline) return;
+      if (startInline is EditableHyperlink && Selection.GetIsStartAtStartOfStartInline)
+      {
+         // Caret is at the start of a hyperlink.
+         // If there is a non-hyperlink inline immediately before it, append text there instead.
+         // If the hyperlink is the first inline in the paragraph, insert a new plain run before it
+         // so the user can type text preceding the hyperlink.
+         int hyperlinkIdx = Selection.StartParagraph.Inlines.IndexOf(startInline);
+         if (hyperlinkIdx > 0 && Selection.StartParagraph.Inlines[hyperlinkIdx - 1] is EditableRun precedingRun)
+         {
+            startInline = precedingRun;
+         }
+         else if (hyperlinkIdx == 0)
+         {
+            var newRun = new EditableRun("");
+            Selection.StartParagraph.Inlines.Insert(0, newRun);
+            UpdateBlockAndInlineStarts(Selection.StartParagraph);
+            Selection.UpdateContextStart();
+            startInline = newRun;
+         }
+         else
+            return;
+      }
 
       if (insertText != null)
       {
