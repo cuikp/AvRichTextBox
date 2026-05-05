@@ -273,6 +273,18 @@ public partial class FlowDocument
 
    }
 
+   internal static void CopyRunPropsToHyperlinkText(EditableRun linkRun, ref EditableHyperlink elink)
+   {
+      elink.Text = linkRun.Text;
+      elink.FontStyle = linkRun.FontStyle;
+      elink.FontWeight = linkRun.FontWeight;
+      elink.TextDecorations = linkRun.TextDecorations;
+      elink.FontSize = linkRun.FontSize;
+      elink.FontFamily = linkRun.FontFamily;
+      elink.Background = linkRun.Background;
+      elink.BaselineAlignment = linkRun.BaselineAlignment;
+      elink.Foreground = linkRun.Foreground;
+   }
 
 }
 

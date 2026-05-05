@@ -80,7 +80,6 @@ Added EditableHyperlink</PackageReleaseNotes>
     <Reference Include="RtfDomParserAv">
       <HintPath>RtfDomParserAv.dll</HintPath>
     </Reference>
-    <None Include="RtfDomParserAv.dll" Pack="true" PackagePath="lib\$(TargetFramework)\" />
   </ItemGroup>
 
 	

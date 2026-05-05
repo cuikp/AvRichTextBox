@@ -199,14 +199,19 @@ internal static partial class RtfConversions
          if (colorMap.TryGetValue(borderBrush.Color, out int colorIndexF))
             brdrColIdx = colorIndexF;
 
-         string leftBorderWidth = PixToTwip(par.BorderThickness.Left).ToString();
-         string rightBorderWidth = PixToTwip(par.BorderThickness.Right).ToString();
-         string topBorderWidth = PixToTwip(par.BorderThickness.Top).ToString();
-         string bottomBorderWidth = PixToTwip(par.BorderThickness.Bottom).ToString();
-         parRtf.Append(@$"\brdrt\brdrs\brdrw{topBorderWidth}\brdrcf{brdrColIdx}");
-         parRtf.Append(@$"\brdrl\brdrs\brdrw{leftBorderWidth}\brdrcf{brdrColIdx}");
-         parRtf.Append(@$"\brdrb\brdrs\brdrw{bottomBorderWidth}\brdrcf{brdrColIdx}");
-         parRtf.Append(@$"\brdrr\brdrs\brdrw{rightBorderWidth}\brdrcf{brdrColIdx}");
+         if (par.BorderThickness.Left > 0 && par.BorderThickness.Right > 0 && par.BorderThickness.Top > 0 && par.BorderThickness.Bottom > 0)
+         {
+            string leftBorderWidth = PixToTwip(par.BorderThickness.Left).ToString();
+            string rightBorderWidth = PixToTwip(par.BorderThickness.Right).ToString();
+            string topBorderWidth = PixToTwip(par.BorderThickness.Top).ToString();
+            string bottomBorderWidth = PixToTwip(par.BorderThickness.Bottom).ToString();
+
+            parRtf.Append(@$"\brdrt\brdrs\brdrw{topBorderWidth}\brdrcf{brdrColIdx}");
+            parRtf.Append(@$"\brdrl\brdrs\brdrw{leftBorderWidth}\brdrcf{brdrColIdx}");
+            parRtf.Append(@$"\brdrb\brdrs\brdrw{bottomBorderWidth}\brdrcf{brdrColIdx}");
+            parRtf.Append(@$"\brdrr\brdrs\brdrw{rightBorderWidth}\brdrcf{brdrColIdx}");
+         }
+         
       }
 
       if (par.Background != null && par.Background.Color != Colors.Transparent)
@@ -275,8 +280,10 @@ internal static partial class RtfConversions
       switch (ied)
       {
          case EditableHyperlink elink:
-            iedSB.Append($@"{{\field{{\*\fldinst HYPERLINK ""{EscapeRtf(elink.NavigateUri)}""}}{{\fldrslt {EscapeRtf(elink.Text ?? "link")}}}}}");
-            //elink
+            iedSB.Append($@"{{\field{{\*\fldinst HYPERLINK ""{GetRtfRunText(elink.NavigateUri, ref currentLang)}""}}{{\fldrslt "); 
+            EditableRun hyperlinkRun = elink;
+            AppendRun(ref iedSB, hyperlinkRun, ref BoldOn, ref ItalicOn, ref UnderlineOn, ref StrikeoutOn, ref SuperscriptOn, ref SubscriptOn, ref currentLang, fontMap, colorMap);
+            iedSB.Append($@"}}}}");
             break;
 
          case EditableLineBreak:
@@ -344,12 +351,12 @@ internal static partial class RtfConversions
          if (!UnderlineOn && decs.Any(d => d.Location == TextDecorationLocation.Underline)) { iedSB.Append(@"\ul "); ; UnderlineOn = true; }
          if (UnderlineOn && !decs.Any(d => d.Location == TextDecorationLocation.Underline)) { iedSB.Append(@"\ul0 "); UnderlineOn = false; }
          if (!StrikeoutOn && decs.Any(d => d.Location == TextDecorationLocation.Strikethrough)) { iedSB.Append(@"\strike "); ; StrikeoutOn = true; }
-         if (StrikeoutOn && !decs.Any(d => d.Location == TextDecorationLocation.Strikethrough)) { iedSB.Append(@"\strike0 "); UnderlineOn = false; }
+         if (StrikeoutOn && !decs.Any(d => d.Location == TextDecorationLocation.Strikethrough)) { iedSB.Append(@"\strike0 "); StrikeoutOn = false; }
       }
       else
       {
          if (UnderlineOn) { iedSB.Append(@"\ul0 "); UnderlineOn = false; }
-         if (StrikeoutOn) { iedSB.Append(@"\strike0 "); UnderlineOn = false; }
+         if (StrikeoutOn) { iedSB.Append(@"\strike0 "); StrikeoutOn = false; }
       }
 
       if (!SuperscriptOn && erun.BaselineAlignment == BaselineAlignment.Superscript) { iedSB.Append(@"\super "); SuperscriptOn = true; }

@@ -367,15 +367,7 @@ public partial class XamlConversions
                   {
                      case "Run":
                         EditableRun linkRun = GetRun(runNode);
-                        elink.Text = linkRun.Text;
-                        elink.FontStyle = linkRun.FontStyle;
-                        elink.FontWeight = linkRun.FontWeight;
-                        elink.TextDecorations = linkRun.TextDecorations;
-                        elink.FontSize = linkRun.FontSize;
-                        elink.FontFamily = linkRun.FontFamily;
-                        elink.Background = linkRun.Background;
-                        elink.BaselineAlignment = linkRun.BaselineAlignment;
-                        elink.Foreground = linkRun.Foreground;
+                        FlowDocument.CopyRunPropsToHyperlinkText(linkRun, ref elink);
                         break;
                   }
                }
@@ -522,7 +514,7 @@ public partial class XamlConversions
 
             case "TextDecorations":
                switch (att.Value)
-               {
+               { //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ fix for multiple decorations
                   case "Underline": erun.TextDecorations = TextDecorations.Underline; break;
                   case "Overline": erun.TextDecorations = TextDecorations.Overline; break;
                   case "Baseline": erun.TextDecorations = TextDecorations.Baseline; break;

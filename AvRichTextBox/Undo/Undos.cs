@@ -167,16 +167,15 @@ internal class PasteUndo(List<Paragraph> keptPars, int parIndex, FlowDocument fl
          flowDoc.disableRunTextUndo = false;
 
          int lengthAfter = flowDoc.Text.Length;
+         
+         flowDoc.UpdateTextRanges(keptPars[0].StartInDoc, lengthAfter - lengthBefore);
 
          Dispatcher.UIThread.Post(() =>
          {
-            flowDoc.Selection.Start = 0;  //??? why necessary for caret?
-            flowDoc.Selection.End = 0;
-            flowDoc.Selection.Start = origSelectionStart;
-            flowDoc.Selection.End = origSelectionStart;
             flowDoc.UpdateSelection();
-            flowDoc.UpdateTextRanges(keptPars[0].StartInDoc, lengthAfter - lengthBefore);
-         });         
+            flowDoc.Selection.Start = origSelectionStart;
+            flowDoc.Selection.End = flowDoc.Selection.Start;
+         });
 
       }
       catch { Debug.WriteLine("Failed Undo at OrigSelectionStart: " + origSelectionStart); }

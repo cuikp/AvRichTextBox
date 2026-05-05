@@ -254,44 +254,42 @@ internal static partial class RtfConversions
 
       foreach (RTFDomElement domelm in elements)
       {
-
+       
          if (domelm is RTFDomField rtfField)
          {
-            Debug.WriteLine("rtffield elements count = " + rtfField.Elements.Count);
-            Debug.WriteLine("rtffield instructions = " + rtfField.Instructions);
-            Debug.WriteLine("rtffield atts count =  " + rtfField.Attributes.Count);
-            
-            foreach (RTFDomElement rtfelm in rtfField.Elements)
+            EditableHyperlink newEHL = null!;
+
+            foreach (RTFDomElement elem in domelm.Elements)
             {
-               Debug.WriteLine("elem1 = " + rtfelm.InnerText);
-               Debug.WriteLine("rtfelm = " + rtfelm.Elements.Count);
-               Debug.WriteLine("rtfelm = " + rtfelm.Elements[0].GetType());
-            }
-             
-            RTFDomElementContainer rcont = rtfField.Result;
-
-            Debug.WriteLine("rtf field inner text=" + rcont.InnerText);
-            Debug.WriteLine("rtf field name=" + rcont.Name);
-            Debug.WriteLine("rtf field elements=" + rcont.Elements.Count);
-            Debug.WriteLine("rtf field attributes=" + rcont.Attributes.Count);
-
-
-            foreach (RTFDomElement rtfelm in rcont.Elements)
-            {
-               if (rtfelm is RTFDomText rtftext1)
+               switch (elem)
                {
-                  EditableRun erun = new(rtftext1.Text);
-                  {
-                     erun.FontSize = rtftext1.Format.FontSize;
-                  };
-                  returnList.Add(erun);
-               }
-               else
-               {
-                  //Debug.WriteLine("other=" + rtfelm.GetType().ToString());
+                  case RTFDomElementContainer rtfCont:
+
+                     if (rtfCont.Name == "fldinst")
+                     {
+                        string uriString = elem.InnerText;
+                        int tooltipIndex = uriString.IndexOf(@"\o");
+                        if (tooltipIndex >= 0)
+                           uriString = uriString[..tooltipIndex];
+                        uriString = uriString.Replace("HYPERLINK ", "").Replace("\"", "").Trim();
+                        //Debug.WriteLine("uriString = " + uriString);
+                        newEHL = new("", uriString);
+                     }
+                     else if (rtfCont.Name == "fldrslt")
+                     {
+                        if (elem.Elements[0] is RTFDomText rtfDomTxt)
+                        {
+                           EditableRun linkRun = GetRun(rtfDomTxt);
+                           FlowDocument.CopyRunPropsToHyperlinkText(linkRun, ref newEHL);
+                        }
+                     }
+
+                     break;
                }
             }
 
+            if (newEHL != null) 
+               returnList.Add(newEHL);
          }
                   
          else if (domelm is RTFDomLineBreak rtflineBreak)
@@ -321,39 +319,8 @@ internal static partial class RtfConversions
          }
 
          else if (domelm is RTFDomText rtftext2)
-         {            
-            EditableRun erun = new(rtftext2.Text)
-            {
-               FontSize = rtftext2.Format.FontSize
-            };
-
-            if (rtftext2.Format.Bold)
-               erun.FontWeight = FontWeight.Bold;
-
-            if (rtftext2.Format.Italic)
-               erun.FontStyle = FontStyle.Italic;
-
-            if (rtftext2.Format.Underline)
-               erun.TextDecorations = TextDecorations.Underline;
-
-            if (rtftext2.Format.Strikeout)
-               erun.TextDecorations = TextDecorations.Strikethrough;
-               //erun.TextDecorations?.Add(TextDecorations.Strikethrough);
-
-            if (rtftext2.Format.Subscript)
-               erun.BaselineAlignment = BaselineAlignment.Subscript;
-
-            if (rtftext2.Format.Superscript)
-               erun.BaselineAlignment = BaselineAlignment.Superscript;
-
-            erun.Foreground = new SolidColorBrush(rtftext2.Format.TextColor);
-            erun.Background = new SolidColorBrush(rtftext2.Format.BackColor);
-            erun.FontFamily = new FontFamily(rtftext2.Format.FontName);
-            //erun.FontFamily = new FontFamily("Meiryo");
-            //Debug.WriteLine("erun: " + erun.FontFamily + "  (" + erun.GetText + ")");
-
-            returnList.Add(erun);
-
+         {
+            returnList.Add(GetRun(rtftext2));
          }
          else
          {
@@ -362,6 +329,42 @@ internal static partial class RtfConversions
       }
 
       return returnList;
+   }
+
+   private static EditableRun GetRun(RTFDomText rtfDomTxt)
+   {
+      EditableRun erun = new(rtfDomTxt.Text)
+      {
+         FontSize = PointsToPixels(rtfDomTxt.Format.FontSize)
+      };
+
+      if (rtfDomTxt.Format.Bold)
+         erun.FontWeight = FontWeight.Bold;
+
+      if (rtfDomTxt.Format.Italic)
+         erun.FontStyle = FontStyle.Italic;
+
+      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ fix for multiple decorations
+      if (rtfDomTxt.Format.Underline)
+         erun.TextDecorations = TextDecorations.Underline;
+
+      if (rtfDomTxt.Format.Strikeout)
+         erun.TextDecorations = TextDecorations.Strikethrough;
+      //linkRun.TextDecorations?.Add(TextDecorations.Strikethrough);
+
+      if (rtfDomTxt.Format.Subscript)
+         erun.BaselineAlignment = BaselineAlignment.Subscript;
+
+      if (rtfDomTxt.Format.Superscript)
+         erun.BaselineAlignment = BaselineAlignment.Superscript;
+
+      erun.Foreground = new SolidColorBrush(rtfDomTxt.Format.TextColor);
+      erun.Background = new SolidColorBrush(rtfDomTxt.Format.BackColor);
+      erun.FontFamily = new FontFamily(rtfDomTxt.Format.FontName);
+      //linkRun.FontFamily = new FontFamily("Meiryo");
+      //Debug.WriteLine("linkRun: " + linkRun.FontFamily + "  (" + linkRun.GetText + ")");
+
+      return erun;
    }
 
    private static string DecodeRtfUnicode(string rtfText)

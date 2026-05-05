@@ -1,4 +1,5 @@
 ﻿using Avalonia.Threading;
+using DocumentFormat.OpenXml.InkML;
 using DynamicData;
 
 namespace AvRichTextBox;
@@ -121,6 +122,7 @@ public partial class FlowDocument
    internal void DeleteSelection()
    {
       int lengthBefore = Text.Length;
+      int originalSelStart = Selection.Start;
       DeleteRange(Selection, true, true);
       SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeNone;
       Selection.CollapseToStart();
@@ -128,8 +130,8 @@ public partial class FlowDocument
       int lengthAfter = Text.Length;
 
       UpdateBlockAndInlineStarts(Selection.StartParagraph);
-      UpdateTextRanges(Selection.StartParagraph.StartInDoc, lengthAfter - lengthBefore);
-            
+
+      RestoreCaret(originalSelStart);
 
       Selection.BiasForwardStart = false;  
       Selection.BiasForwardEnd = false;  
@@ -141,6 +143,7 @@ public partial class FlowDocument
       bool docContainsOneBlock = Blocks.Count == 1;
       int originalRangeStart = trange.Start;
       int originalTRangeLength = trange.Length;
+      int originalRangeEnd = trange.Start + trange.Length;
       List<Paragraph> rangePars = GetOverlappingParagraphsInRange(trange);
       int firstParId = rangePars.First().Id;
       int firstParIndex = GetAllParagraphs.IndexOf(rangePars.First());
@@ -150,7 +153,8 @@ public partial class FlowDocument
       List<Table> tablesFullyInRange = GetFullTablesInRange(trange);
       List<Paragraph> paragraphsFullyInRange = GetFullParagraphsInRange(trange);
 
-      bool firstParDeleted = paragraphsFullyInRange.Count > 0 && paragraphsFullyInRange.First().StartInDoc == originalRangeStart;
+      //bool firstParDeleted = paragraphsFullyInRange.Count > 0 && paragraphsFullyInRange.First().StartInDoc == originalRangeStart;
+      bool lastParDeleted = paragraphsFullyInRange.Count > 0 && paragraphsFullyInRange.Last().EndInDoc == originalRangeEnd;
 
       IEditable lastInline = rangePars[0].Inlines.Last();
       
@@ -158,7 +162,7 @@ public partial class FlowDocument
          return (lastInline.Id, -1);      
 
       if (addUndo) 
-         Undos.Add(new DeleteRangeUndo(rangePars.ConvertAll(rpar=> rpar.FullClone()), firstParIndex, this, originalRangeStart, originalTRangeLength, firstParDeleted));
+         Undos.Add(new DeleteRangeUndo(rangePars.ConvertAll(rpar=> rpar.FullClone()), firstParIndex, this, originalRangeStart, originalTRangeLength, lastParDeleted));
 
       (int idLeft, int idRight) edgeIds;
       List<IEditable> rangeInlines = GetTextRangeInlinesAndAddToDoc(trange, out edgeIds);
@@ -174,11 +178,14 @@ public partial class FlowDocument
       }
 
       //Delete any full blocks contained within the range
-      foreach (Paragraph fullyContainedPar in paragraphsFullyInRange)
+      if (paragraphsFullyInRange.Count > 1)
       {
-         fullyContainedPar.Inlines.Clear();
-         if (!fullyContainedPar.IsTableCellBlock && !docContainsOneBlock)
-            Blocks.Remove(fullyContainedPar);
+         foreach (Paragraph fullyContainedPar in paragraphsFullyInRange)
+         {
+            fullyContainedPar.Inlines.Clear();
+            if (!fullyContainedPar.IsTableCellBlock && !docContainsOneBlock)
+               Blocks.Remove(fullyContainedPar);
+         }
       }
 
       Blocks.RemoveMany(tablesFullyInRange);
@@ -219,31 +226,19 @@ public partial class FlowDocument
       UpdateTextRanges(originalRangeStart, -originalTRangeLength);
 
 
-      //////Move this section out of this method  $$$$$$$$$$$$$$$$$$$$$$
-      UpdateSelection();
-
-      SelectionExtendMode = ExtendMode.ExtendModeNone;
-
-      Dispatcher.UIThread.Post(() => 
-      {
-         if (adjustCaret)
-            Select(originalRangeStart, 0); 
-         
-         _ = AsyncUpdateCaret(trange); 
-
-      }, DispatcherPriority.Background);
-
-      ///////////////////////////////
-
       return edgeIds;
 
    }
 
-   internal async Task AsyncUpdateCaret(TextRange trange)
+   internal void RestoreCaret(int originalStart)
    {
-      //await Task.Delay(100);
-      trange.CollapseToStart();
-      UpdateCaret();
+      Dispatcher.UIThread.Post(() =>
+      {
+         Select(originalStart, 0);
+         Selection.CollapseToStart();
+         UpdateCaret();
+
+      }, DispatcherPriority.Background);
 
    }
 
@@ -346,6 +341,7 @@ public partial class FlowDocument
          DeleteRange(deleteTextRange, true, true);  // updates all text ranges, block/inline starts, and adds undo
         
       }
+            
 
       SelectionStart_Changed(Selection, Selection.Start);
       Selection.StartParagraph.CallRequestInlinesUpdate();

@@ -135,16 +135,12 @@ public partial class RichTextBox
          
          CreateClient();
 
-         // Defer caret positioning to after layout has completed for newly inserted paragraphs.
-         // Without this, the caret can appear at the wrong position.
-         Dispatcher.UIThread.Post(() =>
-         {
-            FlowDoc.Select(originalSelectionStart + pastedTextLength, 0);
-            FlowDoc.Selection.BiasForwardStart = false;
-            FlowDoc.Selection.BiasForwardEnd = false;
-            FlowDoc.ScrollFlowDocInDirection(1);
-            _ = FlowDoc.AsyncUpdateCaret(FlowDoc.Selection);
-         });
+         FlowDoc.RestoreCaret(originalSelectionStart + pastedTextLength);
+
+         FlowDoc.Selection.BiasForwardStart = false;
+         FlowDoc.Selection.BiasForwardEnd = false;
+         FlowDoc.ScrollFlowDocInDirection(1);
+        
 
       }
    }

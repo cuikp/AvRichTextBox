@@ -70,8 +70,15 @@ public partial class MainWindow : Window
 
       //DEBUG
       //CreateTestDocumentWithTable();
-      
+      //OpenTestDocument();
 
+   }
+
+   internal void OpenTestDocument()
+   {
+      string testdoc = Path.Combine(AppContext.BaseDirectory, "TestFiles\\TestDocumentXamlPackage.xamlp");
+      MainRTB.LoadXamlPackage(testdoc);
+      OpenFilePath = testdoc;
    }
 
    internal void CreateTestDocumentWithTable()

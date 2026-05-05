@@ -182,7 +182,6 @@ public partial class FlowDocument
 
 	}
 
-
 	internal void SaveXamlPackage(string fileName)
 	{
 		XamlConversions.SaveXamlPackage(fileName, this);

@@ -70,7 +70,7 @@ public partial class FlowDocument
       List<IEditable> AllSelectedInlines = [.. AllParagraphs.SelectMany(p => p.Inlines.Where(iline =>
       {
          var ilineAbsoluteStart = p.StartInDoc + iline.TextPositionOfInlineInParagraph;
-         return ilineAbsoluteStart + iline.InlineLength > trange.Start && ilineAbsoluteStart < trange.End;
+         return ilineAbsoluteStart + iline.InlineLength > trange.Start && ilineAbsoluteStart <= trange.End;
       }
       ))];
 
@@ -93,8 +93,6 @@ public partial class FlowDocument
       }
          
 
-      //Debug.WriteLine("\ntouched inlines=\n" + string.Join("\n", AllSelectedInlines.ConvertAll(il => il.InlineText + " :: " + il.Id)));
-
       IEditable firstInline = AllSelectedInlines[0];
       IEditable lastInline = AllSelectedInlines[^1];
       IEditable insertLastInline = lastInline.Clone();
@@ -106,6 +104,7 @@ public partial class FlowDocument
       int lastInlineSplitIndex = trange.End - endPar.StartInDoc - lastInline.TextPositionOfInlineInParagraph;
       int firstInlineSplitIndex = trange.Start - startPar.StartInDoc - firstInline.TextPositionOfInlineInParagraph;
       bool RangeEndsAtInlineEnd = lastInlineSplitIndex >= lastInline.InlineLength;
+
 
       string lastInlineText = lastInline.InlineText;
       string firstInlineText = firstInline.InlineText;
@@ -120,6 +119,7 @@ public partial class FlowDocument
             lastInline.InlineText = lastInlineText[lastInlineSplitIndex..];
             AllSelectedInlines.Remove(lastInline);
             AllSelectedInlines.Add(insertLastInline);
+
             endPar.Inlines.Insert(indexOfLastInline, insertLastInline);
 
             firstInlineText = insertLastInline.InlineText;
@@ -146,6 +146,10 @@ public partial class FlowDocument
          //split last run and remove trailing excess run from list
          if (!RangeEndsAtInlineEnd)
          {
+
+            Debug.WriteLine("lastinlinesplitinex = " + lastInlineSplitIndex + "\ninlintext = " +  lastInlineText);
+
+
             insertLastInline.InlineText = lastInlineText[..lastInlineSplitIndex];
             lastInline.InlineText = lastInlineText[lastInlineSplitIndex..];
             AllSelectedInlines.Remove(lastInline);

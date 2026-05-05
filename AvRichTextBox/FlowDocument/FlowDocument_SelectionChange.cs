@@ -5,7 +5,8 @@ namespace AvRichTextBox;
 public partial class FlowDocument
 {
    internal void UpdateSelection()
-   {
+   {      
+
       Selection.StartParagraph.CallRequestInlinesUpdate();
       Selection.StartParagraph.CallRequestTextLayoutInfoStart();
       Selection.EndParagraph.CallRequestInlinesUpdate();
