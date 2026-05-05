@@ -96,17 +96,41 @@ public partial class FlowDocument
       if (GetStartInline(Selection.Start) is not IEditable insertAfterInline)
       { disableRunTextUndo = false; return; }
 
-      int charPosInInline = GetCharPosInInline(insertAfterInline, Selection.Start);
+      IEditable leftRun;
+      int insertIdx;
 
-      // Split the run at the caret so we can inject the hyperlink inline
-      List<IEditable> splitRuns = SplitRunAtPos(Selection.Start, insertAfterInline, charPosInInline);
+      if (insertAfterInline.IsLineBreak || insertAfterInline is EditableInlineUIContainer)
+      {
+         // Cannot split a line break or UI container — insert the hyperlink before it instead.
+         int nonSplittableIdx = startPar.Inlines.IndexOf(insertAfterInline);
+         if (nonSplittableIdx > 0)
+         {
+            leftRun = startPar.Inlines[nonSplittableIdx - 1];
+         }
+         else
+         {
+            // No preceding inline exists; create an empty run as a left anchor.
+            var emptyAnchor = new EditableRun("") { MyParagraphId = startPar.Id, MyFlowDoc = this };
+            startPar.Inlines.Insert(0, emptyAnchor);
+            nonSplittableIdx = 1;
+            leftRun = emptyAnchor;
+         }
+         insertIdx = nonSplittableIdx;
+      }
+      else
+      {
+         int charPosInInline = GetCharPosInInline(insertAfterInline, Selection.Start);
 
-      IEditable leftRun = splitRuns[0];
-      int insertIdx = startPar.Inlines.IndexOf(leftRun) + 1;
+         // Split the run at the caret so we can inject the hyperlink inline
+         List<IEditable> splitRuns = SplitRunAtPos(Selection.Start, insertAfterInline, charPosInInline);
 
-      bool leftWasEmpty = leftRun.InlineText == "";
-      if (leftWasEmpty && splitRuns.Count > 1)
-         insertIdx--;
+         leftRun = splitRuns[0];
+         insertIdx = startPar.Inlines.IndexOf(leftRun) + 1;
+
+         bool leftWasEmpty = leftRun.InlineText == "";
+         if (leftWasEmpty && splitRuns.Count > 1)
+            insertIdx--;
+      }
 
       var newHyperlink = new EditableHyperlink(displayText, navigateUri)
       {
@@ -116,7 +140,8 @@ public partial class FlowDocument
 
       startPar.Inlines.Insert(insertIdx, newHyperlink);
 
-      if (leftWasEmpty && startPar.Inlines.Contains(leftRun))
+      if (insertAfterInline is not (EditableLineBreak or EditableInlineUIContainer) &&
+          leftRun.InlineText == "" && startPar.Inlines.Contains(leftRun))
          startPar.Inlines.Remove(leftRun);
 
       startPar.CallRequestInlinesUpdate();

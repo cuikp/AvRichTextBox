@@ -426,7 +426,9 @@ internal class HyperlinkParagraphUndo : IUndo
    private readonly bool firstParWasDeleted;
 
    public int UndoEditOffset { get; }
-   public bool UpdateTextRanges => true;
+   // UpdateTextRanges is handled inside PerformUndo via Dispatcher.UIThread.Post;
+   // returning false prevents Undo() from issuing a second, conflicting UpdateTextRanges call.
+   public bool UpdateTextRanges => false;
 
    internal HyperlinkParagraphUndo(List<Paragraph> parClones, int parIndex, FlowDocument flowDoc, int origSelectionStart, int undoEditOffset, bool firstParWasDeleted = false)
    {
