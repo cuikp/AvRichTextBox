@@ -149,8 +149,22 @@ internal static partial class HtmlConversions
 
       foreach (IEditable ied in p.Inlines)
       {
-         switch (ied)
+          switch (ied)
          {
+            case EditableHyperlink elink:
+               {
+                  if (!string.IsNullOrEmpty(elink.Text))
+                  {
+                     var aNode = hdoc.CreateElement("a");
+                     aNode.SetAttributeValue("href", elink.NavigateUri);
+                     aNode.InnerHtml = WebUtility.HtmlEncode(elink.Text ?? "");
+                     aNode.SetAttributeValue("style", GetInlineStyle(elink));
+                     parnode.AppendChild(aNode);
+                     hasContent = true;
+                  }
+                  break;
+               }
+
             case EditableRun erun:
                {
                   if (!string.IsNullOrEmpty(erun.Text))

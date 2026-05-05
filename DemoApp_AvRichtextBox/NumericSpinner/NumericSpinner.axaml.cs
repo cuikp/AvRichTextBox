@@ -156,13 +156,15 @@ public class DoubleToStringConverter : IValueConverter
 {
    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
    {
-      return value?.ToString() ?? "";
+      if (value is double d)
+         return d.ToString(CultureInfo.InvariantCulture);
+      return "";
    }
 
    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
    {
-      if (double.TryParse(value as string, out double result))
+      if (double.TryParse(value as string, NumberStyles.Float, CultureInfo.InvariantCulture, out double result))
          return result;
-      return 0; // Default fallback
+      return 0.0; // Default fallback
    }
 }
