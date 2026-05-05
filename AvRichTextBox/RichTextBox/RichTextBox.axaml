@@ -73,14 +73,18 @@
 				<!-- The FlowDocument itself -->
 				<ItemsControl x:Name="DocIC" DataContext="{Binding FlowDoc}" VerticalAlignment="Top" ItemsSource="{Binding Blocks}" Margin="0" Padding="{Binding PagePadding}" >
 
-					<ItemsControl.ContextMenu>
-						<ContextMenu>
-							<MenuItem Header="Copy" Click="CopySelectionMenuItem_Click" IsEnabled="{Binding HasSelectedText}"/>
-							<MenuItem Header="Paste" Click="PasteSelectionMenuItem_Click" />
-							<MenuItem Header="Cut" Click="CutSelectionMenuItem_Click" IsEnabled="{Binding HasSelectedText}"/>
-							<MenuItem Header="Delete" Click="DeleteSelectionMenuItem_Click" IsEnabled="{Binding HasSelectedText}"/>
-						</ContextMenu>
-					</ItemsControl.ContextMenu>
+				<ItemsControl.ContextMenu>
+					<ContextMenu x:Name="DocContextMenu" Opening="DocContextMenu_Opening">
+						<MenuItem Header="Copy" Click="CopySelectionMenuItem_Click" IsEnabled="{Binding HasSelectedText}"/>
+						<MenuItem Header="Paste" Click="PasteSelectionMenuItem_Click" />
+						<MenuItem Header="Cut" Click="CutSelectionMenuItem_Click" IsEnabled="{Binding HasSelectedText}"/>
+						<MenuItem Header="Delete" Click="DeleteSelectionMenuItem_Click" IsEnabled="{Binding HasSelectedText}"/>
+						<Separator/>
+						<MenuItem x:Name="InsertHyperlinkMenuItem" Header="Insert Hyperlink" Click="InsertHyperlinkMenuItem_Click"/>
+						<MenuItem x:Name="EditHyperlinkMenuItem"   Header="Edit Hyperlink"   Click="EditHyperlinkMenuItem_Click"   IsVisible="False"/>
+						<MenuItem x:Name="RemoveHyperlinkMenuItem" Header="Remove Hyperlink" Click="RemoveHyperlinkMenuItem_Click" IsVisible="False"/>
+					</ContextMenu>
+				</ItemsControl.ContextMenu>
 
 					<ItemsControl.ItemsPanel>
 						<ItemsPanelTemplate>
@@ -160,10 +164,62 @@
 					</ItemsControl.ItemTemplate>
 				</ItemsControl>
 
-				<TextBlock x:Name="PreeditOverlay" Padding="4, 0, 4, 2" Height="24" FontSize="15" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Black" Background="#DDDDDD" IsHitTestVisible="False" IsVisible="False"/>
-							
-				
-			</Grid>
+			<TextBlock x:Name="PreeditOverlay" Padding="4, 0, 4, 2" Height="24" FontSize="15" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="Black" Background="#DDDDDD" IsHitTestVisible="False" IsVisible="False"/>
+
+			<!-- Hyperlink insert/edit popup -->
+			<Popup x:Name="HyperlinkPopup"
+				   Placement="Bottom"
+				   PlacementTarget="{Binding ElementName=DocIC}"
+				   IsLightDismissEnabled="True">
+				<Border Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+						BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+						BorderThickness="1"
+						CornerRadius="4"
+						Padding="10"
+						BoxShadow="0 2 8 0 #40000000">
+					<StackPanel Orientation="Vertical" Spacing="8" Width="320"
+								KeyDown="HyperlinkPopup_KeyDown">
+
+						<!-- Title -->
+						<TextBlock x:Name="HyperlinkPopupTitle" Text="Insert Hyperlink" FontWeight="SemiBold" FontSize="13"/>
+
+						<!-- Text field -->
+						<StackPanel Orientation="Vertical" Spacing="3">
+							<TextBlock Text="Text" FontSize="12"/>
+							<TextBox x:Name="HyperlinkTextBox"
+									 PlaceholderText="Display text"
+									 FontSize="13"
+									 KeyDown="HyperlinkPopup_KeyDown"/>
+						</StackPanel>
+
+						<!-- URL field -->
+						<StackPanel Orientation="Vertical" Spacing="3">
+							<TextBlock Text="URL" FontSize="12"/>
+							<TextBox x:Name="HyperlinkUrlBox"
+									 PlaceholderText="https://"
+									 FontSize="13"
+									 KeyDown="HyperlinkPopup_KeyDown"/>
+						</StackPanel>
+
+						<!-- Buttons -->
+						<StackPanel Orientation="Horizontal" Spacing="6" HorizontalAlignment="Right">
+							<Button x:Name="HyperlinkDeleteButton"
+									Content="Remove Link"
+									Click="HyperlinkDeleteButton_Click"
+									IsVisible="False"/>
+							<Button x:Name="HyperlinkCancelButton"
+									Content="Cancel"
+									Click="HyperlinkCancelButton_Click"/>
+							<Button x:Name="HyperlinkOkButton"
+									Content="OK"
+									Click="HyperlinkOkButton_Click"/>
+						</StackPanel>
+
+					</StackPanel>
+				</Border>
+			</Popup>
+						
+		</Grid>
 		</ScrollViewer>
 
 		</LayoutTransformControl>

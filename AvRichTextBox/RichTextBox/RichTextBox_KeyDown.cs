@@ -50,6 +50,10 @@ public partial class RichTextBox
                   FlowDoc.SelectAll();
                   break;
 
+               case Key.K:
+                  OpenHyperlinkPopup();
+                  break;
+
                case Key.Delete:
                   if (IsReadOnly) return;
                   FlowDoc.DeleteWord(false);
@@ -103,7 +107,9 @@ public partial class RichTextBox
          switch (e.Key)
          {
             case Key.Escape:
-               if (PreeditOverlay.IsVisible)
+               if (HyperlinkPopupOpen)
+                  CloseHyperlinkPopup();
+               else if (PreeditOverlay.IsVisible)
                   HideIMEOverlay();
                break;
 
