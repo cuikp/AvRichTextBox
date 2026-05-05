@@ -1,6 +1,7 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using RtfDomParserAv;
 using System.Text;
 using static AvRichTextBox.HelperMethods;
 
@@ -368,7 +369,7 @@ internal static partial class RtfConversions
       if (!ItalicOn && erun.FontStyle == FontStyle.Italic) { iedSB.Append(@"\i "); ; ItalicOn = true; }
       if (ItalicOn && erun.FontStyle == FontStyle.Normal) { iedSB.Append(@"\i0 "); ItalicOn = false; }
 
-      if (erun.FontSize > 0) iedSB.Append($@"\fs{(int)(erun.FontSize * 2)} ");
+      if (erun.FontSize > 0) iedSB.Append($@"\fs{(int)(PixelsToPoints(erun.FontSize) * 2)} ");
 
       if (fontMap.TryGetValue(erun.FontFamily.Name, out int fontIndex))
          iedSB.Append($@"\f{fontIndex} ");

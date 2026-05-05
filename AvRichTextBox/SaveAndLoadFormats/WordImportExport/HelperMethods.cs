@@ -16,7 +16,7 @@ internal static partial class HelperMethods
    internal static double PixToEMU(double unitPix) => 914400 / (double)96 * unitPix;
    internal static double PointsToPixels(double pt) => pt * 96D / 72D;
    internal static double InchesToPixels(double inch) => inch * 96D;  
-   internal static double PixelsToPoints(double px) => px * 72 / 96;
+   internal static double PixelsToPoints(double px) => px * 72D / 96D;
    internal static double TwipToDip(double twips) => twips * (96.0 / 1440.0);
    internal static double DipToTwip(double dips) => dips * (1440.0 / 96.0);
 
