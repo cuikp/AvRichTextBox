@@ -285,18 +285,24 @@ internal static partial class HtmlConversions
 
       if (run.TextDecorations != null)
       {
+         var decs = new List<string>();
          foreach (var td in run.TextDecorations)
          {
             switch (td.Location)
             {
                case TextDecorationLocation.Underline:
-                  sb.Append("text-decoration:underline;");
+                  decs.Add("underline");
                   break;
                case TextDecorationLocation.Strikethrough:
-                  sb.Append("text-decoration:line-through;");
+                  decs.Add("line-through");
+                  break;
+               case TextDecorationLocation.Overline:
+                  decs.Add("overline");
                   break;
             }
          }
+         if (decs.Count > 0)
+            sb.Append($"text-decoration:{string.Join(' ', decs)};");
       }
 
       if (run.BaselineAlignment == BaselineAlignment.Superscript)

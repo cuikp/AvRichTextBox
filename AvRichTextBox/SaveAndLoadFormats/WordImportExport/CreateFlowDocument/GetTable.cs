@@ -2,6 +2,7 @@
 using Avalonia.Layout;
 using Avalonia.Media;
 using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
 using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;
@@ -9,7 +10,7 @@ namespace AvRichTextBox;
 internal static partial class WordConversions
 {
 
-   internal static Table GetTable(DocumentFormat.OpenXml.Wordprocessing.Table wordTable, FlowDocument fdoc)
+   internal static Table GetTable(DocumentFormat.OpenXml.Wordprocessing.Table wordTable, FlowDocument fdoc, MainDocumentPart mainDocPart)
    {
 
       Table newTable = new(fdoc)
@@ -109,7 +110,7 @@ internal static partial class WordConversions
 
                      case "tc":
 
-                        var newCell = GetCell(cn, ref colno, ref rowno, ref lastVMergedHeadCells, fdoc, newTable);
+                        var newCell = GetCell(cn, ref colno, ref rowno, ref lastVMergedHeadCells, fdoc, newTable, mainDocPart);
 
                         // Add cell to current row
                         if (!newCell.vmerged)
@@ -146,7 +147,7 @@ internal static partial class WordConversions
 
    }
 
-   private static Cell GetCell(OpenXmlElement cn, ref int colno, ref int rowno, ref List<Cell> lastVMergedHeadCells, FlowDocument fdoc, Table table)
+   private static Cell GetCell(OpenXmlElement cn, ref int colno, ref int rowno, ref List<Cell> lastVMergedHeadCells, FlowDocument fdoc, Table table, MainDocumentPart mainDocPart)
    {
       var newCell = new Cell(table) { ColNo = colno, RowNo = rowno, ColSpan = 1, RowSpan = 1, BorderBrush = Brushes.Black, BorderThickness = new(1) };
 
@@ -370,7 +371,7 @@ internal static partial class WordConversions
                break;
 
             case "p":
-               Paragraph p = GetParagraph(CellParNode, fdoc);
+               Paragraph p = GetParagraph(CellParNode, fdoc, mainDocPart);
                newCell.CellContent = p;
                break;
          }

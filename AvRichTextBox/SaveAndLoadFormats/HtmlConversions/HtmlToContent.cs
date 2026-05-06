@@ -410,7 +410,8 @@ internal static partial class HtmlConversions
 
             case "u":
                var underlineFormatting = formatting.Clone();
-               underlineFormatting.TextDecorations = Avalonia.Media.TextDecorations.Underline;
+               underlineFormatting.TextDecorations ??= [];
+               underlineFormatting.TextDecorations.Add(new() { Location = TextDecorationLocation.Underline });
                ApplyStyleToFormatting(node.GetAttributeValue("style", ""), underlineFormatting);
                AddInlinesFromNode(node, par, underlineFormatting);
                break;
@@ -419,7 +420,8 @@ internal static partial class HtmlConversions
             case "strike":
             case "del":
                var strikeFormatting = formatting.Clone();
-               strikeFormatting.TextDecorations = Avalonia.Media.TextDecorations.Strikethrough;
+               strikeFormatting.TextDecorations ??= [];
+               strikeFormatting.TextDecorations.Add(new() { Location = TextDecorationLocation.Strikethrough });
                ApplyStyleToFormatting(node.GetAttributeValue("style", ""), strikeFormatting);
                AddInlinesFromNode(node, par, strikeFormatting);
                break;
@@ -539,10 +541,22 @@ internal static partial class HtmlConversions
                break;
 
             case "text-decoration":
+
                if (kvp.Value.Contains("underline"))
-                  formatting.TextDecorations = TextDecorations.Underline;
-               else if (kvp.Value.Contains("line-through"))
-                  formatting.TextDecorations = TextDecorations.Strikethrough;
+               {
+                  formatting.TextDecorations ??= [];
+                  formatting.TextDecorations.Add(new() { Location = TextDecorationLocation.Underline });
+               }
+               if (kvp.Value.Contains("line-through"))
+               {
+                  formatting.TextDecorations ??= [];
+                  formatting.TextDecorations.Add(new() { Location = TextDecorationLocation.Strikethrough });
+               }
+               if (kvp.Value.Contains("overline"))
+               {
+                  formatting.TextDecorations ??= [];
+                  formatting.TextDecorations.Add(new() { Location = TextDecorationLocation.Overline });
+               }
                break;
          }
       }

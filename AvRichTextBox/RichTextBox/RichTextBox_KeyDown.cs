@@ -16,6 +16,8 @@ public partial class RichTextBox
    private Dictionary<KeyCombo, Action> KeyActions => _keyActions ??= new()
    {
       // Ctrl shortcuts
+
+      // Allow user enable/disable  ///////////////////
       { new(Key.B, Ctrl: true), () => ToggleBold() },
       { new(Key.I, Ctrl: true), () => ToggleItalics() },
       { new(Key.U, Ctrl: true), () => ToggleUnderlining() },
@@ -48,6 +50,8 @@ public partial class RichTextBox
             FlowDoc.DeleteWord(true);
          }
       },
+      ///////////////////////////////////////////////////
+
 
       // Ctrl navigation
       { new(Key.Home, Ctrl: true), () =>
@@ -57,47 +61,13 @@ public partial class RichTextBox
          }
       },
 
-      { new(Key.Home, Ctrl: true, Shift: true), () =>
-         {
-            FlowDoc.ExtendSelectionToDocStart();
-         }
-      },
-
-      { new(Key.End, Ctrl: true), () =>
-         {
-            FlowDoc.MoveToDocEnd();
-         }
-      },
-
-      { new(Key.End, Ctrl: true, Shift: true), () =>
-         {
-            FlowDoc.ExtendSelectionToDocEnd();
-         }
-      },
-
-      { new(Key.Right, Ctrl: true), () =>
-         {
-            FlowDoc.MoveRightWord();
-         }
-      },
-
-      { new(Key.Right, Ctrl: true, Shift: true), () =>
-         {
-            FlowDoc.ExtendSelectionRightWord();
-         }
-      },
-
-      { new(Key.Left, Ctrl: true), () =>
-         {
-            FlowDoc.MoveLeftWord();
-         }
-      },
-
-      { new(Key.Left, Ctrl: true, Shift: true), () =>
-         {
-            FlowDoc.ExtendSelectionLeftWord();
-         }
-      },
+      { new(Key.Home, Ctrl: true, Shift: true), () => { FlowDoc.ExtendSelectionToDocStart(); } },
+      { new(Key.End, Ctrl: true), () => { FlowDoc.MoveToDocEnd(); } },
+      { new(Key.End, Ctrl: true, Shift: true), () => { FlowDoc.ExtendSelectionToDocEnd(); } },
+      { new(Key.Right, Ctrl: true), () => { FlowDoc.MoveRightWord(); } },
+      { new(Key.Right, Ctrl: true, Shift: true), () => { FlowDoc.ExtendSelectionRightWord(); } },
+      { new(Key.Left, Ctrl: true), () => { FlowDoc.MoveLeftWord(); } },
+      { new(Key.Left, Ctrl: true, Shift: true), () => { FlowDoc.ExtendSelectionLeftWord(); } },
 
       // Normal keys
       { new(Key.Escape), () =>
@@ -137,11 +107,7 @@ public partial class RichTextBox
          }
       },
 
-      { new(Key.Enter), () =>
-         {
-            InsertParagraph();
-         }
-      },
+      { new(Key.Enter), () => { InsertParagraph(); } },
 
       { new(Key.Enter, Shift: true), () =>
          {
@@ -152,29 +118,10 @@ public partial class RichTextBox
          }
       },
 
-      { new(Key.Home), () =>
-         {
-            FlowDoc.MoveToStartOfLine(false);
-         }
-      },
-
-      { new(Key.Home, Shift: true), () =>
-         {
-            FlowDoc.MoveToStartOfLine(true);
-         }
-      },
-
-      { new(Key.End), () =>
-         {
-            FlowDoc.MoveToEndOfLine(false);
-         }
-      },
-
-      { new(Key.End, Shift: true), () =>
-         {
-            FlowDoc.MoveToEndOfLine(true);
-         }
-      },
+      { new(Key.Home), () => { FlowDoc.MoveToStartOfLine(false); } },
+      { new(Key.Home, Shift: true), () => { FlowDoc.MoveToStartOfLine(true); } },
+      { new(Key.End), () => { FlowDoc.MoveToEndOfLine(false); } },
+      { new(Key.End, Shift: true), () => { FlowDoc.MoveToEndOfLine(true); } },
 
       { new(Key.Right), () =>
          {
@@ -204,65 +151,16 @@ public partial class RichTextBox
          }
       },
 
-      { new(Key.Up), () =>
-         {
-            FlowDoc.MoveSelectionUp(false);
-         }
-      },
-
-      { new(Key.Up, Shift: true), () =>
-         {
-            FlowDoc.ExtendSelectionUp();
-         }
-      },
-
-      { new(Key.Down), () =>
-         {
-            FlowDoc.MoveSelectionDown(true);
-         }
-      },
-
-      { new(Key.Down, Shift: true), () =>
-         {
-            FlowDoc.ExtendSelectionDown();
-         }
-      },
-
-      { new(Key.Back), () =>
-         {
-            PerformDelete(true);
-         }
-      },
-
-      { new(Key.Delete), () =>
-         {
-            PerformDelete(false);
-         }
-      },
-
-      { new(Key.PageDown), () =>
-         {
-            MovePage(1, false);
-         }
-      },
-
-      { new(Key.PageDown, Shift: true), () =>
-         {
-            MovePage(1, true);
-         }
-      },
-
-      { new(Key.PageUp), () =>
-         {
-            MovePage(-1, false);
-         }
-      },
-
-      { new(Key.PageUp, Shift: true), () =>
-         {
-            MovePage(-1, true);
-         }
-      },
+      { new(Key.Up), () => { FlowDoc.MoveSelectionUp(false); } },
+      { new(Key.Up, Shift: true), () => { FlowDoc.ExtendSelectionUp(); } },
+      { new(Key.Down), () => { FlowDoc.MoveSelectionDown(true); } },
+      { new(Key.Down, Shift: true), () => { FlowDoc.ExtendSelectionDown(); } },
+      { new(Key.Back), () => { PerformDelete(true); } },
+      { new(Key.Delete), () => { PerformDelete(false); } },
+      { new(Key.PageDown), () => { MovePage(1, false); } },
+      { new(Key.PageDown, Shift: true), () => { MovePage(1, true); } },
+      { new(Key.PageUp), () => { MovePage(-1, false); } },
+      { new(Key.PageUp, Shift: true), () => { MovePage(-1, true); } },
    };
 
    private static KeyCombo GetCombo(KeyEventArgs e) =>

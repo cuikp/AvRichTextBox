@@ -13,20 +13,20 @@ namespace AvRichTextBox;
 
 internal static partial class WordConversions
 {
-   internal static IEditable GetDeletedRun(OpenXmlElement psection, ref Paragraph para)
+   internal static IEditable GetDeletedRun(OpenXmlElement psection, ref Paragraph para, MainDocumentPart mainDocPart)
    {
       foreach (OpenXmlElement rsection in psection.Elements())
          switch (rsection.LocalName)
          {
             case "r":
-               return GetIEditable(rsection, ref para);
+               return GetIEditable(rsection, ref para, mainDocPart);
          }
 
       return null!;
 
    }
 
-   internal static IEditable GetInsertedRun(OpenXmlElement psection, ref Paragraph para)
+   internal static IEditable GetInsertedRun(OpenXmlElement psection, ref Paragraph para, MainDocumentPart mainDocPart)
    {
       var thisrun = new EditableRun("");
 
@@ -34,7 +34,7 @@ internal static partial class WordConversions
          switch (rsection.LocalName)
          {
             case "r":
-               IEditable thisil = GetIEditable(rsection, ref para);
+               IEditable thisil = GetIEditable(rsection, ref para, mainDocPart);
                thisrun.Text += ((EditableRun)thisil).Text;
                break;
          }
@@ -46,7 +46,7 @@ internal static partial class WordConversions
 
    }
 
-   internal static IEditable GetIEditable(OpenXmlElement psection, ref Paragraph para)
+   internal static IEditable GetIEditable(OpenXmlElement psection, ref Paragraph para, MainDocumentPart mainDocPart)
    {
       
       var thisrun = new EditableRun("");
@@ -236,18 +236,17 @@ internal static partial class WordConversions
                      try
                      {
                         switch (rprsection.LocalName)
-                        {
+                        {  //Word docx inherently does not support overline
                            case "strike":
-                              TextDecoration textDecStrikeout = new() { Location = TextDecorationLocation.Strikethrough };
-                              thisRun.TextDecorations = [textDecStrikeout];
+                              thisRun.TextDecorations ??= [];
+                              thisRun.TextDecorations.Add(new() { Location = TextDecorationLocation.Strikethrough });
                               break;
 
                            case "u":
-                              TextDecoration textDecUnderline = new() { Location = TextDecorationLocation.Underline };
-                              thisRun.TextDecorations = [textDecUnderline];
+                              thisRun.TextDecorations ??= [];
+                              thisRun.TextDecorations.Add(new() { Location = TextDecorationLocation.Underline });
                               break;
 
-                           //case "i": ((EditableRun)iline).FontStyle = FontStyle.Italic; break;
                            case "i": thisrun.FontStyle = FontStyle.Italic; break;
                            case "b": thisrun.FontWeight = FontWeight.Bold; break;
                                  
@@ -369,16 +368,6 @@ internal static partial class WordConversions
                case "br":
                   EditableLineBreak newLineBreak = new();
                   para.Inlines.Add(newLineBreak);
-
-                  //if (rsection.HasAttributes)
-                  //{
-                  //   if ((rsection.GetAttributes()[0].Value ?? "") == "page")
-                  //   {
-                  //      newLineBreak.FontFamily = new FontFamily("PAGEBREAK");
-                  //      newLineBreak.Tag = "PageBreak";
-                  //   }
-                  //}
-
                   break;
 
                case "t": {  thisrun.Text += rsection.InnerText; break; }
@@ -401,18 +390,38 @@ internal static partial class WordConversions
       return iline;
    }
 
-
-   internal static void AddDeepRuns(OpenXmlElement psection, ref Paragraph para)
+   internal static EditableHyperlink GetEditableHyperlink(OpenXmlElement psection, ref Paragraph para, MainDocumentPart mainDocPart)
    {
+      EditableHyperlink newEHL = new("link", "");
+
+      if (psection.GetAttributes()[0] is OpenXmlAttribute idatt && idatt.LocalName == "id" && idatt.Value is string id)
+      {
+         string relationId = id;
+         Debug.WriteLine("id = " + relationId);
+
+         if (psection.Elements().FirstOrDefault(elem => elem.LocalName == "r") is OpenXmlElement hyperRun)
+         if (GetIEditable(hyperRun, ref para, mainDocPart) is EditableRun erun)
+         {
+            if (mainDocPart.HyperlinkRelationships.FirstOrDefault(hrel => hrel.Id == relationId) is HyperlinkRelationship hrel)
+               newEHL.NavigateUri = hrel.Uri.ToString();
+
+            newEHL.Text = erun.Text;
+            FlowDocument.CopyRunPropsToHyperlinkText(erun, ref newEHL);
+         }
+      }
+
+      return newEHL;
+   }
+
+   internal static void AddDeepRuns(OpenXmlElement psection, ref Paragraph para, MainDocumentPart mainDocPart)
+   {
+
       foreach (OpenXmlElement deepRun in psection.Elements())
       {
-         if (psection.LocalName == "hyperlink")
-            Debug.WriteLine("run in hyperlink: " + deepRun.LocalName + ", " + deepRun.InnerText);
-
          switch (deepRun.LocalName)
          {
-            case "r": { para.Inlines.Add(GetIEditable(deepRun, ref para)); break; }
-            case "smartTag": { AddDeepRuns(deepRun, ref para); break; }
+            case "r": { para.Inlines.Add(GetIEditable(deepRun, ref para, mainDocPart)); break; }
+            case "smartTag": { AddDeepRuns(deepRun, ref para, mainDocPart); break; }
          }
       }
    }

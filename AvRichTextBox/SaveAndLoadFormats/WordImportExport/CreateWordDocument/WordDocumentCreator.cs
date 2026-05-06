@@ -5,22 +5,19 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using System;
 using System.Diagnostics;
 using DOW = DocumentFormat.OpenXml.Wordprocessing;
-using AvColor = Avalonia.Media.Color;
 using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;
 
 internal static partial class WordConversions
-{
-   private static MainDocumentPart? mainPart;
-
+{   
    internal static void SaveWordDoc(string saveWordFileName, FlowDocument fdoc)
    {
       try
       {
          using var WPDoc = WordprocessingDocument.Create(saveWordFileName, WordprocessingDocumentType.Document);
 
-         mainPart = WPDoc.AddMainDocumentPart();
+         MainDocumentPart mainPart = WPDoc.AddMainDocumentPart();
          mainPart.Document = new Document();
 
 
@@ -52,7 +49,7 @@ internal static partial class WordConversions
             {
                case Paragraph p:
 
-                  DOW.Paragraph dowP = CreateWordDocParagraph(p);
+                  DOW.Paragraph dowP = CreateWordDocParagraph(p, ref mainPart);
                   body.AppendChild(dowP);
 
                   //Debug.WriteLine("\npPR.spacing=" + dowP.ParagraphProperties.SpacingBetweenLines.Line.ToString() + " (" + dowP.ParagraphProperties.SpacingBetweenLines.LineRule.ToString() + ")");
@@ -60,7 +57,7 @@ internal static partial class WordConversions
                   break;
 
                case Table t:
-                  body.AppendChild(CreateWordDocTable(t));
+                  body.AppendChild(CreateWordDocTable(t, ref mainPart));
                   break;
             }
          }

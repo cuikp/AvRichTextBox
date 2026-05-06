@@ -10,7 +10,7 @@ namespace AvRichTextBox;
 
 internal static partial class WordConversions
 {
-   internal static DOW.Paragraph CreateWordDocParagraph(Block b)
+   internal static DOW.Paragraph CreateWordDocParagraph(Block b, ref MainDocumentPart mainPart)
    {
 
       var parg = new DOW.Paragraph();
@@ -59,7 +59,7 @@ internal static partial class WordConversions
 
                   if (Uri.TryCreate(hlink.NavigateUri, UriKind.Absolute, out var uri))
                   {
-                     var relationship = mainPart!.AddHyperlinkRelationship(uri, true);
+                     var relationship = mainPart.AddHyperlinkRelationship(uri, true);
 
                      var newHyperlink = new DOW.Hyperlink(
                         new DOW.Run(
@@ -96,7 +96,7 @@ internal static partial class WordConversions
                      if (img.Source is Bitmap imgbitmap)
                      {
                         string extension = "";
-                        ImagePart imagePart = mainPart!.AddImagePart(ImagePartType.Jpeg);
+                        ImagePart imagePart = mainPart.AddImagePart(ImagePartType.Jpeg);
                         using (var memStream = new MemoryStream())
                         {
                            ResizeAndSaveBitmap(imgbitmap, (int)imgbitmap.Size.Width, (int)imgbitmap.Size.Height, memStream);
@@ -104,7 +104,7 @@ internal static partial class WordConversions
                            imagePart.FeedData(memStream);
                            extension = ".jpg";
                         }
-                        parg.AppendChild(new DOW.Run(CreateWordDocDrawing(mainPart!.GetIdOfPart(imagePart), img.Width, img.Height, extension)));
+                        parg.AppendChild(new DOW.Run(CreateWordDocDrawing(mainPart.GetIdOfPart(imagePart), img.Width, img.Height, extension)));
                      }
                   }
 

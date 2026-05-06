@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Media;
 using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace AvRichTextBox;
 internal static partial class WordConversions
 {
 
-   internal static Paragraph GetParagraph(OpenXmlElement section, FlowDocument fdoc)
+   internal static Paragraph GetParagraph(OpenXmlElement section, FlowDocument fdoc, MainDocumentPart mainDocPart)
    {
       Paragraph para = new(fdoc);
 
@@ -140,14 +141,14 @@ internal static partial class WordConversions
 
 
                   case "br": para.Inlines.Add(new EditableLineBreak()); break;
-                  case "smartTag": AddDeepRuns(psection, ref para); break;
-                  case "hyperlink": AddDeepRuns(psection, ref para); break;
+                  case "smartTag": AddDeepRuns(psection, ref para, mainDocPart); break;
+                  case "hyperlink": para.Inlines.Add(GetEditableHyperlink(psection, ref para, mainDocPart)); break;
                   case "r":
-                     try { para.Inlines.Add(GetIEditable(psection, ref para)); }
+                     try { para.Inlines.Add(GetIEditable(psection, ref para, mainDocPart)); }
                      catch { para.Inlines.Add(new EditableRun("")); }
                      break;
-                  case "del": para.Inlines.Add(GetDeletedRun(psection, ref para)); break;
-                  case "ins": para.Inlines.Add(GetInsertedRun(psection, ref para)); break;
+                  case "del": para.Inlines.Add(GetDeletedRun(psection, ref para, mainDocPart)); break;
+                  case "ins": para.Inlines.Add(GetInsertedRun(psection, ref para, mainDocPart)); break;
                   default:
                      Debug.WriteLine("unknown keyword: " + psection.LocalName);
                      break; 

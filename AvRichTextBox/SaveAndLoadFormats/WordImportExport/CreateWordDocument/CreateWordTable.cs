@@ -1,5 +1,6 @@
 ﻿using Avalonia.Media;
 using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using static AvRichTextBox.HelperMethods;
 using DOW = DocumentFormat.OpenXml.Wordprocessing;
@@ -9,7 +10,7 @@ namespace AvRichTextBox;
 internal static partial class WordConversions
 {
    
-   internal static DOW.Table CreateWordDocTable(Table t)
+   internal static DOW.Table CreateWordDocTable(Table t, ref MainDocumentPart mainPart)
    {
 
       var tabl = new DOW.Table();
@@ -78,7 +79,7 @@ internal static partial class WordConversions
             if (rowno < NextAvailableRows[colno])
             {
                tcprop.Append(new VerticalMerge() { Val = new EnumValue<MergedCellValues>(MergedCellValues.Continue) });
-               cel.Append(CreateWordDocParagraph(new Paragraph())); // needs empty paragraph 
+               cel.Append(CreateWordDocParagraph(new Paragraph(), ref mainPart)); // needs empty paragraph 
 
                if (SpanProps[colno, rowno].span > 1)
                {
@@ -122,7 +123,7 @@ internal static partial class WordConversions
                currColSpan = thisCell.ColSpan;
 
                if (thisCell.CellContent is Block b)
-                  cel.Append(CreateWordDocParagraph(b));
+                  cel.Append(CreateWordDocParagraph(b, ref mainPart));
 
 
                var thisCellVertAlign = new TableCellVerticalAlignment() { Val = TableVerticalAlignmentValues.Top };
@@ -142,7 +143,7 @@ internal static partial class WordConversions
             }
             else
             {               
-               cel.Append(CreateWordDocParagraph(new Paragraph()));
+               cel.Append(CreateWordDocParagraph(new Paragraph(), ref mainPart));
             }
 
             //cell borders
