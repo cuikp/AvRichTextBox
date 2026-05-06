@@ -8,52 +8,54 @@ namespace AvRichTextBox;
 
 public partial class FlowDocument
 {  
-   internal void SetRangeToText(TextRange tRange, string newText)
-   {  //The delete range and SetRangeToText should constitute one Undo operation
+    internal void SetRangeToText(TextRange tRange, string newText, bool copyFormatting = true)
+    {  //The delete range and SetRangeToText should constitute one Undo operation
 
-      Paragraph startPar = tRange.StartParagraph;
-      int rangeStart = tRange.Start;
-      int rangeEnd = tRange.End;
-      int deleteRangeLength = tRange.Length;
-      int parIndex = Blocks.IndexOf(startPar);
-      bool firstParEmpty = startPar.Inlines[0] is EditableRun erun && erun.Text == "";
-      bool firstParWasDeleted = startPar.StartInDoc == rangeStart && startPar.EndInDoc <= rangeEnd && !firstParEmpty; 
+       Paragraph startPar = tRange.StartParagraph;
+       int rangeStart = tRange.Start;
+       int rangeEnd = tRange.End;
+       int deleteRangeLength = tRange.Length;
+       int parIndex = Blocks.IndexOf(startPar);
+       bool firstParEmpty = startPar.Inlines[0] is EditableRun erun && erun.Text == "";
+       bool firstParWasDeleted = startPar.StartInDoc == rangeStart && startPar.EndInDoc <= rangeEnd && !firstParEmpty;
 
-      //Delete any selected text first
-      if (tRange.Length > 0)
-      {
-         DeleteRange(tRange, false, false);  // no undo, handled by PasteUndo
-         tRange.CollapseToStart();
-         SelectionExtendMode = ExtendMode.ExtendModeNone;
-      }
+       //Delete any selected text first
+       if (tRange.Length > 0)
+       {
+          DeleteRange(tRange, false, false);  // no undo, handled by PasteUndo
+          tRange.CollapseToStart();
+          SelectionExtendMode = ExtendMode.ExtendModeNone;
+       }
 
-      //Debug.WriteLine("first par deleted: " + firstParWasDeleted);
+       //Debug.WriteLine("first par deleted: " + firstParWasDeleted);
 
       if (tRange.StartInline is not IEditable startInline) return;
 
-      List<IEditable> splitInlines = SplitRunAtPos(tRange.Start, startInline, GetCharPosInInline(startInline, tRange.Start));
+       List<IEditable> splitInlines = SplitRunAtPos(tRange.Start, startInline, GetCharPosInInline(startInline, tRange.Start));
 
-      int startInlineIndex = startPar.Inlines.IndexOf(splitInlines[0]) + 1;
+       int startInlineIndex = startPar.Inlines.IndexOf(splitInlines[0]) + 1;
 
-      if (splitInlines[0] is EditableRun sRun)
-      {
-         EditableRun newEditableRun = new(newText)
-         {
-            FontFamily = sRun.FontFamily,
-            FontWeight = sRun.FontWeight,
-            FontStyle = sRun.FontStyle,
-            FontSize = sRun.FontSize,
-            TextDecorations = sRun.TextDecorations,
-            Background = sRun.Background,
-            BaselineAlignment = sRun.BaselineAlignment,
-            Foreground = sRun.Foreground
-         };
+       if (splitInlines[0] is EditableRun sRun)
+       {
+          EditableRun newEditableRun = new(newText);
 
-         startPar.Inlines.Insert(startInlineIndex, newEditableRun);
+          if (copyFormatting)
+          {
+             newEditableRun.FontFamily = sRun.FontFamily;
+             newEditableRun.FontWeight = sRun.FontWeight;
+             newEditableRun.FontStyle = sRun.FontStyle;
+             newEditableRun.FontSize = sRun.FontSize;
+             newEditableRun.TextDecorations = sRun.TextDecorations;
+             newEditableRun.Background = sRun.Background;
+             newEditableRun.BaselineAlignment = sRun.BaselineAlignment;
+             newEditableRun.Foreground = sRun.Foreground;
+          }
 
-         if (splitInlines[0].InlineText == "")
-            startPar.Inlines.Remove(splitInlines[0]);
-      }
+          startPar.Inlines.Insert(startInlineIndex, newEditableRun);
+
+          if (splitInlines[0].InlineText == "")
+             startPar.Inlines.Remove(splitInlines[0]);
+       }
 
       startPar.CallRequestInvalidateVisual();
       startPar.CallRequestTextLayoutInfoStart();

@@ -77,6 +77,7 @@
 					<ContextMenu x:Name="DocContextMenu" Opening="DocContextMenu_Opening">
 						<MenuItem Header="Copy" Click="CopySelectionMenuItem_Click" IsEnabled="{Binding HasSelectedText}"/>
 						<MenuItem Header="Paste" Click="PasteSelectionMenuItem_Click" />
+						<MenuItem Header="Paste without formatting" Click="PasteSelectionAsPlainTextMenuItem_Click" />
 						<MenuItem Header="Cut" Click="CutSelectionMenuItem_Click" IsEnabled="{Binding HasSelectedText}"/>
 						<MenuItem Header="Delete" Click="DeleteSelectionMenuItem_Click" IsEnabled="{Binding HasSelectedText}"/>
 						<Separator/>
