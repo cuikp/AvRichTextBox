@@ -59,8 +59,6 @@ public partial class RichTextBox
     readonly static DataFormat<byte[]> richTextFormat = DataFormat.CreateBytesPlatformFormat("Rich Text Format");
 
 
-    private void PasteFromClipboardAsPlainText() => PasteFromClipboard(plainTextOnly: true);
-
     private async void PasteFromClipboard(bool plainTextOnly = false)
     {
         if (IsReadOnly) return;

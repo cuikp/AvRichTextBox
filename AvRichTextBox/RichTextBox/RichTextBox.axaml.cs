@@ -323,7 +323,7 @@ public partial class RichTextBox : UserControl
    private void PasteSelectionAsPlainTextMenuItem_Click(object? sender, RoutedEventArgs e)
    {
       if (IsReadOnly) return;
-      PasteFromClipboardAsPlainText();
+      PasteFromClipboard(plainTextOnly: true);
    }
 
    private void CutSelectionMenuItem_Click(object? sender, RoutedEventArgs e)

@@ -23,7 +23,7 @@ public partial class RichTextBox
       { new(Key.C, Ctrl: true), () => CopyToClipboard() },
       { new(Key.X, Ctrl: true), () => CutToClipboard() },
       { new(Key.V, Ctrl: true), () => PasteFromClipboard() },
-      { new(Key.V, Ctrl: true, Shift: true), () => PasteFromClipboardAsPlainText() },
+      { new(Key.V, Ctrl: true, Shift: true), () => PasteFromClipboard(plainTextOnly: true) },
 
       { new(Key.Z, Ctrl: true), () =>
          {
