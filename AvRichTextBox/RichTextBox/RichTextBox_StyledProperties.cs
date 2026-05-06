@@ -75,12 +75,19 @@ public partial class RichTextBox
       set => SetValue(SelectionBrushProperty, value);
    }
 
-   public static readonly StyledProperty<IBrush?> CaretBrushProperty = AvaloniaProperty.Register<RichTextBox, IBrush?>(nameof(CaretBrush), defaultValue: null, defaultBindingMode: BindingMode.OneWay);
-   public IBrush? CaretBrush
-   {
-      get => GetValue(CaretBrushProperty);
-      set => SetValue(CaretBrushProperty, value);
-   }
+public static readonly StyledProperty<IBrush?> CaretBrushProperty = AvaloniaProperty.Register<RichTextBox, IBrush?>(nameof(CaretBrush), defaultValue: null, defaultBindingMode: BindingMode.OneWay);
+    public IBrush? CaretBrush
+    {
+       get => GetValue(CaretBrushProperty);
+       set => SetValue(CaretBrushProperty, value);
+    }
+
+    public static readonly StyledProperty<bool> IsCaretVisibleProperty = AvaloniaProperty.Register<RichTextBox, bool>(nameof(IsCaretVisible), defaultValue: true, defaultBindingMode: BindingMode.OneWay);
+    public bool IsCaretVisible
+    {
+       get => GetValue(IsCaretVisibleProperty);
+       set => SetValue(IsCaretVisibleProperty, value);
+    }
 
 
 }

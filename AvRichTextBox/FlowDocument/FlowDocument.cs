@@ -224,16 +224,20 @@ public partial class FlowDocument : AvaloniaObject
       SelectionStart_Changed(Selection, 0);
       SelectionEnd_Changed(Selection, 0);
 
-      Dispatcher.UIThread.Post(() =>
-      {
-         if (AllParagraphs.ToList()[0] is Paragraph firstPar)
-         {  //Required for initial cursor display 
-            firstPar.CallRequestTextBoxFocus();
-            firstPar.CallRequestTextLayoutInfoStart();
-            firstPar.CallRequestTextLayoutInfoEnd();
-         }
-         UpdateRTBCaret?.Invoke();
-      }, DispatcherPriority.Background);
+       Dispatcher.UIThread.Post(() =>
+       {
+          if (AllParagraphs.ToList()[0] is Paragraph firstPar)
+          {  //Required for initial cursor display
+             firstPar.CallRequestTextBoxFocus();
+             firstPar.CallRequestTextLayoutInfoStart();
+             firstPar.CallRequestTextLayoutInfoEnd();
+          }
+          // Re-fire SelectionChanged after TextLayout is available so UpdateSelectionIndicators
+          // in RichTextBox calculates the correct caret position
+          SelectionChanged?.Invoke(Selection);
+      
+          UpdateRTBCaret?.Invoke();
+       }, DispatcherPriority.Background);
 
       UpdateAllRangeContexts();
      
