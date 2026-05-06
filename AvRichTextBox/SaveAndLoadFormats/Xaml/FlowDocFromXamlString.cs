@@ -513,12 +513,17 @@ public partial class XamlConversions
                break;
 
             case "TextDecorations":
-               switch (att.Value)
-               { //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ fix for multiple decorations
-                  case "Underline": erun.TextDecorations = TextDecorations.Underline; break;
-                  case "Overline": erun.TextDecorations = TextDecorations.Overline; break;
-                  case "Baseline": erun.TextDecorations = TextDecorations.Baseline; break;
-                  case "Strikethrough": erun.TextDecorations = TextDecorations.Strikethrough; break;
+               erun.TextDecorations = [];
+               foreach (string tDecRaw in att.Value.Split(','))
+               {
+                  string tDec = tDecRaw.Trim();
+                  switch (tDec)
+                  {
+                     case "Underline": erun.TextDecorations.Add(new() { Location = TextDecorationLocation.Underline }); break;
+                     case "Overline": erun.TextDecorations.Add(new () { Location = TextDecorationLocation.Overline }); break;
+                     case "Baseline": erun.TextDecorations.Add(new () { Location = TextDecorationLocation.Baseline }); break;
+                     case "Strikethrough": erun.TextDecorations.Add(new () { Location = TextDecorationLocation.Strikethrough }); break;
+                  }
                }
                break;
 

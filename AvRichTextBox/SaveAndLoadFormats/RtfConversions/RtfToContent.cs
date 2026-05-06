@@ -344,13 +344,19 @@ internal static partial class RtfConversions
       if (rtfDomTxt.Format.Italic)
          erun.FontStyle = FontStyle.Italic;
 
-      //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ fix for multiple decorations
-      if (rtfDomTxt.Format.Underline)
-         erun.TextDecorations = TextDecorations.Underline;
 
+      // rtf inherently does not support overline
+      if (rtfDomTxt.Format.Underline)
+      {
+         erun.TextDecorations ??= [];
+         erun.TextDecorations.Add(new() { Location = TextDecorationLocation.Underline });
+      }
       if (rtfDomTxt.Format.Strikeout)
-         erun.TextDecorations = TextDecorations.Strikethrough;
-      //linkRun.TextDecorations?.Add(TextDecorations.Strikethrough);
+      {
+         erun.TextDecorations ??= [];
+         erun.TextDecorations.Add(new() { Location = TextDecorationLocation.Strikethrough });
+      }
+
 
       if (rtfDomTxt.Format.Subscript)
          erun.BaselineAlignment = BaselineAlignment.Subscript;

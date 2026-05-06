@@ -299,10 +299,18 @@ internal static partial class WordConversions
 
 
                            case "highlight":
-                                                            
-                              BrushConverter? Bconverter = new();
-                              thisRun.Background = (ImmutableSolidColorBrush)Bconverter.ConvertFromString(WordColorValueToHexString(rprsection.GetAttributes()[0].Value ?? "#00000000", true))!;
-                              //thisRun.Background = Brushes.Transparent; debugging
+                                                                                          
+                              try
+                              {
+                                 if (rprsection.GetAttributes()[0].Value is string valString && valString != "none")
+                                 {
+                                    BrushConverter? Bconverter = new();
+                                       if (Bconverter.ConvertFromString(WordColorValueToHexString(valString, true)) is IBrush hBrush)
+                                          thisRun.Background = hBrush;
+                                 }
+                              }
+                              catch(Exception ex) { Debug.WriteLine("error highlight: " + ex.Message); }
+                             
                               break;
 
                            //case "tag":
@@ -352,7 +360,7 @@ internal static partial class WordConversions
                         }
 
                      }
-                     catch (Exception rprEx) { Debug.WriteLine($"Error getting run properties:\nLocalName={rprsection.LocalName}\n{rprEx.Message}"); }
+                     catch (Exception rprEx) { Debug.WriteLine($"Error getting run properties: LocalName={rprsection.LocalName}, {rprEx.Message}"); }
                   }
 
                   break;
@@ -398,6 +406,9 @@ internal static partial class WordConversions
    {
       foreach (OpenXmlElement deepRun in psection.Elements())
       {
+         if (psection.LocalName == "hyperlink")
+            Debug.WriteLine("run in hyperlink: " + deepRun.LocalName + ", " + deepRun.InnerText);
+
          switch (deepRun.LocalName)
          {
             case "r": { para.Inlines.Add(GetIEditable(deepRun, ref para)); break; }

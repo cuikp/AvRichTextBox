@@ -95,7 +95,7 @@ public partial class MainWindow : Window
       newPar.Inlines.Add(new EditableRun("3") { BaselineAlignment = BaselineAlignment.Superscript });
 
       newPar.Inlines.Add(new EditableRun(" simple "));
-      newPar.Inlines.Add(new EditableHyperlink("hyperlink text", "www.google.com"));
+      newPar.Inlines.Add(new EditableHyperlink("go to google", @"https://www.google.com"));
       newPar.Inlines.Add(new EditableRun(" line."));
       MainRTB.FlowDocument.Blocks.Add(newPar);
 

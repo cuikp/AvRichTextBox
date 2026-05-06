@@ -12,13 +12,11 @@ internal static partial class WordConversions
    {
       string? thisRunText = "";
       thisRunText = edRun.Text;
-      //Debug.WriteLine("thisRuntext= " + thisRunText);
       
       var newrun = new DOW.Run();
 
       try
       {
-
          var runtext = new Text(thisRunText!) // convert text to "wordprocessing.text" form
          {
             Space = SpaceProcessingModeValues.Preserve
@@ -28,18 +26,13 @@ internal static partial class WordConversions
 
          if (edRun.TextDecorations != null)
          {
-            foreach (TextDecoration td in edRun.TextDecorations!)
+            foreach (TextDecoration td in edRun.TextDecorations)
             {
                switch (td.Location)
                {
-                  case TextDecorationLocation.Underline:
-                     RunProp.AppendChild(new DOW.Underline() { Val = UnderlineValues.Single, Color = "Black" });
-                     break;
-                  case TextDecorationLocation.Overline: { break; }
-                  case TextDecorationLocation.Baseline: { break; }
-                  case TextDecorationLocation.Strikethrough:
-                     RunProp.AppendChild(new DOW.Strike());
-                     break; 
+                  case TextDecorationLocation.Underline: RunProp.AppendChild(new DOW.Underline() { Val = UnderlineValues.Single, Color = "Black" }); break;
+                  case TextDecorationLocation.Strikethrough: RunProp.AppendChild(new DOW.Strike()); break;
+                  case TextDecorationLocation.Overline: break; // Word doesn't inherently support overline, so ignore
                }
             }
          }
@@ -50,9 +43,9 @@ internal static partial class WordConversions
          if (edRun.FontStyle == FontStyle.Italic)
             RunProp.AppendChild(new DOW.Italic());
 
-         if (edRun.Background != null)
+         if (edRun.Background != null && edRun.Background != Brushes.Transparent)
          {
-            var Hlight = new  Highlight() { Val = BrushToHighlightColorValue(edRun.Background) };
+            var Hlight = new Highlight() { Val = BrushToHighlightColorValue(edRun.Background) };
             RunProp.AppendChild(Hlight);
          }
 

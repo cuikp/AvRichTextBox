@@ -148,13 +148,15 @@ internal static partial class WordConversions
                      break;
                   case "del": para.Inlines.Add(GetDeletedRun(psection, ref para)); break;
                   case "ins": para.Inlines.Add(GetInsertedRun(psection, ref para)); break;
-                  default: { break; }
+                  default:
+                     Debug.WriteLine("unknown keyword: " + psection.LocalName);
+                     break; 
 
                }
 
             }
 
-            catch (Exception parContentEx) { Debug.WriteLine("Error in getting paragraph:\nLocalName=" + psection.LocalName + "\n" + parContentEx.Message); }
+            catch (Exception parContentEx) { Debug.WriteLine("Error in getting paragraph: LocalName=" + psection.LocalName + "\n" + parContentEx.Message); }
          }
       }
       catch (Exception ex) { Debug.WriteLine("Error:\n" + ex.Message); }

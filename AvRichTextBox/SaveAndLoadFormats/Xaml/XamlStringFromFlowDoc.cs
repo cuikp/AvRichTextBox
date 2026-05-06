@@ -329,29 +329,26 @@ public partial class XamlConversions
 
       if (erun.TextDecorations != null)
       {
-         string textDecString = "";
-         if (erun.TextDecorations.Count > 0)
+         string textDecString = " TextDecorations=\"";
+         foreach (TextDecoration tdec in erun.TextDecorations)
          {
-            textDecString = " TextDecorations=\"";
-            switch (erun.TextDecorations[0].Location)
+            switch (tdec.Location)
             {
-               case TextDecorationLocation.Strikethrough:
-
-                  break;
                case TextDecorationLocation.Underline:
-                  textDecString += "Underline";
+                  textDecString += "Underline, ";
                   break;
-               case TextDecorationLocation.Baseline:
-                  textDecString += "Baseline";
+               case TextDecorationLocation.Strikethrough:
+                  textDecString += "Strikethrough, ";
                   break;
                case TextDecorationLocation.Overline:
-                  textDecString += "Overline";
+                  textDecString += "Overline, ";
                   break;
             }
-            textDecString += "\"";
          }
+         textDecString = textDecString.TrimEnd([' ', ',']) + "\"";
          attSB.Append(textDecString);
       }
+
       
       //Closing bracket
       attSB.Append('>');

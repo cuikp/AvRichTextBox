@@ -348,7 +348,7 @@ internal static partial class RtfConversions
       Dictionary<Color, int> colorMap)
    {
       if (erun.TextDecorations is TextDecorationCollection decs)
-      {
+      {  // Note: rtf inherently does not support overline
          if (!UnderlineOn && decs.Any(d => d.Location == TextDecorationLocation.Underline)) { iedSB.Append(@"\ul "); ; UnderlineOn = true; }
          if (UnderlineOn && !decs.Any(d => d.Location == TextDecorationLocation.Underline)) { iedSB.Append(@"\ul0 "); UnderlineOn = false; }
          if (!StrikeoutOn && decs.Any(d => d.Location == TextDecorationLocation.Strikethrough)) { iedSB.Append(@"\strike "); ; StrikeoutOn = true; }

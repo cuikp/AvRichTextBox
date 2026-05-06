@@ -34,13 +34,17 @@ internal static partial class WordConversions
 
          if (p.BorderBrush != null && p.BorderBrush.Color != Avalonia.Media.Colors.Transparent)
          {
-            pPr.ParagraphBorders = new()
+            if (p.BorderThickness != default)
             {
-               LeftBorder = new() { Val = BorderValues.Single, Color = ToOpenXmlColor(p.BorderBrush.Color), Size = (uint)(p.BorderThickness.Left * 6), Space = 0 },
-               TopBorder = new() { Val = BorderValues.Single, Color = ToOpenXmlColor(p.BorderBrush.Color), Size = (uint)(p.BorderThickness.Top * 6), Space = 0 },
-               RightBorder = new() { Val = BorderValues.Single, Color = ToOpenXmlColor(p.BorderBrush.Color), Size = (uint)(p.BorderThickness.Right * 6), Space = 0 },
-               BottomBorder = new() { Val = BorderValues.Single, Color = ToOpenXmlColor(p.BorderBrush.Color), Size = (uint)(p.BorderThickness.Bottom * 6), Space = 0 },
-            };
+               pPr.ParagraphBorders = new()
+               {
+                  LeftBorder = new() { Val = BorderValues.Single, Color = ToOpenXmlColor(p.BorderBrush.Color), Size = (uint)(p.BorderThickness.Left * 6), Space = 0 },
+                  TopBorder = new() { Val = BorderValues.Single, Color = ToOpenXmlColor(p.BorderBrush.Color), Size = (uint)(p.BorderThickness.Top * 6), Space = 0 },
+                  RightBorder = new() { Val = BorderValues.Single, Color = ToOpenXmlColor(p.BorderBrush.Color), Size = (uint)(p.BorderThickness.Right * 6), Space = 0 },
+                  BottomBorder = new() { Val = BorderValues.Single, Color = ToOpenXmlColor(p.BorderBrush.Color), Size = (uint)(p.BorderThickness.Bottom * 6), Space = 0 },
+               };
+            }
+               
          }
 
          pPr.SpacingBetweenLines = new SpacingBetweenLines() { Before = "0", After = "0", LineRule = LineSpacingRuleValues.Auto, Line = "240" };
@@ -51,6 +55,31 @@ internal static partial class WordConversions
          {
             switch (iline)
             {
+               case EditableHyperlink hlink:
+
+                  if (Uri.TryCreate(hlink.NavigateUri, UriKind.Absolute, out var uri))
+                  {
+                     var relationship = mainPart!.AddHyperlinkRelationship(uri, true);
+
+                     var newHyperlink = new DOW.Hyperlink(
+                        new DOW.Run(
+                        new DOW.RunProperties(
+                           new DOW.RunStyle { Val = "Hyperlink" }, 
+                           new DOW.Color { Val = "0563C1" },
+                           new DOW.Underline { Val = DOW.UnderlineValues.Single } 
+                        ),
+                        new DOW.Text(hlink.Text ?? hlink.NavigateUri)
+                        )
+                     )
+                     { Id = relationship.Id };
+
+                     parg.AppendChild(newHyperlink);
+
+                     //Debug.WriteLine("appended hyperlink: " + newHyperlink.Id);
+                  }
+
+                  break;
+
                case EditableLineBreak elbreak:
                   parg.AppendChild(new Break());
                   break;
@@ -83,9 +112,6 @@ internal static partial class WordConversions
 
                case EditableRun erun:
                   DOW.Run dRun = GetWordDocRun(erun);
-                  //if (dRun.InnerText == "\n")
-                  //   parg.AppendChild(new Break());
-                  //else
                   parg.AppendChild(dRun);
                   break;
             }
