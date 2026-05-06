@@ -75,26 +75,37 @@ public partial class RichTextBox : UserControl
 
    }
 
-   private void InitializeAdornerElements()
-   {
-      InitializeBlinkAnimation();
+    private void InitializeAdornerElements()
+    {
+       InitializeBlinkAnimation();
 
-      blinkAnimation.RunAsync(_CaretRect);
+       blinkAnimation.RunAsync(_CaretRect);
 
-      _CaretRect.Bind(IsVisibleProperty, new Binding("CaretVisible"));
-      _CaretRect.Bind(MarginProperty, new Binding("CaretMargin"));
-      _CaretRect.Bind(HeightProperty, new Binding("CaretHeight"));
-      _CaretRect.DataContext = RtbVm;
-            
-      SelectionPath.Data = _geometry;
+       _CaretRect.Bind(MarginProperty, new Binding("CaretMargin"));
+       _CaretRect.Bind(HeightProperty, new Binding("CaretHeight"));
+       _CaretRect.DataContext = RtbVm;
 
-      var panel = new Canvas();
-      panel.Children.Add(SelectionPath);
-      panel.Children.Add(_CaretRect);
-      AdornerLayer.SetAdorner(DocIC, panel);
-      //AdornerLayer.SetIsClipEnabled(panel, false);
+       // Subscribe to ViewModel CaretVisible changes
+       RtbVm.PropertyChanged += (sender, e) =>
+       {
+          if (e.PropertyName == nameof(RtbVm.CaretVisible))
+          {
+             UpdateCaretVisibility();
+          }
+       };
 
-   }
+       // Initial visibility update
+       UpdateCaretVisibility();
+             
+       SelectionPath.Data = _geometry;
+
+       var panel = new Canvas();
+       panel.Children.Add(SelectionPath);
+       panel.Children.Add(_CaretRect);
+       AdornerLayer.SetAdorner(DocIC, panel);
+       //AdornerLayer.SetIsClipEnabled(panel, false);
+
+    }
 
 
    private void RichTextBox_Initialized(object? sender, EventArgs e)
@@ -131,41 +142,56 @@ public partial class RichTextBox : UserControl
       UpdateAllInlines();
    }
 
-   private void RichTextBox_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
-   {
-      if (e.Property == FlowDocumentProperty)
-      {
-         if (FlowDoc != null)
-         {
-            FlowDoc.ScrollInDirection -= RtbVm.FlowDoc_ScrollInDirection;
-            FlowDoc.UpdateRTBCaret -= RtbVm.FlowDoc_UpdateRTBCaret;
-         }
+    private void RichTextBox_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+       if (e.Property == FlowDocumentProperty)
+       {
+          if (FlowDoc != null)
+          {
+             FlowDoc.ScrollInDirection -= RtbVm.FlowDoc_ScrollInDirection;
+             FlowDoc.UpdateRTBCaret -= RtbVm.FlowDoc_UpdateRTBCaret;
+          }
 
-         RtbVm.FlowDoc = FlowDocument;
+          RtbVm.FlowDoc = FlowDocument;
 
-         RtbVm.FlowDoc.ScrollInDirection += RtbVm.FlowDoc_ScrollInDirection;
-         RtbVm.FlowDoc.UpdateRTBCaret += RtbVm.FlowDoc_UpdateRTBCaret;
+          RtbVm.FlowDoc.ScrollInDirection += RtbVm.FlowDoc_ScrollInDirection;
+          RtbVm.FlowDoc.UpdateRTBCaret += RtbVm.FlowDoc_UpdateRTBCaret;
 
-         RtbVm.FlowDoc.SelectionBrush = this.SelectionBrush;
+          RtbVm.FlowDoc.SelectionBrush = this.SelectionBrush;
+          
+          RtbVm.FlowDoc.InitializeDocument();
+          CreateClient();
 
-         RtbVm.FlowDoc.InitializeDocument();
-         CreateClient();
+       }
+    
+       else if (e.Property == CaretBrushProperty)
+       {
+          UpdateCaretBrush();
+       }
 
-      }
-   
-      else if (e.Property == CaretBrushProperty)
-      {
-         UpdateCaretBrush();
-      }
-   }
+       else if (e.Property == IsCaretVisibleProperty)
+       {
+          UpdateCaretVisibility();
+       }
+    }
 
-   private void RichTextBox_ActualThemeVariantChanged(object? sender, EventArgs e)
-   {
-      UpdateCaretBrush();
-   }
-   
+    private void RichTextBox_ActualThemeVariantChanged(object? sender, EventArgs e)
+    {
+       UpdateCaretBrush();
+    }
+    
+    private void UpdateCaretVisibility()
+    {
+       if (_CaretRect != null)
+       {
+          // The caret should only be visible if both:
+          // 1. IsCaretVisible property is true (control-level visibility)
+          // 2. CaretVisible from ViewModel is true (caret blinking state)
+          _CaretRect.IsVisible = this.IsCaretVisible && RtbVm.CaretVisible;
+       }
+    }
 
-   private void RichTextBox_GotFocus(object? sender, FocusChangedEventArgs e)
+    private void RichTextBox_GotFocus(object? sender, FocusChangedEventArgs e)
    {
       //Debug.WriteLine("Got focus rtb");
    }
