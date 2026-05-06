@@ -36,23 +36,23 @@ public partial class RichTextBox
    {
       if (DisableUserCopy) return;
 
-        var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
-        if (clipboard == null) return;
-        //create rtf string
-        List<IEditable> newInlines = FlowDoc.GetRangeInlines(FlowDoc.Selection);
-        string rtfString = RtfConversions.GetRtfFromInlines(newInlines);
+      var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+      if (clipboard == null) return;
+      //create rtf string
+      List<IEditable> newInlines = FlowDoc.GetRangeInlines(FlowDoc.Selection);
+      string rtfString = RtfConversions.GetRtfFromInlines(newInlines);
 
-        var dataTransfer = new DataTransfer();
+      var dataTransfer = new DataTransfer();
 
-        // Rtf format
-        var richTextFormat = DataFormat.CreateBytesPlatformFormat("Rich Text Format");
-        byte[] rtfbytes = Encoding.ASCII.GetBytes(rtfString + "\0");
-        dataTransfer.Add(DataTransferItem.Create(richTextFormat, rtfbytes));
+      // Rtf format
+      var richTextFormat = DataFormat.CreateBytesPlatformFormat("Rich Text Format");
+      byte[] rtfbytes = Encoding.ASCII.GetBytes(rtfString + "\0");
+      dataTransfer.Add(DataTransferItem.Create(richTextFormat, rtfbytes));
 
-        // Plain text
-        dataTransfer.Add(DataTransferItem.CreateText(FlowDoc.Selection.GetText()));
+      // Plain text
+      dataTransfer.Add(DataTransferItem.CreateText(FlowDoc.Selection.GetText()));
 
-        _ = clipboard.SetDataAsync(dataTransfer);
+      _ = clipboard.SetDataAsync(dataTransfer);
 
     }
 

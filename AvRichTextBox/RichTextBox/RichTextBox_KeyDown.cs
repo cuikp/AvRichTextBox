@@ -18,35 +18,35 @@ public partial class RichTextBox
       // Ctrl shortcuts
 
       // Allow user enable/disable  ///////////////////
-      { new(Key.B, Ctrl: true), () => ToggleBold() },
-      { new(Key.I, Ctrl: true), () => ToggleItalics() },
-      { new(Key.U, Ctrl: true), () => ToggleUnderlining() },
-
-      { new(Key.C, Ctrl: true), () => CopyToClipboard() },
-      { new(Key.X, Ctrl: true), () => CutToClipboard() },
-      { new(Key.V, Ctrl: true), () => PasteFromClipboard() },
+      { new(Key.B, Ctrl: true), () => { if(DisableEditingShortcuts) return; ToggleBold(); } },
+      { new(Key.I, Ctrl: true), () => { if(DisableEditingShortcuts) return; ToggleItalics(); } },
+      { new(Key.U, Ctrl: true), () => { if(DisableEditingShortcuts) return; ToggleUnderlining(); } },
+      { new(Key.C, Ctrl: true), () => { if (DisableEditingShortcuts) return; CopyToClipboard(); } },
+      { new(Key.X, Ctrl: true), () => { if (DisableEditingShortcuts) return; CutToClipboard(); } },
+      { new(Key.V, Ctrl: true), () => { if(DisableEditingShortcuts) return; PasteFromClipboard(); } },
       { new(Key.V, Ctrl: true, Shift: true), () => PasteFromClipboard(plainTextOnly: true) },
 
       { new(Key.Z, Ctrl: true), () =>
          {
-            if (IsReadOnly) return;
+            if (IsReadOnly || DisableEditingShortcuts) return;
             FlowDoc.Undo();
          }
       },
 
-      { new(Key.A, Ctrl: true), () => FlowDoc.SelectAll() },
-      { new(Key.K, Ctrl: true), () => OpenHyperlinkPopup() },
+      { new(Key.A, Ctrl: true), () => { if (DisableEditingShortcuts) return; FlowDoc.SelectAll() ; } },
+
+      { new(Key.K, Ctrl: true), () => { if (DisableEditingShortcuts) return; OpenHyperlinkPopup(); } },
 
       { new(Key.Delete, Ctrl: true), () =>
          {
-            if (IsReadOnly) return;
+            if (IsReadOnly || DisableEditingShortcuts) return;
             FlowDoc.DeleteWord(false);
          }
       },
 
       { new(Key.Back, Ctrl: true), () =>
          {
-            if (IsReadOnly) return;
+            if (IsReadOnly || DisableEditingShortcuts) return;
             FlowDoc.DeleteWord(true);
          }
       },

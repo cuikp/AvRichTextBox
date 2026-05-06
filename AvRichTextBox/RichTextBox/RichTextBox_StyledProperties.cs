@@ -46,6 +46,13 @@ public partial class RichTextBox
       get => GetValue(CtrlKeyOpensHyperlinkProperty);
       set { SetValue(CtrlKeyOpensHyperlinkProperty, value);  }
    }
+   
+   public static readonly StyledProperty<bool> DisableEditingShortcutsProperty = AvaloniaProperty.Register<RichTextBox, bool>(nameof(DisableEditingShortcuts), false);
+   public bool DisableEditingShortcuts
+   {
+      get => GetValue(DisableEditingShortcutsProperty);
+      set { SetValue(DisableEditingShortcutsProperty, value);  }
+   }
 
    public static readonly StyledProperty<bool> ShowDebuggerPanelInDebugModeProperty = AvaloniaProperty.Register<RichTextBox, bool>(nameof(ShowDebuggerPanelInDebugMode), false);
    public bool ShowDebuggerPanelInDebugMode
