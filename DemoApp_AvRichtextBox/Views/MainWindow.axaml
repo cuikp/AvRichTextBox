@@ -94,9 +94,9 @@
 
 							<Border BorderBrush="Black" BorderThickness="1" >
 								<DockPanel>
-									<CheckBox x:Name="StrikeCB" Margin="3, 0" Padding="1" DockPanel.Dock="Left" Content="Strike" />
-									<CheckBox x:Name="UnderCB"  Margin="3, 0"  Padding="1" DockPanel.Dock="Left" Content="Underline"  />
-									<CheckBox x:Name="OverCB"  Margin="3, 0"  Padding="1" Content="Overline"  />
+									<CheckBox x:Name="StrikeCB" Margin="3, 0" Padding="1" DockPanel.Dock="Left" Content="Strike" Focusable="False" />
+									<CheckBox x:Name="UnderCB"  Margin="3, 0"  Padding="1" DockPanel.Dock="Left" Content="Underline"  Focusable="False" />
+									<CheckBox x:Name="OverCB"  Margin="3, 0"  Padding="1" Content="Overline"  Focusable="False" />
 								</DockPanel>
 							</Border>
 						</DockPanel>
@@ -211,7 +211,7 @@
 		<Grid >
 	
 		<avrtb:RichTextBox Grid.Row="0" x:Name="MainRTB" Zoom="1" IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="True"  DisableUserCopy="False" 
-					 CaretBrush="DarkBlue" CtrlKeyOpensHyperlink="True"/>
+					 CaretBrush="DarkBlue" CtrlKeyOpensHyperlink="True" PointerReleased="MainRTB_PointerReleased" KeyUp="MainRTB_KeyUp" />
 
 			<!-- Test a second RTB in tandem-->
 			<!--<avrtb:RichTextBox Grid.Row="1" x:Name="MainRTB2"  IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="True"  DisableUserCopy="False" SelectionBrush="LightGreen" />-->

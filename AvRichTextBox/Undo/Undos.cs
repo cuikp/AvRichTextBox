@@ -353,18 +353,23 @@ internal class ApplyFormattingUndo (FlowDocument flowDoc, List<EditablePropertyA
          }
       }
 
+      flowDoc.disableRunTextUndo = false;
+
       foreach (Paragraph p in flowDoc.GetOverlappingParagraphsInRange(rangeStart, rangeEnd).OfType<Paragraph>())
       {
          p.CallRequestInlinesUpdate();
          p.UpdateEditableRunPositions();
       }
 
+      flowDoc.UpdateSelection();
       lastPar.CallRequestInlinesUpdate();  // fail-safe
 
-      flowDoc.Selection.Start = originalSelection;
-      flowDoc.Selection.End = originalSelection;
+      Dispatcher.UIThread.Post(() =>
+      {
+         flowDoc.Selection.Start = originalSelection;
+         flowDoc.Selection.End = originalSelection;
+      });
 
-      flowDoc.disableRunTextUndo = false;
 
    }
 }

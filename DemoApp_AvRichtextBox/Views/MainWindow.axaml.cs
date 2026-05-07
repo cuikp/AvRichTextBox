@@ -212,74 +212,95 @@ public partial class MainWindow : Window
 
    bool progChange = true;
 
+   private void MainRTB_PointerReleased(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
+   {
+      //UpdatePanelValues();
+   }
+
+   private void MainRTB_KeyUp(object? sender, Avalonia.Input.KeyEventArgs e)
+   {
+      //UpdatePanelValues();
+   }
+
    private void FlowDocument_Selection_Changed(TextRange selection)
    {
 
       FontFamily fontFamily = MainRTB.FontFamily;
 
-      if (!progChange)
+      if (_applyingFormatting) return;
+      if (progChange) return;
+      
+      progChange = true;
+
+
+      if (selection.GetStartPar() is Paragraph selPar)
       {
-         progChange = true;
+         LineHeightNS.Value = selPar.LineHeight;
+         ParagraphBorderNS.Value = selPar.BorderThickness.Left;
+         ParBorderCP.Color = selPar.BorderBrush == null ? Colors.Transparent : selPar.BorderBrush.Color;
+         ParBackgroundCP.Color = selPar.Background == null ? Colors.Transparent : selPar.Background.Color;
+         fontFamily = selPar.FontFamily;
 
-
-         if (selection.GetStartPar() is Paragraph selPar)
-         {
-            LineHeightNS.Value = selPar.LineHeight;
-            ParagraphBorderNS.Value = selPar.BorderThickness.Left;
-            ParBorderCP.Color = selPar.BorderBrush == null ? Colors.Transparent : selPar.BorderBrush.Color;
-            ParBackgroundCP.Color = selPar.Background == null ? Colors.Transparent : selPar.Background.Color;
-            fontFamily = selPar.FontFamily;
-
-         }
-
-         if (selection.GetFormatting(FontFamilyProperty) is FontFamily selFFP)
-            fontFamily = selFFP;
-
-         if (fontFamily.ToString() is string fontFamilyString)
-         {
-            if (FontsCB.Items.FirstOrDefault(it => it?.ToString() == fontFamilyString) is string foundFF)
-               FontsCB.SelectedItem = foundFF; // fontFamily.ToString();
-            else
-               FontsCB.SelectedItem = null!;
-         }
-
-         if (selection.GetFormatting(BackgroundProperty) is ISolidColorBrush selBackground)
-            HighlightCP.Color = selBackground == null ? Colors.Transparent : selBackground.Color;
-         else
-            HighlightCP.Color = Colors.Transparent;
-
-         if (selection.GetFormatting(ForegroundProperty) is ISolidColorBrush selForeground)
-            FontColorCP.Color = selForeground == null ? Colors.Transparent : selForeground.Color;
-         else
-            FontColorCP.Color = Colors.Black;
-
-
-         FontSizeNS.Value = Math.Round((double)(selection.GetFormatting(FontSizeProperty) ?? 14D));
-
-         if (selection.GetFormatting(Inline.TextDecorationsProperty) is TextDecorationCollection tdc)
-         {
-            StrikeCB.IsChecked = tdc.Any(tc => tc.Location == TextDecorationLocation.Strikethrough);
-            UnderCB.IsChecked = tdc.Any(tc => tc.Location == TextDecorationLocation.Underline);
-            OverCB.IsChecked = tdc.Any(tc => tc.Location == TextDecorationLocation.Overline);
-         }
-         else
-         {
-            StrikeCB.IsChecked = false;
-            UnderCB.IsChecked = false;
-            OverCB.IsChecked = false;
-         }
-
-         progChange = false;
       }
 
-   } 
+      if (selection.GetFormatting(FontFamilyProperty) is FontFamily selFFP)
+         fontFamily = selFFP;
+
+      if (fontFamily.ToString() is string fontFamilyString)
+      {
+         if (FontsCB.Items.FirstOrDefault(it => it?.ToString() == fontFamilyString) is string foundFF)
+            FontsCB.SelectedItem = foundFF; // fontFamily.ToString();
+         else
+            FontsCB.SelectedItem = null!;
+      }
+
+      if (selection.GetFormatting(BackgroundProperty) is ISolidColorBrush selBackground)
+         HighlightCP.Color = selBackground == null ? Colors.Transparent : selBackground.Color;
+      else
+         HighlightCP.Color = Colors.Transparent;
+
+      if (selection.GetFormatting(ForegroundProperty) is ISolidColorBrush selForeground)
+         FontColorCP.Color = selForeground == null ? Colors.Transparent : selForeground.Color;
+      else
+         FontColorCP.Color = Colors.Black;
+
+      var size = selection.GetFormatting(FontSizeProperty);
+      FontSizeNS.Value = Math.Round((double)(size ?? 14D));
+
+      if (selection.GetFormatting(Inline.TextDecorationsProperty) is TextDecorationCollection tdc)
+      {
+         StrikeCB.IsChecked = tdc.Any(tc => tc.Location == TextDecorationLocation.Strikethrough);
+         UnderCB.IsChecked = tdc.Any(tc => tc.Location == TextDecorationLocation.Underline);
+         OverCB.IsChecked = tdc.Any(tc => tc.Location == TextDecorationLocation.Overline);
+      }
+      else
+      {
+         StrikeCB.IsChecked = false;
+         UnderCB.IsChecked = false;
+         OverCB.IsChecked = false;
+      }
+
+      progChange = false;
       
+
+   }
+
+   bool _applyingFormatting = false;
 
    internal void FontSizeNS_UserValueChanged(double value)
    {
+      _applyingFormatting = true;
+
       MainRTB.FlowDocument.Selection.ApplyFormatting(FontSizeProperty, value);
 
+      Dispatcher.UIThread.Post(() =>
+      {
+         _applyingFormatting = false;
+   
+      }, DispatcherPriority.Background);
    }
+
+   
 
    internal void LineHeightNS_UserValueChanged(double value)
    {
@@ -387,16 +408,17 @@ public partial class MainWindow : Window
       {
          ApplyDecoration(!b, TextDecorationLocation.Strikethrough); // checkbox not yet changed on PointerReleased
       }
-
    }
 
    private void UnderCB_PointerReleased(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
    {
       if (MainRTB.FlowDocument.Selection.Length == 0) return;
+
       if (sender is CheckBox cb && cb.IsChecked is bool b)
       {
          ApplyDecoration(!b, TextDecorationLocation.Underline); // checkbox not yet changed on PointerReleased
       }
+
    }
 
    private void OverCB_PointerReleased(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
@@ -411,37 +433,18 @@ public partial class MainWindow : Window
 
    private void ApplyDecoration(bool on, TextDecorationLocation textDecLoc)
    {
-      if (MainRTB.FlowDocument.Selection.GetFormatting(Inline.TextDecorationsProperty) is TextDecorationCollection tdc)
+      _applyingFormatting = true;
+
+
+      MainRTB.FlowDocument.Selection.ApplyFormatting(Inline.TextDecorationsProperty, textDecLoc);
+
+      Dispatcher.UIThread.Post(() =>
       {
-         switch (on)  
-         {
-            case true:
-               tdc.Add(new() { Location = textDecLoc });
-               MainRTB.FlowDocument.Selection.ApplyFormatting(Inline.TextDecorationsProperty, tdc);
-               break;
+         _applyingFormatting = false;
 
-            case false:
-               if (tdc.Where(td => td.Location == textDecLoc) is TextDecoration removeTD)
-                  tdc.Remove(removeTD);
-               MainRTB.FlowDocument.Selection.ApplyFormatting(Inline.TextDecorationsProperty, tdc);
-               break;
-         }
-      }
-      else
-      {
-         //Debug.WriteLine("textdecloc = " + textDecLoc.ToString());
+      }, DispatcherPriority.Background);
 
-         var tdec = textDecLoc switch
-         {
-            TextDecorationLocation.Underline => TextDecorations.Underline,
-            TextDecorationLocation.Strikethrough => TextDecorations.Strikethrough,
-            TextDecorationLocation.Overline => TextDecorations.Overline,
-            TextDecorationLocation.Baseline => TextDecorations.Baseline,
-            _ => TextDecorations.Underline
-         };
 
-         MainRTB.FlowDocument.Selection.ApplyFormatting(Inline.TextDecorationsProperty, tdec);
-      }
    }
 
 

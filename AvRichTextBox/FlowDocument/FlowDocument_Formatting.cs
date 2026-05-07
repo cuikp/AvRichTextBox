@@ -1,5 +1,7 @@
 ﻿using Avalonia.Controls.Documents;
 using Avalonia.Media;
+using Avalonia.Threading;
+using SkiaSharp;
 
 namespace AvRichTextBox;
 
@@ -32,16 +34,43 @@ public partial class FlowDocument
    private ToggleFormatRun? toggleFormatRun;
 
    private delegate void ToggleFormatRun(IEditable ied);
-   private void ToggleApplyBold(IEditable ied) { if (ied is EditableRun erun) { erun.FontWeight = BoldOn ? FontWeight.Bold : FontWeight.Normal; } }
-   private void ToggleApplyItalic(IEditable ied) { if (ied is EditableRun erun) { erun.FontStyle = ItalicOn ? FontStyle.Italic : FontStyle.Normal; } }
-   private void ToggleApplyUnderline(IEditable ied) { if (ied is EditableRun erun) { erun.TextDecorations = UnderliningOn ? TextDecorations.Underline : null; } }
+   // used for inline toggling while typing
+   private void ToggleInlineApplyBold(IEditable ied) { if (ied is EditableRun erun) { erun.FontWeight = BoldOn ? FontWeight.Bold : FontWeight.Normal; } }
+   private void ToggleInlineApplyItalic(IEditable ied) { if (ied is EditableRun erun) { erun.FontStyle = ItalicOn ? FontStyle.Italic : FontStyle.Normal; } }
+   private void ToggleInlineApplyUnderline(IEditable ied) { if (ied is EditableRun erun) { erun.TextDecorations = UnderliningOn ? TextDecorations.Underline : null; } }
+
+
+   internal void ToggleUnderlining()
+   {
+      if (Selection.Length == 0)
+      {
+         UnderliningOn = !UnderliningOn;
+         toggleFormatRun = ToggleInlineApplyUnderline;
+
+         InsertRunMode = true;
+
+         if (Selection.StartInline is IEditable startInline)
+         {
+            if (startInline != Selection.StartParagraph.Inlines.Last() && GetCharPosInInline(startInline, Selection.Start) == startInline.InlineText.Length)
+            {
+               IEditable nextInline = Selection.StartParagraph.Inlines[Selection.StartParagraph.Inlines.IndexOf(startInline) + 1];
+               bool nextRunUnderlined = nextInline is EditableRun nextrun && nextrun.TextDecorations == TextDecorations.Underline;
+               InsertRunMode = (UnderliningOn != nextRunUnderlined) || nextInline is not EditableRun;
+               Selection.BiasForwardStart = !InsertRunMode;
+            }
+         }
+      }
+      else
+         Selection.ApplyFormatting(Inline.TextDecorationsProperty, TextDecorationLocation.Underline);
+   }
+
 
    internal void ToggleItalic()
    {
       if (Selection.Length == 0)
       {
          ItalicOn = !ItalicOn;
-         toggleFormatRun = ToggleApplyItalic;
+         toggleFormatRun = ToggleInlineApplyItalic;
          InsertRunMode = true;
          if (Selection.StartInline is IEditable startInline)
          {
@@ -64,7 +93,7 @@ public partial class FlowDocument
       if (Selection.Length == 0)
       {
          BoldOn = !BoldOn;
-         toggleFormatRun = ToggleApplyBold;
+         toggleFormatRun = ToggleInlineApplyBold;
          
          InsertRunMode = true;
          if (Selection.StartInline is IEditable startInline)
@@ -82,32 +111,7 @@ public partial class FlowDocument
          Selection.ApplyFormatting(Inline.FontWeightProperty, FontWeight.Bold);
 
    }
-
-   internal void ToggleUnderlining()
-   {
-      if (Selection.Length == 0)
-      {
-         UnderliningOn = !UnderliningOn;
-         toggleFormatRun = ToggleApplyUnderline;
-        
-         InsertRunMode = true;
-
-         if (Selection.StartInline is IEditable startInline)
-         {
-            if (startInline != Selection.StartParagraph.Inlines.Last() && GetCharPosInInline(startInline, Selection.Start) == startInline.InlineText.Length)
-            {
-               IEditable nextInline = Selection.StartParagraph.Inlines[Selection.StartParagraph.Inlines.IndexOf(startInline) + 1];
-               bool nextRunUnderlined = nextInline is EditableRun nextrun && nextrun.TextDecorations == TextDecorations.Underline;
-               InsertRunMode = (UnderliningOn != nextRunUnderlined) || nextInline is not EditableRun;
-               Selection.BiasForwardStart = !InsertRunMode;
-            }
-         }
-      }
-      else
-         Selection.ApplyFormatting(Inline.TextDecorationsProperty, TextDecorations.Underline);
-   }
-
-
+     
    internal void ApplyFormattingRange(AvaloniaProperty avProperty, object value, TextRange textRange)
    {
       disableRunTextUndo = true;
@@ -146,7 +150,8 @@ public partial class FlowDocument
       foreach (Paragraph p in GetOverlappingParagraphsInRange(textRange).OfType<Paragraph>())
          p.CallRequestInlinesUpdate();
 
-      
+      disableRunTextUndo = false;
+
       Selection.BiasForwardStart = true;
       Selection.BiasForwardEnd = true;
 
@@ -159,7 +164,16 @@ public partial class FlowDocument
     
       UpdateSelectedParagraphs();
 
-      disableRunTextUndo = false;
+
+      // Finally must update the selection rectangles/caret for some formatting changes (bold, fontsize, etc.)
+      if (textRange == Selection)
+      {
+         Dispatcher.UIThread.Post(() =>
+         {
+            SelectionChanged?.Invoke(Selection);
+
+         }, DispatcherPriority.Background);
+      }
 
    }
      
@@ -181,53 +195,72 @@ public partial class FlowDocument
       
    private void ApplyBoldRuns(List<IEditable> ieds, object fontweight)
    {
-      FontWeight applyFontWeight = FontWeight.Normal;
+      if (fontweight is not FontWeight applyFontWeight) return;
+
+      // if all of the runs are bold, force style to Normal
       if (fontweight is FontWeight.Bold)
-         applyFontWeight = (!ieds.Where(ar => ar is EditableRun edrun && edrun.FontWeight == FontWeight.Normal).Any()) ? FontWeight.Normal : FontWeight.Bold;
-      foreach (IEditable ied in ieds)
-         if (ied is EditableRun edrun) { edrun.FontWeight = applyFontWeight; }
+         applyFontWeight = ieds.All(ar => ar is EditableRun edrun && edrun.FontWeight == FontWeight.Bold) ? FontWeight.Normal : FontWeight.Bold;
+      // if all of the runs are normal, force style to Bold
+      else if (fontweight is FontWeight.Normal)
+         applyFontWeight = ieds.All(ar => ar is EditableRun edrun && edrun.FontWeight == FontWeight.Normal) ? FontWeight.Bold : FontWeight.Normal;
+
+
+      foreach (EditableRun erun in ieds.OfType<EditableRun>())
+         erun.FontWeight = applyFontWeight;
+
    }
 
    private void ApplyItalicRuns(List<IEditable> ieds, object fontstyle)
    {
-      FontStyle applyFontStyle = FontStyle.Normal;
+      if (fontstyle is not FontStyle applyFontStyle) return;
+
+      // if all of the runs are italic, force style to Normal
       if (fontstyle is FontStyle.Italic)
-         applyFontStyle = (!ieds.Where(ar => ar is EditableRun edrun && edrun.FontStyle == FontStyle.Normal).Any()) ? FontStyle.Normal : FontStyle.Italic;
-      foreach (IEditable ied in ieds)
-         if (ied is EditableRun edrun) { edrun.FontStyle = applyFontStyle; }
+         applyFontStyle = ieds.All(ar => ar is EditableRun edrun && edrun.FontStyle == FontStyle.Italic) ? FontStyle.Normal : FontStyle.Italic;
+      // if all of the runs are normal, force style to Italic
+      else if (fontstyle is FontStyle.Normal)
+         applyFontStyle = ieds.All(ar => ar is EditableRun edrun && edrun.FontStyle == FontStyle.Normal) ? FontStyle.Italic : FontStyle.Normal;
+      // otherwise (if mixed), apply italic to all runs
+      foreach (EditableRun erun in ieds.OfType<EditableRun>())
+            erun.FontStyle = applyFontStyle; 
+      
+      
    }
 
-   private void ApplyTextDecorationRuns(List<IEditable> ieds, object textdecoration)
+   private void ApplyTextDecorationRuns(List<IEditable> ieds, object textDecLocation)
    {
-      //TextDecorationCollection? applyTextDecs = null;
+      if (textDecLocation is not TextDecorationLocation applyTextDecLoc) return;
 
-      if (textdecoration is TextDecorationCollection tdec)
-      //   applyTextDecs = (!ieds.Where(ar => ar is EditableRun edrun && edrun.TextDecorations == null).Any()) ? null! : tdec;
-      {
-
-         foreach (EditableRun run in ieds)
+      // Get all runs without this new text dec
+      List<EditableRun> applyToRuns = [.. ieds.OfType<EditableRun>().Where(edrun => edrun.TextDecorations != null && edrun.TextDecorations.Any(tdec => tdec.Location == applyTextDecLoc))];
+      if (applyToRuns.Count == ieds.Count)
+      { // all runs contain textdec, so remove from all 
+         foreach (EditableRun erun in ieds.OfType<EditableRun>())
          {
-            var current = run.TextDecorations != null
-                ? new (run.TextDecorations)
-                : new TextDecorationCollection();
-
-            foreach (var dec in tdec)
+            if (erun.TextDecorations is TextDecorationCollection currentDec)
             {
-               bool alreadyHasDecoration = current.Any(x => x.Location == dec.Location);
-
-               if (!alreadyHasDecoration)
-                  current.Add(dec);
+               currentDec.RemoveAll(currentDec.Where(cdec => cdec.Location == applyTextDecLoc));
+               if (currentDec.Count == 0) currentDec = null!;
             }
+         }
+      }
+      else
+      { // none of the runs contain textdec, or mixed, so add to all which lack it
+         foreach (EditableRun erun in ieds.OfType<EditableRun>())
+         {
+            var currentDec = erun.TextDecorations == null ? new TextDecorationCollection() : [.. erun.TextDecorations];
 
-            run.TextDecorations = current.Count > 0 ? current : null;
+            bool alreadyHasDecoration = currentDec.Any(x => x.Location == applyTextDecLoc);
+            if (!alreadyHasDecoration)
+               currentDec.Add(new TextDecoration() { Location = applyTextDecLoc });
+
+            erun.TextDecorations = currentDec;
          }
       }
 
-      //foreach (IEditable ied in ieds)
-      //   if (ied is EditableRun edrun) { edrun.TextDecorations = applyTextDecs; }
 
    }
-   
+
    private void ApplyFontSizeRuns(List<IEditable> ieds, object fontsize)
    {
       foreach (IEditable ied in ieds)

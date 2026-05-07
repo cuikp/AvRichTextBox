@@ -4,7 +4,6 @@ namespace AvRichTextBox;
 
 public partial class FlowDocument
 {
-   //internal void MoveSelectionRight(bool isTextInsertion)
    internal void MoveSelectionRight()
    {
       bool previousBiasForwardEnd = Selection.BiasForwardEnd;

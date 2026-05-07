@@ -294,8 +294,7 @@ public partial class FlowDocument
    }
 
    private int GetNextUp()
-   {
-      
+   {      
 
       int currentPos = (SelectionExtendMode == ExtendMode.ExtendModeRight) ? Selection.End : Selection.Start;
       Paragraph relPar = (SelectionExtendMode == ExtendMode.ExtendModeRight) ? Selection.EndParagraph : Selection.StartParagraph;

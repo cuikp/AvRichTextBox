@@ -40,7 +40,6 @@ public partial class RichTextBox
       if (clipboard == null) return;
       //create rtf string
       List<IEditable> newInlines = FlowDoc.GetTextRangeInlines(FlowDoc.Selection, false).createdInlines;
-      //List<IEditable> newInlines = FlowDoc.GetRangeInlinesX(FlowDoc.Selection);
       string rtfString = RtfConversions.GetRtfFromInlines(newInlines);
 
       var dataTransfer = new DataTransfer();

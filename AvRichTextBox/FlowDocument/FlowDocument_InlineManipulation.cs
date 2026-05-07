@@ -36,7 +36,6 @@ public partial class FlowDocument
          };
 
          return withinRange;
-      
       }
       ))];
 

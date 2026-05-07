@@ -1,4 +1,5 @@
-﻿using DocumentFormat.OpenXml.Math;
+﻿using Avalonia.Threading;
+using DocumentFormat.OpenXml.Math;
 using System.ComponentModel;
 using System.Text;
 using static AvRichTextBox.XamlConversions;
@@ -189,7 +190,8 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 
       BiasForwardStart = false;
       BiasForwardEnd = false;
-      
+
+
    }
 
    internal string GetText()

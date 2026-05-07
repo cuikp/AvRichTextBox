@@ -194,7 +194,7 @@ public partial class FlowDocument
             try
             {
                insertIdx = GetCharPosInInline(startInline, Selection.Start);
-               if (insertIdx > -1 && insertIdx <= startInline.InlineLength)  //$$$$$$$$$$$$$$$$$$$$$$$$
+               if (insertIdx > -1 && insertIdx <= startInline.InlineLength) 
                   startInline.InlineText = startInline.InlineText.Insert(insertIdx, insertText); // undo handled by PropertyChanged: Text
             }
             catch (Exception ex){ Debug.WriteLine($"insert Error: startInlinetext = {startInline.InlineText}, idx = {insertIdx}\n{ex.Message}***");}
