@@ -1,5 +1,7 @@
 
+using Avalonia.Media;
 using DocumentFormat.OpenXml.Wordprocessing;
+using ReactiveUI;
 
 namespace AvRichTextBox;
 
@@ -293,6 +295,8 @@ public partial class FlowDocument
 
    private int GetNextUp()
    {
+      
+
       int currentPos = (SelectionExtendMode == ExtendMode.ExtendModeRight) ? Selection.End : Selection.Start;
       Paragraph relPar = (SelectionExtendMode == ExtendMode.ExtendModeRight) ? Selection.EndParagraph : Selection.StartParagraph;
 
@@ -308,6 +312,12 @@ public partial class FlowDocument
          if (parIdx > 0)
          {
             relPar = AllParagraphs[parIdx - 1];
+            Point newPoint = new(currLeft, relPar.TextLayout.Height);
+            //Debug.WriteLine("newpoint = " + newPoint.ToString());
+            
+            TextHitTestResult hitres = relPar.TextLayout.HitTestPoint(newPoint);
+            //Debug.WriteLine("hitres = " + hitres.TextPosition);
+
             int textPosNewPar = Math.Min(relPar.BlockLength, relPar.TextLayout.HitTestPoint(new Point(currLeft, relPar.TextLayout.Height)).TextPosition);
             computedPrev = relPar.StartInDoc + textPosNewPar;
          }

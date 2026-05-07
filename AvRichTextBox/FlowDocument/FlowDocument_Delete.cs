@@ -164,9 +164,10 @@ public partial class FlowDocument
       if (addUndo) 
          Undos.Add(new DeleteRangeUndo(rangePars.ConvertAll(rpar=> rpar.FullClone()), firstParIndex, this, originalRangeStart, originalTRangeLength, lastParDeleted));
 
-      (int idLeft, int idRight) edgeIds;
-      List<IEditable> rangeInlines = GetTextRangeInlinesAndAddToDoc(trange, out edgeIds);
-
+      (List<IEditable> createdInlines, (int idLeft, int idRight) edgeIds) createdInlinesResult = GetTextRangeInlines(trange, true);
+      List<IEditable> rangeInlines = createdInlinesResult.createdInlines;
+      (int idLeft, int idRight) edgeIds = createdInlinesResult.edgeIds;
+      
       //Delete the created inlines
       foreach (IEditable toDeleteRun in rangeInlines)
       {
@@ -306,12 +307,12 @@ public partial class FlowDocument
          if (Selection.Start >= Selection.StartParagraph.StartInDoc + Selection.StartParagraph.BlockLength)
             return;
 
-      
-      int originalSelectionStart = Selection.Start;
-      
+                
       if (backspace)
          MoveLeftWord();
-      
+
+      int originalSelectionStart = Selection.Start;
+
       Selection.BiasForwardStart = true;
       Selection.BiasForwardEnd = true;
 
@@ -334,18 +335,22 @@ public partial class FlowDocument
             NextWordEndPoint = Selection.StartParagraph.StartInDoc + IndexNextSpace;
          }
 
-         //if (startP.Inlines.Count > 1)
-         //   startP.RemoveEmptyInlines();
-         
          TextRange deleteTextRange = new (this, Selection.Start, NextWordEndPoint);
          DeleteRange(deleteTextRange, true, true);  // updates all text ranges, block/inline starts, and adds undo
         
       }
-            
 
-      SelectionStart_Changed(Selection, Selection.Start);
       Selection.StartParagraph.CallRequestInlinesUpdate();
       Selection.StartParagraph.CallRequestTextLayoutInfoStart();
+
+      Dispatcher.UIThread.Post(() =>
+      {
+         Select(originalSelectionStart, 0);
+         UpdateCaret();
+
+      }, DispatcherPriority.Background);
+
+
 
    }
 

@@ -69,8 +69,8 @@ public partial class MainWindow : Window
 
 
       //DEBUG
-      CreateTestDocumentWithTable();
-      //OpenTestDocument();
+      //CreateTestDocumentWithTable();
+      OpenTestDocument();
 
    }
 
@@ -214,43 +214,66 @@ public partial class MainWindow : Window
 
    private void FlowDocument_Selection_Changed(TextRange selection)
    {
-      FontSizeNS.Value = Math.Round((double)(selection.GetFormatting(FontSizeProperty) ?? 14D));
 
-      object? selFFP = selection.GetFormatting(FontFamilyProperty);
-      if (selFFP != null)
-      {
-         FontFamily ffamily = (FontFamily)selFFP;
-         FontsCB.SelectedItem = ffamily.ToString();
-      }
+      FontFamily fontFamily = MainRTB.FontFamily;
 
-      if (selection.GetFormatting(Inline.TextDecorationsProperty) is TextDecorationCollection tdc)
-      {
-         StrikeCB.IsChecked = tdc.Any(tc => tc.Location == TextDecorationLocation.Strikethrough);
-         UnderCB.IsChecked = tdc.Any(tc => tc.Location == TextDecorationLocation.Underline);
-         OverCB.IsChecked = tdc.Any(tc => tc.Location == TextDecorationLocation.Overline);
-      }
-      else
-      {
-         StrikeCB.IsChecked = false;
-         UnderCB.IsChecked = false;
-         OverCB.IsChecked = false;
-      }
-
-
-      if (selection.GetStartPar() is not Paragraph selPar) return;
       if (!progChange)
       {
          progChange = true;
-         LineHeightNS.Value = selPar.LineHeight;
-         ParagraphBorderNS.Value = selPar.BorderThickness.Left;
-         ParBorderCP.Color = selPar.BorderBrush.Color;
-         ParBackgroundCP.Color = selPar.Background.Color;
+
+
+         if (selection.GetStartPar() is Paragraph selPar)
+         {
+            LineHeightNS.Value = selPar.LineHeight;
+            ParagraphBorderNS.Value = selPar.BorderThickness.Left;
+            ParBorderCP.Color = selPar.BorderBrush == null ? Colors.Transparent : selPar.BorderBrush.Color;
+            ParBackgroundCP.Color = selPar.Background == null ? Colors.Transparent : selPar.Background.Color;
+            fontFamily = selPar.FontFamily;
+
+         }
+
+         if (selection.GetFormatting(FontFamilyProperty) is FontFamily selFFP)
+            fontFamily = selFFP;
+
+         if (fontFamily.ToString() is string fontFamilyString)
+         {
+            if (FontsCB.Items.FirstOrDefault(it => it?.ToString() == fontFamilyString) is string foundFF)
+               FontsCB.SelectedItem = foundFF; // fontFamily.ToString();
+            else
+               FontsCB.SelectedItem = null!;
+         }
+
+         if (selection.GetFormatting(BackgroundProperty) is ISolidColorBrush selBackground)
+            HighlightCP.Color = selBackground == null ? Colors.Transparent : selBackground.Color;
+         else
+            HighlightCP.Color = Colors.Transparent;
+
+         if (selection.GetFormatting(ForegroundProperty) is ISolidColorBrush selForeground)
+            FontColorCP.Color = selForeground == null ? Colors.Transparent : selForeground.Color;
+         else
+            FontColorCP.Color = Colors.Black;
+
+
+         FontSizeNS.Value = Math.Round((double)(selection.GetFormatting(FontSizeProperty) ?? 14D));
+
+         if (selection.GetFormatting(Inline.TextDecorationsProperty) is TextDecorationCollection tdc)
+         {
+            StrikeCB.IsChecked = tdc.Any(tc => tc.Location == TextDecorationLocation.Strikethrough);
+            UnderCB.IsChecked = tdc.Any(tc => tc.Location == TextDecorationLocation.Underline);
+            OverCB.IsChecked = tdc.Any(tc => tc.Location == TextDecorationLocation.Overline);
+         }
+         else
+         {
+            StrikeCB.IsChecked = false;
+            UnderCB.IsChecked = false;
+            OverCB.IsChecked = false;
+         }
+
          progChange = false;
       }
 
+   } 
       
-
-   }
 
    internal void FontSizeNS_UserValueChanged(double value)
    {

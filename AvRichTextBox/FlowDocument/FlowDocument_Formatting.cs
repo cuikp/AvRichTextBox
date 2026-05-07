@@ -112,9 +112,11 @@ public partial class FlowDocument
    {
       disableRunTextUndo = true;
 
-      (int idLeft, int idRight) edgeIds;
-      List<IEditable> newInlines = GetTextRangeInlinesAndAddToDoc(textRange, out edgeIds);
-      
+      (List<IEditable> createdInlines, (int idLeft, int idRight) edgeIds) createdInlinesResult = GetTextRangeInlines(textRange, true);
+      List<IEditable> newInlines = createdInlinesResult.createdInlines;
+      (int idLeft, int idRight) edgeIds = createdInlinesResult.edgeIds;
+
+
       //Debug.WriteLine("\nnewlines created:\n" + string.Join("\n", newInlines.ConvertAll(il=> il.InlineText + " :: " + il.Id + "\nEdge ids = L: " + edgeIds.idLeft + ", R: " + edgeIds.idRight)));  
 
       //create property association for undo 
@@ -221,8 +223,6 @@ public partial class FlowDocument
          }
       }
 
-
-
       //foreach (IEditable ied in ieds)
       //   if (ied is EditableRun edrun) { edrun.TextDecorations = applyTextDecs; }
 
@@ -236,20 +236,23 @@ public partial class FlowDocument
       
    private void ApplyBackgroundRuns(List<IEditable> ieds, object background)
    {
-      if (background.GetType() != typeof(SolidColorBrush))
-         throw new Exception("Background must be set with a SolidColorBrush");
+      ISolidColorBrush applyBrush = Brushes.Transparent;
+      if (background is ISolidColorBrush solidBrush)
+         applyBrush = solidBrush;
 
       foreach (IEditable ied in ieds)
-         if (ied is EditableRun edrun) { edrun.Background = (SolidColorBrush)background; }
+         if (ied is EditableRun edrun) { edrun.Background = applyBrush; }
+     
    }
 
    private void ApplyForegroundRuns(List<IEditable> ieds, object foreground)
    {
-      if (foreground.GetType() != typeof(SolidColorBrush))
-         throw new Exception("Foreground must be set with a SolidColorBrush");
-
+      ISolidColorBrush applyBrush = Brushes.Transparent;
+      if (foreground is SolidColorBrush solidBrush)
+         applyBrush = solidBrush;
       foreach (IEditable ied in ieds)
-         if (ied is EditableRun edrun) { edrun.Foreground = (SolidColorBrush)foreground; }
+            if (ied is EditableRun edrun) { edrun.Foreground = applyBrush; }
+      
    }
 
    private void ApplyFontStretchRuns(List<IEditable> ieds, object fontstretch)

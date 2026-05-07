@@ -232,8 +232,7 @@ public partial class FlowDocument : AvaloniaObject
              firstPar.CallRequestTextLayoutInfoStart();
              firstPar.CallRequestTextLayoutInfoEnd();
           }
-          // Re-fire SelectionChanged after TextLayout is available so UpdateSelectionIndicators
-          // in RichTextBox calculates the correct caret position
+          // Calculate initial caret position 
           SelectionChanged?.Invoke(Selection);
       
           UpdateRTBCaret?.Invoke();
@@ -255,7 +254,7 @@ public partial class FlowDocument : AvaloniaObject
       }
    }
 
-   internal string GetText(TextRange tRange) => string.Join("", GetRangeInlines(tRange).ConvertAll(il => il.InlineText));
+   internal string GetText(TextRange tRange) => string.Join("",  GetTextRangeInlines(tRange, addToDoc: false).createdInlines.ConvertAll(il => il.InlineText));
    
    internal List<Table> GetFullTablesInRange(TextRange trange) => [.. Blocks.Where(b=> b is Table t && t.StartInDoc > trange.Start && t.StartInDoc + t.BlockLength - 1 < trange.End).Cast<Table>()];
    internal List<Table> GetFulTablesInRange(int start, int end) => [.. Blocks.Where(b=> b is Table t && t.StartInDoc > start && t.StartInDoc + t.BlockLength - 1 < end).Cast<Table>()];

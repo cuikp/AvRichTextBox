@@ -78,12 +78,12 @@
 
 								<DockPanel DockPanel.Dock="Top">
 									<DockPanel DockPanel.Dock="Top" Margin="4">
-										<ColorPicker Color="Black" ColorChanged="FontCP_ColorChanged" DockPanel.Dock="Right" Width="70"  Height="25" Background="White"/>
+										<ColorPicker x:Name="FontColorCP" Color="Black" ColorChanged="FontCP_ColorChanged" DockPanel.Dock="Right" Width="70"  Height="25" Background="White"/>
 										<TextBlock Text="Font color:" HorizontalAlignment="Right" Margin="3,0" VerticalAlignment="Center"/>
 									</DockPanel>
 
 									<DockPanel Margin="4" DockPanel.Dock="Top">
-										<ColorPicker Color="White"  ColorChanged="HighlightCP_ColorChanged"  DockPanel.Dock="Right" Width="70"  Height="25" />
+										<ColorPicker Color="White" x:Name="HighlightCP"  ColorChanged="HighlightCP_ColorChanged"  DockPanel.Dock="Right" Width="70"  Height="25" />
 										<TextBlock Text="Highlight:" HorizontalAlignment="Right" Margin="3,0" VerticalAlignment="Center" />
 
 									</DockPanel>

@@ -23,13 +23,13 @@ public class TextRange : INotifyPropertyChanged, IDisposable
    public override string ToString() => $"{Start} → {End}";
 
    public TextRange(FlowDocument flowdoc, int start, int end)
-   {      
+   {
       //if (end < start) throw new AvaloniaInternalException("TextRange not valid (start must be less than end)");
+      myFlowDoc = flowdoc;
 
       this.Start = Math.Max(0, start);
       this.End = Math.Min(Math.Max(start, end), flowdoc.Text.Length);
 
-      myFlowDoc = flowdoc;
       myFlowDoc.TextRanges.Add(this);
 
    }
@@ -212,7 +212,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
          case ContentDataFormat.Xaml:
 
             StringBuilder rangeXamlBuilder = new(SectionTextDefault);
-            rangeXamlBuilder.Append(GetParagraphRunsXaml(myFlowDoc.GetRangeInlines(this), false));
+            rangeXamlBuilder.Append(GetParagraphRunsXaml(myFlowDoc.GetTextRangeInlines(this, false).createdInlines, false));
             rangeXamlBuilder.Append("</Section>");
             byte[] xamlStringBytes = Encoding.UTF8.GetBytes(rangeXamlBuilder.ToString());
             stream.Write(xamlStringBytes, 0, xamlStringBytes.Length);
@@ -230,7 +230,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 
          case ContentDataFormat.Rtf:
 
-            byte[] rtfStringBytes = Encoding.UTF8.GetBytes(RtfConversions.GetRtfFromInlines(myFlowDoc.GetRangeInlines(this)));
+            byte[] rtfStringBytes = Encoding.UTF8.GetBytes(RtfConversions.GetRtfFromInlines(myFlowDoc.GetTextRangeInlines(this, false).createdInlines));
             stream.Write(rtfStringBytes, 0, rtfStringBytes.Length);
             break;
       }

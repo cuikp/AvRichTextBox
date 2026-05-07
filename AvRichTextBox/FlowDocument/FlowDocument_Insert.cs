@@ -1,4 +1,5 @@
 ﻿using Avalonia.Threading;
+using DocumentFormat.OpenXml.InkML;
 using DynamicData;
 using RtfDomParserAv;
 using System.Text;
@@ -162,9 +163,11 @@ public partial class FlowDocument
             int originalStart = Selection.Start;
             int runIdx = Selection.StartParagraph.Inlines.IndexOf(startInline);
 
-            (int idLeft, int idRight) edgeIds;
 
-            List<IEditable> applyInlines = GetTextRangeInlinesAndAddToDoc(Selection, out edgeIds);
+            (List<IEditable> createdInlines, (int idLeft, int idRight) edgeIds) createdInlinesResult = GetTextRangeInlines(Selection, true);
+            List<IEditable> applyInlines = createdInlinesResult.createdInlines;
+            (int idLeft, int idRight) edgeIds = createdInlinesResult.edgeIds;
+
 
             if (applyInlines.Count == 0)
             {
