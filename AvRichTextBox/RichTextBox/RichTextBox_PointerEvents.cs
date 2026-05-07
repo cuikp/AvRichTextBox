@@ -67,32 +67,6 @@ public partial class RichTextBox
 
       SelectionOrigin = clickPosition;
 
-      /////////////
-
-
-      int clickPosition = thisPar.StartInDoc + hitCarIndex.TextPosition;
-
-      // Shift+Click: extend selection from current anchor
-      if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
-      {
-         if (e.Properties.IsRightButtonPressed)
-         {
-            if (FlowDoc.Selection.Length == 0)
-               FlowDoc.Select(SelectionOrigin, 0);
-            return;
-         }
-
-         PointerDownOverRTB = true;
-         SelectionOrigin = GetSelectionAnchor();
-
-         // Set selection from anchor to click point
-         SetSelectionFromAnchorTo(clickPosition);
-
-         return;
-      }
-
-      SelectionOrigin = clickPosition;
-
 
       if (e.Properties.IsRightButtonPressed)
       {
@@ -284,39 +258,6 @@ public partial class RichTextBox
    {
       //PointerDownOverRTB = false;
 
-   }
-
-   private int GetSelectionAnchor()
-   {
-      // Determine anchor point based on current extend mode
-      if (FlowDoc.Selection.Length > 0)
-      {
-         return FlowDoc.SelectionExtendMode == FlowDocument.ExtendMode.ExtendModeLeft
-             ? FlowDoc.Selection.End
-             : FlowDoc.Selection.Start;
-      }
-
-      return FlowDoc.Selection.Start;
-   }
-
-   private void SetSelectionFromAnchorTo(int position)
-   {
-      if (position < SelectionOrigin)
-      {
-         FlowDoc.Selection.BiasForwardStart = true;
-         FlowDoc.Selection.UpdateContextStart();
-         FlowDoc.SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeLeft;
-         FlowDoc.Selection.End = SelectionOrigin;
-         FlowDoc.Selection.Start = position;
-      }
-      else
-      {
-         FlowDoc.Selection.BiasForwardEnd = false;
-         FlowDoc.Selection.UpdateContextEnd();
-         FlowDoc.SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeRight;
-         FlowDoc.Selection.Start = SelectionOrigin;
-         FlowDoc.Selection.End = position;
-      }
    }
 
 
