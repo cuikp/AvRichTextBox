@@ -31,7 +31,7 @@ public class Block : INotifyPropertyChanged
    } = null!;
 
    public Thickness Margin { get; set { field = value; NotifyPropertyChanged(nameof(Margin)); } }
-
+      
    public string Text
    {
       get

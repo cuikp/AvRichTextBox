@@ -70,7 +70,7 @@ public partial class MainWindow : Window
 
       //DEBUG
       //CreateTestDocumentWithTable();
-      //OpenTestDocument();
+      OpenTestDocument();
 
    }
 
@@ -212,18 +212,36 @@ public partial class MainWindow : Window
 
    bool progChange = true;
 
-   private void MainRTB_PointerReleased(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
+   private void MainRTB_PointerReleased(object? sender, PointerReleasedEventArgs e)
+   {
+      UpdatePanelValues();
+   }
+
+   private void MainRTB_KeyUp(object? sender, KeyEventArgs e)
    {
       //UpdatePanelValues();
    }
 
-   private void MainRTB_KeyUp(object? sender, Avalonia.Input.KeyEventArgs e)
+   private void UpdatePanelValues()
    {
-      //UpdatePanelValues();
+
+      return;
+
+      if (MainRTB.FlowDocument.Selection.GetFormatting(BackgroundProperty) is ISolidColorBrush selBackground)
+         HighlightCP.Color = selBackground == null ? Colors.Transparent : selBackground.Color;
+      else
+         HighlightCP.Color = Colors.Transparent;
+
+      if (MainRTB.FlowDocument.Selection.GetFormatting(ForegroundProperty) is ISolidColorBrush selForeground)
+         FontColorCP.Color = selForeground == null ? Colors.Transparent : selForeground.Color;
+      else
+         FontColorCP.Color = Colors.Black;
    }
 
    private void FlowDocument_Selection_Changed(TextRange selection)
    {
+
+      return;
 
       FontFamily fontFamily = MainRTB.FontFamily;
 
@@ -254,16 +272,7 @@ public partial class MainWindow : Window
             FontsCB.SelectedItem = null!;
       }
 
-      if (selection.GetFormatting(BackgroundProperty) is ISolidColorBrush selBackground)
-         HighlightCP.Color = selBackground == null ? Colors.Transparent : selBackground.Color;
-      else
-         HighlightCP.Color = Colors.Transparent;
-
-      if (selection.GetFormatting(ForegroundProperty) is ISolidColorBrush selForeground)
-         FontColorCP.Color = selForeground == null ? Colors.Transparent : selForeground.Color;
-      else
-         FontColorCP.Color = Colors.Black;
-
+ 
       var size = selection.GetFormatting(FontSizeProperty);
       FontSizeNS.Value = Math.Round((double)(size ?? 14D));
 
@@ -299,8 +308,7 @@ public partial class MainWindow : Window
    
       }, DispatcherPriority.Background);
    }
-
-   
+      
 
    internal void LineHeightNS_UserValueChanged(double value)
    {
@@ -309,7 +317,6 @@ public partial class MainWindow : Window
          //p.LineSpacing *= 2;
          p.LineHeight = value;
       }
-         
                   
    }
 
@@ -341,14 +348,16 @@ public partial class MainWindow : Window
 
    private void FontCP_ColorChanged(object? sender, ColorChangedEventArgs e)
    {
-      SolidColorBrush hBrush = new (e.NewColor);
+     SolidColorBrush hBrush = new (e.NewColor);
       MainRTB.FlowDocument.Selection.ApplyFormatting(ForegroundProperty, hBrush);
+
    }
-   
+
    private void HighlightCP_ColorChanged(object? sender, ColorChangedEventArgs e)
-   {
+   {    
       SolidColorBrush hBrush = new (e.NewColor);
       MainRTB.FlowDocument.Selection.ApplyFormatting(BackgroundProperty, hBrush);
+
    }
 
 #if DEBUG

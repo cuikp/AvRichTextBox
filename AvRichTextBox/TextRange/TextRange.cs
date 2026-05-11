@@ -214,7 +214,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
          case ContentDataFormat.Xaml:
 
             StringBuilder rangeXamlBuilder = new(SectionTextDefault);
-            rangeXamlBuilder.Append(GetParagraphRunsXaml(myFlowDoc.GetTextRangeInlines(this, false).createdInlines, false));
+            rangeXamlBuilder.Append(GetParagraphRunsXaml(myFlowDoc.GetTextRangeInlines(this, addToDoc: false).createdInlines, isXamlPackage: false));
             rangeXamlBuilder.Append("</Section>");
             byte[] xamlStringBytes = Encoding.UTF8.GetBytes(rangeXamlBuilder.ToString());
             stream.Write(xamlStringBytes, 0, xamlStringBytes.Length);
@@ -232,7 +232,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 
          case ContentDataFormat.Rtf:
 
-            byte[] rtfStringBytes = Encoding.UTF8.GetBytes(RtfConversions.GetRtfFromInlines(myFlowDoc.GetTextRangeInlines(this, false).createdInlines));
+            byte[] rtfStringBytes = Encoding.UTF8.GetBytes(RtfConversions.GetRtfFromInlines(myFlowDoc.GetTextRangeInlines(this, addToDoc: false).createdInlines));
             stream.Write(rtfStringBytes, 0, rtfStringBytes.Length);
             break;
       }

@@ -4,6 +4,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Media.Immutable;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
+using ReactiveUI;
 using System;
 using System.Linq;
 using System.Text;
@@ -227,158 +228,32 @@ internal static partial class WordConversions
 
                   break;
 
-
                case "rPr":
 
-                  EditableRun thisRun = (EditableRun)iline!;
-                  foreach (OpenXmlElement rprsection in rsection.Elements())
-                  {
-                     try
-                     {
-                        switch (rprsection.LocalName)
-                        {  //Word docx inherently does not support overline
-                           case "strike":
-                              thisRun.TextDecorations ??= [];
-                              thisRun.TextDecorations.Add(new() { Location = TextDecorationLocation.Strikethrough });
-                              break;
-
-                           case "u":
-                              thisRun.TextDecorations ??= [];
-                              thisRun.TextDecorations.Add(new() { Location = TextDecorationLocation.Underline });
-                              break;
-
-                           case "i": thisrun.FontStyle = FontStyle.Italic; break;
-                           case "b": thisrun.FontWeight = FontWeight.Bold; break;
-                                 
-                           case "rFonts":
-                                                            
-                              string runAsciiFont = "";
-                              string runEastAsiaFont = "";
-                              // Dim cultureInfo As CultureInfo = cultureInfo.CurrentCulture
-
-                              foreach (OpenXmlAttribute ga in rprsection.GetAttributes())
-                              {
-                                 switch (ga.LocalName)
-                                 {                                       
-                                    case "ascii": { runAsciiFont = ga.Value!; break; }
-                                    case "eastAsia": { runEastAsiaFont = ga.Value!; break; }
-                                    case "hAnsi": { runEastAsiaFont = ga.Value!; break; }
-                                    case "cs": { runEastAsiaFont = ga.Value!; break; }
-                                    case "hint":
-                                       {
-                                          //System.Windows.Markup.XmlLanguage JapLang;
-                                          //JapLang = (System.Windows.Markup.XmlLanguage)xlc.ConvertFromString("ja-JP");
-                                          //if ((ga.Value ?? "") == "eastAsia") iline.FontFamily = new System.Windows.Media.FontFamily(DefaultEastAsiaFont);
-                                          break;
-                                       }
-                                    default: { break; }
-                                 }
-                              }
-
-                              runEastAsiaFont ??= DefaultEastAsiaFont;
-                              runEastAsiaFont ??= "Times New Roman";
-                              //runEastAsiaFont = (runEastAsiaFont == "") ? DefaultEastAsiaFont : runEastAsiaFont;
-                              if (runAsciiFont != DefaultAsciiFont | runEastAsiaFont != DefaultEastAsiaFont)
-                                 thisRun.FontFamily = new FontFamily(runEastAsiaFont + ", Meiryo");
-
-                              break;
-
-                           case "sz":
-
-                              thisRun.FontSize = PointsToPixels(Convert.ToDouble(rprsection.GetAttributes()[0].Value));
-                              thisRun.FontSize /= 2;
-                              break;
-
-
-                           case "szCs":
-
-                              thisRun.FontSize = PointsToPixels(Convert.ToDouble(rprsection.GetAttributes()[0].Value));
-                              thisRun.FontSize /= 2;
-                              break;
-
-
-                           case "highlight":
-                                                                                          
-                              try
-                              {
-                                 if (rprsection.GetAttributes()[0].Value is string valString && valString != "none")
-                                 {
-                                    BrushConverter? Bconverter = new();
-                                       if (Bconverter.ConvertFromString(WordColorValueToHexString(valString, true)) is IBrush hBrush)
-                                          thisRun.Background = hBrush;
-                                 }
-                              }
-                              catch(Exception ex) { Debug.WriteLine("error highlight: " + ex.Message); }
-                             
-                              break;
-
-                           //case "tag":
-
-                           //   thisRun.Tag = rprsection.GetAttributes()[0].Value;
-                           //   break;
-
-
-                           case "color":
-
-                              try
-                              {
-                                 BrushConverter? BConverter = new();
-                                 string? brushString = "#FF000000"!;
-                                 string colorValString = rprsection.GetAttributes()[0].Value!;
-                                 brushString = colorValString switch
-                                 {
-                                    "auto" => "#FF000000"!,
-                                    _ => WordColorValueToHexString(rprsection.GetAttributes()[0].Value!, false),
-                                 };
-                                 if (!brushString.StartsWith('#')) brushString = "#" + brushString;
-                                 thisRun.Foreground = (ImmutableSolidColorBrush)BConverter.ConvertFromString(brushString)!;
-                                 //thisRun.Foreground = (SolidColorBrush)BConverter.ConvertFromString(brushString)!;
-                              }
-                              catch (Exception cEx) { Debug.WriteLine("Color error at:\n" + thisRun.Text + "\n\nvalue=" + rprsection.GetAttributes()[0].Value + "\n" + cEx.Message); }
-                              break;
-
-
-                           case "vertAlign":
-
-                              switch (rprsection.GetAttributes()[0].Value)
-                              {
-                                 case "subscript":
-                                    thisRun.BaselineAlignment = BaselineAlignment.Subscript;
-                                    break;
-
-                                 case "superscript":
-                                    thisRun.BaselineAlignment = BaselineAlignment.Superscript;
-                                    break;
-
-                                 default:
-                                    thisRun.BaselineAlignment = BaselineAlignment.Baseline;
-                                    break;
-                              }
-
-                              break;
-                        }
-
-                     }
-                     catch (Exception rprEx) { Debug.WriteLine($"Error getting run properties: LocalName={rprsection.LocalName}, {rprEx.Message}"); }
-                  }
-
+                  GetRunProperties(rsection, ref thisrun);
                   break;
-
 
                case "br":
                   EditableLineBreak newLineBreak = new();
                   para.Inlines.Add(newLineBreak);
                   break;
 
-               case "t": {  thisrun.Text += rsection.InnerText; break; }
+               case "t": 
+                  thisrun.Text += rsection.InnerText; 
+                  break;
                //case "t": { thisrun.GetText += rsection.InnerText; lastRunText = thisrun.GetText; break; }  //For debugging purposes
 
-               case "delText": { thisrun.Text += rsection.InnerText; thisrun.TextDecorations = TextDecorations.Strikethrough; thisrun.Foreground = Brushes.Red; break; }
+               case "delText": 
+                  thisrun.Text += rsection.InnerText; 
+                  thisrun.TextDecorations = TextDecorations.Strikethrough; 
+                  thisrun.Foreground = Brushes.Red; 
+                  break;
 
                case "lastRenderedPageBreak": break;
 
-               default: { break; }
-                  //default: { MessageBox.Show("unknown:\n" + rsection.LocalName);  break; }
+               default:
+                  Debug.WriteLine($"Unknown openxml run element: {rsection.LocalName}");
+                  break;
 
             }
 
@@ -388,6 +263,141 @@ internal static partial class WordConversions
       }
 
       return iline;
+   }
+
+   private static void GetRunProperties(OpenXmlElement rsection, ref EditableRun thisRun)
+   {
+      foreach (OpenXmlElement rprsection in rsection.Elements())
+      {
+         try
+         {
+            switch (rprsection.LocalName)
+            {  //Word docx inherently does not support overline
+               case "strike":
+                  thisRun.TextDecorations ??= [];
+                  thisRun.TextDecorations.Add(new() { Location = TextDecorationLocation.Strikethrough });
+                  break;
+
+               case "u":
+                  thisRun.TextDecorations ??= [];
+                  thisRun.TextDecorations.Add(new() { Location = TextDecorationLocation.Underline });
+                  break;
+
+               case "i": thisRun.FontStyle = FontStyle.Italic; break;
+               case "b": thisRun.FontWeight = FontWeight.Bold; break;
+
+               case "rFonts":
+
+                  string runAsciiFont = "";
+                  string runEastAsiaFont = "";
+                  // Dim cultureInfo As CultureInfo = cultureInfo.CurrentCulture
+
+                  foreach (OpenXmlAttribute ga in rprsection.GetAttributes())
+                  {
+                     switch (ga.LocalName)
+                     {
+                        case "ascii": { runAsciiFont = ga.Value!; break; }
+                        case "eastAsia": { runEastAsiaFont = ga.Value!; break; }
+                        case "hAnsi": { runEastAsiaFont = ga.Value!; break; }
+                        case "cs": { runEastAsiaFont = ga.Value!; break; }
+                        case "hint":
+                           {
+                              //System.Windows.Markup.XmlLanguage JapLang;
+                              //JapLang = (System.Windows.Markup.XmlLanguage)xlc.ConvertFromString("ja-JP");
+                              //if ((ga.Value ?? "") == "eastAsia") iline.FontFamily = new System.Windows.Media.FontFamily(DefaultEastAsiaFont);
+                              break;
+                           }
+                        default: { break; }
+                     }
+                  }
+
+                  runEastAsiaFont ??= DefaultEastAsiaFont;
+                  runEastAsiaFont ??= "Times New Roman";
+                  //runEastAsiaFont = (runEastAsiaFont == "") ? DefaultEastAsiaFont : runEastAsiaFont;
+                  if (runAsciiFont != DefaultAsciiFont | runEastAsiaFont != DefaultEastAsiaFont)
+                     thisRun.FontFamily = new FontFamily(runEastAsiaFont + ", Meiryo");
+
+                  break;
+
+               case "sz":
+
+                  thisRun.FontSize = PointsToPixels(Convert.ToDouble(rprsection.GetAttributes()[0].Value));
+                  thisRun.FontSize /= 2;
+                  break;
+
+
+               case "szCs":
+
+                  thisRun.FontSize = PointsToPixels(Convert.ToDouble(rprsection.GetAttributes()[0].Value));
+                  thisRun.FontSize /= 2;
+                  break;
+
+
+               case "highlight":
+
+                  try
+                  {
+                     if (rprsection.GetAttributes()[0].Value is string valString && valString != "none")
+                     {
+                        BrushConverter? Bconverter = new();
+                        if (Bconverter.ConvertFromString(WordColorValueToHexString(valString, true)) is IBrush hBrush)
+                           thisRun.Background = hBrush;
+                     }
+                  }
+                  catch (Exception ex) { Debug.WriteLine("error highlight: " + ex.Message); }
+
+                  break;
+
+               //case "tag":
+
+               //   thisRun.Tag = rprsection.GetAttributes()[0].Value;
+               //   break;
+
+
+               case "color":
+
+                  try
+                  {
+                     BrushConverter? BConverter = new();
+                     string? brushString = "#FF000000"!;
+                     string colorValString = rprsection.GetAttributes()[0].Value!;
+                     brushString = colorValString switch
+                     {
+                        "auto" => "#FF000000"!,
+                        _ => WordColorValueToHexString(rprsection.GetAttributes()[0].Value!, false),
+                     };
+                     if (!brushString.StartsWith('#')) brushString = "#" + brushString;
+                     thisRun.Foreground = (ImmutableSolidColorBrush)BConverter.ConvertFromString(brushString)!;
+                     //thisRun.Foreground = (SolidColorBrush)BConverter.ConvertFromString(brushString)!;
+                  }
+                  catch (Exception cEx) { Debug.WriteLine("Color error at:\n" + thisRun.Text + "\n\nvalue=" + rprsection.GetAttributes()[0].Value + "\n" + cEx.Message); }
+                  break;
+
+
+               case "vertAlign":
+
+                  switch (rprsection.GetAttributes()[0].Value)
+                  {
+                     case "subscript":
+                        thisRun.BaselineAlignment = BaselineAlignment.Subscript;
+                        break;
+
+                     case "superscript":
+                        thisRun.BaselineAlignment = BaselineAlignment.Superscript;
+                        break;
+
+                     default:
+                        thisRun.BaselineAlignment = BaselineAlignment.Baseline;
+                        break;
+                  }
+
+                  break;
+            }
+
+         }
+         catch (Exception rprEx) { Debug.WriteLine($"Error getting run properties: LocalName={rprsection.LocalName}, {rprEx.Message}"); }
+      }
+
    }
 
    internal static EditableHyperlink GetEditableHyperlink(OpenXmlElement psection, ref Paragraph para, MainDocumentPart mainDocPart)

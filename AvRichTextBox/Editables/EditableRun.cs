@@ -3,6 +3,7 @@ using Avalonia.Media;
 
 namespace AvRichTextBox;
 
+[DebuggerDisplay("Text: {Text}")]
 public class EditableRun : Run, IEditable
 {
    
@@ -65,7 +66,8 @@ public class EditableRun : Run, IEditable
    
    public bool IsEmpty => InlineText.Length == 0;
    public string FontName => FontFamily?.Name == null ? "" : FontFamily?.Name!;
-      
+   
+   public bool IsFirstInlineOfParagraph { get; set; }
    public bool IsLastInlineOfParagraph { get; set; }
    public bool IsTableCellInline { get; set; } = false;
    

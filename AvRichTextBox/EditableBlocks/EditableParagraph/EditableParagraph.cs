@@ -81,19 +81,9 @@ internal partial class EditableParagraph : TextBlock
       
       myDocIC = GetDocIC;
 
-     
-      //Ensure empty runs (paragraphs/linebreaks)
+      //Ensure empty runs (paragraphs)
       if (thisPar.Inlines.Count == 0)
          thisPar.Inlines.Add(new EditableRun(""));
-
-      List<int> lineBreakIndexes = thisPar.Inlines.OfType<EditableLineBreak>().ToList().ConvertAll(elb => thisPar.Inlines.IndexOf(elb));
-      for (int idx = lineBreakIndexes.Count - 1; idx >= 0; idx--)
-      {
-         int elbIdx = lineBreakIndexes[idx];
-
-         if (elbIdx == thisPar.Inlines.Count - 1 || thisPar.Inlines[elbIdx + 1] is not EditableRun erun)
-            thisPar.Inlines.Insert(elbIdx + 1, new EditableRun(""));
-      }
 
       UpdateInlines();
 

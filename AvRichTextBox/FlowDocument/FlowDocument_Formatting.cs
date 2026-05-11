@@ -116,7 +116,7 @@ public partial class FlowDocument
    {
       disableRunTextUndo = true;
 
-      (List<IEditable> createdInlines, (int idLeft, int idRight) edgeIds) createdInlinesResult = GetTextRangeInlines(textRange, true);
+      (List<IEditable> createdInlines, (int idLeft, int idRight) edgeIds) createdInlinesResult = GetTextRangeInlines(textRange, addToDoc: true);
       List<IEditable> newInlines = createdInlinesResult.createdInlines;
       (int idLeft, int idRight) edgeIds = createdInlinesResult.edgeIds;
 
@@ -165,7 +165,7 @@ public partial class FlowDocument
       UpdateSelectedParagraphs();
 
 
-      // Finally must update the selection rectangles/caret for some formatting changes (bold, fontsize, etc.)
+      // Finally must update the selection rectangles/caret size for some formatting changes (bold, fontsize, etc.)
       if (textRange == Selection)
       {
          Dispatcher.UIThread.Post(() =>
@@ -321,6 +321,27 @@ public partial class FlowDocument
       elink.BaselineAlignment = linkRun.BaselineAlignment;
       elink.Foreground = linkRun.Foreground;
    }
+
+   //internal static void EnsureEmptyRuns(ref Paragraph newpar)
+   //{
+   //   if (newpar.Inlines.Count == 0)
+   //      newpar.Inlines.Add(new EditableRun(""));
+
+   //   // linebreaks must have empty runs between them
+   //   for (int i = newpar.Inlines.Count - 1; i >= 0; i--)
+   //   {
+   //      if (!newpar.Inlines[i].IsLineBreak)
+   //         continue;
+
+   //      bool addBefore = i == 0 || newpar.Inlines[i - 1].IsLineBreak;
+   //      bool addAfter = i == newpar.Inlines.Count - 1;
+
+   //      if (addAfter)
+   //         newpar.Inlines.Insert(i + 1, new EditableRun(""));
+   //      if (addBefore)
+   //         newpar.Inlines.Insert(i, new EditableRun(""));
+   //   }
+   //}
 
 }
 

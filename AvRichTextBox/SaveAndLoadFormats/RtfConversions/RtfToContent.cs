@@ -1,6 +1,8 @@
-﻿using Avalonia.Layout;
+﻿using Avalonia.Controls.Documents;
+using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using DocumentFormat.OpenXml.Drawing.Diagrams;
 using DynamicData;
 using RtfDomParserAv;
 using System.Text.RegularExpressions;
@@ -235,8 +237,8 @@ internal static partial class RtfConversions
 
       newpar.Inlines.AddRange(addInlines);
 
-      if (newpar.Inlines.Count == 0) newpar.Inlines.Add(new EditableRun(""));
-
+      newpar.EnsureEmptyRuns();
+     
       double ilineH = newpar.Inlines.First().InlineHeight;
 
       if (rtfpar.Format.MultipleLineSpacing) 

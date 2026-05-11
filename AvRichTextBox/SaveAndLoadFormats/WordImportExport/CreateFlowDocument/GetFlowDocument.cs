@@ -136,12 +136,13 @@ internal static partial class WordConversions
 
                      try
                      {
-                        Paragraph para = GetParagraph(section, fdoc, mainDocPart);
-                        //para.FontFamily = fdoc.FontFamily;
-                        para.Margin = new Thickness(0);
-                        if (para.Inlines.Count == 0)
-                           para.Inlines.Add(new EditableRun(""));
-                        fdoc.Blocks.Add(para);
+                        Paragraph newpar = GetParagraph(section, fdoc, mainDocPart);
+                        //newpar.FontFamily = fdoc.FontFamily;
+                        newpar.Margin = new Thickness(0);
+
+                        newpar.EnsureEmptyRuns();
+
+                        fdoc.Blocks.Add(newpar);
                      }
                      catch (Exception paraEx) { Debug.WriteLine($"Could not get paragraph:\n{paraEx.Message}"); }
 

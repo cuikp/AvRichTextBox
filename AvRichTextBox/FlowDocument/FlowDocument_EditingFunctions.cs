@@ -1,8 +1,4 @@
 ﻿using DynamicData;
-using RtfDomParserAv;
-using System.Text;
-using System.Xml;
-using Avalonia.Threading;
 
 namespace AvRichTextBox;
 
@@ -92,11 +88,13 @@ public partial class FlowDocument
       }
    }
 
-   internal void RestoreDeletedBlocks(List<Paragraph> parClones, int blockIndex, bool lastParWasDeleted)
+   internal void RestoreDeletedBlocks(List<Paragraph> parClones, int blockIndex, bool firstParWasDeleted, bool lastParWasDeleted)
    {
       int lengthBefore = Text.Length;
-      //If first paragraph was not deleted, it needs to be removed before restoring previous state
-      if (!lastParWasDeleted)  //$$$$$$$$$$$$$$$$$$$$$$$$
+      //If either first or last paragraph was not deleted, it needs to be removed before restoring previous state
+      if (!lastParWasDeleted)  
+         Blocks.RemoveAt(blockIndex);
+      if (!firstParWasDeleted)  
          Blocks.RemoveAt(blockIndex);
 
       //Restore all of the previous paragraphs
@@ -140,7 +138,7 @@ public partial class FlowDocument
                default:
                   // create new paragraphs for pars 1 onward
                   addPar = (Paragraph)block;
-                  pastedTextLength += 1;
+                  pastedTextLength += 1;  
                   paragraphCreated = true;
                   break;
             }

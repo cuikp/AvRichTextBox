@@ -25,6 +25,7 @@ public class EditableCellBreak : IEditable
 
    public bool IsEmpty => true;
    public bool IsLastInlineOfParagraph { get; set; }
+   public bool IsFirstInlineOfParagraph { get; set; }
 
    public IEditable Clone() => new EditableCellBreak() { MyParagraphId = this.MyParagraphId, MyFlowDoc = this.MyFlowDoc, }; 
 

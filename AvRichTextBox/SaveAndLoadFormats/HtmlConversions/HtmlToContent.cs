@@ -652,6 +652,7 @@ internal static partial class HtmlConversions
          }
       }
 
+      par.EnsureEmptyRuns();
       return par;
 
    }

@@ -25,6 +25,7 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
 
    public int InlineLength => 1;
    public bool IsEmpty => false;
+   public bool IsFirstInlineOfParagraph { get; set; }
    public bool IsLastInlineOfParagraph { get; set; }
    //public double InlineHeight => (this.Child != null && this.Child.GetType() == typeof(Image) ? : this.Child.Bounds.Height;
    public double InlineHeight => Child == null ? 0 : this.Child.Bounds.Height;

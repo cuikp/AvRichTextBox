@@ -80,14 +80,12 @@ internal static partial class WordConversions
          //Attach run properties
          newrun.AppendChild(RunProp);
 
-         // Must parse line breaks
+         // Must parse line breaks, ignoring empty runs
          if (!string.IsNullOrEmpty(runtext.Text))
          {
-            //if (runtext.GetText.Contains(Constants.vbLf))
             if (runtext.Text.Contains('\n'))
                ParseRunText(ref newrun, runtext.Text);
             else
-
                newrun.AppendChild(runtext);
          }
 

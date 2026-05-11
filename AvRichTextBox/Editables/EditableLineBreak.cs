@@ -27,6 +27,7 @@ public class EditableLineBreak : LineBreak, IEditable
    public string FontName => "---";
 
    public bool IsEmpty => false;
+   public bool IsFirstInlineOfParagraph { get; set; }
    public bool IsLastInlineOfParagraph { get; set; }
 
    public IEditable Clone() => new EditableLineBreak() { MyParagraphId = this.MyParagraphId, MyFlowDoc = this.MyFlowDoc, }; 

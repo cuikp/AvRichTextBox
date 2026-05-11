@@ -455,7 +455,8 @@ public partial class XamlConversions
             newPar.Inlines.Add(newIED);
       }
 
-      if (newPar.Inlines.Count == 0) newPar.Inlines.Add(new EditableRun(""));
+
+      newPar.EnsureEmptyRuns();
 
       return newPar;
    }

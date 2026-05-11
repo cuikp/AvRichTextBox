@@ -252,14 +252,14 @@ internal static partial class RtfConversions
 
       foreach (IEditable ied in inlines)
       {
-
-         sb.Append(GetIEditableRtf(ied, ref BoldOn, ref ItalicOn, ref UnderlineOn, ref StrikeoutOn, ref SuperscriptOn, ref SubscriptOn, ref CurrentLang, fontMap, colorMap));
-         
-         if (ied.InlineText.EndsWith("\r\n"))
-            sb.Append(@"\par ");
+         string IEdRtf = GetIEditableRtf(ied, ref BoldOn, ref ItalicOn, ref UnderlineOn, ref StrikeoutOn, ref SuperscriptOn, ref SubscriptOn, ref CurrentLang, fontMap, colorMap);
+         IEdRtf = IEdRtf.Replace("\r\n", @"\par ");
+         sb.Append(IEdRtf);
       }
       
       sb.Append('}');
+
+      //Debug.WriteLine("inlines rtfString = " + sb.ToString());
 
       return sb.ToString();
    }
@@ -322,7 +322,7 @@ internal static partial class RtfConversions
             break;
 
          case EditableRun erun:
-
+            // (empty runs are ignored in rtf conversion)
             AppendRun(ref iedSB, erun, ref BoldOn, ref ItalicOn, ref UnderlineOn, ref StrikeoutOn, ref SuperscriptOn, ref SubscriptOn, ref currentLang, fontMap, colorMap);
             break;
 

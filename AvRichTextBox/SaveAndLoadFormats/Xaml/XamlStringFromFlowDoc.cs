@@ -256,8 +256,10 @@ public partial class XamlConversions
          {
             case EditableRun erun:
 
+               if (erun.Text == "") continue; // don't save empty runs
+
                StringBuilder RunHeader = new();
-               if (erun is EditableHyperlink elink)
+               if (erun is EditableHyperlink elink)  // Hyperlink is based on EditableRun
                {
                   RunHeader.Append("<Hyperlink ");
                   RunHeader.Append($"NavigateUri=\"{elink.NavigateUri}\">");

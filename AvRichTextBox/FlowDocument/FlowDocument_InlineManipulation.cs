@@ -21,15 +21,8 @@ public partial class FlowDocument
       {
          int ilineAbsoluteStart = p.StartInDoc + iline.TextPositionOfInlineInParagraph;
          int ilineAbsoluteEnd = ilineAbsoluteStart + iline.InlineLength;
-
-         //bool AtStart = (p.Inlines.IndexOf(iline) == 0) switch   //$$$$$$$$$$$$$$$$$$$$
-         //{
-         //   true => ilineAbsoluteEnd >= trange.Start,
-         //   false => ilineAbsoluteEnd > trange.Start,
-         //};
-
          bool AtStart = ilineAbsoluteEnd > trange.Start;
-          bool withinRange = iline.IsLastInlineOfParagraph switch
+         bool withinRange = iline.IsLastInlineOfParagraph switch
          {
             true =>  AtStart && ilineAbsoluteStart <= trange.End,
             false => AtStart && ilineAbsoluteStart < trange.End
@@ -84,75 +77,79 @@ public partial class FlowDocument
       string firstInlineText = firstInline.InlineText;
       int indexOfLastInline = endPar.Inlines.IndexOf(lastInline);
 
-      if (addToDoc)
-      {
-         if (AllSelectedInlines.Count == 1)
-         {  // Range contained within one inline
-
-            if (!RangeEndsAtInlineEnd)
-            {
-               insertLastInline.InlineText = lastInlineText[..lastInlineSplitIndex];
-               lastInline.InlineText = lastInlineText[lastInlineSplitIndex..];
-               AllSelectedInlines.Remove(lastInline);
-               AllSelectedInlines.Add(insertLastInline);
-
-               endPar.Inlines.Insert(indexOfLastInline, insertLastInline);
-
-               firstInlineText = insertLastInline.InlineText;
-               insertFirstInline = insertLastInline.Clone();
-
-               firstInlineSplitIndex = Math.Min(firstInlineSplitIndex, firstInlineText.Length);
-            }
-
-            bool RangeStartsAtInlineStart = firstInlineSplitIndex <= 0;
-
-
-            if (!RangeStartsAtInlineStart)
-            {
-               insertFirstInline.InlineText = firstInlineText[..firstInlineSplitIndex];
-               insertLastInline.InlineText = firstInlineText[firstInlineSplitIndex..];
-               startPar.Inlines.Insert(indexOfLastInline, insertFirstInline);
-               edgeIds.idLeft = insertFirstInline.Id;
-
-               if (RangeEndsAtInlineEnd)
-                  lastInline.InlineText = firstInlineText[firstInlineSplitIndex..];
-            }
-         }
-         else
+      if (AllSelectedInlines.Count == 1)
+      {  // Range contained within one inline
+        
+         if (!RangeEndsAtInlineEnd)
          {
-            //split last run and remove trailing excess run from list
-            if (!RangeEndsAtInlineEnd)
-            {  //Debug.WriteLine("lastinlinesplitinex = " + lastInlineSplitIndex + "\ninlintext = " +  lastInlineText);
+            insertLastInline.InlineText = lastInlineText[..lastInlineSplitIndex];
+            lastInline.InlineText = lastInlineText[lastInlineSplitIndex..];
+            AllSelectedInlines.Remove(lastInline);
+            AllSelectedInlines.Add(insertLastInline);
 
-               insertLastInline.InlineText = lastInlineText[..lastInlineSplitIndex];
-               lastInline.InlineText = lastInlineText[lastInlineSplitIndex..];
-               AllSelectedInlines.Remove(lastInline);
-               AllSelectedInlines.Add(insertLastInline);
+            if (addToDoc)
                endPar.Inlines.Insert(indexOfLastInline, insertLastInline);
 
-               firstInlineSplitIndex = Math.Min(firstInlineSplitIndex, firstInlineText.Length);
-            }
+            firstInlineText = insertLastInline.InlineText;
+            insertFirstInline = insertLastInline.Clone();
+
+            firstInlineSplitIndex = Math.Min(firstInlineSplitIndex, firstInlineText.Length);
+
+         }
+
+         bool RangeStartsAtInlineStart = firstInlineSplitIndex <= 0;
+
+         if (!RangeStartsAtInlineStart)
+         {
+            insertFirstInline.InlineText = firstInlineText[..firstInlineSplitIndex];
+            insertLastInline.InlineText = firstInlineText[firstInlineSplitIndex..];
+            edgeIds.idLeft = insertFirstInline.Id;
+
+            if (addToDoc)
+               startPar.Inlines.Insert(indexOfLastInline, insertFirstInline);
+
+            if (RangeEndsAtInlineEnd)
+               lastInline.InlineText = firstInlineText[firstInlineSplitIndex..];
+         }
+
+      }
+      else
+      {
+         //split last run and remove trailing excess run from list
+         if (!RangeEndsAtInlineEnd)
+         {  //Debug.WriteLine("lastinlinesplitinex = " + lastInlineSplitIndex + "\ninlintext = " +  lastInlineText);
+
+            insertLastInline.InlineText = lastInlineText[..lastInlineSplitIndex];
+            firstInlineSplitIndex = Math.Min(firstInlineSplitIndex, firstInlineText.Length);
+            lastInline.InlineText = lastInlineText[lastInlineSplitIndex..];
+            AllSelectedInlines.Remove(lastInline);
+            AllSelectedInlines.Add(insertLastInline);
+
+            if (addToDoc)
+               endPar.Inlines.Insert(indexOfLastInline, insertLastInline);
+         }
+
+         bool RangeStartsAtInlineStart = firstInlineSplitIndex <= 0;
+
+         // split first run and remove initial excess run from list
+         if (!RangeStartsAtInlineStart && firstInlineText != "")
+         {  //Debug.WriteLine("firstinline text = " + firstInlineText + ", " + firstInlineText.Length + ", splitidx = " + firstInlineSplitIndex);
+            insertFirstInline.InlineText = firstInlineText[firstInlineSplitIndex..];
 
             int indexOfFirstInline = startPar.Inlines.IndexOf(firstInline);
+            firstInline.InlineText = firstInlineText[..firstInlineSplitIndex];
+            AllSelectedInlines.Remove(firstInline);
+            AllSelectedInlines.Insert(0, insertFirstInline);
 
-            bool RangeStartsAtInlineStart = firstInlineSplitIndex <= 0;
-
-            // split first run and remove initial excess run from list
-            if (!RangeStartsAtInlineStart && firstInlineText != "")
-            {  //Debug.WriteLine("firstinline text = " + firstInlineText + ", " + firstInlineText.Length + ", splitidx = " + firstInlineSplitIndex);
-
-               firstInline.InlineText = firstInlineText[..firstInlineSplitIndex];
-               insertFirstInline.InlineText = firstInlineText[firstInlineSplitIndex..];
-               AllSelectedInlines.Remove(firstInline);
-               AllSelectedInlines.Insert(0, insertFirstInline);
+            if (addToDoc)
                startPar.Inlines.Insert(indexOfFirstInline + 1, insertFirstInline);
-            }
          }
-         //Debug.WriteLine("\nInlines to convert=\n" + string.Join("\n", AllSelectedInlines.ConvertAll(il => il.InlineText + " :: " + il.Id)));
       }
+      //Debug.WriteLine("\nInlines to convert=\n" + string.Join("\n", AllSelectedInlines.ConvertAll(il => il.InlineText + " :: " + il.Id)));
+     
 
-      //startPar.CallRequestInlinesUpdate();
-      //endPar.CallRequestInlinesUpdate();
+      startPar.CallRequestInlinesUpdate();
+      endPar.CallRequestInlinesUpdate();
 
       UpdateBlockAndInlineStarts(startPar);   // not necessary?
 

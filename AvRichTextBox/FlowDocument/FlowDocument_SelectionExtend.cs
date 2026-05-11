@@ -225,7 +225,7 @@ public partial class FlowDocument
 
    }
    
-   private int GetNextPosition()
+   internal int GetNextPosition()
    {      
       int currentPos = (SelectionExtendMode == ExtendMode.ExtendModeLeft) ? Selection.Start : Selection.End;
 

@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 
 namespace AvRichTextBox;
 
+[DebuggerDisplay("Text: {Text}, Inlines: {Inlines}")]
 public class Paragraph : Block
 {
    internal string ParToolTip => $"Background: {Background}\nLineHeight: {LineHeight}";
@@ -31,7 +32,8 @@ public class Paragraph : Block
          ied.MyParagraphId = this.Id;
          ied.MyFlowDoc = this.MyFlowDoc;
          ied.IsTableCellInline = this.IsTableCellBlock;
-         ied.IsLastInlineOfParagraph = ied == this.Inlines[^1];
+         ied.IsFirstInlineOfParagraph = ilineno == 0;
+         ied.IsLastInlineOfParagraph = ilineno == Inlines.Count - 1;
          ied.PreviousInline = ilineno == 0 ? null! : Inlines[ilineno - 1];
          ied.NextInline = ilineno == Inlines.Count - 1 ? null! : Inlines[ilineno + 1];
       }
@@ -169,5 +171,26 @@ public class Paragraph : Block
       return newPar;
    }
 
+   internal void EnsureEmptyRuns()
+   {
+      
+      if (this.Inlines.Count == 0)
+         this.Inlines.Add(new EditableRun(""));
+
+      // linebreaks must have empty runs between them
+      for (int i = this.Inlines.Count - 1; i >= 0; i--)
+      {
+         if (!this.Inlines[i].IsLineBreak)
+            continue;
+
+         bool addBefore = i == 0 || this.Inlines[i - 1].IsLineBreak;
+         bool addAfter = i == this.Inlines.Count - 1;
+
+         if (addAfter)
+            this.Inlines.Insert(i + 1, new EditableRun(""));
+         if (addBefore)
+            this.Inlines.Insert(i, new EditableRun(""));
+      }
+   }
  
 }
