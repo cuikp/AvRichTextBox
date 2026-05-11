@@ -9,292 +9,292 @@ namespace AvRichTextBox;
 
 public partial class FlowDocument : AvaloniaObject
 {
-   public delegate void ScrollInDirection_Handler(int direction);
-   internal event ScrollInDirection_Handler? ScrollInDirection;
+    public delegate void ScrollInDirection_Handler(int direction);
+    internal event ScrollInDirection_Handler? ScrollInDirection;
 
-   public delegate void SelectionChanged_Handler(TextRange selection);
-   public event SelectionChanged_Handler? SelectionChanged;
+    public delegate void SelectionChanged_Handler(TextRange selection);
+    public event SelectionChanged_Handler? SelectionChanged;
 
-   public delegate void PagePaddingChanged_Handler();
-   public event PagePaddingChanged_Handler? PagePaddingChanged;
+    public delegate void PagePaddingChanged_Handler();
+    public event PagePaddingChanged_Handler? PagePaddingChanged;
 
-   public delegate void UpdateRTBCaret_Handler();
-   internal event UpdateRTBCaret_Handler? UpdateRTBCaret;
-   
-   internal static int InlineIdCounter { get; set => field = (value == int.MaxValue) ? 1 : value; }
-   internal static int ParagraphIdCounter { get; set => field = (value == int.MaxValue) ? 1 : value; }
-   internal static int TableIdCounter { get; set => field = (value == int.MaxValue) ? 1 : value; }
-      
-   internal bool IsEditable { get; set; } = true;
+    public delegate void UpdateRTBCaret_Handler();
+    internal event UpdateRTBCaret_Handler? UpdateRTBCaret;
 
-   public static readonly DirectProperty<FlowDocument, bool> HasSelectedTextProperty = AvaloniaProperty.RegisterDirect<FlowDocument, bool>(nameof(HasSelectedText), o => o.HasSelectedText);
-   public bool HasSelectedText => Selection.Length > 0;
+    internal static int InlineIdCounter { get; set => field = (value == int.MaxValue) ? 1 : value; }
+    internal static int ParagraphIdCounter { get; set => field = (value == int.MaxValue) ? 1 : value; }
+    internal static int TableIdCounter { get; set => field = (value == int.MaxValue) ? 1 : value; }
 
-   internal ObservableCollection<IUndo> Undos { get; set; } = [];
-   internal ObservableCollection<Paragraph> SelectionParagraphs { get; set; } = [];
-   internal ObservableCollection<TextRange> TextRanges = [];
+    internal bool IsEditable { get; set; } = true;
 
-   internal bool disableRunTextUndo = false;
+    public static readonly DirectProperty<FlowDocument, bool> HasSelectedTextProperty = AvaloniaProperty.RegisterDirect<FlowDocument, bool>(nameof(HasSelectedText), o => o.HasSelectedText);
+    public bool HasSelectedText => Selection.Length > 0;
 
-   public void ScrollFlowDocInDirection(int direction) { ScrollInDirection?.Invoke(direction); }
+    internal ObservableCollection<IUndo> Undos { get; set; } = [];
+    internal ObservableCollection<Paragraph> SelectionParagraphs { get; set; } = [];
+    internal ObservableCollection<TextRange> TextRanges = [];
 
-   public List<Paragraph> GetSelectedParagraphs => [.. AllParagraphs.Where(p=> p.StartInDoc <= Selection.Start && p.EndInDoc >= Selection.End).Select(b=>(Paragraph)b)];
+    internal bool disableRunTextUndo = false;
 
-   public static readonly StyledProperty<ObservableCollection<Block>> BlocksProperty = AvaloniaProperty.Register<FlowDocument, ObservableCollection<Block>>(nameof(Blocks), defaultBindingMode: BindingMode.TwoWay);
-   public ObservableCollection<Block> Blocks
-   {
-      get => GetValue(BlocksProperty);
-      set { SetValue(BlocksProperty, value); }
-   }
+    public void ScrollFlowDocInDirection(int direction) { ScrollInDirection?.Invoke(direction); }
 
-   public static readonly DirectProperty<FlowDocument, Thickness> PagePaddingProperty = AvaloniaProperty.RegisterDirect<FlowDocument, Thickness>(nameof(PagePadding), o => o.PagePadding, (o, v) => o.PagePadding = v);
-   public Thickness PagePadding
-   {
-      get;
-      set => SetAndRaise(PagePaddingProperty, ref field, value);
-   }
+    public List<Paragraph> GetSelectedParagraphs => [.. AllParagraphs.Where(p => p.StartInDoc <= Selection.Start && p.EndInDoc >= Selection.End).Select(b => (Paragraph)b)];
 
-   public string Text => string.Join("", Blocks.ToList().ConvertAll(b => string.Join("", b.Text + Environment.NewLine)));
-   
-   public int DocEndPoint => ((Paragraph)Blocks.Last()).EndInDoc;
+    public static readonly StyledProperty<ObservableCollection<Block>> BlocksProperty = AvaloniaProperty.Register<FlowDocument, ObservableCollection<Block>>(nameof(Blocks), defaultBindingMode: BindingMode.TwoWay);
+    public ObservableCollection<Block> Blocks
+    {
+        get => GetValue(BlocksProperty);
+        set { SetValue(BlocksProperty, value); }
+    }
 
-   public TextRange Selection { get; set; }
-   internal IBrush SelectionBrush = Brushes.LightSteelBlue;  // default
-   
-   public FlowDocument()
-   {
-      Blocks = [];
-      Selection = new TextRange(this, 0, 0);
-      Selection.Start_Changed += SelectionStart_Changed;
-      Selection.End_Changed += SelectionEnd_Changed;
+    public static readonly DirectProperty<FlowDocument, Thickness> PagePaddingProperty = AvaloniaProperty.RegisterDirect<FlowDocument, Thickness>(nameof(PagePadding), o => o.PagePadding, (o, v) => o.PagePadding = v);
+    public Thickness PagePadding
+    {
+        get;
+        set => SetAndRaise(PagePaddingProperty, ref field, value);
+    }
 
-      DefineFormatRunActions();
+    public string Text => string.Join("", Blocks.ToList().ConvertAll(b => string.Join("", b.Text + Environment.NewLine)));
 
-      this.PropertyChanged += FlowDocument_PropertyChanged;
+    public int DocEndPoint => ((Paragraph)Blocks.Last()).EndInDoc;
 
-      InlineIdCounter = 1; //reset on new flowdoc
+    public TextRange Selection { get; set; }
+    internal IBrush SelectionBrush = Brushes.LightSteelBlue;  // default
 
-      Blocks.CollectionChanged += Blocks_CollectionChanged;
-      TextRanges.CollectionChanged += TextRanges_CollectionChanged;
-   }
+    public FlowDocument()
+    {
+        Blocks = [];
+        Selection = new TextRange(this, 0, 0);
+        Selection.Start_Changed += SelectionStart_Changed;
+        Selection.End_Changed += SelectionEnd_Changed;
 
-   private void FlowDocument_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
-   {
-      if (e.Property == BlocksProperty)
-      {
-         Blocks.CollectionChanged -= Blocks_CollectionChanged;
-         Blocks.CollectionChanged += Blocks_CollectionChanged;
-         TextRanges.CollectionChanged -= TextRanges_CollectionChanged;
-         TextRanges.CollectionChanged += TextRanges_CollectionChanged;
-      }
+        DefineFormatRunActions();
 
-      if (e.Property == PagePaddingProperty)
-      {
-         PagePaddingChanged?.Invoke();
-      }
-   }
+        this.PropertyChanged += FlowDocument_PropertyChanged;
 
-   private void Blocks_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-   {
-     
-      foreach (Block block in Blocks)
-      {
-         block.MyFlowDoc = this;
-         if (block is Table table)
-         {
-            foreach (Cell c in table.Cells)
-               c.CellContent.MyFlowDoc = this;
-         }
-      }
+        InlineIdCounter = 1; //reset on new flowdoc
 
-      int lengthOffset = 0;
-      if (e.NewItems != null)
-      {
-         foreach (Block b in e.NewItems)
-            lengthOffset += b.BlockLength;
-      }
-      
-      if (e.OldItems != null)
-      {
-         foreach (Block b in e.OldItems)
-            lengthOffset -= b.BlockLength;
-      }
-      
-      AllParagraphs = [.. GetAllParagraphs];  //update collection of all paragraphs
+        Blocks.CollectionChanged += Blocks_CollectionChanged;
+        TextRanges.CollectionChanged += TextRanges_CollectionChanged;
+    }
 
-      //Auto update blocks and ranges when collection changed
-      UpdateBlockAndInlineStarts(Math.Max(0, e.NewStartingIndex)); 
-      if (Blocks.Count > 0 && e.NewStartingIndex > -1)
-         UpdateTextRanges(Blocks[e.NewStartingIndex].StartInDoc, lengthOffset);
-      
+    private void FlowDocument_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == BlocksProperty)
+        {
+            Blocks.CollectionChanged -= Blocks_CollectionChanged;
+            Blocks.CollectionChanged += Blocks_CollectionChanged;
+            TextRanges.CollectionChanged -= TextRanges_CollectionChanged;
+            TextRanges.CollectionChanged += TextRanges_CollectionChanged;
+        }
 
-   }
+        if (e.Property == PagePaddingProperty)
+        {
+            PagePaddingChanged?.Invoke();
+        }
+    }
 
-   private void TextRanges_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-   {
-      if (e.NewItems != null)
-      {
-      }
+    private void Blocks_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
 
-      if (e.OldItems != null)
-      {
-         foreach (TextRange trange in e.OldItems)
-         {
-            trange.Dispose();
-         }
-            
-      }
+        foreach (Block block in Blocks)
+        {
+            block.MyFlowDoc = this;
+            if (block is Table table)
+            {
+                foreach (Cell c in table.Cells)
+                    c.CellContent.MyFlowDoc = this;
+            }
+        }
+
+        int lengthOffset = 0;
+        if (e.NewItems != null)
+        {
+            foreach (Block b in e.NewItems)
+                lengthOffset += b.BlockLength;
+        }
+
+        if (e.OldItems != null)
+        {
+            foreach (Block b in e.OldItems)
+                lengthOffset -= b.BlockLength;
+        }
+
+        AllParagraphs = [.. GetAllParagraphs];  //update collection of all paragraphs
+
+        //Auto update blocks and ranges when collection changed
+        UpdateBlockAndInlineStarts(Math.Max(0, e.NewStartingIndex));
+        if (Blocks.Count > 0 && e.NewStartingIndex > -1)
+            UpdateTextRanges(Blocks[e.NewStartingIndex].StartInDoc, lengthOffset);
 
 
-   }
+    }
 
-   public void SelectAll()
-   {
-      Selection.Start = 0;
-      Selection.End = 0;
-      SelectionParagraphs.Clear();
-      Selection.End = this.DocEndPoint - 1;
-      this.SelectionExtendMode = ExtendMode.ExtendModeRight;
-   }
+    private void TextRanges_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        if (e.NewItems != null)
+        {
+        }
 
-   public void Select(int Start, int Length)
-   {
-      SelectionParagraphs.Clear();
+        if (e.OldItems != null)
+        {
+            foreach (TextRange trange in e.OldItems)
+            {
+                trange.Dispose();
+            }
 
-      Selection.Start = Start;
-      Selection.End = Start + Length;
-
-      UpdateSelection();
-
-   }
-
-   internal void NewDocument()
-   {
-      ClearDocument();
-
-      AddDefaultParagraph();
-
-      InitializeDocument();
-
-   }
-
-   private void AddDefaultParagraph()
-   {
-      Paragraph newpar = new(this);
-      EditableRun newerun = new("");
-      newpar.Inlines.Add(newerun);
-      Blocks.Add(newpar);
-
-   }
-
-   internal void ClearDocument()
-   {
-      Blocks.Clear();
-
-      ParagraphIdCounter = 1;
-      InlineIdCounter = 1;
-
-      for (int tRangeNo = TextRanges.Count - 1; tRangeNo >= 0; tRangeNo--)
-      {
-         if (!TextRanges[tRangeNo].Equals(Selection))
-            TextRanges[tRangeNo].Dispose();
-      }
-
-      this.PagePadding = new Thickness(0);
-
-      Undos.Clear();
-
-   }
-
-   internal async void InitializeDocument()
-   {
-
-      //Fail-safe in case imported document has no content.
-      if (AllParagraphs.Count == 0)
-         AddDefaultParagraph();
-
-      Selection.Start = 0;  //necessary
-      Selection.CollapseToStart();
-
-      UpdateBlockAndInlineStarts(0);
-
-      Selection.BiasForwardStart = true;
-      Selection.BiasForwardEnd = true;
-      SelectionExtendMode = ExtendMode.ExtendModeNone;
-      SelectionStart_Changed(Selection, 0);
-      SelectionEnd_Changed(Selection, 0);
-
-       Dispatcher.UIThread.Post(() =>
-       {
-          if (AllParagraphs.ToList()[0] is Paragraph firstPar)
-          {  //Required for initial cursor display
-             firstPar.CallRequestTextBoxFocus();
-             firstPar.CallRequestTextLayoutInfoStart();
-             firstPar.CallRequestTextLayoutInfoEnd();
-          }
-          // Calculate initial caret position 
-          SelectionChanged?.Invoke(Selection);
-      
-          UpdateRTBCaret?.Invoke();
-       }, DispatcherPriority.Background);
-
-      UpdateAllRangeContexts();
-     
-   }
-
-   private void UpdateAllRangeContexts()
-   {
-      Selection.UpdateContextStart();
-      Selection.UpdateContextEnd();
-
-      foreach (TextRange trange in this.TextRanges)
-      {
-         trange.UpdateContextStart();
-         trange.UpdateContextEnd();
-      }
-   }
-
-   internal string GetText(TextRange tRange) => string.Join("", GetTextRangeInlines(tRange, addToDoc: false).createdInlines.ConvertAll(il => il.InlineText));
-   
-   internal List<Table> GetFullTablesInRange(TextRange trange) => [.. Blocks.Where(b=> b is Table t && t.StartInDoc > trange.Start && t.StartInDoc + t.BlockLength - 1 < trange.End).Cast<Table>()];
-   internal List<Table> GetFulTablesInRange(int start, int end) => [.. Blocks.Where(b=> b is Table t && t.StartInDoc > start && t.StartInDoc + t.BlockLength - 1 < end).Cast<Table>()];
-   internal List<Paragraph> GetFullParagraphsInRange(TextRange trange) => [.. AllParagraphs.Where(b=> b.StartInDoc >= trange.Start && b.StartInDoc + b.BlockLength - 1 <= trange.End)];
-   internal List<Paragraph> GetFullParagraphsInRange(int start, int end) => [.. AllParagraphs.Where(b => b.StartInDoc >= start && b.StartInDoc + b.BlockLength - 1 <= end)];
-
-   internal List<Paragraph> GetOverlappingParagraphsInRange(TextRange trange) => [.. AllParagraphs.Where(b=> b.StartInDoc <= trange.End && b.StartInDoc + b.BlockLength - 1 >= trange.Start)];
-   internal List<Paragraph> GetOverlappingParagraphsInRange(int start, int end) => [.. AllParagraphs.Where(b => b.StartInDoc <= end && b.StartInDoc + b.BlockLength - 1 >= start)];
-
-   internal Paragraph GetContainingParagraph(int charIndex) => AllParagraphs.LastOrDefault(p=> p.StartInDoc <= charIndex) as Paragraph ?? null!;
-   
-   internal List<Paragraph> AllParagraphs = [];
-
-   internal IEnumerable<Paragraph> GetAllParagraphs 
-   {
-      get
-      {
-         return Blocks.SelectMany(b =>
-         {
-            if (b is Paragraph p)
-               return [p];
-            
-            if (b is Table t) 
-               return t.Cells.Select(c => c.CellContent) ?? Enumerable.Empty<Paragraph>();
-            
-            return Enumerable.Empty<Paragraph>();
-
-         }).Cast<Paragraph>();
-      }
-   }
+        }
 
 
-   internal ExtendMode SelectionExtendMode { get; set; }
+    }
 
-   internal enum ExtendMode
-   {
-      ExtendModeNone,
-      ExtendModeRight,
-      ExtendModeLeft
-   }
+    public void SelectAll()
+    {
+        Selection.Start = 0;
+        Selection.End = 0;
+        SelectionParagraphs.Clear();
+        Selection.End = this.DocEndPoint - 1;
+        this.SelectionExtendMode = ExtendMode.ExtendModeRight;
+    }
+
+    public void Select(int Start, int Length)
+    {
+        SelectionParagraphs.Clear();
+
+        Selection.Start = Start;
+        Selection.End = Start + Length;
+
+        UpdateSelection();
+
+    }
+
+    internal void NewDocument()
+    {
+        ClearDocument();
+
+        AddDefaultParagraph();
+
+        InitializeDocument();
+
+    }
+
+    private void AddDefaultParagraph()
+    {
+        Paragraph newpar = new(this);
+        EditableRun newerun = new("");
+        newpar.Inlines.Add(newerun);
+        Blocks.Add(newpar);
+
+    }
+
+    internal void ClearDocument()
+    {
+        Blocks.Clear();
+
+        ParagraphIdCounter = 1;
+        InlineIdCounter = 1;
+
+        for (int tRangeNo = TextRanges.Count - 1; tRangeNo >= 0; tRangeNo--)
+        {
+            if (!TextRanges[tRangeNo].Equals(Selection))
+                TextRanges[tRangeNo].Dispose();
+        }
+
+        this.PagePadding = new Thickness(0);
+
+        Undos.Clear();
+
+    }
+
+    internal async void InitializeDocument()
+    {
+
+        //Fail-safe in case imported document has no content.
+        if (AllParagraphs.Count == 0)
+            AddDefaultParagraph();
+
+        Selection.Start = 0;  //necessary
+        Selection.CollapseToStart();
+
+        UpdateBlockAndInlineStarts(0);
+
+        Selection.BiasForwardStart = true;
+        Selection.BiasForwardEnd = true;
+        SelectionExtendMode = ExtendMode.ExtendModeNone;
+        SelectionStart_Changed(Selection, 0);
+        SelectionEnd_Changed(Selection, 0);
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (AllParagraphs.ToList()[0] is Paragraph firstPar)
+            {  //Required for initial cursor display
+                firstPar.CallRequestTextBoxFocus();
+                firstPar.CallRequestTextLayoutInfoStart();
+                firstPar.CallRequestTextLayoutInfoEnd();
+            }
+            // Calculate initial caret position 
+            SelectionChanged?.Invoke(Selection);
+
+            UpdateRTBCaret?.Invoke();
+        }, DispatcherPriority.Background);
+
+        UpdateAllRangeContexts();
+
+    }
+
+    private void UpdateAllRangeContexts()
+    {
+        Selection.UpdateContextStart();
+        Selection.UpdateContextEnd();
+
+        foreach (TextRange trange in this.TextRanges)
+        {
+            trange.UpdateContextStart();
+            trange.UpdateContextEnd();
+        }
+    }
+
+    internal string GetText(TextRange tRange) => string.Join("", GetTextRangeInlines(tRange, addToDoc: false).createdInlines.ConvertAll(il => il.InlineText));
+
+    internal List<Table> GetFullTablesInRange(TextRange trange) => [.. Blocks.Where(b => b is Table t && t.StartInDoc > trange.Start && t.StartInDoc + t.BlockLength - 1 < trange.End).Cast<Table>()];
+    internal List<Table> GetFulTablesInRange(int start, int end) => [.. Blocks.Where(b => b is Table t && t.StartInDoc > start && t.StartInDoc + t.BlockLength - 1 < end).Cast<Table>()];
+    internal List<Paragraph> GetFullParagraphsInRange(TextRange trange) => [.. AllParagraphs.Where(b => b.StartInDoc >= trange.Start && b.StartInDoc + b.BlockLength - 1 <= trange.End)];
+    internal List<Paragraph> GetFullParagraphsInRange(int start, int end) => [.. AllParagraphs.Where(b => b.StartInDoc >= start && b.StartInDoc + b.BlockLength - 1 <= end)];
+
+    internal List<Paragraph> GetOverlappingParagraphsInRange(TextRange trange) => [.. AllParagraphs.Where(b => b.StartInDoc <= trange.End && b.StartInDoc + b.BlockLength - 1 >= trange.Start)];
+    internal List<Paragraph> GetOverlappingParagraphsInRange(int start, int end) => [.. AllParagraphs.Where(b => b.StartInDoc <= end && b.StartInDoc + b.BlockLength - 1 >= start)];
+
+    internal Paragraph GetContainingParagraph(int charIndex) => AllParagraphs.LastOrDefault(p => p.StartInDoc <= charIndex) as Paragraph ?? null!;
+
+    internal List<Paragraph> AllParagraphs = [];
+
+    internal IEnumerable<Paragraph> GetAllParagraphs
+    {
+        get
+        {
+            return Blocks.SelectMany(b =>
+            {
+                if (b is Paragraph p)
+                    return [p];
+
+                if (b is Table t)
+                    return t.Cells.Select(c => c.CellContent) ?? Enumerable.Empty<Paragraph>();
+
+                return Enumerable.Empty<Paragraph>();
+
+            }).Cast<Paragraph>();
+        }
+    }
+
+
+    internal ExtendMode SelectionExtendMode { get; set; }
+
+    internal enum ExtendMode
+    {
+        ExtendModeNone,
+        ExtendModeRight,
+        ExtendModeLeft
+    }
 
 
 }

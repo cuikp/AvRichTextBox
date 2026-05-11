@@ -224,32 +224,22 @@ public partial class MainWindow : Window
 
     private void UpdatePanelValues()
     {
+        progChange = true;
 
-        return;
+        TextRange selection = MainRTB.FlowDocument.Selection;
 
-        if (MainRTB.FlowDocument.Selection.GetFormatting(BackgroundProperty) is ISolidColorBrush selBackground)
+        if (selection.GetFormatting(BackgroundProperty) is ISolidColorBrush selBackground)
             HighlightCP.Color = selBackground == null ? Colors.Transparent : selBackground.Color;
         else
             HighlightCP.Color = Colors.Transparent;
 
-        if (MainRTB.FlowDocument.Selection.GetFormatting(ForegroundProperty) is ISolidColorBrush selForeground)
+        if (selection.GetFormatting(ForegroundProperty) is ISolidColorBrush selForeground)
             FontColorCP.Color = selForeground == null ? Colors.Transparent : selForeground.Color;
         else
             FontColorCP.Color = Colors.Black;
-    }
 
-    private void FlowDocument_Selection_Changed(TextRange selection)
-    {
-
-        return;
 
         FontFamily fontFamily = MainRTB.FontFamily;
-
-        if (_applyingFormatting) return;
-        if (progChange) return;
-
-        progChange = true;
-
 
         if (selection.GetStartPar() is Paragraph selPar)
         {
@@ -291,6 +281,10 @@ public partial class MainWindow : Window
 
         progChange = false;
 
+    }
+
+    private void FlowDocument_Selection_Changed(TextRange selection)
+    {
 
     }
 
