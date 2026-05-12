@@ -69,6 +69,10 @@ public partial class FlowDocument
                 case RTFDomTable rtftable:
                     Table rtfTable = RtfConversions.GetTableFromRtfDom(rtftable, this, rtfdoc.ColorTable);
                     break;
+
+                default:
+                    Debug.WriteLine("unknown rtfdoc element: " + rtfelm.GetType());
+                    break;
             }
         }
 

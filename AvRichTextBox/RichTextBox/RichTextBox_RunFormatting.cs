@@ -46,6 +46,9 @@ public partial class RichTextBox
 
       // Rtf format
       var richTextFormat = DataFormat.CreateBytesPlatformFormat("Rich Text Format");
+
+      //rtfString = rtfString.Replace("{\\field", "\\fs24\\f0\\cf1\\highlight0  {\\field");  //$$$$$$$$$
+
       byte[] rtfbytes = Encoding.ASCII.GetBytes(rtfString + "\0");
       dataTransfer.Add(DataTransferItem.Create(richTextFormat, rtfbytes));
 
