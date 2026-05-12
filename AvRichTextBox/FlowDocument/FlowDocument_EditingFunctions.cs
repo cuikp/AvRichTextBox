@@ -94,7 +94,7 @@ public partial class FlowDocument
         //If either first or last paragraph was not deleted, it needs to be removed before restoring previous state
         if (!lastParWasDeleted)
             Blocks.RemoveAt(blockIndex);
-        if (!firstParWasDeleted)
+        else if (!firstParWasDeleted)
             Blocks.RemoveAt(blockIndex);
 
         //Restore all of the previous paragraphs

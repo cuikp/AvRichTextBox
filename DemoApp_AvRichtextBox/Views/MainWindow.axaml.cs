@@ -69,8 +69,8 @@ public partial class MainWindow : Window
 
 
         //DEBUG
-        CreateTestDocumentWithTable();
-        //OpenTestDocument();
+        //CreateTestDocumentWithTable();
+        OpenTestDocument();
 
     }
 
@@ -112,8 +112,7 @@ public partial class MainWindow : Window
             MainRTB.UpdateLayout();
             MainRTB.FlowDocument.Select(0, 0);
         });
-
-        //InitializeDocument();
+             
 
     }
 

@@ -1,6 +1,5 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Input.Platform;
-using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using DynamicData;
@@ -32,31 +31,31 @@ public partial class RichTextBox
 
     }
 
-   private void CopyToClipboard()
-   {
-      if (DisableUserCopy) return;
+    private void CopyToClipboard()
+    {
+        if (DisableUserCopy) return;
 
-      var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
-      if (clipboard == null) return;
-      //create rtf string
-      List<IEditable> rangeInlines = FlowDoc.GetTextRangeInlines(FlowDoc.Selection, addToDoc: false).createdInlines;
+        var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+        if (clipboard == null) return;
+        //create rtf string
+        List<IEditable> rangeInlines = FlowDoc.GetTextRangeInlines(FlowDoc.Selection, addToDoc: false).createdInlines;
 
-      string rtfString = RtfConversions.GetRtfFromInlines(rangeInlines);
-      var dataTransfer = new DataTransfer();
+        string rtfString = RtfConversions.GetRtfFromInlines(rangeInlines);
+        var dataTransfer = new DataTransfer();
 
-      // Rtf format
-      var richTextFormat = DataFormat.CreateBytesPlatformFormat("Rich Text Format");
+        // Rtf format
+        var richTextFormat = DataFormat.CreateBytesPlatformFormat("Rich Text Format");
 
-      //rtfString = rtfString.Replace("{\\field", "\\fs24\\f0\\cf1\\highlight0  {\\field");  //$$$$$$$$$
+        //rtfString = rtfString.Replace("{\\field", "\\fs24\\f0\\cf1\\highlight0  {\\field");  //$$$$$$$$$
 
-      byte[] rtfbytes = Encoding.ASCII.GetBytes(rtfString + "\0");
-      dataTransfer.Add(DataTransferItem.Create(richTextFormat, rtfbytes));
+        byte[] rtfbytes = Encoding.ASCII.GetBytes(rtfString + "\0");
+        dataTransfer.Add(DataTransferItem.Create(richTextFormat, rtfbytes));
 
-      // Plain text
-      string inlinesText = string.Join("", rangeInlines.ConvertAll(il => il.InlineText));
-      dataTransfer.Add(DataTransferItem.CreateText(inlinesText));
+        // Plain text
+        string inlinesText = string.Join("", rangeInlines.ConvertAll(il => il.InlineText));
+        dataTransfer.Add(DataTransferItem.CreateText(inlinesText));
 
-      _ = clipboard.SetDataAsync(dataTransfer);
+        _ = clipboard.SetDataAsync(dataTransfer);
 
     }
 
@@ -64,102 +63,102 @@ public partial class RichTextBox
 
     private async void PasteFromClipboard(bool plainTextOnly = false)
     {
-      if (IsReadOnly) return;
-      if (FlowDoc.Selection.StartInline is not IEditable startInline) return;
+        if (IsReadOnly) return;
+        if (FlowDoc.Selection.StartInline is not IEditable startInline) return;
 
-      var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
-      if (clipboard == null) return;
+        var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
+        if (clipboard == null) return;
 
-      // Get paste location properties
-      int originalSelectionStart = FlowDoc.Selection.Start;
-      int originalSelectionEnd = FlowDoc.Selection.End;
-      TextRange insertRange = FlowDoc.Selection;
-      List<Paragraph> originalRangeParagraphs = FlowDoc.GetOverlappingParagraphsInRange(insertRange).ConvertAll(op => op.FullClone());
-      int deleteRangeLength = insertRange.Length;
-      Paragraph startPar = insertRange.StartParagraph;
-      Paragraph endPar = insertRange.EndParagraph;
-      int insertParIndex = FlowDoc.Blocks.IndexOf(startPar);
-      bool firstParEmpty = startPar.Inlines[0] is EditableRun erun && erun.Text == "";
-      int pastedTextLength = 0;
-      List<int> addedBlockIds = [];
-      bool firstParWasDeleted = startPar.StartInDoc == originalSelectionStart && startPar.EndInDoc <= originalSelectionEnd && !firstParEmpty;
-      bool lastParWasDeleted = endPar.EndInDoc == originalSelectionEnd && endPar.EndInDoc >= originalSelectionStart;
+        // Get paste location properties
+        int originalSelectionStart = FlowDoc.Selection.Start;
+        int originalSelectionEnd = FlowDoc.Selection.End;
+        TextRange insertRange = FlowDoc.Selection;
+        List<Paragraph> originalRangeParagraphs = FlowDoc.GetOverlappingParagraphsInRange(insertRange).ConvertAll(op => op.FullClone());
+        int deleteRangeLength = insertRange.Length;
+        Paragraph startPar = insertRange.StartParagraph;
+        Paragraph endPar = insertRange.EndParagraph;
+        int insertParIndex = FlowDoc.Blocks.IndexOf(startPar);
+        bool firstParEmpty = startPar.Inlines[0] is EditableRun erun && erun.Text == "";
+        int pastedTextLength = 0;
+        List<int> addedBlockIds = [];
+        bool firstParWasDeleted = startPar.StartInDoc == originalSelectionStart && startPar.EndInDoc <= originalSelectionEnd && !firstParEmpty;
+        bool lastParWasDeleted = endPar.EndInDoc == originalSelectionEnd && endPar.EndInDoc >= originalSelectionStart;
 
-      bool addUndo = true;
-      bool contentPasted = false;
+        bool addUndo = true;
+        bool contentPasted = false;
 
-      FlowDoc.disableRunTextUndo = true;
+        FlowDoc.disableRunTextUndo = true;
 
-      // Get clipboard content
-      if (!plainTextOnly && await clipboard.TryGetValueAsync(richTextFormat) is byte[] rtfbytes)
-      {
-         pastedTextLength = FlowDoc.InsertRTF(rtfbytes, startPar, insertRange, insertParIndex, addedBlockIds);
-         contentPasted = true;
-      }
-      else if (!plainTextOnly && await clipboard.TryGetBitmapAsync() is Bitmap pasteBitmap)
-      {
-         Image pasteImage = new() { Source = pasteBitmap };
-         EditableInlineUIContainer newEIUC = new(pasteImage);
-         Paragraph newPar = new(FlowDoc);
-         newPar.Inlines.Add(newEIUC);
-         Paragraph extraPar = new(FlowDoc);
-         // force pasted image into a new paragraph
-         FlowDoc.Blocks.Insert(insertParIndex + 1, newPar);
-         FlowDoc.Blocks.Insert(insertParIndex + 2, extraPar);
-         addedBlockIds.Add(newPar.Id);
-         addedBlockIds.Add(extraPar.Id);
-         pastedTextLength = 2;
-         contentPasted = true;
-      }
-      else if (await clipboard.TryGetTextAsync() is string pasteText)
-      {
-         FlowDoc.disableRunTextUndo = true;
-         pastedTextLength = pasteText.Length;
-         if (plainTextOnly)
-            FlowDoc.SetRangeToText(insertRange, pasteText, copyFormatting: false);
-         else
-            FlowDoc.Selection.Text = pasteText;
-         FlowDoc.disableRunTextUndo = false;
-         contentPasted = true;
-         addUndo = true;
-      }
+        // Get clipboard content
+        if (!plainTextOnly && await clipboard.TryGetValueAsync(richTextFormat) is byte[] rtfbytes)
+        {
+            pastedTextLength = FlowDoc.InsertRTF(rtfbytes, startPar, insertRange, insertParIndex, addedBlockIds);
+            contentPasted = true;
+        }
+        else if (!plainTextOnly && await clipboard.TryGetBitmapAsync() is Bitmap pasteBitmap)
+        {
+            Image pasteImage = new() { Source = pasteBitmap };
+            EditableInlineUIContainer newEIUC = new(pasteImage);
+            Paragraph newPar = new(FlowDoc);
+            newPar.Inlines.Add(newEIUC);
+            Paragraph extraPar = new(FlowDoc);
+            // force pasted image into a new paragraph
+            FlowDoc.Blocks.Insert(insertParIndex + 1, newPar);
+            FlowDoc.Blocks.Insert(insertParIndex + 2, extraPar);
+            addedBlockIds.Add(newPar.Id);
+            addedBlockIds.Add(extraPar.Id);
+            pastedTextLength = 2;
+            contentPasted = true;
+        }
+        else if (await clipboard.TryGetTextAsync() is string pasteText)
+        {
+            FlowDoc.disableRunTextUndo = true;
+            pastedTextLength = pasteText.Length;
+            if (plainTextOnly)
+                FlowDoc.SetRangeToText(insertRange, pasteText, copyFormatting: false);
+            else
+                FlowDoc.Selection.Text = pasteText;
+            FlowDoc.disableRunTextUndo = false;
+            contentPasted = true;
+            addUndo = true;
+        }
 
-      FlowDoc.disableRunTextUndo = false;
+        FlowDoc.disableRunTextUndo = false;
 
-      //Update based on pasted content
-      if (contentPasted)
-      {
-         if (addUndo)
-            FlowDoc.Undos.Add(new PasteUndo(
-               originalRangeParagraphs,
-               insertParIndex,
-               FlowDoc,
-               originalSelectionStart,
-               deleteRangeLength - pastedTextLength,
-               firstParEmpty,
-               addedBlockIds,
-               firstParWasDeleted,
-               lastParWasDeleted
-               ));
+        //Update based on pasted content
+        if (contentPasted)
+        {
+            if (addUndo)
+                FlowDoc.Undos.Add(new PasteUndo(
+                   originalRangeParagraphs,
+                   insertParIndex,
+                   FlowDoc,
+                   originalSelectionStart,
+                   deleteRangeLength - pastedTextLength,
+                   firstParEmpty,
+                   addedBlockIds,
+                   firstParWasDeleted,
+                   lastParWasDeleted
+                   ));
 
-         this.DocIC.UpdateLayout();
+            this.DocIC.UpdateLayout();
 
-         FlowDoc.UpdateBlockAndInlineStarts(insertParIndex);
-         FlowDoc.UpdateSelection();
-         FlowDoc.UpdateTextRanges(originalSelectionStart, pastedTextLength - deleteRangeLength);
+            FlowDoc.UpdateBlockAndInlineStarts(insertParIndex);
+            FlowDoc.UpdateSelection();
+            FlowDoc.UpdateTextRanges(originalSelectionStart, pastedTextLength - deleteRangeLength);
 
-         CreateClient();
+            CreateClient();
 
-         FlowDoc.SelectionExtendMode = ExtendMode.ExtendModeNone;
-         FlowDoc.Selection.BiasForwardStart = false;
-         FlowDoc.Selection.BiasForwardEnd = false;
-         
-         FlowDoc.RestoreCaret(originalSelectionStart + pastedTextLength);
-                 
-         FlowDoc.ScrollFlowDocInDirection(1);
+            FlowDoc.SelectionExtendMode = ExtendMode.ExtendModeNone;
+            FlowDoc.Selection.BiasForwardStart = false;
+            FlowDoc.Selection.BiasForwardEnd = false;
 
-      }
-   }
+            FlowDoc.RestoreCaret(originalSelectionStart + pastedTextLength);
+
+            FlowDoc.ScrollFlowDocInDirection(1);
+
+        }
+    }
 
     private void CutToClipboard()
     {
