@@ -283,8 +283,12 @@ public partial class FlowDocument
             if (parIdx < AllParagraphs.Count - 1)
             {
                 relPar = AllParagraphs[parIdx + 1];
-                int textPosNewPar = Math.Min(relPar.BlockLength, relPar.TextLayout.HitTestPoint(new Point(currLeft, 0)).TextPosition);
-                computedNext = relPar.StartInDoc + textPosNewPar;
+                try  // avoids error when line wraps change
+                {
+                    int textPosNewPar = Math.Min(relPar.BlockLength, relPar.TextLayout.HitTestPoint(new Point(currLeft, 0)).TextPosition);
+                    computedNext = relPar.StartInDoc + textPosNewPar;
+                }
+                catch (Exception ex) {Debug.WriteLine ("error getting next down position: (currleft = " + currLeft + ")" +  ex.Message); }
             }
         }
 
@@ -311,14 +315,13 @@ public partial class FlowDocument
             if (parIdx > 0)
             {
                 relPar = AllParagraphs[parIdx - 1];
-                Point newPoint = new(currLeft, relPar.TextLayout.Height);
-                //Debug.WriteLine("newpoint = " + newPoint.ToString());
-
-                TextHitTestResult hitres = relPar.TextLayout.HitTestPoint(newPoint);
-                //Debug.WriteLine("hitres = " + hitres.TextPosition);
-
-                int textPosNewPar = Math.Min(relPar.BlockLength, relPar.TextLayout.HitTestPoint(new Point(currLeft, relPar.TextLayout.Height)).TextPosition);
-                computedPrev = relPar.StartInDoc + textPosNewPar;
+                                                
+                try  // avoids error when line wraps change
+                {
+                    int textPosNewPar = Math.Min(relPar.BlockLength, relPar.TextLayout.HitTestPoint(new Point(currLeft, relPar.TextLayout.Height)).TextPosition);
+                    computedPrev = relPar.StartInDoc + textPosNewPar;
+                }
+                catch (Exception ex) { Debug.WriteLine("error getting next up position: " + ex.Message); }
             }
         }
 
