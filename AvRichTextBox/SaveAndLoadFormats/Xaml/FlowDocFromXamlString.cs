@@ -245,7 +245,7 @@ public partial class XamlConversions
                         //newPar.OwningTable = newTable;
 
                         VerticalAlignment valign = newPar.VerticalAlignment;
-                        newCell.CellContent = newPar;
+                        newCell.CellBlocks.Add(newPar);
                         newCell.CellVerticalAlignment = valign;
                      }
 

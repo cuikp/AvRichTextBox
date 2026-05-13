@@ -4,7 +4,6 @@ namespace AvRichTextBox;
 
 public class EditableCell : Border
 {
-
    public EditableCell()
    {
       this.SizeChanged += EditableCell_SizeChanged;
@@ -15,6 +14,8 @@ public class EditableCell : Border
       if (this.DataContext is not Cell cell) return;
       cell.Height = this.Bounds.Height;
    }
+
+
 }
 
 

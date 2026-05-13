@@ -197,12 +197,12 @@ internal static partial class RtfConversions
                 if (!isVMerged)
                 {
                     foreach (RTFDomParagraph rtfpardom in celm.Elements.OfType<RTFDomParagraph>())
-                        newCell.CellContent = GetParagraphFromRtfDom(rtfpardom, fdoc);
+                        newCell.CellBlocks.Add(GetParagraphFromRtfDom(rtfpardom, fdoc));
 
                     newCell.BorderThickness = new(cellBorderLeft, cellBorderTop, cellBorderRight, cellBorderBottom);
                     newCell.Padding = new(cellPaddingLeft, cellPaddingTop, cellPaddingRight, cellPaddingBottom);
 
-                    if (newCell.CellContent != null)
+                    if (newCell.CellBlocks != null)
                         newtable.Cells.Add(newCell);
                 }
 

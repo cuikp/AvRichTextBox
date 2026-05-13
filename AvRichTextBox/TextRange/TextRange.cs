@@ -105,11 +105,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 
          if (StartInline is EditableLineBreak elb)
             StartInline = elb.PreviousInline;
-
-         //if (StartInline is EditableCellBreak ecb)
-         //   StartInline = ecb.PreviousInline;
-
-      }
+        }
 
       if (StartParagraph.Inlines.LastOrDefault(ied => StartParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph < Start) is IEditable startinlineprev)
       {
@@ -129,11 +125,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 
          if (EndInline is EditableLineBreak elb)
             EndInline = elb.PreviousInline;
-
-         //if (EndInline is EditableCellBreak ecb)
-         //   EndInline = ecb.PreviousInline;
-
-      }
+        }
       if (EndParagraph.Inlines.LastOrDefault(ied => EndParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph < End) is IEditable endinlineprev)
       {
          EndInlinePrevious = endinlineprev;
@@ -253,7 +245,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
       {
          case ContentDataFormat.Xaml:
 
-            myFlowDoc.InsertXaml(streamBytes, StartParagraph, EndParagraph, this, myFlowDoc.Blocks.IndexOf(StartParagraph), addedBlockIds);
+            myFlowDoc.InsertXaml(streamBytes, StartParagraph, EndParagraph, this, myFlowDoc.AllParagraphs.IndexOf(StartParagraph), addedBlockIds);
             break;
 
          case ContentDataFormat.XamlPackage:
@@ -267,7 +259,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 
          case ContentDataFormat.Rtf:
                         
-            myFlowDoc.InsertRTF(streamBytes, StartParagraph, this, myFlowDoc.Blocks.IndexOf(StartParagraph), addedBlockIds);
+            myFlowDoc.InsertRTF(streamBytes, StartParagraph, this, myFlowDoc.AllParagraphs.IndexOf(StartParagraph), addedBlockIds);
             break;
       }
 

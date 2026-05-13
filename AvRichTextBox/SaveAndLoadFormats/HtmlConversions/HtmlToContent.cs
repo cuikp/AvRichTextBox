@@ -185,10 +185,10 @@ internal static partial class HtmlConversions
             if (contentNode != null)
             {
                Paragraph p = GetParagraphFromNode(contentNode, fdoc);
-               newCell.CellContent = p;
+               newCell.CellBlocks.Add(p);
             }
             else
-               newCell.CellContent = new Paragraph(fdoc);
+               newCell.CellBlocks.Add(new Paragraph(fdoc));
 
             newTable.Cells.Add(newCell);
 

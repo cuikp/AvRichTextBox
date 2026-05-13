@@ -372,7 +372,7 @@ internal static partial class WordConversions
 
             case "p":
                Paragraph p = GetParagraph(CellParNode, fdoc, mainDocPart);
-               newCell.CellContent = p;
+               newCell.CellBlocks.Add(p);
                break;
          }
       }

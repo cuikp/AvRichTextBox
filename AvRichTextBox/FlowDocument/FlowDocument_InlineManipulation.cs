@@ -151,7 +151,8 @@ public partial class FlowDocument
         startPar.CallRequestInlinesUpdate();
         endPar.CallRequestInlinesUpdate();
 
-        UpdateBlockAndInlineStarts(startPar);   // not necessary?
+        if (addToDoc)
+            UpdateBlockAndInlineStarts(startPar);
 
         return (AllSelectedInlines, edgeIds);
 

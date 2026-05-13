@@ -41,7 +41,7 @@ public partial class FlowDocument
 
          // Snapshot before edit for undo
          Paragraph parClone = par.FullClone();
-         int parIndex = Blocks.IndexOf(par);
+         int parIndex = AllParagraphs.IndexOf(par);
          int updateOrigSelStart = Selection.Start;
          int oldLength = existingHyperlink.InlineLength;
 
@@ -72,7 +72,7 @@ public partial class FlowDocument
       // Snapshot the affected paragraphs before any edit for undo.
       // When there is a selection that may span multiple paragraphs we need all of them.
       List<Paragraph> affectedParClones = GetOverlappingParagraphsInRange(Selection).ConvertAll(p => p.FullClone());
-      int firstParIndex = Blocks.IndexOf(startPar);
+      int firstParIndex = AllParagraphs.IndexOf(startPar);
       int origSelStart = Selection.Start;
       bool firstParWasDeleted = false;
 
@@ -170,7 +170,7 @@ public partial class FlowDocument
 
       // Snapshot before edit for undo
       Paragraph parClone = par.FullClone();
-      int parIndex = Blocks.IndexOf(par);
+      int parIndex = AllParagraphs.IndexOf(par);
       int caretPos = Selection.Start;
       int hlLength = hl.InlineLength;
 

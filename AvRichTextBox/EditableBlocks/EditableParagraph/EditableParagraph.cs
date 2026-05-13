@@ -57,8 +57,10 @@ internal partial class EditableParagraph : TextBlock
 
    private ItemsControl GetDocIC => ThisPar == null ? null! : ThisPar.IsTableCellBlock switch
    {
-      //Dig back to get itemscontrol from paragraph cell:
-      true => (this.Parent is EditableCell ecell &&
+      //Dig back to get top itemscontrol from paragraph cell:
+      true => (this.Parent is ContentPresenter cpres &&
+               cpres.Parent is ItemsControl itemsCont &&
+               itemsCont.Parent is EditableCell ecell &&
                ecell.Parent is Grid gr &&
                gr.Parent is ContentPresenter grcp &&
                grcp.Parent is EditableTable etable &&

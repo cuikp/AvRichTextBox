@@ -122,12 +122,13 @@ internal static partial class WordConversions
                   
                currColSpan = thisCell.ColSpan;
 
-               if (thisCell.CellContent is Block b)
-                  cel.Append(CreateWordDocParagraph(b, ref mainPart));
-
+                    foreach (Block b in thisCell.CellBlocks)
+                    {
+                        cel.Append(CreateWordDocParagraph(b, ref mainPart));
+                    }
 
                var thisCellVertAlign = new TableCellVerticalAlignment() { Val = TableVerticalAlignmentValues.Top };
-               switch (((Paragraph)thisCell.CellContent).VerticalAlignment)
+               switch (thisCell.CellVerticalAlignment)
                {
                   case Avalonia.Layout.VerticalAlignment.Center:
                      thisCellVertAlign.Val = TableVerticalAlignmentValues.Center;

@@ -125,10 +125,13 @@ internal static partial class HtmlConversions
                cellNode.Attributes.Add(colSpanAtt);
                cellNode.Attributes.Add(rowSpanAtt);
 
-               if (thisCell.CellContent is Paragraph p)
-                  cellNode.ChildNodes.Add(GetParagraphNode(p, hdoc));
+                    foreach (Block b in thisCell.CellBlocks)
+                    {
+                        if (b is Paragraph p)
+                            cellNode.ChildNodes.Add(GetParagraphNode(p, hdoc));
+                    }
 
-               rowNode.ChildNodes.Add(cellNode);
+                    rowNode.ChildNodes.Add(cellNode);
             }
          }
 

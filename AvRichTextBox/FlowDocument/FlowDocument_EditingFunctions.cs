@@ -11,7 +11,7 @@ public partial class FlowDocument
         int rangeStart = tRange.Start;
         int rangeEnd = tRange.End;
         int deleteRangeLength = tRange.Length;
-        int parIndex = Blocks.IndexOf(startPar);
+        int parIndex = AllParagraphs.IndexOf(startPar);
         bool firstParEmpty = startPar.Inlines[0] is EditableRun erun && erun.Text == "";
         bool firstParWasDeleted = startPar.StartInDoc == rangeStart && startPar.EndInDoc <= rangeEnd && !firstParEmpty;
 
@@ -90,7 +90,6 @@ public partial class FlowDocument
 
     internal void RestoreDeletedBlocks(List<Paragraph> parClones, int blockIndex, bool firstParWasDeleted, bool lastParWasDeleted)
     {
-        int lengthBefore = Text.Length;
         //If either first or last paragraph was not deleted, it needs to be removed before restoring previous state
         if (!lastParWasDeleted)
             Blocks.RemoveAt(blockIndex);
@@ -103,10 +102,8 @@ public partial class FlowDocument
         foreach (Paragraph p in parClones)
             p.CallRequestInlinesUpdate();
 
-        int lengthAfter = Text.Length;
-
         UpdateBlockAndInlineStarts(blockIndex);
-        UpdateTextRanges(parClones[0].StartInDoc, lengthAfter - lengthBefore);
+               
     }
 
     private int ProcessInsertBlocks(List<Block> blocks, Paragraph startPar, int insertIdx, int insertParIndex, List<int> addedBlockIds, List<IEditable> rightSplitRuns)

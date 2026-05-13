@@ -137,18 +137,35 @@
 													<DataTemplate x:DataType="{x:Type local:Cell}">
 														<Grid>
 															<local:EditableCell Padding="{Binding Padding}"  BorderThickness="{Binding BorderThickness}" BorderBrush="{Binding BorderBrush}" Background="{Binding CellBackground}"  >
-															
-																<local:EditableParagraph x:DataType="local:Paragraph" Classes="paragraphBindings" DataContext="{Binding CellContent}" xml:space="preserve" 
-																	MouseMove="EditableParagraph_MouseMove" 
-																	LostFocus="EditableParagraph_LostFocus" 
 																
-																	TextLayoutInfoStartRequested="{Binding RequestTextLayoutInfoStart}"
-																	TextLayoutInfoEndRequested="{Binding RequestTextLayoutInfoEnd}"
-																	local:RequestExtensions.TextBoxFocusRequested="{Binding RequestTextBoxFocus}"
-																	local:RequestExtensions.IsInlineUpdateRequested="{Binding RequestInlinesUpdate}"
-																	local:RequestExtensions.InvalidateVisualRequested="{Binding RequestInvalidateVisual}"
-																	/>  
+																<!-- Cell interior paragraph stack -->
+																<ItemsControl ItemsSource="{Binding CellBlocks}" Margin="0" VerticalAlignment="{Binding CellVerticalAlignment}">
+																	<ItemsControl.ItemsPanel>
+																		<ItemsPanelTemplate>
+																			<StackPanel Orientation="Vertical" />  
+																		</ItemsPanelTemplate>
+																	</ItemsControl.ItemsPanel>
+															
+																	<ItemsControl.ItemTemplate>
+
+																		<DataTemplate>
+
+																			<local:EditableParagraph x:DataType="local:Paragraph" Classes="paragraphBindings" xml:space="preserve" 
+																				MouseMove="EditableParagraph_MouseMove" 
+																				LostFocus="EditableParagraph_LostFocus" 
+																
+																				TextLayoutInfoStartRequested="{Binding RequestTextLayoutInfoStart}"
+																				TextLayoutInfoEndRequested="{Binding RequestTextLayoutInfoEnd}"
+																				local:RequestExtensions.TextBoxFocusRequested="{Binding RequestTextBoxFocus}"
+																				local:RequestExtensions.IsInlineUpdateRequested="{Binding RequestInlinesUpdate}"
+																				local:RequestExtensions.InvalidateVisualRequested="{Binding RequestInvalidateVisual}"
+																				/>  
+																		</DataTemplate>
+																	</ItemsControl.ItemTemplate>
+																</ItemsControl>
+
 															</local:EditableCell>
+
 															<Rectangle Fill="{Binding SelectionBrush}" Opacity="0.45" IsVisible="{Binding Selected}" IsHitTestVisible="False"/>
 														</Grid>
 													</DataTemplate>

@@ -84,6 +84,9 @@ Added EditableHyperlink</PackageReleaseNotes>
 
 	
 	<ItemGroup>
+    <Compile Update="FlowDocument\FlowDocument_SelectionGetNextPos.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
     <Compile Update="RichTextBox\RichTextBoxInputClient.cs">
       <SubType>Code</SubType>
       <DependentUpon>%(Filename)</DependentUpon>

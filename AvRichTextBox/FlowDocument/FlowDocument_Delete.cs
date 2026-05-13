@@ -14,7 +14,7 @@ public partial class FlowDocument
         {
             bool keepInCell =
                (backspace && Selection.StartParagraph.SelectionStartInBlock == 0) ||
-               (!backspace && Selection.StartParagraph.SelectionStartInBlock >= Selection.StartParagraph.BlockLength - 1);
+               (!backspace && Selection.StartParagraph.SelectionStartInBlock >= Selection.StartParagraph.BlockLength - 2);
             if (keepInCell) return;
         }
 
@@ -121,6 +121,10 @@ public partial class FlowDocument
                     //Paragraph must always have at least an empty run
                     if (startP.Inlines.Count == 0)
                         startP.Inlines.Add(new EditableRun(""));
+                    
+                    ////$$$$$$$$$$$$$$$$$$$$$$
+                    //else if (startP.Inlines.Count == 1 && startP.Inlines[0] is EditableCellBreak)
+                    //    startP.Inlines.Insert(0, new EditableRun(""));
                 }
             }
 
@@ -180,7 +184,6 @@ public partial class FlowDocument
             return (lastInline.Id, -1);
 
         if (addUndo)
-            //Undos.Add(new DeleteRangeUndo(rangePars.ConvertAll(rpar=> rpar.FullClone()), firstParIndex, this, originalRangeStart, originalTRangeLength, lastParDeleted));
             Undos.Add(new DeleteRangeUndo(rangePars.ConvertAll(rpar => rpar.FullClone()), firstParIndex, this, originalRangeStart, originalTRangeLength, firstParDeleted, lastParDeleted));
 
         (List<IEditable> createdInlines, (int idLeft, int idRight) edgeIds) createdInlinesResult = GetTextRangeInlines(trange, addToDoc: true);

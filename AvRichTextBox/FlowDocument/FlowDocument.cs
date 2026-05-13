@@ -103,7 +103,12 @@ public partial class FlowDocument : AvaloniaObject
             if (block is Table table)
             {
                 foreach (Cell c in table.Cells)
-                    c.CellContent.MyFlowDoc = this;
+                {
+                    foreach (Block b in c.CellBlocks)
+                    {
+                        b.MyFlowDoc = this;
+                    }
+                }
             }
         }
 
@@ -278,7 +283,8 @@ public partial class FlowDocument : AvaloniaObject
                     return [p];
 
                 if (b is Table t)
-                    return t.Cells.Select(c => c.CellContent) ?? Enumerable.Empty<Paragraph>();
+                    //return t.Cells.Select(c => c.CellBlocks) ?? Enumerable.Empty<Paragraph>();
+                    return t.Cells.SelectMany(c => c.CellBlocks.OfType<Paragraph>()) ?? Enumerable.Empty<Paragraph>();
 
                 return Enumerable.Empty<Paragraph>();
 

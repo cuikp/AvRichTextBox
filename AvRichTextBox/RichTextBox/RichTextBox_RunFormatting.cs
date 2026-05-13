@@ -77,7 +77,7 @@ public partial class RichTextBox
         int deleteRangeLength = insertRange.Length;
         Paragraph startPar = insertRange.StartParagraph;
         Paragraph endPar = insertRange.EndParagraph;
-        int insertParIndex = FlowDoc.Blocks.IndexOf(startPar);
+        int insertParIndex = FlowDoc.AllParagraphs.IndexOf(startPar);
         bool firstParEmpty = startPar.Inlines[0] is EditableRun erun && erun.Text == "";
         int pastedTextLength = 0;
         List<int> addedBlockIds = [];

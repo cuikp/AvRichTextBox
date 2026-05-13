@@ -9,6 +9,7 @@ public partial class FlowDocument
 
    internal void UpdateBlockAndInlineStarts(int fromBlockIndex)
    {
+      //if (fromBlockIndex >= Blocks.Count || fromBlockIndex < 0) return;
       if (fromBlockIndex >= Blocks.Count) return;
       
       int blockSum = fromBlockIndex == 0 ? 0 : Blocks[fromBlockIndex - 1].StartInDoc + Blocks[fromBlockIndex - 1].BlockLength;
@@ -23,17 +24,19 @@ public partial class FlowDocument
                thisPar.UpdateEditableRunPositions();
                break;
 
-            case Table thisTable:
+            case Table thisTable:   // TODO: pass paragraph index and only update starting from that paragraph inside the table
                int innerSum = 0;
 
                foreach (Cell c in thisTable.Cells)
                {
-                  if (c.CellContent is Paragraph cellPar)
-                  {
-                     cellPar.StartInDoc = blockSum + innerSum;
-                     cellPar.UpdateEditableRunPositions();
-                     innerSum += cellPar.BlockLength - 1;
-                  }
+                        foreach (Block b in c.CellBlocks)
+                          {
+                             b.StartInDoc = blockSum + innerSum;
+                            if (b is Paragraph p)
+                                p.UpdateEditableRunPositions();
+                             //innerSum += cellPar.BlockLength - 1;
+                             innerSum += b.BlockLength;
+                          }
                }
                break;
          }
