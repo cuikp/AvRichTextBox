@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 		xmlns:avrtb="using:AvRichTextBox"
 		xmlns:cc="using:CustomControls"
-        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="800" Height="900" Width="1000" MinWidth="500" MinHeight="200"
+        mc:Ignorable="d" d:DesignWidth="1220" d:DesignHeight="800" Height="900" Width="1220" MinWidth="500" MinHeight="200"
         x:Class="DemoApp_AvRichtextBox.Views.MainWindow" WindowStartupLocation="CenterScreen" x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico" Title="{Binding CurrentOpenFileNameExt}" >
 
@@ -15,8 +15,8 @@
 		<!-- Formatting controls panel -->
 		<DockPanel DockPanel.Dock="Top"  >
 
-			<DockPanel DockPanel.Dock="Left" Width="150" LastChildFill="False" >
-				<Menu DockPanel.Dock="Top" BorderBrush="Gray" BorderThickness="1">
+			<DockPanel x:Name="TopPanel" DockPanel.Dock="Top" LastChildFill="False" >
+				<Menu DockPanel.Dock="Left" BorderBrush="Gray" BorderThickness="1" Margin="15, 0">
 
 					<MenuItem Header="File">
 						<MenuItem Header="New document" Click="CreateNewDocumentMenuItem_Click"/>
@@ -39,10 +39,10 @@
 				</Menu>
 
 
-				<DockPanel Margin="2, 10, 2, 5" DockPanel.Dock="Top">
-					<Button x:Name="FindBut" Content="Find" DockPanel.Dock="Top" Click="FindButton_Click" />
+				<DockPanel Margin="2, 5, 2, 5" DockPanel.Dock="Left">
+					<Button x:Name="FindBut" Content="Find" DockPanel.Dock="Left" Click="FindButton_Click" />
 
-					<TextBox x:Name="FindTB" Text="" GotFocus="FindTextBox_GotFocus" Background="LightGray" KeyDown="FindTextBox_KeyDown" FontSize="16" Margin="2, 4" Focusable="True">
+					<TextBox x:Name="FindTB" Width="250" Text="" GotFocus="FindTextBox_GotFocus" Background="LightGray" KeyDown="FindTextBox_KeyDown" FontSize="16" Margin="2, 4" Focusable="True">
 						<TextBox.Styles>
 							<Style Selector="TextBox:pointerover /template/ Border">
 								<Setter Property="Background" Value="{TemplateBinding Background}" />
@@ -53,7 +53,10 @@
 
 			</DockPanel>
 
-			<Border BorderThickness="1.5" BorderBrush="DarkBlue" Margin="15, 1, 5, 1" Padding="2">
+		
+
+				<!-- AttributePanel -->
+			<Border BorderThickness="1.5" BorderBrush="DarkBlue" Margin="5, 1, 5, 1" Padding="2">
 
 				<StackPanel  x:Name="TopStackPanel"  Background="LightGray" Spacing="8" HorizontalAlignment="Stretch" Orientation="Horizontal">
 
@@ -140,7 +143,7 @@
 								</DockPanel>
 								
 								<DockPanel>
-									<TextBlock DockPanel.Dock="Top" Text="Border" VerticalAlignment="Center" Margin="0, -10, 0, 0"  TextWrapping="Wrap" HorizontalAlignment="Right"/>
+									<TextBlock DockPanel.Dock="Top" Text="Border thickness" Width="70" VerticalAlignment="Center" Margin="0, -10, 0, 0"  TextWrapping="Wrap" HorizontalAlignment="Right"/>
 									<cc:NumericSpinner x:Name="ParagraphBorderNS" Width="42" Margin="3" MinValue="0" MaxValue="20" Value="0" Height="30" DockPanel.Dock="Right" 
 													   FontSize="16" UserValueChanged="ParagraphBorderNS_UserValueChanged"/>
 								</DockPanel>
@@ -202,9 +205,54 @@
 							
 						</DockPanel>
 					</Border>
+					
+					<Border x:Name="TablePanel" BorderBrush="Black" BorderThickness="3" Padding="2" Width="170" >
+						<DockPanel LastChildFill="False" >
+							<TextBlock Text="Table" DockPanel.Dock="Top" TextAlignment="Center"/>
+							<DockPanel DockPanel.Dock="Top" Margin="0, 5">
+								<DockPanel DockPanel.Dock="Left">
+									<TextBlock DockPanel.Dock="Top" Text="Border thickness" Width="70" VerticalAlignment="Center" Margin="0, -10, 0, 0"  TextWrapping="Wrap" HorizontalAlignment="Right"/>
+									<cc:NumericSpinner x:Name="TableBorderNS" Width="42" Margin="3" MinValue="0" MaxValue="20" Value="0" Height="30" DockPanel.Dock="Right" 
+													   FontSize="16" UserValueChanged="TableBorderNS_UserValueChanged"/>
+								</DockPanel>
+
+								<DockPanel Margin="4">
+									<TextBlock Text="Border color:" DockPanel.Dock="Top" Width="50" TextAlignment="Right" TextWrapping="Wrap" HorizontalAlignment="Right" Margin="3,0" VerticalAlignment="Top"/>
+									<ColorPicker Color="Black" x:Name="TableBorderCP" ColorChanged="TableBorder_ColorChanged" DockPanel.Dock="Right" Width="70"  Height="25" Background="White"
+										Focusable="False" />
+									
+								</DockPanel>
+							</DockPanel>
+							
+						<Separator Height="2" Width="{Binding $parent[Border].Bounds.Width}" DockPanel.Dock="Top"/>	
+
+							<TextBlock Text="Cell" DockPanel.Dock="Top"/>
+							
+							<DockPanel>
+								
+								<DockPanel Margin="2" DockPanel.Dock="Left"  Background="LightGray">
+									<TextBlock Text="Backgr:" DockPanel.Dock="Top" Width="50" TextWrapping="Wrap" Margin="3,0" />
+									<ColorPicker Color="Black" x:Name="CellBackgroundCP" ColorChanged="CellBackground_ColorChanged" DockPanel.Dock="Right" Width="70"  Height="25" Background="White"
+										Focusable="False" />
+								</DockPanel>
+								<DockPanel Background="LightGray">
+									<TextBlock Text="V. Align" DockPanel.Dock="Top"/>
+									<ComboBox x:Name="CellAlignmentCB" SelectedIndex="0" Padding="5, 0, 0, 0" Width="85" DropDownClosed="CellAlignmentCB_DropDownClosed" Background="LightGray" >
+											<ComboBoxItem Content="Top"/>
+											<ComboBoxItem Content="Center"/>
+											<ComboBoxItem Content="Bottom"/>
+										</ComboBox>
+								</DockPanel>
+							</DockPanel>
+
+						</DockPanel>
+						
+
+					</Border>
 				</StackPanel>
 
 			</Border>
+
 
 		</DockPanel>
 

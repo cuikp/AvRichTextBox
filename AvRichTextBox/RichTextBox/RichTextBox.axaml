@@ -49,7 +49,6 @@
 			<Setter Property="FontWeight" Value="{Binding FontWeight}"/>
 			<Setter Property="FontSize" Value="{Binding FontSize}"/>
 			<Setter Property="TextAlignment" Value="{Binding TextAlignment}"/>
-			<Setter Property="VerticalAlignment" Value="{Binding VerticalAlignment}"/>
 		
 		</Style>
 

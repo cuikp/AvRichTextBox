@@ -14,7 +14,8 @@ public class EditableLineBreak : LineBreak, IEditable
    public int TextPositionOfInlineInParagraph { get; set; }
    public bool IsTableCellInline { get; set; } = false;
 
-   internal string InlineText { get; private set; } = @"\n"; //make literal to count as 2 characters
+   //internal string InlineText { get; private set; } = @"\n"; //make literal to count as 2 characters
+   internal string InlineText { get; private set; } = "\n"; 
    string IEditable.InlineText { get => InlineText; set { InlineText = value; } }
 
    public int InlineLength => 2;  //because LineBreak acts as a double character in TextBlock

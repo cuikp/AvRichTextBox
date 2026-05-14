@@ -1,9 +1,7 @@
 using Avalonia.Controls;
-using Avalonia.Controls.Documents;
 using Avalonia.Platform.Storage;
 using AvRichTextBox;
 using DemoApp_AvRichtextBox.ViewModels;
-using DynamicData;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,161 +12,161 @@ namespace DemoApp_AvRichtextBox.Views;
 
 public partial class MainWindow : Window
 {
-   string OpenFilePath
-   {
-      get => ((MainWindowViewModel)DataContext!).CurrentOpenFilePath;
-      set { ((MainWindowViewModel)DataContext!).CurrentOpenFilePath = value; }
-   }
+    string OpenFilePath
+    {
+        get => ((MainWindowViewModel)DataContext!).CurrentOpenFilePath;
+        set { ((MainWindowViewModel)DataContext!).CurrentOpenFilePath = value; }
+    }
 
-   string OpenFileName => ((MainWindowViewModel)DataContext!).CurrentOpenFileName;
+    string OpenFileName => ((MainWindowViewModel)DataContext!).CurrentOpenFileName;
 
-   private async void LoadXamlPackageMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-   {
+    private async void LoadXamlPackageMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
 
-      FilePickerOpenOptions filePickerOptions = new()
-      {
-         Title = "Open Xaml package file",
-         SuggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync(Path.Combine(AppContext.BaseDirectory, "TestFiles")),
-         FileTypeFilter =
-         [
-            new("Xaml package files") { Patterns = ["*.xamlp"] },
+        FilePickerOpenOptions filePickerOptions = new()
+        {
+            Title = "Open Xaml package file",
+            SuggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync(Path.Combine(AppContext.BaseDirectory, "TestFiles")),
+            FileTypeFilter =
+           [
+              new("Xaml package files") { Patterns = ["*.xamlp"] },
             new("all files") { Patterns = ["*.*"] }
 
-         ],
+           ],
 
-         AllowMultiple = false
-      };
+            AllowMultiple = false
+        };
 
-      var topLevel = TopLevel.GetTopLevel(this);
-      var files = await topLevel!.StorageProvider.OpenFilePickerAsync(filePickerOptions);
+        var topLevel = TopLevel.GetTopLevel(this);
+        var files = await topLevel!.StorageProvider.OpenFilePickerAsync(filePickerOptions);
 
-      if (files.Count == 1)
-      {
-         string? f = files[0].TryGetLocalPath();
-         if (f != null)
-         {
-            OpenFilePath = f;
-            MainRTB.LoadXamlPackage(f);
-            ShowPagePaddingValue();
-         }
-
-
-      }
-   }
+        if (files.Count == 1)
+        {
+            string? f = files[0].TryGetLocalPath();
+            if (f != null)
+            {
+                OpenFilePath = f;
+                MainRTB.LoadXamlPackage(f);
+                ShowPagePaddingValue();
+            }
 
 
-   private void SaveXamlPackageMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-   {
-      MainRTB.SaveXamlPackage(Path.Combine(Path.GetDirectoryName(OpenFilePath)!, OpenFileName + ".xamlp"));
-   }
-
-   private async void LoadRtfFileMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-   {
-      FilePickerOpenOptions filePickerOptions = new()
-      {
-         Title = "Open Rtf file",
-         SuggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync(Path.Combine(AppContext.BaseDirectory, "TestFiles")),
-         FileTypeFilter = [new("Rtf files") { Patterns = ["*.rtf"] }],
-         AllowMultiple = false
-      };
-
-      var topLevel = TopLevel.GetTopLevel(this);
-      var files = await topLevel!.StorageProvider.OpenFilePickerAsync(filePickerOptions);
-
-      if (files.Count == 1)
-      {
-         string? f = files[0].TryGetLocalPath();
-         if (f != null)
-         {
-            OpenFilePath = f;
-            MainRTB.LoadRtfDoc(f);
-            ShowPagePaddingValue();
-         }
-      }
-   }
-
-   private void SaveRtfFileMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-   {
-      MainRTB.SaveRtfDoc(Path.Combine(Path.GetDirectoryName(OpenFilePath)!, OpenFileName + ".rtf"));
-   }
+        }
+    }
 
 
-   private async void LoadWordFileMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-   {
+    private void SaveXamlPackageMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        MainRTB.SaveXamlPackage(Path.Combine(Path.GetDirectoryName(OpenFilePath)!, OpenFileName + ".xamlp"));
+    }
 
-      FilePickerOpenOptions filePickerOptions = new()
-      {
-         Title = "Open Word doc file",
-         SuggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync(Path.Combine(AppContext.BaseDirectory, "TestFiles")),
-         FileTypeFilter = [new("Word doc files") { Patterns = ["*.docx"], }],
-         AllowMultiple = false
-      };
+    private async void LoadRtfFileMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        FilePickerOpenOptions filePickerOptions = new()
+        {
+            Title = "Open Rtf file",
+            SuggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync(Path.Combine(AppContext.BaseDirectory, "TestFiles")),
+            FileTypeFilter = [new("Rtf files") { Patterns = ["*.rtf"] }],
+            AllowMultiple = false
+        };
+
+        var topLevel = TopLevel.GetTopLevel(this);
+        var files = await topLevel!.StorageProvider.OpenFilePickerAsync(filePickerOptions);
+
+        if (files.Count == 1)
+        {
+            string? f = files[0].TryGetLocalPath();
+            if (f != null)
+            {
+                OpenFilePath = f;
+                MainRTB.LoadRtfDoc(f);
+                ShowPagePaddingValue();
+            }
+        }
+    }
+
+    private void SaveRtfFileMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        MainRTB.SaveRtfDoc(Path.Combine(Path.GetDirectoryName(OpenFilePath)!, OpenFileName + ".rtf"));
+    }
 
 
-      var topLevel = TopLevel.GetTopLevel(this);
-      var files = await topLevel!.StorageProvider.OpenFilePickerAsync(filePickerOptions);
+    private async void LoadWordFileMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
 
-      if (files.Count == 1)
-      {
-         string? f = files[0].TryGetLocalPath();
-         if (f != null)
-         {
-            OpenFilePath = f;
-            MainRTB.LoadWordDoc(f);
-            ShowPagePaddingValue();
-         }
-      }
+        FilePickerOpenOptions filePickerOptions = new()
+        {
+            Title = "Open Word doc file",
+            SuggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync(Path.Combine(AppContext.BaseDirectory, "TestFiles")),
+            FileTypeFilter = [new("Word doc files") { Patterns = ["*.docx"], }],
+            AllowMultiple = false
+        };
 
-   }
 
-   private void SaveWordFileMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-   {
-      MainRTB.SaveWordDoc(Path.Combine(Path.GetDirectoryName(OpenFilePath)!, OpenFileName + ".docx"));
-   }
+        var topLevel = TopLevel.GetTopLevel(this);
+        var files = await topLevel!.StorageProvider.OpenFilePickerAsync(filePickerOptions);
 
-   private void SaveHtmlFileMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-   {
-      MainRTB.SaveHtmlDoc(Path.Combine(Path.GetDirectoryName(OpenFilePath)!, OpenFileName + ".html"));
-   }
+        if (files.Count == 1)
+        {
+            string? f = files[0].TryGetLocalPath();
+            if (f != null)
+            {
+                OpenFilePath = f;
+                MainRTB.LoadWordDoc(f);
+                ShowPagePaddingValue();
+            }
+        }
 
-   private async void LoadHtmlFileMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-   {
-      FilePickerOpenOptions filePickerOptions = new()
-      {
-         Title = "Open Html file",
-         SuggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync(Path.Combine(AppContext.BaseDirectory, "TestFiles")),
-         FileTypeFilter = [new("Html files") { Patterns = ["*.html"], }],
-         AllowMultiple = false
-      };
+    }
 
-      var topLevel = TopLevel.GetTopLevel(this);
-      var files = await topLevel!.StorageProvider.OpenFilePickerAsync(filePickerOptions);
+    private void SaveWordFileMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        MainRTB.SaveWordDoc(Path.Combine(Path.GetDirectoryName(OpenFilePath)!, OpenFileName + ".docx"));
+    }
 
-      if (files.Count == 1)
-      {
-         string? f = files[0].TryGetLocalPath();
-         if (f != null)
-         {
-            OpenFilePath = f;
-            MainRTB.LoadHtmlDoc(f);
-            ShowPagePaddingValue();
-         }
+    private void SaveHtmlFileMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        MainRTB.SaveHtmlDoc(Path.Combine(Path.GetDirectoryName(OpenFilePath)!, OpenFileName + ".html"));
+    }
 
-      }
+    private async void LoadHtmlFileMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        FilePickerOpenOptions filePickerOptions = new()
+        {
+            Title = "Open Html file",
+            SuggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync(Path.Combine(AppContext.BaseDirectory, "TestFiles")),
+            FileTypeFilter = [new("Html files") { Patterns = ["*.html"], }],
+            AllowMultiple = false
+        };
 
-   }
+        var topLevel = TopLevel.GetTopLevel(this);
+        var files = await topLevel!.StorageProvider.OpenFilePickerAsync(filePickerOptions);
 
-   private void OpenTestFilesFolderMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-   {
+        if (files.Count == 1)
+        {
+            string? f = files[0].TryGetLocalPath();
+            if (f != null)
+            {
+                OpenFilePath = f;
+                MainRTB.LoadHtmlDoc(f);
+                ShowPagePaddingValue();
+            }
 
-      string filesPath = Path.Combine(AppContext.BaseDirectory, "TestFiles");
-      if (OperatingSystem.IsWindows())
-         Process.Start(new ProcessStartInfo("explorer", filesPath) { UseShellExecute = true });
-      else if (OperatingSystem.IsMacOS())
-         Process.Start("open", filesPath);
-      else
-         Process.Start("xdg-open", filesPath);
-   }
+        }
 
-   
+    }
+
+    private void OpenTestFilesFolderMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+
+        string filesPath = Path.Combine(AppContext.BaseDirectory, "TestFiles");
+        if (OperatingSystem.IsWindows())
+            Process.Start(new ProcessStartInfo("explorer", filesPath) { UseShellExecute = true });
+        else if (OperatingSystem.IsMacOS())
+            Process.Start("open", filesPath);
+        else
+            Process.Start("xdg-open", filesPath);
+    }
+
+  
 }

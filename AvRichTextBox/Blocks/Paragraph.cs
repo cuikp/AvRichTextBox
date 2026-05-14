@@ -67,12 +67,6 @@ public class Paragraph : Block
    public FontStyle FontStyle{ get; set { field = value; NotifyPropertyChanged(nameof(FontStyle)); } } = FontStyle.Normal;
    public TextAlignment TextAlignment { get; set { field = value; NotifyPropertyChanged(nameof(TextAlignment)); } } = TextAlignment.Left;
 
-   /// <summary>
-   /// Note: the attribute 'VerticalAlignment' on Paragraph is rejected (throws error) by Windows WPF TextRange.Load(stream, Xaml/XamlPackage) if present.<br/>
-   /// Since the Xaml content saved by AvRichTextBox adds VerticalAlignment onto Paragraphs (for alignment in TableCells), it can't be directly loaded by WPF but has to be parsed out.
-   /// </summary>
-   public VerticalAlignment VerticalAlignment { get; set { field = value; NotifyPropertyChanged(nameof(VerticalAlignment)); } } = VerticalAlignment.Top;
-     
    internal double DistanceSelectionEndFromLeft = 0;
    internal double DistanceSelectionStartFromLeft = 0;
    internal int CharNextLineEnd = 0;

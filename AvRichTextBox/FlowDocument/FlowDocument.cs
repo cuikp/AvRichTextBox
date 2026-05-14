@@ -54,7 +54,8 @@ public partial class FlowDocument : AvaloniaObject
         set => SetAndRaise(PagePaddingProperty, ref field, value);
     }
 
-    public string Text => string.Join("", Blocks.ToList().ConvertAll(b => string.Join("", b.Text + Environment.NewLine)));
+    //public string Text => string.Join("", GetAllParagraphs.ToList().ConvertAll(b => string.Join("", b.Text + Environment.NewLine)));
+    public string Text => string.Join("", GetAllParagraphs.ToList().ConvertAll(p => string.Join("", p.Text))); 
 
     public int DocEndPoint => ((Paragraph)Blocks.Last()).EndInDoc;
 

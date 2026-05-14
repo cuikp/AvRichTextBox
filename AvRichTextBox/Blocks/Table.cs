@@ -9,8 +9,9 @@ namespace AvRichTextBox;
 
 public partial class Table : Block
 {
-    public Thickness BorderThickness { get; set; } = new(1);
-    public ISolidColorBrush BorderBrush { get; set; } = Brushes.Black;
+    public Thickness BorderThickness { get; set { field = value; NotifyPropertyChanged(nameof(BorderThickness)); } } = new(1);
+    public ISolidColorBrush BorderBrush { get; set { field = value; NotifyPropertyChanged(nameof(BorderBrush)); } } = Brushes.Black;
+    
     public ObservableCollection<Cell> Cells { get; set; } = [];
     public ColumnDefinitions ColDefs { get; set; } = [];
     public RowDefinitions RowDefs { get; set; } = [];
@@ -69,7 +70,6 @@ public partial class Table : Block
                 newPar.Inlines.Add(new EditableLineBreak());
                 newPar.Inlines.Add(new EditableRun("r:" + rowno));
                 newPar.TextAlignment = TextAlignment.Center;
-                newPar.VerticalAlignment = newCell.CellVerticalAlignment;
 
                 newCell.CellBlocks.Add(newPar);
                                 
@@ -81,15 +81,7 @@ public partial class Table : Block
 
 
     }
-
-    //private void Cells_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-    //{ }
-
-    //internal Cell? GetContainingCell(int charIndex)
-    //{
-    //    return Cells.LastOrDefault(c => c.CellBlocks.StartInDoc <= charIndex);
-    //}
-
+    
     internal void InsertColumn(int idx)
     {
 
@@ -247,10 +239,14 @@ public class Cell : INotifyPropertyChanged
     }
 
     internal Table OwningTable = null!;
-    public Thickness BorderThickness { get; set; } = new(1);
-    public ISolidColorBrush BorderBrush { get; set; } = Brushes.Black;
-    public ISolidColorBrush CellBackground { get; set; } = null!;
-    public Thickness Padding { get; set; } = new(5);
+    public Table GetOwningTable => OwningTable;
+
+    public Thickness BorderThickness { get; set { field = value; NotifyPropertyChanged(nameof(BorderThickness)); } } = new(1);
+    public ISolidColorBrush BorderBrush { get; set { field = value; NotifyPropertyChanged(nameof(BorderBrush)); } } = Brushes.Black;
+    public ISolidColorBrush CellBackground { get; set { field = value; NotifyPropertyChanged(nameof(CellBackground)); } } = null!;
+    public VerticalAlignment CellVerticalAlignment { get; set { field = value; NotifyPropertyChanged(nameof(CellVerticalAlignment)); } } = VerticalAlignment.Top;
+    public Thickness Padding { get; set { field = value; NotifyPropertyChanged(nameof(Padding)); } } = new(5);
+    
     public int ColNo { get; set; }
     public int RowNo { get; set; }
     public int ColSpan { get; set; } = 1;
@@ -263,7 +259,7 @@ public class Cell : INotifyPropertyChanged
     //public double Width { get; set; } = 100;
     public double Height { get; set; } = 60;
     public bool vmerged = false;
-    public VerticalAlignment CellVerticalAlignment { get; set ; } = VerticalAlignment.Top;
+   
 
 }
 

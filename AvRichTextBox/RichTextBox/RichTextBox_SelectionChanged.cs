@@ -86,7 +86,7 @@ public partial class RichTextBox : UserControl
          {
             //visible selection for table cells
             if (p.IsTableCellBlock)
-               p.OwningCell.Selected = (p.SelectionStartInBlock == 0 && p.SelectionEndInBlock >= p.BlockLength - 1);
+               p.OwningCell.Selected = (p.SelectionStartInBlock == 0 && p.SelectionEndInBlock >= p.BlockLength);
 
             if (parIsEmpty)
             {

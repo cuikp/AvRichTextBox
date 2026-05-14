@@ -407,8 +407,6 @@ internal static partial class WordConversions
       if (psection.GetAttributes()[0] is OpenXmlAttribute idatt && idatt.LocalName == "id" && idatt.Value is string id)
       {
          string relationId = id;
-         Debug.WriteLine("id = " + relationId);
-
          if (psection.Elements().FirstOrDefault(elem => elem.LocalName == "r") is OpenXmlElement hyperRun)
          if (GetIEditable(hyperRun, ref para, mainDocPart) is EditableRun erun)
          {

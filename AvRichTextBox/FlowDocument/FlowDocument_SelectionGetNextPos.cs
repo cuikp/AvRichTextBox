@@ -14,9 +14,9 @@ public partial class FlowDocument
 
         if (posInBlock <= 0)
         {  // At start of paragraph, move to end of previous paragraph
-            if (startP.IsTableCellBlock)
-                return Math.Max(0, startP.StartInDoc - 2);
-            else
+            //if (startP.IsTableCellBlock)
+            //    return Math.Max(0, startP.StartInDoc - 2);
+            //else
                 return Math.Max(0, startP.StartInDoc - 1);
         }
 
@@ -57,13 +57,16 @@ public partial class FlowDocument
         Paragraph startP = (SelectionExtendMode == ExtendMode.ExtendModeLeft) ? Selection.StartParagraph : Selection.EndParagraph;
         int posInBlock = currentPos - startP.StartInDoc;
 
-        int parEnd = startP.IsTableCellBlock ? startP.TextLength - 1 : startP.TextLength;
+        //int parEnd = startP.IsTableCellBlock ? startP.TextLength - 1 : startP.TextLength; //xxxxxxxxxxxxxxxxxx
+        //int parEnd = startP.BlockLength;
 
-        if (posInBlock >= parEnd)
-        {  // At end of paragraph, move to start of next paragraph
-            int nextPos = startP.StartInDoc + startP.BlockLength;
-            return Math.Min(nextPos, DocEndPoint - 1);
-        }
+        ////if (posInBlock >= parEnd)
+        //if (posInBlock == parEnd - 1)
+        //{  // At end of paragraph, move to start of next paragraph
+
+        //    int nextPos = startP.StartInDoc + startP.BlockLength;
+        //    return Math.Min(nextPos, DocEndPoint - 1);
+        //}
 
         int computedNext = startP.StartInDoc + posInBlock + 1;
 

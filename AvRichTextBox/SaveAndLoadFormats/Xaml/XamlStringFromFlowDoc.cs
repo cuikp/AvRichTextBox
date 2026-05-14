@@ -2,7 +2,6 @@ using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
-using System.Data.SqlTypes;
 using System.IO.Compression;
 using System.Text;
 using System.Xml;
@@ -199,7 +198,8 @@ public partial class XamlConversions
                        $" Padding=\"{thisCell.Padding}\"" +
                        $" BorderThickness=\"{thisCell.BorderThickness}\"" +
                        $" BorderBrush=\"{thisCell.BorderBrush}\"" +
-                       $" CellBackground=\"{thisCell.CellBackground}\"";
+                       $" Background=\"{thisCell.CellBackground}\"" +   // 
+                       $" VerticalAlignment=\"{thisCell.CellVerticalAlignment}\"";  //  not honoured by WPF's RTB??? check this
                     cellString.Append(cellPropertiesString);
                     cellString.Append('>');
 
@@ -237,7 +237,6 @@ public partial class XamlConversions
            $" Margin=\"{par.Margin}\"" +
            $" Background=\"{par.Background}\"" +
            $" TextAlignment=\"{par.TextAlignment}\"" +
-           $" VerticalAlignment=\"{par.VerticalAlignment}\"" +
            ">");
 
         parXaml.Append(GetParagraphRunsXaml(par.Inlines, isXamlPackage));

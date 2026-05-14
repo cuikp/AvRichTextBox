@@ -13,8 +13,10 @@ public class Block : INotifyPropertyChanged
     internal int Id = 0;
 
     internal bool IsTableCellBlock = false;
+    public bool IsCellBlock => IsTableCellBlock;
     internal Table OwningTable = null!;
     internal Cell OwningCell = null!;
+    public Cell GetOwningCell => OwningCell;
 
     internal FlowDocument MyFlowDoc
     {
@@ -44,6 +46,8 @@ public class Block : INotifyPropertyChanged
                     foreach (var i in p.Inlines)
                         sb.Append(i.InlineText);
 
+                    sb.Append((p.IsTableCellBlock ? Environment.NewLine : "\n"));  // Environment.NewLine adds "\r\n" (Non-Unix) or "\n" (Unix) to end of paragraph text
+
                     return sb.ToString();
 
                 case Table t:
@@ -71,8 +75,9 @@ public class Block : INotifyPropertyChanged
                     foreach (var i in p.Inlines)
                         len += i.InlineText?.Length ?? 0;
 
-                    if (p.IsTableCellBlock)
-                        len += 1;
+                    // paragraph CR
+                    len += 1;  // ????????
+                    
 
                     return len;
 
@@ -101,10 +106,7 @@ public class Block : INotifyPropertyChanged
             switch (this)
             {
                 case Paragraph p:
-                    returnLength = p.Inlines.ToList().Sum(il => il.InlineLength) + 1;
-
-                    if (p.IsTableCellBlock)
-                        returnLength += 1;  //char7
+                    returnLength = p.Inlines.ToList().Sum(il => il.InlineLength) + 1;  // extra for paragraph CR
 
                     break;
 
@@ -138,7 +140,7 @@ public class Block : INotifyPropertyChanged
                 field = value;
                 NotifyPropertyChanged(nameof(SelectionStartInBlock));
                 if (this.IsTableCellBlock)
-                    this.OwningCell.Selected = SelectionStartInBlock == 0 && SelectionEndInBlock == BlockLength - 1;  // later add chr(7) for cells
+                    this.OwningCell.Selected = SelectionStartInBlock == 0 && SelectionEndInBlock == BlockLength;  
 
             }
         }
@@ -154,7 +156,7 @@ public class Block : INotifyPropertyChanged
                 field = value;
                 NotifyPropertyChanged(nameof(SelectionEndInBlock));
                 if (this.IsTableCellBlock)
-                    this.OwningCell.Selected = SelectionStartInBlock == 0 && SelectionEndInBlock == BlockLength - 1;  // later add chr(7) for cells
+                    this.OwningCell.Selected = SelectionStartInBlock == 0 && SelectionEndInBlock == BlockLength;  
             }
         }
     }

@@ -14,7 +14,7 @@ public partial class FlowDocument
         {
             bool keepInCell =
                (backspace && Selection.StartParagraph.SelectionStartInBlock == 0) ||
-               (!backspace && Selection.StartParagraph.SelectionStartInBlock >= Selection.StartParagraph.BlockLength - 2);
+               (!backspace && Selection.StartParagraph.SelectionStartInBlock >= Selection.StartParagraph.BlockLength - 1);
             if (keepInCell) return;
         }
 

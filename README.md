@@ -214,3 +214,9 @@ Added right-click ContextMenu (Copy/Paste/Cut/Delete)
 Shift+Ctrl-Right/Left to select next(previous word)
 Shift+Ctrl-Home/End to select to Home/End
 Caret color is customizable  (CaretBrush)
+
+**[ver 1.9.0] 2026/05/xx**: 
+Multiple paragraphs allowed in table `Cell`s (theoretically any type of Blocks (such as `EditableInlineUIContainer` or even nested `Table`), but this is not tested).
+Hyperlink support with popup edit dialog. (`EditableHyperlink`)
+Removed `VerticalAlignment` property from `Paragraph`: Now `Cell` has `VerticalAlignment` instead, to adjust content position within cells.
+
