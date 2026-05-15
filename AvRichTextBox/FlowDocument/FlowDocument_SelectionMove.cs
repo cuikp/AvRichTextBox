@@ -284,7 +284,8 @@ public partial class FlowDocument
             Selection.End = Selection.EndParagraph.StartInDoc + thisEndPar.LastIndexEndLine;
 
         string parText = thisEndPar.Text;
-        if (thisEndPar.LastIndexEndLine <= parText.Length && (parText[thisEndPar.LastIndexEndLine] == ' ' || IsCJKChar(parText[thisEndPar.LastIndexEndLine])))
+        char endChar = parText[thisEndPar.LastIndexEndLine];
+        if (thisEndPar.LastIndexEndLine <= parText.Length && (endChar == ' ' || IsCJKChar(endChar)))
         {
             Selection.IsAtEndOfLineSpace = true;
             Selection.End += 1;

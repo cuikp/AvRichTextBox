@@ -44,7 +44,6 @@ public partial class Table : Block
 
             for (int colno = 0; colno < cols; colno++)
             {
-
                 Paragraph newPar = new(flowDoc);
 
                 Cell newCell = new(this)
@@ -56,11 +55,7 @@ public partial class Table : Block
                     Padding = new(5)
                 };
 
-                //bool skip = GetMergedTestCell2(newPar, newCell, rowno, colno);
-                bool skip = false;
-
-                if (!skip)
-                    Cells.Add(newCell);
+                Cells.Add(newCell);
 
                 newPar.IsTableCellBlock = true;
                 newPar.OwningTable = this;
@@ -77,127 +72,22 @@ public partial class Table : Block
 
     }
     
+    public Cell? GetCellAt(int rowno,  int colno)
+    {
+        return Cells.FirstOrDefault(c=> c.RowNo == rowno && c.ColNo == colno);
+    }
+
+    public void RemoveCellAt(int rowno,  int colno)
+    {
+        if (Cells.FirstOrDefault(c => c.RowNo == rowno && c.ColNo == colno) is Cell toRemoveCell)
+            Cells.Remove(toRemoveCell);
+    }
+
     internal void InsertColumn(int idx)
     {
 
     }
 
-
-    static bool GetMergedTestCell(Paragraph newPar, Cell newCell, int rowno, int colno)
-    {
-        //Add merged cells:
-        if (rowno == 0 && colno == 0)
-        {
-            newCell.ColSpan = 2;
-            newCell.RowSpan = 2;
-            newCell.CellVerticalAlignment = VerticalAlignment.Center;
-        }
-
-        if (rowno == 0 && colno == 2)
-        {
-            newCell.RowSpan = 2;
-            newCell.CellVerticalAlignment = VerticalAlignment.Center;
-        }
-
-        if (rowno == 1 && colno == 3)
-        {
-            newCell.RowSpan = 3;
-            newCell.CellVerticalAlignment = VerticalAlignment.Center;
-        }
-
-        if (rowno == 2 && colno == 0)
-        {
-            newCell.ColSpan = 3;
-            newCell.CellVerticalAlignment = VerticalAlignment.Center;
-        }
-
-        if (rowno == 0 && colno == 4)
-        {
-            newCell.RowSpan = 4;
-            newCell.CellVerticalAlignment = VerticalAlignment.Center;
-        }
-
-        return
-           (rowno == 0 && colno == 1) ||
-           (rowno == 1 && colno == 0) ||
-           (rowno == 1 && colno == 1) ||
-           (rowno == 1 && colno == 2) ||
-           (rowno == 2 && colno == 3) ||
-           (rowno == 3 && colno == 3) ||
-           (rowno == 2 && colno == 1) ||
-           (rowno == 2 && colno == 2) ||
-
-           (rowno == 1 && colno == 4) ||
-           (rowno == 2 && colno == 4) ||
-           (rowno == 3 && colno == 4);
-
-    }
-
-
-    static bool GetMergedTestCell2(Paragraph newPar, Cell newCell, int rowno, int colno)
-    {
-        //Add merged cells:
-        if (rowno == 0 && colno == 0)
-        {
-            newCell.ColSpan = 2;
-            newCell.RowSpan = 2;
-            newCell.CellVerticalAlignment = VerticalAlignment.Top;
-        }
-
-        if (rowno == 0 && colno == 2)
-        {
-            newCell.RowSpan = 2;
-            newCell.CellVerticalAlignment = VerticalAlignment.Center;
-        }
-
-        if (rowno == 1 && colno == 3)
-        {
-            newCell.RowSpan = 3;
-            newCell.CellVerticalAlignment = VerticalAlignment.Center;
-            newCell.CellBackground = Brushes.LightSteelBlue;
-        }
-
-        if (rowno == 2 && colno == 0)
-        {
-            newCell.ColSpan = 3;
-            newCell.CellVerticalAlignment = VerticalAlignment.Center;
-        }
-
-        if (rowno == 1 && colno == 4)
-        {
-            newCell.RowSpan = 3;
-            newCell.CellVerticalAlignment = VerticalAlignment.Center;
-        }
-
-        if (rowno == 1 && colno == 3)
-        {
-            newCell.ColSpan = 2;
-            newCell.RowSpan = 2;
-            newCell.CellVerticalAlignment = VerticalAlignment.Center;
-        }
-
-        if (rowno == 3 && colno == 2)
-        {
-            newCell.ColSpan = 3;
-            newCell.CellVerticalAlignment = VerticalAlignment.Center;
-        }
-
-        return
-           (rowno == 0 && colno == 1) ||
-           (rowno == 1 && colno == 0) ||
-           (rowno == 1 && colno == 1) ||
-           (rowno == 1 && colno == 2) ||
-           (rowno == 2 && colno == 3) ||
-           (rowno == 2 && colno == 1) ||
-           (rowno == 2 && colno == 2) ||
-           (rowno == 3 && colno == 3) ||
-           (rowno == 3 && colno == 4) ||
-
-           (rowno == 1 && colno == 4) ||
-           (rowno == 2 && colno == 4);
-
-
-    }
 
 }
 

@@ -153,7 +153,7 @@ public partial class FlowDocument
 
         UpdateBlockAndInlineStarts(Selection.StartParagraph);
 
-        RestoreCaret(originalSelStart);
+        RestoreCaretTo(originalSelStart);
 
         Selection.BiasForwardStart = false;
         Selection.BiasForwardEnd = false;
@@ -252,19 +252,7 @@ public partial class FlowDocument
         return edgeIds;
 
     }
-
-    internal void RestoreCaret(int originalStart)
-    {
-        Dispatcher.UIThread.Post(() =>
-        {
-            Select(originalStart, 0);
-            Selection.CollapseToStart();
-            UpdateCaret();
-
-        }, DispatcherPriority.Background);
-
-    }
-
+       
     internal void MergeParagraphForward(int mergeCharIndex, bool addUndo, int originalSelectionStart)
     {
         if (GetContainingParagraph(mergeCharIndex) is not Paragraph thisPar) return;

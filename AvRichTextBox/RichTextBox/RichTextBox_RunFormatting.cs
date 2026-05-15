@@ -141,21 +141,25 @@ public partial class RichTextBox
                    lastParWasDeleted
                    ));
 
-            this.DocIC.UpdateLayout();
-
+            
             FlowDoc.UpdateBlockAndInlineStarts(insertParIndex);
             FlowDoc.UpdateSelection();
+
+            this.DocIC.UpdateLayout();
+
             FlowDoc.UpdateTextRanges(originalSelectionStart, pastedTextLength - deleteRangeLength);
 
             CreateClient();
 
+            FlowDoc.RestoreCaretTo(originalSelectionStart + pastedTextLength);
+            
             FlowDoc.SelectionExtendMode = ExtendMode.ExtendModeNone;
             FlowDoc.Selection.BiasForwardStart = false;
             FlowDoc.Selection.BiasForwardEnd = false;
 
-            FlowDoc.RestoreCaret(originalSelectionStart + pastedTextLength);
-
             FlowDoc.ScrollFlowDocInDirection(1);
+
+            
 
         }
     }

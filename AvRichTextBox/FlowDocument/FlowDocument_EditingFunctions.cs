@@ -140,7 +140,8 @@ public partial class FlowDocument
                         break;
                 }
 
-                pastedTextLength += p.TextLength;
+                pastedTextLength += (p.TextLength - 1); // remove extra length for par CR
+                
 
                 if (paragraphCreated)
                 {

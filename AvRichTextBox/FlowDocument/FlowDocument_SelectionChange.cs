@@ -4,18 +4,7 @@ namespace AvRichTextBox;
 
 public partial class FlowDocument
 {
-   internal void UpdateSelection()
-   {      
-
-      Selection.StartParagraph.CallRequestInlinesUpdate();
-      Selection.StartParagraph.CallRequestTextLayoutInfoStart();
-      Selection.EndParagraph.CallRequestInlinesUpdate();
-      Selection.EndParagraph.CallRequestTextLayoutInfoEnd();
-      Selection.StartParagraph.CallRequestTextBoxFocus();
-
-      UpdateBlockAndInlineStarts(Selection.StartParagraph);
-   }
-
+   
    internal void SelectionStart_Changed(TextRange selRange, int newStart)
    {  //Debug.WriteLine("SELECTION START CHANGED");
 

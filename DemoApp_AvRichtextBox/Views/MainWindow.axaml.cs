@@ -1,6 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Documents;
+using Avalonia.Layout;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
@@ -69,7 +69,7 @@ public partial class MainWindow : Window
 
 
         //DEBUG
-        //CreateTestDocumentWithTable();
+        CreateTestDocumentWithTable();
         //OpenTestDocument();
 
     }
@@ -87,16 +87,18 @@ public partial class MainWindow : Window
 
         Paragraph newPar = new(MainRTB.FlowDocument);
         newPar.Inlines.Add(new EditableRun("A "));
-        newPar.Inlines.Add(new EditableRun("first"));
+        newPar.Inlines.Add(new EditableRun("first line with super/subscripts:"));
+        
+        
         newPar.Inlines.Add(new EditableRun(" H"));
-
         newPar.Inlines.Add(new EditableRun("2") { BaselineAlignment = BaselineAlignment.Subscript });
         newPar.Inlines.Add(new EditableRun("O"));
+        newPar.Inlines.Add(new EditableRun(" at 2 g/m") { });
         newPar.Inlines.Add(new EditableRun("3") { BaselineAlignment = BaselineAlignment.Superscript });
 
-        newPar.Inlines.Add(new EditableRun(" simple "));
+        newPar.Inlines.Add(new EditableRun(", and a simple hyperlink: "));
         newPar.Inlines.Add(new EditableHyperlink("go to google", @"https://www.google.com"));
-        newPar.Inlines.Add(new EditableRun(" line."));
+        newPar.Inlines.Add(new EditableRun(" for testing."));
         MainRTB.FlowDocument.Blocks.Add(newPar);
 
         //Test Table
@@ -119,6 +121,13 @@ public partial class MainWindow : Window
             }
         }
 
+        //Test merging cells  - also combine this into a MergeCellsAt() method
+        newTable.GetCellAt(1, 0)?.ColSpan = 2;
+        newTable.RemoveCellAt(1, 1);
+        newTable.GetCellAt(2, 3)?.RowSpan = 2;
+        newTable.RemoveCellAt(3, 3);
+        
+
         MainRTB.FlowDocument.Blocks.Add(newTable);
         
         Paragraph newPar2 = new(MainRTB.FlowDocument);
@@ -134,6 +143,124 @@ public partial class MainWindow : Window
              
 
     }
+
+
+    //static bool GetMergedTestCell(Paragraph newPar, Cell newCell, int rowno, int colno)
+    //{
+    //    //Add merged cells:
+    //    if (rowno == 0 && colno == 0)
+    //    {
+    //        newCell.ColSpan = 2;
+    //        newCell.RowSpan = 2;
+    //        newCell.CellVerticalAlignment = VerticalAlignment.Center;
+    //    }
+
+    //    if (rowno == 0 && colno == 2)
+    //    {
+    //        newCell.RowSpan = 2;
+    //        newCell.CellVerticalAlignment = VerticalAlignment.Center;
+    //    }
+
+    //    if (rowno == 1 && colno == 3)
+    //    {
+    //        newCell.RowSpan = 3;
+    //        newCell.CellVerticalAlignment = VerticalAlignment.Center;
+    //    }
+
+    //    if (rowno == 2 && colno == 0)
+    //    {
+    //        newCell.ColSpan = 3;
+    //        newCell.CellVerticalAlignment = VerticalAlignment.Center;
+    //    }
+
+    //    if (rowno == 0 && colno == 4)
+    //    {
+    //        newCell.RowSpan = 4;
+    //        newCell.CellVerticalAlignment = VerticalAlignment.Center;
+    //    }
+
+    //    return
+    //       (rowno == 0 && colno == 1) ||
+    //       (rowno == 1 && colno == 0) ||
+    //       (rowno == 1 && colno == 1) ||
+    //       (rowno == 1 && colno == 2) ||
+    //       (rowno == 2 && colno == 3) ||
+    //       (rowno == 3 && colno == 3) ||
+    //       (rowno == 2 && colno == 1) ||
+    //       (rowno == 2 && colno == 2) ||
+
+    //       (rowno == 1 && colno == 4) ||
+    //       (rowno == 2 && colno == 4) ||
+    //       (rowno == 3 && colno == 4);
+
+    //}
+
+
+    //static bool GetMergedTestCell2(Paragraph newPar, Cell newCell, int rowno, int colno)
+    //{
+    //    //Add merged cells:
+    //    if (rowno == 0 && colno == 0)
+    //    {
+    //        newCell.ColSpan = 2;
+    //        newCell.RowSpan = 2;
+    //        newCell.CellVerticalAlignment = VerticalAlignment.Top;
+    //    }
+
+    //    if (rowno == 0 && colno == 2)
+    //    {
+    //        newCell.RowSpan = 2;
+    //        newCell.CellVerticalAlignment = VerticalAlignment.Center;
+    //    }
+
+    //    if (rowno == 1 && colno == 3)
+    //    {
+    //        newCell.RowSpan = 3;
+    //        newCell.CellVerticalAlignment = VerticalAlignment.Center;
+    //        newCell.CellBackground = Brushes.LightSteelBlue;
+    //    }
+
+    //    if (rowno == 2 && colno == 0)
+    //    {
+    //        newCell.ColSpan = 3;
+    //        newCell.CellVerticalAlignment = VerticalAlignment.Center;
+    //    }
+
+    //    if (rowno == 1 && colno == 4)
+    //    {
+    //        newCell.RowSpan = 3;
+    //        newCell.CellVerticalAlignment = VerticalAlignment.Center;
+    //    }
+
+    //    if (rowno == 1 && colno == 3)
+    //    {
+    //        newCell.ColSpan = 2;
+    //        newCell.RowSpan = 2;
+    //        newCell.CellVerticalAlignment = VerticalAlignment.Center;
+    //    }
+
+    //    if (rowno == 3 && colno == 2)
+    //    {
+    //        newCell.ColSpan = 3;
+    //        newCell.CellVerticalAlignment = VerticalAlignment.Center;
+    //    }
+
+    //    return
+    //       (rowno == 0 && colno == 1) ||
+    //       (rowno == 1 && colno == 0) ||
+    //       (rowno == 1 && colno == 1) ||
+    //       (rowno == 1 && colno == 2) ||
+    //       (rowno == 2 && colno == 3) ||
+    //       (rowno == 2 && colno == 1) ||
+    //       (rowno == 2 && colno == 2) ||
+    //       (rowno == 3 && colno == 3) ||
+    //       (rowno == 3 && colno == 4) ||
+
+    //       (rowno == 1 && colno == 4) ||
+    //       (rowno == 2 && colno == 4);
+
+
+    //}
+
 
 
     private void CreateNewDocumentMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
