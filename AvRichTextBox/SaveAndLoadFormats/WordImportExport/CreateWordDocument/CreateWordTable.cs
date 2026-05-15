@@ -95,7 +95,7 @@ internal static partial class WordConversions
                 if (rowno < NextAvailableRows[colno])
                 {
                     tcprop.Append(new VerticalMerge() { Val = new EnumValue<MergedCellValues>(MergedCellValues.Continue) });
-                    cel.Append(CreateWordDocParagraph(new Paragraph(), ref mainPart)); // needs empty paragraph 
+                    cel.Append(CreateWordDocParagraph(new Paragraph(t.MyFlowDoc), ref mainPart)); // needs empty paragraph 
 
                     if (SpanProps[colno, rowno].span > 1)
                     {
@@ -160,7 +160,7 @@ internal static partial class WordConversions
                 }
                 else
                 {
-                    cel.Append(CreateWordDocParagraph(new Paragraph(), ref mainPart));
+                    cel.Append(CreateWordDocParagraph(new Paragraph(t.MyFlowDoc), ref mainPart));
                 }
 
                 //cell borders

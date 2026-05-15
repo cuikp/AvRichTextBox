@@ -100,9 +100,24 @@ public partial class MainWindow : Window
         MainRTB.FlowDocument.Blocks.Add(newPar);
 
         //Test Table
-        Table newTable = new Table(5, 4, MainRTB.FlowDocument) { BorderThickness = new(1), BorderBrush = Brushes.ForestGreen, TableAlignment = Avalonia.Layout.HorizontalAlignment.Center };
-        foreach (Cell c in newTable.Cells)
-            c.CellVerticalAlignment = Avalonia.Layout.VerticalAlignment.Center;
+        int noCols = 5;
+        int noRows = 4;
+        Table newTable = new (noCols, noRows, MainRTB.FlowDocument) { BorderThickness = new(1), BorderBrush = Brushes.ForestGreen, TableAlignment = Avalonia.Layout.HorizontalAlignment.Center };
+        
+        for (int rowno = 0; rowno < noRows; rowno++)
+        {
+            for (int colno = 0; colno < noCols; colno++)
+            {
+                int cellno = rowno * noCols + colno;
+                Cell c = newTable.Cells[cellno];
+                c.CellVerticalAlignment = Avalonia.Layout.VerticalAlignment.Center;
+                Paragraph p = new (MainRTB.FlowDocument) { TextAlignment = TextAlignment.Center };
+                p.Inlines.Add(new EditableRun("c:" + colno));
+                p.Inlines.Add(new EditableLineBreak());
+                p.Inlines.Add(new EditableRun("r:" + rowno));
+                c.CellBlocks[0] = p;
+            }
+        }
 
         MainRTB.FlowDocument.Blocks.Add(newTable);
         

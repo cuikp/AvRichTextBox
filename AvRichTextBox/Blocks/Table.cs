@@ -64,13 +64,8 @@ public partial class Table : Block
 
                 newPar.IsTableCellBlock = true;
                 newPar.OwningTable = this;
-
-                //temporary text for verification
-                newPar.Inlines.Add(new EditableRun("c:" + colno));
-                newPar.Inlines.Add(new EditableLineBreak());
-                newPar.Inlines.Add(new EditableRun("r:" + rowno));
+                newPar.Inlines.Add(new EditableRun(""));  
                 newPar.TextAlignment = TextAlignment.Center;
-
                 newCell.CellBlocks.Add(newPar);
                                 
                 cellno++;

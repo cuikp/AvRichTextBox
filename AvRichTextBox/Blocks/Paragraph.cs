@@ -13,7 +13,7 @@ public class Paragraph : Block
 
    public ObservableCollection<IEditable> Inlines { get; set; } = [];
 
-   public Paragraph() { }
+   //public Paragraph() { }
 
    public Paragraph(FlowDocument owningFlowDoc)
    {

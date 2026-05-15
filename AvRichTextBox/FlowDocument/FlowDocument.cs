@@ -57,7 +57,8 @@ public partial class FlowDocument : AvaloniaObject
     //public string Text => string.Join("", GetAllParagraphs.ToList().ConvertAll(b => string.Join("", b.Text + Environment.NewLine)));
     public string Text => string.Join("", GetAllParagraphs.ToList().ConvertAll(p => string.Join("", p.Text))); 
 
-    public int DocEndPoint => ((Paragraph)Blocks.Last()).EndInDoc;
+    //public int DocEndPoint => ((Paragraph)Blocks.Last()).EndInDoc;
+    public int DocEndPoint => Blocks.Last().EndInDoc;
 
     public TextRange Selection { get; set; }
     internal IBrush SelectionBrush = Brushes.LightSteelBlue;  // default
