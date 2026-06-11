@@ -546,8 +546,8 @@ internal static partial class RtfConversions
                 sb.Append(@"\" + c); // RTF control characters
             else if (c == '"')
                 sb.Append(@"\'22"); // Escape double quote
-            else if (c > 127) // Non-ASCII (double-byte characters)
-                sb.Append(@"\u" + (int)c + "?"); // Unicode escape
+            else if (c > 127) // Non-ASCII
+                sb.Append(@"{\u" + (int)c + "?}"); // Grouped Unicode escape
             else
                 sb.Append(c);
 
