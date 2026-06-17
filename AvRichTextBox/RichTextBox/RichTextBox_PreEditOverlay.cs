@@ -77,10 +77,11 @@ public partial class RichTextBox
 
    private readonly Rectangle _CaretRect = new()
    {
-      StrokeThickness = 2,
+      Fill = Brushes.Black,
+      StrokeThickness = 0,
       Stroke = Brushes.Black,
       Height = 20,
-      Width = 1.5,
+      Width = 2,
       IsVisible = false,
       HorizontalAlignment = HorizontalAlignment.Left,
       VerticalAlignment = VerticalAlignment.Top,
@@ -127,14 +128,17 @@ public partial class RichTextBox
    {
       if (CaretBrush != null)
       {
+         _CaretRect.Fill = CaretBrush;
          _CaretRect.Stroke = CaretBrush;
       }
       else if (this.TryFindResource("TextControlForeground", this.ActualThemeVariant, out var resource) && resource is IBrush brush)
       {
+         _CaretRect.Fill = brush;
          _CaretRect.Stroke = brush;
       }
       else
       {
+         _CaretRect.Fill = Brushes.Black;
          _CaretRect.Stroke = Brushes.Black;
       }
    }
