@@ -25,6 +25,7 @@ public partial class FlowDocument
 			rtfContent = rtfContent.Replace("\\o \"}", "\\o \"\"}").Replace(" \"}", " }");
 			rtfContent = RemoveOverstrikeRegex().Replace(rtfContent, "\\o\"\"");
 		}
+		rtfContent = NormalizeCharacterEscapes(rtfContent);
 		using MemoryStream rtfStream = new(Encoding.UTF8.GetBytes(rtfContent));
 		using StreamReader streamReader = new(rtfStream);
 
@@ -70,6 +71,32 @@ public partial class FlowDocument
 	{
 		return GetRtfFromFlowDocument(this);
 	}
+
+	private static string NormalizeCharacterEscapes(string rtfContent)
+	{
+		rtfContent = AnsiHexEscapeRegex().Replace(rtfContent, match =>
+		{
+			byte ansiByte = Convert.ToByte(match.Groups[1].Value, 16);
+			return GetGroupedUnicodeEscape(HelperMethods.GetWindows1252Char(ansiByte));
+		});
+
+		return UnicodeEscapeRegex().Replace(rtfContent, match =>
+		{
+			int unicodeValue = int.Parse(match.Groups[1].Value);
+			return @"{\u" + unicodeValue + "?}";
+		});
+	}
+
+	private static string GetGroupedUnicodeEscape(char c)
+	{
+		return @"{\u" + (int)c + "?}";
+	}
+
+	[GeneratedRegex(@"(?<!\{)\\u(-?\d+)(.)")]
+	private static partial Regex UnicodeEscapeRegex();
+
+	[GeneratedRegex(@"\\'([0-9a-fA-F]{2})")]
+	private static partial Regex AnsiHexEscapeRegex();
 
 
 	internal void SaveXamlToFile(string fileName)
