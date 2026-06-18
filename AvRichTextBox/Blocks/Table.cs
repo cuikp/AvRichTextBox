@@ -71,7 +71,33 @@ public partial class Table : Block
 
 
     }
-    
+
+    internal override Table FullClone()
+    {
+        Table newTable = new(this.MyFlowDoc)
+        {
+            Id = this.Id,
+            ColDefs = this.ColDefs,
+            RowDefs = this.RowDefs,
+            IsTableCellBlock = this.IsTableCellBlock,
+            Height = this.Height,
+            Width = this.Width,
+            OwningCell = this.OwningCell,
+            OwningTable = this.OwningTable,
+            SelectionBrush = this.SelectionBrush,
+            TableAlignment = this.TableAlignment,
+            BorderBrush = this.BorderBrush,
+            BorderThickness = this.BorderThickness,
+            Margin = this.Margin,
+
+        };
+
+        newTable.Cells = new ObservableCollection<Cell>(this.Cells.Select(c => c.FullClone(newTable)));
+
+        return newTable;
+    }
+
+
     public Cell? GetCellAt(int rowno,  int colno)
     {
         return Cells.FirstOrDefault(c=> c.RowNo == rowno && c.ColNo == colno);
@@ -142,9 +168,31 @@ public class Cell : INotifyPropertyChanged
     public IBrush SelectionBrush => OwningTable.SelectionBrush;
 
     //public double Width { get; set; } = 100;
-    public double Height { get; set; } = 60;
+    public double Height { get; set; } = 60;  // arbitrary default
     public bool vmerged = false;
-   
+
+
+    internal Cell FullClone(Table owningTable)
+    {
+        Cell newCell = new(owningTable)
+        {
+            //Id = this.Id,
+            Height = this.Height,
+            BorderBrush = this.BorderBrush,
+            BorderThickness = this.BorderThickness,
+            CellBlocks = new ObservableCollection<Block>(this.CellBlocks.Select(cb => cb.FullClone()))
+        };
+
+        // should be handled by CellBlocks_CollectionChanged
+        //foreach (Block block in this.CellBlocks)
+        //{
+        //    block.OwningCell = newCell;
+        //    block.OwningTable = newCell.OwningTable;
+        //}
+
+        return newCell;
+    }
+
 
 }
 

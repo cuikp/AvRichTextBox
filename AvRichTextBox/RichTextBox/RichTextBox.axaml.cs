@@ -218,6 +218,7 @@ public partial class RichTextBox : UserControl
       RtbVm.CaretVisible = FlowDoc.Selection.Length == 0;
       UpdateCaretVisibility();
    }
+
    public void NewDocument() => FlowDoc.NewDocument();
    public void CreateNewDocument() { FlowDoc.NewDocument(); RtbVm.RTBScrollOffset = new Vector(0, 0); }
    //Load/save

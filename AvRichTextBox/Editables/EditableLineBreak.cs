@@ -4,48 +4,51 @@ namespace AvRichTextBox;
 
 public class EditableLineBreak : LineBreak, IEditable
 {
-   public EditableLineBreak() { Id = ++FlowDocument.InlineIdCounter; }
-   
-   public FlowDocument MyFlowDoc { get; set; } = null!;
+    public EditableLineBreak() { Id = ++FlowDocument.InlineIdCounter; }
 
-   public int Id { get; set; }
-   public int MyParagraphId { get; set; }
-   
-   public int TextPositionOfInlineInParagraph { get; set; }
-   public bool IsTableCellInline { get; set; } = false;
+    public FlowDocument MyFlowDoc { get; set; } = null!;
 
-   //internal string InlineText { get; private set; } = @"\n"; //make literal to count as 2 characters
-   internal string InlineText { get; private set; } = "\n"; 
-   string IEditable.InlineText { get => InlineText; set { InlineText = value; } }
+    public int Id { get; set; }
+    public int MyParagraphId { get; set; }
 
-   public int InlineLength => 2;  //because LineBreak acts as a double character in TextBlock
-   public double InlineHeight => FontSize;
+    public int TextPositionOfInlineInParagraph { get; set; }
+    public bool IsTableCellInline { get; set; } = false;
 
-   public IEditable? PreviousInline { get; set; }
-   public IEditable? NextInline { get; set; }
+    internal string InlineText { get; private set; } = @"\n"; //make literal to count as 2 characters
+    public int InlineLength => 2;  //because LineBreak acts as a double character in TextBlock
 
-   [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static")]
-   public string FontName => "---";
+    //internal string InlineText { get; private set; } = "\n";
+    //public int InlineLength => 1;  
 
-   public bool IsEmpty => false;
-   public bool IsFirstInlineOfParagraph { get; set; }
-   public bool IsLastInlineOfParagraph { get; set; }
+    string IEditable.InlineText { get => InlineText; set { InlineText = value; } }
 
-   public IEditable Clone() => new EditableLineBreak() { MyParagraphId = this.MyParagraphId, MyFlowDoc = this.MyFlowDoc, }; 
+    public double InlineHeight => FontSize;
 
-   public IEditable CloneWithId()
-   {
-      IEditable IdClone = this.Clone();
-      IdClone.Id = this.Id;
-      return IdClone;
-   }
+    public IEditable? PreviousInline { get; set; }
+    public IEditable? NextInline { get; set; }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static")]
+    public string FontName => "---";
+
+    public bool IsEmpty => false;
+    public bool IsFirstInlineOfParagraph { get; set; }
+    public bool IsLastInlineOfParagraph { get; set; }
+
+    public IEditable Clone() => new EditableLineBreak() { MyParagraphId = this.MyParagraphId, MyFlowDoc = this.MyFlowDoc, };
+
+    public IEditable CloneWithId()
+    {
+        IEditable IdClone = this.Clone();
+        IdClone.Id = this.Id;
+        return IdClone;
+    }
 
 
 #if DEBUG
-   // FOR DEBUGGER PANEL
-   public InlineVisualizationProperties InlineVP { get; set; } = new();
-   public string InlineToolTip => "";
-   public string DisplayInlineText => "{>LINEBREAK<}";
+    // FOR DEBUGGER PANEL
+    public InlineVisualizationProperties InlineVP { get; set; } = new();
+    public string InlineToolTip => "";
+    public string DisplayInlineText => "{>LINEBREAK<}";
 
 #endif
 

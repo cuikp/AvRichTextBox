@@ -241,9 +241,8 @@ public partial class RichTextBox : UserControl
 
             if (thisPar.IsEndAtLastLine)
             {
-               //thisPar.LastIndexEndLine = thisPar.BlockLength;
                thisPar.LastIndexEndLine = thisPar.BlockLength - 1;
-               thisPar.CharNextLineEnd = thisPar.TextLength + 1 + thisPar.SelectionEndInBlock - textLines[endLineIndex].FirstTextSourceIndex; //$$$$$$$$$$$$$$$$$$$
+               thisPar.CharNextLineEnd = thisPar.StartInDoc + 1 + thisPar.SelectionEndInBlock - textLines[endLineIndex].FirstTextSourceIndex;
             }
             else
             {

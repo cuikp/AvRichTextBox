@@ -208,11 +208,6 @@ public partial class FlowDocument
         }
 
 
-        //Necessary for caret movement
-        Selection.Start = 0;
-        Selection.CollapseToStart();
-        ///////////////////////////////
-
         Select(DocEndPoint - 1, 0);
 
         UpdateRTBCaret?.Invoke();
@@ -284,8 +279,12 @@ public partial class FlowDocument
             Selection.End = Selection.EndParagraph.StartInDoc + thisEndPar.LastIndexEndLine;
 
         string parText = thisEndPar.Text;
+        
+        Debug.WriteLine("partextlen = " + parText.Length + ", lastindexendline = " + thisEndPar.LastIndexEndLine);
+
         char endChar = parText[thisEndPar.LastIndexEndLine];
-        if (thisEndPar.LastIndexEndLine <= parText.Length && (endChar == ' ' || IsCJKChar(endChar)))
+        //if (thisEndPar.LastIndexEndLine <= parText.Length && (endChar == ' ' || IsCJKChar(endChar)))
+        if (thisEndPar.LastIndexEndLine <= thisEndPar.BlockLength && (endChar == ' ' || IsCJKChar(endChar)))
         {
             Selection.IsAtEndOfLineSpace = true;
             Selection.End += 1;

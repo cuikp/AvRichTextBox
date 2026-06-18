@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.Drawing.Diagrams;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 
 namespace AvRichTextBox;
 
@@ -21,11 +20,13 @@ public partial class FlowDocument
       {
          int ilineAbsoluteStart = p.StartInDoc + iline.TextPositionOfInlineInParagraph;
          int ilineAbsoluteEnd = ilineAbsoluteStart + iline.InlineLength;
-         bool AtStart = ilineAbsoluteEnd > trange.Start;
-         bool withinRange = iline.IsLastInlineOfParagraph switch
+         //bool EndAtLeastStart = ilineAbsoluteEnd > trange.Start;
+         bool EndAtLeastStart = ilineAbsoluteEnd >= trange.Start;
+
+         bool withinRange = (iline.IsLastInlineOfParagraph && iline is not EditableInlineUIContainer) switch
          {
-            true =>  AtStart && ilineAbsoluteStart <= trange.End,
-            false => AtStart && ilineAbsoluteStart < trange.End
+            true =>  EndAtLeastStart && ilineAbsoluteStart <= trange.End,
+            false => EndAtLeastStart && ilineAbsoluteStart < trange.End
          };
 
          return withinRange;

@@ -119,7 +119,7 @@ public partial class FlowDocument
                     int textPosNewPar = Math.Min(relPar.BlockLength, relPar.TextLayout.HitTestPoint(new Point(currLeft, 0)).TextPosition);
                     computedNext = relPar.StartInDoc + textPosNewPar;
                 }
-                catch (Exception ex) {Debug.WriteLine ("error getting next down position: (currleft = " + currLeft + ")" +  ex.Message); }
+                catch (Exception ex) {Debug.WriteLine ($"error getting next down position: (currleft = {currLeft}) {ex.Message}"); }
             }
         }
 

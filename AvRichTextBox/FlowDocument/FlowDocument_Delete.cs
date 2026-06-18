@@ -39,7 +39,7 @@ public partial class FlowDocument
 
         Paragraph startP = Selection.StartParagraph;
 
-        if (startP.SelectionStartInBlock == startP.TextLength)
+        if (startP.SelectionStartInBlock == startP.BlockLength - 1)
             MergeParagraphForward(Selection.Start, true, originalSelectionStart);
         else
         {  //Delete one unit
@@ -122,9 +122,6 @@ public partial class FlowDocument
                     if (startP.Inlines.Count == 0)
                         startP.Inlines.Add(new EditableRun(""));
                     
-                    ////$$$$$$$$$$$$$$$$$$$$$$
-                    //else if (startP.Inlines.Count == 1 && startP.Inlines[0] is EditableCellBreak)
-                    //    startP.Inlines.Insert(0, new EditableRun(""));
                 }
             }
 
@@ -216,9 +213,9 @@ public partial class FlowDocument
         Paragraph firstPar = rangePars[0];
         Paragraph lastPar = rangePars[^1];
 
-        //Add a blank run if all runs were deleted in one paragraph
+       
         if (rangePars.Count == 1 && firstPar.Inlines.Count == 0)
-            firstPar.Inlines.Add(new EditableRun(""));
+            Blocks.Remove(firstPar);
 
 
         //Merge inlines of last paragraph with first if present
