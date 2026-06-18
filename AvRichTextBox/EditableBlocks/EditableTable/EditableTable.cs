@@ -12,6 +12,9 @@ public partial class EditableTable : ItemsControl
    private const double MinColumnWidth = 24;
    private const double MinRowHeight = 24;
 
+   private readonly Cursor _ewResizeCursor = new(StandardCursorType.SizeWestEast);
+   private readonly Cursor _nsResizeCursor = new(StandardCursorType.SizeNorthSouth);
+
    private Point _resizeStartPoint;
    private ResizeMode _resizeMode;
    private int _resizeIndex = -1;
@@ -48,8 +51,8 @@ public partial class EditableTable : ItemsControl
       ResizeHit hit = GetResizeHit(table, position);
       Cursor = hit.Mode switch
       {
-         ResizeMode.Column => new Cursor(StandardCursorType.SizeWestEast),
-         ResizeMode.Row => new Cursor(StandardCursorType.SizeNorthSouth),
+         ResizeMode.Column => _ewResizeCursor,
+         ResizeMode.Row => _nsResizeCursor,
          _ => null
       };
    }
