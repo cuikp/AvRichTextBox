@@ -140,7 +140,7 @@ public class Block : INotifyPropertyChanged
                 field = value;
                 NotifyPropertyChanged(nameof(SelectionStartInBlock));
                 if (this.IsTableCellBlock)
-                    this.OwningCell.Selected = SelectionStartInBlock == 0 && SelectionEndInBlock == BlockLength;  
+                    this.OwningCell.Selected = BlockLength > 0 && SelectionStartInBlock == 0 && SelectionEndInBlock == BlockLength;  
 
             }
         }
@@ -156,7 +156,7 @@ public class Block : INotifyPropertyChanged
                 field = value;
                 NotifyPropertyChanged(nameof(SelectionEndInBlock));
                 if (this.IsTableCellBlock)
-                    this.OwningCell.Selected = SelectionStartInBlock == 0 && SelectionEndInBlock == BlockLength;  
+                    this.OwningCell.Selected = BlockLength > 0 && SelectionStartInBlock == 0 && SelectionEndInBlock == BlockLength;  
             }
         }
     }
