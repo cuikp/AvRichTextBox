@@ -86,7 +86,7 @@ public partial class RichTextBox : UserControl
          {
             //visible selection for table cells
             if (p.IsTableCellBlock)
-               p.OwningCell.Selected = (p.SelectionStartInBlock == 0 && p.SelectionEndInBlock >= p.BlockLength);
+               p.OwningCell.Selected = FlowDoc.Selection.Length > 0 && p.SelectionStartInBlock == 0 && p.SelectionEndInBlock >= p.BlockLength;
 
             if (parIsEmpty)
             {
@@ -241,9 +241,8 @@ public partial class RichTextBox : UserControl
 
             if (thisPar.IsEndAtLastLine)
             {
-               //thisPar.LastIndexEndLine = thisPar.BlockLength;
                thisPar.LastIndexEndLine = thisPar.BlockLength - 1;
-               thisPar.CharNextLineEnd = thisPar.TextLength + 1 + thisPar.SelectionEndInBlock - textLines[endLineIndex].FirstTextSourceIndex; //$$$$$$$$$$$$$$$$$$$
+               thisPar.CharNextLineEnd = thisPar.StartInDoc + 1 + thisPar.SelectionEndInBlock - textLines[endLineIndex].FirstTextSourceIndex;
             }
             else
             {

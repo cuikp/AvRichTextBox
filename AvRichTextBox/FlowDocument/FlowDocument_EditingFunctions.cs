@@ -91,6 +91,8 @@ public partial class FlowDocument
     internal void RestoreDeletedBlocks(List<Paragraph> parClones, int blockIndex, bool firstParWasDeleted, bool lastParWasDeleted)
     {
         //If either first or last paragraph was not deleted, it needs to be removed before restoring previous state
+        //if (!lastParWasDeleted && !firstParWasDeleted)
+        //    { } //do nothing
         if (!lastParWasDeleted)
             Blocks.RemoveAt(blockIndex);
         else if (!firstParWasDeleted)

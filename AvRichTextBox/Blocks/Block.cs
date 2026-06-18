@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using Avalonia.Media;
+using System.ComponentModel;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -44,7 +45,9 @@ public class Block : INotifyPropertyChanged
 
                     var sb = new StringBuilder();
                     foreach (var i in p.Inlines)
-                        sb.Append(i.InlineText);
+                    {
+                       sb.Append(i.InlineText);
+                    }
 
                     sb.Append((p.IsTableCellBlock ? Environment.NewLine : "\n"));  // Environment.NewLine adds "\r\n" (Non-Unix) or "\n" (Unix) to end of paragraph text
 
@@ -73,7 +76,12 @@ public class Block : INotifyPropertyChanged
                 case Paragraph p:
                     int len = 0;
                     foreach (var i in p.Inlines)
-                        len += i.InlineText?.Length ?? 0;
+                    {
+                        //if (i is EditableLineBreak)
+                        //    len += 0;
+                        //else
+                            len += i.InlineText?.Length ?? 0;
+                    }
 
                     // paragraph CR
                     len += 1;  // ????????
@@ -106,8 +114,8 @@ public class Block : INotifyPropertyChanged
             switch (this)
             {
                 case Paragraph p:
-                    returnLength = p.Inlines.ToList().Sum(il => il.InlineLength) + 1;  // extra for paragraph CR
-
+                    //returnLength = p.Inlines.ToList().Sum(il => il.InlineLength) + 1;  // extra for paragraph CR
+                    returnLength = p.Inlines.ToList().Sum(il => il.InlineText?.Length ?? 0) + 1;  // extra for paragraph CR
                     break;
 
                 case Table t:
@@ -140,7 +148,7 @@ public class Block : INotifyPropertyChanged
                 field = value;
                 NotifyPropertyChanged(nameof(SelectionStartInBlock));
                 if (this.IsTableCellBlock)
-                    this.OwningCell.Selected = SelectionStartInBlock == 0 && SelectionEndInBlock == BlockLength;  
+                    this.OwningCell.Selected = BlockLength > 0 && SelectionStartInBlock == 0 && SelectionEndInBlock == BlockLength;  
 
             }
         }
@@ -156,13 +164,22 @@ public class Block : INotifyPropertyChanged
                 field = value;
                 NotifyPropertyChanged(nameof(SelectionEndInBlock));
                 if (this.IsTableCellBlock)
-                    this.OwningCell.Selected = SelectionStartInBlock == 0 && SelectionEndInBlock == BlockLength;  
+                    this.OwningCell.Selected = BlockLength > 0 && SelectionStartInBlock == 0 && SelectionEndInBlock == BlockLength;  
             }
         }
     }
 
     public static bool IsFocusable => false;
 
-
+    internal virtual Block FullClone()
+    {
+        return new Block() 
+        { 
+            Id = this.Id,
+            IsTableCellBlock = this.IsTableCellBlock,
+            OwningTable = this.OwningTable,
+            OwningCell = this.OwningCell
+        };
+    }
 
 }

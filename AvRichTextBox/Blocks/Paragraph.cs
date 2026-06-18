@@ -136,10 +136,11 @@ public class Paragraph : Block
          FontSize = this.FontSize,
          FontStyle = this.FontStyle,
          FontWeight = this.FontWeight,
+         IsTableCellBlock = this.IsTableCellBlock
       }; 
    }
 
-   internal Paragraph FullClone()
+   internal override Paragraph FullClone()
    {
       Paragraph newPar = new(this.MyFlowDoc) 
       { 
@@ -156,6 +157,9 @@ public class Paragraph : Block
          FontSize = this.FontSize,
          FontStyle = this.FontStyle,
          FontWeight = this.FontWeight,
+         IsTableCellBlock= this.IsTableCellBlock,
+         OwningTable = this.OwningTable,
+         OwningCell = this.OwningCell
       };
 
       

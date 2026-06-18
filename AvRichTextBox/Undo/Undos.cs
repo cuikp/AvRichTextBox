@@ -375,22 +375,17 @@ internal class DeleteRangeUndo(
         try
         {
             flowDoc.disableRunTextUndo = true; 
-            int lengthBefore = flowDoc.Text.Length;  // optimize by getting flowDoc.Blocks.Last().StartInDoc + lastPar.BlockLength instead of whole flowdoc
+            int lengthBefore = flowDoc.Text.Length;  // optimize by getting flowDoc.Blocks.Last().StartInDoc + lastPar.BlockLength instead of calculating entire flowdoc text length
 
             flowDoc.RestoreDeletedBlocks(keptBlockClones, startBlockIndex, firstBlockWasDeleted, lastBlockWasDeleted);
 
             flowDoc.disableRunTextUndo = false;
             
-            int lengthAfter = flowDoc.Text.Length;  // optimize by getting from lastPar.StartInDoc + lastPar.BlockLength instead of whole flowdoc
+            int lengthAfter = flowDoc.Text.Length;  // optimize by getting from lastPar.StartInDoc + lastPar.BlockLength instead of calculating entire flowdoc text length
             flowDoc.UpdateTextRanges(keptBlockClones[0].StartInDoc, lengthAfter - lengthBefore);
 
             Dispatcher.UIThread.Post(() =>
             {
-                //flowDoc.Selection.Start = Math.Max(0, origSelectionStart - 1);  //necessary to reset caret
-                //flowDoc.Selection.CollapseToStart();
-                //flowDoc.UpdateSelection();
-                //flowDoc.UpdateTextRanges(origSelectionStart, lengthAfter - lengthBefore);
-
                 flowDoc.Selection.Start = origSelectionStart;
                 flowDoc.Selection.End = origSelectionStart;
                 //flowDoc.UpdateSelection();

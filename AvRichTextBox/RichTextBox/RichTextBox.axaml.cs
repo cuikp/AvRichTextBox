@@ -212,7 +212,13 @@ public partial class RichTextBox : UserControl
    }
 
 
-   public void InvalidateCaret() { RtbVm.CaretVisible = true; }
+   public void InvalidateCaret()
+   {
+      UpdateSelectionIndicators();
+      RtbVm.CaretVisible = FlowDoc.Selection.Length == 0;
+      UpdateCaretVisibility();
+   }
+
    public void NewDocument() => FlowDoc.NewDocument();
    public void CreateNewDocument() { FlowDoc.NewDocument(); RtbVm.RTBScrollOffset = new Vector(0, 0); }
    //Load/save
@@ -314,8 +320,8 @@ public partial class RichTextBox : UserControl
          IterationCount = IterationCount.Infinite,
          Children =
             {
-                new KeyFrame { Cue = new (0.0), Setters = { new Setter(Rectangle.OpacityProperty, 0.0) } },
-                new KeyFrame { Cue = new (0.5), Setters = { new Setter(Rectangle.OpacityProperty, 1.0) } },
+                new KeyFrame { Cue = new (0.0), Setters = { new Setter(Rectangle.OpacityProperty, 1.0) } },
+                new KeyFrame { Cue = new (0.75), Setters = { new Setter(Rectangle.OpacityProperty, 1.0) } },
                 new KeyFrame { Cue = new (1.0), Setters = { new Setter(Rectangle.OpacityProperty, 0.0) } }
             }
       };

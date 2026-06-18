@@ -324,14 +324,20 @@ public partial class FlowDocument
         originalPar.Inlines.Clear();
         originalPar.Inlines.AddRange(RunList1);
 
-        if (originalPar.Inlines.Last() is EditableLineBreak elb)
+        // Ending line break must be followed by empty run
+        if (originalPar.Inlines.Last() is EditableLineBreak)
             originalPar.Inlines.Insert(originalPar.Inlines.Count, new EditableRun(""));
 
         Paragraph parToInsert = originalPar.PropertyClone();
-
         parToInsert.Inlines.AddRange(RunList2);
+
+        // Line break must be preceded by empty run
+        if (parToInsert.Inlines.First() is EditableLineBreak)
+            parToInsert.Inlines.Insert(0, new EditableRun(""));
+
         Blocks.Insert(parIndex + 1, parToInsert);
 
+        // Empty paragraph must contain an empty run
         if (parToInsert.Inlines.Count == 0)
         {
             EditableRun erun = (EditableRun)originalPar.Inlines.Last().Clone();
