@@ -197,17 +197,12 @@ public partial class FlowDocument
    {
       if (fontweight is not FontWeight applyFontWeight) return;
 
-      // Zero-length edge runs produced by range splitting must not affect the toggle decision
-      List<EditableRun> relevantRuns = [.. ieds.OfType<EditableRun>().Where(edrun => edrun.InlineLength > 0)];
-      if (relevantRuns.Count == 0)
-         relevantRuns = [.. ieds.OfType<EditableRun>()];
-
       // if all of the runs are bold, force style to Normal
       if (fontweight is FontWeight.Bold)
-         applyFontWeight = relevantRuns.All(edrun => edrun.FontWeight == FontWeight.Bold) ? FontWeight.Normal : FontWeight.Bold;
+         applyFontWeight = ieds.All(ar => ar is EditableRun edrun && edrun.FontWeight == FontWeight.Bold) ? FontWeight.Normal : FontWeight.Bold;
       // if all of the runs are normal, force style to Bold
       else if (fontweight is FontWeight.Normal)
-         applyFontWeight = relevantRuns.All(edrun => edrun.FontWeight == FontWeight.Normal) ? FontWeight.Bold : FontWeight.Normal;
+         applyFontWeight = ieds.All(ar => ar is EditableRun edrun && edrun.FontWeight == FontWeight.Normal) ? FontWeight.Bold : FontWeight.Normal;
 
 
       foreach (EditableRun erun in ieds.OfType<EditableRun>())
@@ -219,17 +214,12 @@ public partial class FlowDocument
    {
       if (fontstyle is not FontStyle applyFontStyle) return;
 
-      // Zero-length edge runs produced by range splitting must not affect the toggle decision
-      List<EditableRun> relevantRuns = [.. ieds.OfType<EditableRun>().Where(edrun => edrun.InlineLength > 0)];
-      if (relevantRuns.Count == 0)
-         relevantRuns = [.. ieds.OfType<EditableRun>()];
-
       // if all of the runs are italic, force style to Normal
       if (fontstyle is FontStyle.Italic)
-         applyFontStyle = relevantRuns.All(edrun => edrun.FontStyle == FontStyle.Italic) ? FontStyle.Normal : FontStyle.Italic;
+         applyFontStyle = ieds.All(ar => ar is EditableRun edrun && edrun.FontStyle == FontStyle.Italic) ? FontStyle.Normal : FontStyle.Italic;
       // if all of the runs are normal, force style to Italic
       else if (fontstyle is FontStyle.Normal)
-         applyFontStyle = relevantRuns.All(edrun => edrun.FontStyle == FontStyle.Normal) ? FontStyle.Italic : FontStyle.Normal;
+         applyFontStyle = ieds.All(ar => ar is EditableRun edrun && edrun.FontStyle == FontStyle.Normal) ? FontStyle.Italic : FontStyle.Normal;
       // otherwise (if mixed), apply italic to all runs
       foreach (EditableRun erun in ieds.OfType<EditableRun>())
             erun.FontStyle = applyFontStyle; 
@@ -241,19 +231,17 @@ public partial class FlowDocument
    {
       if (textDecLocation is not TextDecorationLocation applyTextDecLoc) return;
 
-      // Zero-length edge runs produced by range splitting must not affect the toggle decision
-      List<EditableRun> relevantRuns = [.. ieds.OfType<EditableRun>().Where(edrun => edrun.InlineLength > 0)];
-      if (relevantRuns.Count == 0)
-         relevantRuns = [.. ieds.OfType<EditableRun>()];
-
-      // Get all runs already carrying this text dec
-      List<EditableRun> applyToRuns = [.. relevantRuns.Where(edrun => edrun.TextDecorations != null && edrun.TextDecorations.Any(tdec => tdec.Location == applyTextDecLoc))];
-      if (applyToRuns.Count == relevantRuns.Count)
+      // Get all runs without this new text dec
+      List<EditableRun> applyToRuns = [.. ieds.OfType<EditableRun>().Where(edrun => edrun.TextDecorations != null && edrun.TextDecorations.Any(tdec => tdec.Location == applyTextDecLoc))];
+      if (applyToRuns.Count == ieds.Count)
       { // all runs contain textdec, so remove from all 
-         foreach (EditableRun erun in applyToRuns)
+         foreach (EditableRun erun in ieds.OfType<EditableRun>())
          {
-            TextDecorationCollection newDec = [.. erun.TextDecorations!.Where(cdec => cdec.Location != applyTextDecLoc)];
-            erun.TextDecorations = newDec.Count == 0 ? null : newDec;
+            if (erun.TextDecorations is TextDecorationCollection currentDec)
+            {
+               currentDec.RemoveAll(currentDec.Where(cdec => cdec.Location == applyTextDecLoc));
+               if (currentDec.Count == 0) currentDec = null!;
+            }
          }
       }
       else
