@@ -70,7 +70,7 @@ public partial class MainWindow : Window
 
         //DEBUG
         //CreateTestDocumentWithTable();
-        OpenTestDocument();
+        //OpenTestDocument();
 
     }
 
@@ -104,7 +104,7 @@ public partial class MainWindow : Window
         //Test Table
         int noCols = 5;
         int noRows = 4;
-        Table newTable = new (noCols, noRows, MainRTB.FlowDocument) { BorderThickness = new(1), BorderBrush = Brushes.ForestGreen, TableAlignment = Avalonia.Layout.HorizontalAlignment.Center };
+        Table newTable = new (noCols, noRows, MainRTB.FlowDocument) { BorderThickness = new(1), BorderBrush = Brushes.ForestGreen, TableAlignment = HorizontalAlignment.Center };
         
         for (int rowno = 0; rowno < noRows; rowno++)
         {
@@ -294,11 +294,34 @@ public partial class MainWindow : Window
 
     }
 
-    private void FindButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void FindButton_Click(object? sender, RoutedEventArgs e)
     {
         PerformFind();
 
     }
+
+    private void AddTableButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (MainRTB.FlowDocument.Selection.Length > 0) return;
+        int currentStart = MainRTB.FlowDocument.Selection.Start;
+        MainRTB.FlowDocument.InsertParagraphAt(currentStart);
+        MainRTB.FlowDocument.Select(currentStart + 1, 0);
+
+        if (MainRTB.FlowDocument. Selection.GetStartPar() is not Paragraph currParagraph) return;
+        int insertParIndex = MainRTB.FlowDocument.Blocks.IndexOf(currParagraph);
+
+        int noCols = Convert.ToInt32(AddColsNS.Value);
+        int noRows = Convert.ToInt32(AddRowsNS.Value);
+
+        Table newTable = new (noCols, noRows, MainRTB.FlowDocument);
+
+        MainRTB.FlowDocument.Blocks.Insert(insertParIndex, newTable);
+        int endOfTable = currentStart + noCols * noRows;
+        MainRTB.FlowDocument.Select(endOfTable, 0);
+
+
+    }
+
 
     private async void PerformFind()
     {

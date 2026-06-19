@@ -234,7 +234,7 @@ public partial class FlowDocument : AvaloniaObject
         Dispatcher.UIThread.Post(() =>
         {
             if (AllParagraphs.ToList()[0] is Paragraph firstPar)
-            {  //Required for initial cursor display
+            {  //Required for initial caret display
                 firstPar.CallRequestTextBoxFocus();
                 firstPar.CallRequestTextLayoutInfoStart();
                 firstPar.CallRequestTextLayoutInfoEnd();

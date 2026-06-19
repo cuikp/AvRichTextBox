@@ -215,8 +215,17 @@ Shift+Ctrl-Right/Left to select next(previous word)
 Shift+Ctrl-Home/End to select to Home/End
 Caret color is customizable  (CaretBrush)
 
-**[ver 1.9.0] 2026/05/xx**: 
-Multiple paragraphs allowed in table `Cell`s (theoretically any type of Blocks (such as `EditableInlineUIContainer` or even nested `Table`), but this is not tested).
+
+**[ver 1.9.0] 2026/06/19**: 
+Updated to Avalonia 12.0.2
+Revamped internal inline calculations
+Added EditableHyperlink
+Multiple paragraphs allowed in table `Cell`s (theoretically any type of Blocks (such as `EditableInlineUIContainer` or even nested `Table`), but this is not at all tested).
 Hyperlink support with popup edit dialog. (`EditableHyperlink`)
 Removed `VerticalAlignment` property from `Paragraph`: Now `Cell` has `VerticalAlignment` instead, to adjust content position within cells.
+Fixed format toggling issues.
+Table cell borders adjustable by mouse.
+
+
+
 

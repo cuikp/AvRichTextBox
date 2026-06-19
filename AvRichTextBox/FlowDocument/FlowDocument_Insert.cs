@@ -277,6 +277,11 @@ public partial class FlowDocument
 
     }
 
+    public void InsertParagraphAt(int insertCharIndex)
+    {
+        InsertParagraph(true, insertCharIndex);
+    }
+
     internal void InsertParagraph(bool addUndo, int insertCharIndex)
     {  //The delete range and InsertParagraph should constitute one Undo operation
 
@@ -331,10 +336,6 @@ public partial class FlowDocument
         Paragraph parToInsert = originalPar.PropertyClone();
         parToInsert.Inlines.AddRange(RunList2);
 
-        // Line break must be preceded by empty run
-        if (parToInsert.Inlines.First() is EditableLineBreak)
-            parToInsert.Inlines.Insert(0, new EditableRun(""));
-
         Blocks.Insert(parIndex + 1, parToInsert);
 
         // Empty paragraph must contain an empty run
@@ -344,6 +345,10 @@ public partial class FlowDocument
             erun.Text = "";
             parToInsert.Inlines.Add(erun);
         }
+
+        // Line break must be preceded by empty run
+        if (parToInsert.Inlines.First() is EditableLineBreak)
+            parToInsert.Inlines.Insert(0, new EditableRun(""));
 
         disableRunTextUndo = false;
 

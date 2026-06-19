@@ -28,6 +28,11 @@ public partial class Table : Block
 
     public Table(int cols, int rows, FlowDocument flowDoc) : this(flowDoc)
     {
+        if (cols <= 0)
+            throw new ArgumentOutOfRangeException(nameof(cols), cols, "Number of columns must be greater than zero.");
+        if (rows <= 0)
+            throw new ArgumentOutOfRangeException(nameof(rows), rows, "Number of rows must be greater than zero.");
+
         //Cells.CollectionChanged += Cells_CollectionChanged;
 
         double eqWidth = Math.Truncate(Width / cols);

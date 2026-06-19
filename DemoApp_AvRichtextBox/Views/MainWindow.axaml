@@ -158,26 +158,28 @@
 						</DockPanel>
 					</Border>
 
-					<Border BorderBrush="Brown" BorderThickness="3" Padding="5">
+					<Border BorderBrush="Brown" BorderThickness="3" Width="160" Padding="5">
 						<DockPanel DockPanel.Dock="Top" Margin="0" >
 							<TextBlock Text="FlowDoc" HorizontalAlignment="Center" DockPanel.Dock="Top"  />
 							<TextBlock Text="Page padding" HorizontalAlignment="Center" DockPanel.Dock="Top" VerticalAlignment="Top" Margin="0, 10, 0, 5"  />
 
-							<DockPanel>
 							<DockPanel DockPanel.Dock="Top">
-								<TextBlock Text="L" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-								<cc:NumericSpinner x:Name="PagePaddingNSL" Width="50" MinValue="0" MaxValue="150" Margin="3" Value="50" Height="28" FontSize="16"
-												   ValueChanged="PagePaddingNSL_ValueChanged" />
-							</DockPanel>
+							<DockPanel >
+								<DockPanel DockPanel.Dock="Top">
+									<TextBlock Text="L" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+									<cc:NumericSpinner x:Name="PagePaddingNSL" Width="50" MinValue="0" MaxValue="150" Margin="3" Value="50" Height="28" FontSize="16"
+														ValueChanged="PagePaddingNSL_ValueChanged" />
+								</DockPanel>
 
-							<DockPanel DockPanel.Dock="Top">
-								<TextBlock Text="T" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-								<cc:NumericSpinner x:Name="PagePaddingNST" Width="50" MinValue="0" MaxValue="150" Margin="3" Value="50" Height="28" FontSize="16"
-												   ValueChanged="PagePaddingNST_ValueChanged" />
-							</DockPanel>
+								<DockPanel DockPanel.Dock="Top" >
+									<TextBlock Text="T" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+									<cc:NumericSpinner x:Name="PagePaddingNST" Width="50" MinValue="0" MaxValue="150" Margin="3" Value="50" Height="28" FontSize="16"
+														ValueChanged="PagePaddingNST_ValueChanged" />
+								</DockPanel>
 
 							</DockPanel>
 							
+							<DockPanel >
 							<DockPanel DockPanel.Dock="Top">
 								<TextBlock Text="R" VerticalAlignment="Center" DockPanel.Dock="Left"/>
 								<cc:NumericSpinner x:Name="PagePaddingNSR" Width="50" MinValue="0" MaxValue="150" Margin="3" Value="50" Height="28" FontSize="16"
@@ -189,9 +191,22 @@
 								<cc:NumericSpinner x:Name="PagePaddingNSB" Width="50" MinValue="0" MaxValue="150" Margin="3" Value="50" Height="28" FontSize="16"
 												   ValueChanged="PagePaddingNSB_ValueChanged" />
 							</DockPanel>
+						</DockPanel>
 
+								</DockPanel>
+							
+							<DockPanel Margin="0, 7, 0, 0">
+								<Button DockPanel.Dock="Top" Content="Add table:" Padding="4, 2" Click="AddTableButton_Click" Focusable="False" />
+								<DockPanel>
+									<TextBlock DockPanel.Dock="Left" Text="Col" VerticalAlignment="Center"/>
+									<cc:NumericSpinner x:Name="AddColsNS" Width="42" MaxValue="15" Value="1" FontSize="16" Height="28" Margin="3, 0" Step="1" MinValue="1" Focusable="False"/>
+									<TextBlock Text="Row" VerticalAlignment="Center" />
+									<cc:NumericSpinner  x:Name="AddRowsNS"  MaxValue="15" Width="42" FontSize="16" Height="28" Step="1" Margin="3, 0" MinValue="0" Value="1"  Focusable="False"/>
+									</DockPanel>
+							</DockPanel>
 
 						</DockPanel>
+
 					</Border>
 					<Border BorderBrush="Brown" BorderThickness="3" Padding="5">
 						<DockPanel LastChildFill="False" >

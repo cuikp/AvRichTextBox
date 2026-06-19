@@ -168,5 +168,5 @@ public partial class MainWindow : Window
             Process.Start("xdg-open", filesPath);
     }
 
-  
+    
 }
