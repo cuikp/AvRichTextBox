@@ -70,12 +70,12 @@ Crucial fix for add new paragraph</PackageReleaseNotes>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="12.0.2" />
+    <PackageReference Include="Avalonia" Version="12.0.4" />
     <PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="12.0.0" />
-    <PackageReference Include="Avalonia.Desktop" Version="12.0.2" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.0.4" />
     <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.8" />
-    <PackageReference Include="Avalonia.Skia" Version="12.0.2" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.2" />
+    <PackageReference Include="Avalonia.Skia" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.4" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Include="DocumentFormat.OpenXml" Version="3.5.1" />
     <PackageReference Include="HtmlAgilityPack" Version="1.12.0" />

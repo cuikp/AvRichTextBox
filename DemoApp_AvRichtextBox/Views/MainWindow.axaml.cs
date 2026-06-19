@@ -307,7 +307,7 @@ public partial class MainWindow : Window
         MainRTB.FlowDocument.InsertParagraphAt(currentStart);
         MainRTB.FlowDocument.Select(currentStart + 1, 0);
 
-        if (MainRTB.FlowDocument. Selection.GetStartPar() is not Paragraph currParagraph) return;
+        if (MainRTB.FlowDocument.Selection.GetStartPar() is not Paragraph currParagraph) return;
         int insertParIndex = MainRTB.FlowDocument.Blocks.IndexOf(currParagraph);
 
         int noCols = Convert.ToInt32(AddColsNS.Value);
@@ -318,7 +318,6 @@ public partial class MainWindow : Window
         MainRTB.FlowDocument.Blocks.Insert(insertParIndex, newTable);
         int endOfTable = currentStart + noCols * noRows;
         MainRTB.FlowDocument.Select(endOfTable, 0);
-
 
     }
 
