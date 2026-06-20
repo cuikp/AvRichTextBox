@@ -15,7 +15,7 @@ public partial class Table : Block
     public ObservableCollection<Cell> Cells { get; set; } = [];
     public ColumnDefinitions ColDefs { get; set; } = [];
     public RowDefinitions RowDefs { get; set; } = [];
-    public double Height { get; set; } = 450;
+    public double Height { get; set { field = value; NotifyPropertyChanged(nameof(Height)); } } = 0;
     public double Width { get; set; } = 500;
     public HorizontalAlignment TableAlignment { get; set; } = HorizontalAlignment.Left;
 

@@ -124,7 +124,7 @@
 									<!-- Template for EditableTable -->
 									<DataTemplate DataType="local:Table" >
 											
-										<local:EditableTable Background="GhostWhite"  BorderBrush="{Binding BorderBrush}" BorderThickness="{Binding BorderThickness}" Margin="{Binding Margin}" HorizontalAlignment="{Binding TableAlignment}" Width="{Binding Width}" Height="{Binding Height}" ItemsSource="{Binding Cells}" 
+										<local:EditableTable Background="GhostWhite" VerticalAlignment="Top"  BorderBrush="{Binding BorderBrush}" BorderThickness="{Binding BorderThickness}" Margin="{Binding Margin}" HorizontalAlignment="{Binding TableAlignment}" Width="{Binding Width}" Height="{Binding Height}" ItemsSource="{Binding Cells}" 
 										 MouseMove="EditableTable_MouseMove" MouseLeave="EditableTable_MouseLeave" >
 
 												<ItemsControl.ItemsPanel>
@@ -136,7 +136,7 @@
 												<ItemsControl.ItemTemplate>
 													<DataTemplate x:DataType="{x:Type local:Cell}">
 														<Grid>
-															<local:EditableCell Padding="{Binding Padding}"  BorderThickness="{Binding BorderThickness}" BorderBrush="{Binding BorderBrush}" Background="{Binding CellBackground}"  >
+															<local:EditableCell Padding="{Binding Padding}"  BorderThickness="{Binding BorderThickness}" BorderBrush="{Binding BorderBrush}" Background="{Binding CellBackground}" SizeChanged="EditableCell_SizeChanged" >
 																
 																<!-- Cell interior paragraph stack -->
 																<ItemsControl ItemsSource="{Binding CellBlocks}" Margin="0" VerticalAlignment="{Binding CellVerticalAlignment}">
