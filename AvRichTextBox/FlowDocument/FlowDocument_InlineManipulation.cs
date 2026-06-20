@@ -20,14 +20,8 @@ public partial class FlowDocument
       {
          int ilineAbsoluteStart = p.StartInDoc + iline.TextPositionOfInlineInParagraph;
          int ilineAbsoluteEnd = ilineAbsoluteStart + iline.InlineLength;
-         //bool EndAtLeastStart = ilineAbsoluteEnd > trange.Start;
          bool EndAtLeastStart = ilineAbsoluteEnd >= trange.Start;
          bool EndsAtInlineStart = ilineAbsoluteStart == trange.End;
-
-          //if (p.Inlines.Count == 1 && iline.IsEmpty)
-          //    Debug.WriteLine("is empty");
-          //if (p.Inlines.Count == 1 && iline is EditableInlineUIContainer)
-          //    Debug.WriteLine("is UIC");
 
          bool withinRange = (iline.IsLastInlineOfParagraph && iline is not EditableInlineUIContainer) switch
          {

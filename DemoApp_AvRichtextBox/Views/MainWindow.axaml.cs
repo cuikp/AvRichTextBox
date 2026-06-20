@@ -17,23 +17,9 @@ namespace DemoApp_AvRichtextBox.Views;
 
 public partial class MainWindow : Window
 {
-
-    public static List<string> GetAllFonts
-    {
-        get
-        {
-            List<string> returnList = [];
-            foreach (var font in FontManager.Current.SystemFonts)
-                returnList.Add(font.Name);
-            return returnList;
-        }
-
-    }
-
     public MainWindow()
     {
         InitializeComponent();
-
 
         Loaded += MainWindow_Loaded;
 
@@ -42,7 +28,6 @@ public partial class MainWindow : Window
         UnderCB.AddHandler(InputElement.PointerReleasedEvent, UnderCB_PointerReleased, RoutingStrategies.Tunnel);
         StrikeCB.AddHandler(InputElement.PointerReleasedEvent, StrikeCB_PointerReleased, RoutingStrategies.Tunnel);
         OverCB.AddHandler(InputElement.PointerReleasedEvent, OverCB_PointerReleased, RoutingStrategies.Tunnel);
-
 
     }
 
@@ -71,6 +56,18 @@ public partial class MainWindow : Window
         //DEBUG
         //CreateTestDocumentWithTable();
         //OpenTestDocument();
+
+    }
+
+    public static List<string> GetAllFonts
+    {
+        get
+        {
+            List<string> returnList = [];
+            foreach (var font in FontManager.Current.SystemFonts)
+                returnList.Add(font.Name);
+            return returnList;
+        }
 
     }
 

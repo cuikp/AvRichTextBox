@@ -118,23 +118,36 @@ public partial class FlowDocument
             }
         }
 
-        int posNextLineInBlock = (SelectionExtendMode == ExtendMode.ExtendModeLeft) ? Selection.StartParagraph.CharNextLineStart : Selection.EndParagraph.CharNextLineEnd; ;
+        //int posNextLineInBlock = (SelectionExtendMode == ExtendMode.ExtendModeLeft) ? Selection.StartParagraph.CharNextLineStart : Selection.EndParagraph.CharNextLineEnd;
+        int posNextLineInBlock = SelectionExtendMode switch
+        {
+            ExtendMode.ExtendModeLeft => Selection.StartParagraph.CharNextLineStart,
+            _ => Selection.EndParagraph.CharNextLineEnd
+        };
+
         int computedNext = relPar.StartInDoc + posNextLineInBlock;
 
         if (atParBottom)
         {
+            bool keepWithinCurrentLine =
+                SelectionExtendMode == ExtendMode.ExtendModeRight && !(relPar.Inlines.Count > 0 && relPar.Inlines[0].IsEmpty);
+
             double currLeft = relPar.TextLayout.HitTestTextPosition(currentPos - relPar.StartInDoc).Left;
             int parIdx = AllParagraphs.IndexOf(relPar);
             if (parIdx < AllParagraphs.Count - 1)
             {
                 relPar = AllParagraphs[parIdx + 1];
+
+                int adjustToKeepWithinCurrentLine = (keepWithinCurrentLine && relPar.Inlines.Count > 0 && !relPar.Inlines[0].IsEmpty) ? -1 : 0;
+
                 try  // avoids error when line wraps change
                 {
-                    int textPosNewPar = Math.Min(relPar.BlockLength, relPar.TextLayout.HitTestPoint(new Point(currLeft, 0)).TextPosition);
-                    computedNext = relPar.StartInDoc + textPosNewPar;
+                    int textPosNewPar = Math.Min(relPar.BlockLength - 1, relPar.TextLayout.HitTestPoint(new Point(currLeft, 0)).TextPosition);
+                    computedNext = relPar.StartInDoc + textPosNewPar + adjustToKeepWithinCurrentLine;
                 }
-                catch (Exception ex) {Debug.WriteLine ($"error getting next down position: (currleft = {currLeft}) {ex.Message}"); }
+                catch (Exception ex) { Debug.WriteLine($"error getting next down position: (currleft = {currLeft}) {ex.Message}"); }
             }
+            
         }
 
         return computedNext;

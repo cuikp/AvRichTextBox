@@ -435,6 +435,33 @@ internal class InsertParagraphUndo(FlowDocument flowDoc, int origParId, int inse
     }
 }
 
+internal class AddParagraphUndo(FlowDocument flowDoc, int addedParId, int origSelectionStart) : IUndo
+{  
+    public int UndoEditOffset => 1;
+    public bool UpdateTextRanges => true;
+
+    public void PerformUndo()
+    {
+        try
+        {
+            if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == addedParId) is not Paragraph insertedPar) return;
+            int idx = flowDoc.Blocks.IndexOf(insertedPar);
+            flowDoc.Blocks.Remove(insertedPar);
+            flowDoc.UpdateBlockAndInlineStarts(idx);
+            flowDoc.UpdateTextRanges(origSelectionStart, -1);
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                flowDoc.Selection.Start = origSelectionStart;
+                flowDoc.Selection.End = flowDoc.Selection.Start;
+            });
+
+        }
+        catch { Debug.WriteLine("Failed InsertParagraphUndo at Inserted par id: " + addedParId); }
+
+    }
+}
+
 
 internal class MergeParagraphUndo(int origMergedParInlinesCount, int mergedParId, Paragraph removedParClone, FlowDocument flowDoc, int originalSelectionStart) : IUndo
 { //removedPar is a clone

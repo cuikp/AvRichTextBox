@@ -311,67 +311,74 @@ public partial class FlowDocument
             }
         }
 
-        if (GetStartInline(insertCharIndex) is not IEditable startInline) return;
+        Paragraph parToInsert = null!;
 
-        int StartRunIdx = insertPar.Inlines.IndexOf(startInline);
-
-        //Split at selection
-        List<IEditable> parSplitRuns = SplitRunAtPos(insertCharIndex, startInline, GetCharPosInInline(startInline, insertCharIndex));
-
-
-        List<IEditable> RunList1 = [.. insertPar.Inlines.Take(new Range(0, StartRunIdx)).ToList().ConvertAll(r => r)];
-        if (parSplitRuns[0].InlineText != "" || RunList1.Count == 0)
-            RunList1.Add(parSplitRuns[0]);
-        List<IEditable> RunList2 = [.. insertPar.Inlines.Take(new Range(StartRunIdx + 1, insertPar.Inlines.Count)).ToList().ConvertAll(r => r as IEditable)];
-
-        Paragraph originalPar = insertPar;
-
-        originalPar.Inlines.Clear();
-        originalPar.Inlines.AddRange(RunList1);
-
-        // Ending line break must be followed by empty run
-        if (originalPar.Inlines.Last() is EditableLineBreak)
-            originalPar.Inlines.Insert(originalPar.Inlines.Count, new EditableRun(""));
-
-        Paragraph parToInsert = originalPar.PropertyClone();
-        parToInsert.Inlines.AddRange(RunList2);
-
-        Blocks.Insert(parIndex + 1, parToInsert);
-
-        // Empty paragraph must contain an empty run
-        if (parToInsert.Inlines.Count == 0)
+        if (Selection.End == insertPar.EndInDoc)
         {
-            EditableRun erun = (EditableRun)originalPar.Inlines.Last().Clone();
-            erun.Text = "";
-            parToInsert.Inlines.Add(erun);
+            parToInsert = new Paragraph(this);
+            Blocks.Insert(parIndex + 1, parToInsert);
+
+            if (addUndo)
+                Undos.Add(new AddParagraphUndo(this, parToInsert.Id, originalSelStart));
         }
+        else
+        {
+            if (GetStartInline(insertCharIndex) is not IEditable startInline) return;
+            int StartRunIdx = insertPar.Inlines.IndexOf(startInline);
+            //Split at selection
+            List<IEditable> parSplitRuns = SplitRunAtPos(insertCharIndex, startInline, GetCharPosInInline(startInline, insertCharIndex));
 
-        // Line break must be preceded by empty run
-        if (parToInsert.Inlines.First() is EditableLineBreak)
-            parToInsert.Inlines.Insert(0, new EditableRun(""));
+            List<IEditable> RunList1 = [.. insertPar.Inlines.Take(new Range(0, StartRunIdx)).ToList().ConvertAll(r => r)];
+            if (parSplitRuns[0].InlineText != "" || RunList1.Count == 0)
+                RunList1.Add(parSplitRuns[0]);
+            List<IEditable> RunList2 = [.. insertPar.Inlines.Take(new Range(StartRunIdx + 1, insertPar.Inlines.Count)).ToList().ConvertAll(r => r as IEditable)];
 
-        disableRunTextUndo = false;
+            Paragraph originalPar = insertPar;
+
+            originalPar.Inlines.Clear();
+            originalPar.Inlines.AddRange(RunList1);
+
+            // Ending line break must be followed by empty run
+            if (originalPar.Inlines.Last() is EditableLineBreak)
+                originalPar.Inlines.Insert(originalPar.Inlines.Count, new EditableRun(""));
+
+            parToInsert = originalPar.PropertyClone();
+            parToInsert.Inlines.AddRange(RunList2);
+
+            Blocks.Insert(parIndex + 1, parToInsert);
+
+            // Empty paragraph must contain an empty run
+            if (parToInsert.Inlines.Count == 0)
+            {
+                EditableRun erun = (EditableRun)originalPar.Inlines.Last().Clone();
+                erun.Text = "";
+                parToInsert.Inlines.Add(erun);
+            }
+
+            // Line break must be preceded by empty run
+            if (parToInsert.Inlines.First() is EditableLineBreak)
+                parToInsert.Inlines.Insert(0, new EditableRun(""));
+
+            if (addUndo)
+                Undos.Add(new InsertParagraphUndo(this, originalPar.Id, parToInsert.Id, keepParInlineClones, originalSelStart, selectionLength - 1));
+
+            originalPar.CallRequestInlinesUpdate();
+            originalPar.CallRequestTextLayoutInfoStart();
+            originalPar.CallRequestTextLayoutInfoEnd();
+
+        }
 
         UpdateTextRanges(insertCharIndex, 1);
         UpdateBlockAndInlineStarts(parIndex);
 
-        originalPar.CallRequestInlinesUpdate();
         parToInsert.CallRequestInlinesUpdate();
-
-
-        if (addUndo)
-            Undos.Add(new InsertParagraphUndo(this, originalPar.Id, parToInsert.Id, keepParInlineClones, originalSelStart, selectionLength - 1));
-
-        originalPar.CallRequestTextLayoutInfoStart();
-        originalPar.CallRequestTextLayoutInfoEnd();
         parToInsert.CallRequestTextLayoutInfoStart();
         parToInsert.CallRequestTextLayoutInfoEnd();
 
+        disableRunTextUndo = false;
 
         Selection.BiasForwardStart = true;
         Selection.BiasForwardEnd = true;
-
-        //disableRunTextUndo = false;  //moved to above
 
         Dispatcher.UIThread.Post(() =>
         {
