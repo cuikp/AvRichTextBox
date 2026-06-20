@@ -173,7 +173,7 @@ public partial class FlowDocument
         List<Paragraph> paragraphsFullyInRange = GetFullParagraphsInRange(trange);
 
         bool firstParDeleted = paragraphsFullyInRange.Count > 0 && paragraphsFullyInRange.First().StartInDoc == originalRangeStart;
-        bool lastParDeleted = paragraphsFullyInRange.Count > 0 && paragraphsFullyInRange.Last().EndInDoc == originalRangeEnd + 1;
+        bool lastParDeleted = paragraphsFullyInRange.Count > 0 && paragraphsFullyInRange.Last().EndInDoc == originalRangeEnd;
 
         IEditable lastInline = rangePars[0].Inlines.Last();
 
@@ -183,17 +183,23 @@ public partial class FlowDocument
         if (addUndo)
             Undos.Add(new DeleteRangeUndo(rangePars.ConvertAll(rpar => rpar.FullClone()), firstParIndex, this, originalRangeStart, originalTRangeLength, firstParDeleted, lastParDeleted));
 
+        //get the inlines in this range and split if necessary, adding newly created inlines to doc
         (List<IEditable> createdInlines, (int idLeft, int idRight) edgeIds) createdInlinesResult = GetTextRangeInlines(trange, addToDoc: true);
+
         List<IEditable> rangeInlines = createdInlinesResult.createdInlines;
         (int idLeft, int idRight) edgeIds = createdInlinesResult.edgeIds;
 
-        //Delete the created inlines
+        List<Paragraph> toRemovePars = [];
+
+        //Delete the range inlines
         foreach (IEditable toDeleteRun in rangeInlines)
         {
             if (AllParagraphs.FirstOrDefault(p => p.Id == toDeleteRun.MyParagraphId) is Paragraph rangePar)
             {
                 rangePar.Inlines.Remove(toDeleteRun);
                 rangePar.CallRequestInlinesUpdate();
+                if (rangePar.Inlines.Count == 0)
+                    toRemovePars.Add(rangePar);
             }
         }
 
@@ -209,6 +215,7 @@ public partial class FlowDocument
         }
 
         Blocks.RemoveMany(tablesFullyInRange);
+        Blocks.RemoveMany(toRemovePars);
 
         Paragraph firstPar = rangePars[0];
         Paragraph lastPar = rangePars[^1];

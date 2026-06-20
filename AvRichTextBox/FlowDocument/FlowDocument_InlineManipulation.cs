@@ -24,9 +24,14 @@ public partial class FlowDocument
          bool EndAtLeastStart = ilineAbsoluteEnd >= trange.Start;
          bool EndsAtInlineStart = ilineAbsoluteStart == trange.End;
 
+          //if (p.Inlines.Count == 1 && iline.IsEmpty)
+          //    Debug.WriteLine("is empty");
+          //if (p.Inlines.Count == 1 && iline is EditableInlineUIContainer)
+          //    Debug.WriteLine("is UIC");
+
          bool withinRange = (iline.IsLastInlineOfParagraph && iline is not EditableInlineUIContainer) switch
          {
-            true => EndAtLeastStart && ilineAbsoluteStart <= trange.End && !EndsAtInlineStart,
+            true => EndAtLeastStart && ilineAbsoluteStart <= trange.End && (iline.IsEmpty || !EndsAtInlineStart),
             false => EndAtLeastStart && ilineAbsoluteStart < trange.End
          };
 
@@ -40,6 +45,7 @@ public partial class FlowDocument
          {
             var ilineAbsoluteStart = p.StartInDoc + iline.TextPositionOfInlineInParagraph;
             return (iline is EditableRun) && ilineAbsoluteStart + iline.InlineLength >= trange.Start && ilineAbsoluteStart < trange.End;
+            //return (iline is EditableRun) && ilineAbsoluteStart + iline.InlineLength >= trange.Start && ilineAbsoluteStart <= trange.End;
          }
          ))];
 

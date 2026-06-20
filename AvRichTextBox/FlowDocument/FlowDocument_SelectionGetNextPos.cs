@@ -101,7 +101,7 @@ public partial class FlowDocument
             Table thisTable = relPar.OwningTable;
             if (rowno == relPar.OwningTable.RowDefs.Count - 1)
             {
-                if (AllParagraphs.FirstOrDefault(p => p.StartInDoc >= thisTable.EndInDoc) is Paragraph nextPar)
+                if (AllParagraphs.FirstOrDefault(p => p.StartInDoc > thisTable.EndInDoc) is Paragraph nextPar)
                 {
                     return nextPar.StartInDoc;
                 }
