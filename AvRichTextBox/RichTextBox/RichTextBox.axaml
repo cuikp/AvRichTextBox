@@ -151,7 +151,7 @@
 																		<DataTemplate>
 
 																			<local:EditableParagraph x:DataType="local:Paragraph" Classes="paragraphBindings" xml:space="preserve" 
-																				MouseMove="EditableParagraph_MouseMove" 
+																				MouseMove="EditableParagraph_MouseMove" SizeChanged="EditableParagraph_SizeChanged"
 																				LostFocus="EditableParagraph_LostFocus" 
 																
 																				TextLayoutInfoStartRequested="{Binding RequestTextLayoutInfoStart}"

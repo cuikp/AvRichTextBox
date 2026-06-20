@@ -1,375 +1,413 @@
 using Avalonia.Animation;
 using Avalonia.Controls;
+using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Shapes;
 using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Styling;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 
 namespace AvRichTextBox;
 
 public partial class RichTextBox : UserControl
 {
-   internal FlowDocument FlowDoc => RtbVm.FlowDoc;
-   private RichTextBoxViewModel RtbVm { get; set; } = new();
+    internal FlowDocument FlowDoc => RtbVm.FlowDoc;
+    private RichTextBoxViewModel RtbVm { get; set; } = new();
 
 #if DEBUG
-   //VISUAL DEBUGGER -Panel for visualization of runs. Only created in Debug mode, default hidden but can be shown by: ShowDebuggerPanelInDebugMode=true
-   private DebuggerPanel debuggerPanel = null!;
-   private void ToggleDebuggerPanel(bool visible) { debuggerPanel?.IsVisible = visible; }
-   
-   private void BindSelectionPropertiesToDebuggerPanel()
-   {
-      if (ShowDebuggerPanelInDebugMode)
-      {
-         //Create Debugger Panel only in debug mode and if shown
-         debuggerPanel = new() { Width = 400, DataContext = FlowDoc };
-         DockPanel.SetDock(debuggerPanel, Dock.Right);
-         MainDP.Children.Insert(0, debuggerPanel);
-         debuggerPanel.DataContext = RtbVm;
-         debuggerPanel.Bind(Visual.IsVisibleProperty, new Binding("RunDebuggerVisible"));
-         debuggerPanel.SelEndTB.Bind(TextBlock.TextProperty, new Binding("FlowDoc.Selection.End") { StringFormat = "DocSelEnd={0}" });
-         debuggerPanel.SelStartTB.Bind(TextBlock.TextProperty, new Binding("FlowDoc.Selection.Start") { StringFormat = "DocSelStart={0}" });
-         debuggerPanel.BiasForwardEndTB.Bind(TextBlock.TextProperty, new Binding("FlowDoc.Selection.BiasForwardEnd") { StringFormat = "BiasForwardEnd={0}" });
-         debuggerPanel.BiasForwardStartTB.Bind(TextBlock.TextProperty, new Binding("FlowDoc.Selection.BiasForwardStart") { StringFormat = "BiasForwardStart={0}" });
-         debuggerPanel.ParagraphsLB.ItemsSource = FlowDoc.SelectionParagraphs;
-         RtbVm.RunDebuggerVisible = ShowDebuggerPanelInDebugMode;
-         this.Width += (RtbVm.RunDebuggerVisible ? 400 : 0);
-         FlowDoc.ShowDebugger = RtbVm.RunDebuggerVisible;
-      }
-   }
+    //VISUAL DEBUGGER -Panel for visualization of runs. Only created in Debug mode, default hidden but can be shown by: ShowDebuggerPanelInDebugMode=true
+    private DebuggerPanel debuggerPanel = null!;
+    private void ToggleDebuggerPanel(bool visible) { debuggerPanel?.IsVisible = visible; }
+
+    private void BindSelectionPropertiesToDebuggerPanel()
+    {
+        if (ShowDebuggerPanelInDebugMode)
+        {
+            //Create Debugger Panel only in debug mode and if shown
+            debuggerPanel = new() { Width = 400, DataContext = FlowDoc };
+            DockPanel.SetDock(debuggerPanel, Dock.Right);
+            MainDP.Children.Insert(0, debuggerPanel);
+            debuggerPanel.DataContext = RtbVm;
+            debuggerPanel.Bind(Visual.IsVisibleProperty, new Binding("RunDebuggerVisible"));
+            debuggerPanel.SelEndTB.Bind(TextBlock.TextProperty, new Binding("FlowDoc.Selection.End") { StringFormat = "DocSelEnd={0}" });
+            debuggerPanel.SelStartTB.Bind(TextBlock.TextProperty, new Binding("FlowDoc.Selection.Start") { StringFormat = "DocSelStart={0}" });
+            debuggerPanel.BiasForwardEndTB.Bind(TextBlock.TextProperty, new Binding("FlowDoc.Selection.BiasForwardEnd") { StringFormat = "BiasForwardEnd={0}" });
+            debuggerPanel.BiasForwardStartTB.Bind(TextBlock.TextProperty, new Binding("FlowDoc.Selection.BiasForwardStart") { StringFormat = "BiasForwardStart={0}" });
+            debuggerPanel.ParagraphsLB.ItemsSource = FlowDoc.SelectionParagraphs;
+            RtbVm.RunDebuggerVisible = ShowDebuggerPanelInDebugMode;
+            this.Width += (RtbVm.RunDebuggerVisible ? 400 : 0);
+            FlowDoc.ShowDebugger = RtbVm.RunDebuggerVisible;
+        }
+    }
 
 #endif
 
 
-   public void ScrollToSelection()
-   {
-      RtbVm.RTBScrollOffset = RtbVm.RTBScrollOffset.WithY(FlowDoc.Selection.StartRect.Y - 50);
+    public void ScrollToSelection()
+    {
+        RtbVm.RTBScrollOffset = RtbVm.RTBScrollOffset.WithY(FlowDoc.Selection.StartRect.Y - 50);
 
-   }
+    }
 
-   public RichTextBox()
-   {
-      InitializeComponent();
+    public RichTextBox()
+    {
+        InitializeComponent();
 
-      this.PropertyChanged += RichTextBox_PropertyChanged;
-      this.Loaded += RichTextBox_Loaded;
-      this.Initialized += RichTextBox_Initialized;
-      this.TextInput += RichTextBox_TextInput;
-      this.GotFocus += RichTextBox_GotFocus;
-      this.LostFocus += RichTextBox_LostFocus;
-      this.ActualThemeVariantChanged += RichTextBox_ActualThemeVariantChanged;
+        this.PropertyChanged += RichTextBox_PropertyChanged;
+        this.Loaded += RichTextBox_Loaded;
+        this.Initialized += RichTextBox_Initialized;
+        this.TextInput += RichTextBox_TextInput;
+        this.GotFocus += RichTextBox_GotFocus;
+        this.LostFocus += RichTextBox_LostFocus;
+        this.ActualThemeVariantChanged += RichTextBox_ActualThemeVariantChanged;
 
-      RtbVm.FlowDocChanged += RtbVM_FlowDocChanged;
+        RtbVm.FlowDocChanged += RtbVM_FlowDocChanged;
 
-      MainDP.DataContext = RtbVm;  // bind to child DockPanel, not the UserControl itself
+        MainDP.DataContext = RtbVm;  // bind to child DockPanel, not the UserControl itself
 
-      FlowDocSV.SizeChanged += FlowDocSV_SizeChanged;
+        FlowDocSV.SizeChanged += FlowDocSV_SizeChanged;
 
 
-      InitializeAdornerElements();
+        InitializeAdornerElements();
 
-      this.Focusable = true;
+        this.Focusable = true;
 
-   }
+    }
 
     private void InitializeAdornerElements()
     {
-       InitializeBlinkAnimation();
+        InitializeBlinkAnimation();
 
-       blinkAnimation.RunAsync(_CaretRect);
+        blinkAnimation.RunAsync(_CaretRect);
 
-       _CaretRect.Bind(MarginProperty, new Binding("CaretMargin"));
-       _CaretRect.Bind(HeightProperty, new Binding("CaretHeight"));
-       _CaretRect.DataContext = RtbVm;
+        _CaretRect.Bind(MarginProperty, new Binding("CaretMargin"));
+        _CaretRect.Bind(HeightProperty, new Binding("CaretHeight"));
+        _CaretRect.DataContext = RtbVm;
 
-       // Subscribe to ViewModel CaretVisible changes
-       RtbVm.PropertyChanged += (sender, e) =>
-       {
-          if (e.PropertyName == nameof(RtbVm.CaretVisible))
-          {
-             UpdateCaretVisibility();
-          }
-       };
+        // Subscribe to ViewModel CaretVisible changes
+        RtbVm.PropertyChanged += (sender, e) =>
+        {
+            if (e.PropertyName == nameof(RtbVm.CaretVisible))
+            {
+                UpdateCaretVisibility();
+            }
+        };
 
-       // Initial visibility update
-       UpdateCaretVisibility();
-             
-       SelectionPath.Data = _geometry;
+        // Initial visibility update
+        UpdateCaretVisibility();
 
-       var panel = new Canvas();
-       panel.Children.Add(SelectionPath);
-       panel.Children.Add(_CaretRect);
-       AdornerLayer.SetAdorner(DocIC, panel);
-       //AdornerLayer.SetIsClipEnabled(panel, false);
+        SelectionPath.Data = _geometry;
+
+        var panel = new Canvas();
+        panel.Children.Add(SelectionPath);
+        panel.Children.Add(_CaretRect);
+        AdornerLayer.SetAdorner(DocIC, panel);
+        //AdornerLayer.SetIsClipEnabled(panel, false);
 
     }
 
 
-   private void RichTextBox_Initialized(object? sender, EventArgs e)
-   {
-      if (FlowDocument == null)
-      { // only create initial FlowDocument if not already existing
-         FlowDocument = new();
-         FlowDoc.NewDocument();
-      }
+    private void RichTextBox_Initialized(object? sender, EventArgs e)
+    {
+        if (FlowDocument == null)
+        { // only create initial FlowDocument if not already existing
+            FlowDocument = new();
+            FlowDoc.NewDocument();
+        }
 
-      FlowDoc.SelectionChanged += FlowDoc_Selection_Changed;
-      FlowDoc.PagePaddingChanged += FlowDoc_PagePadding_Changed;
+        FlowDoc.SelectionChanged += FlowDoc_Selection_Changed;
+        FlowDoc.PagePaddingChanged += FlowDoc_PagePadding_Changed;
 
-   }
+    }
 
-   private void RichTextBox_Loaded(object? sender, RoutedEventArgs e)
-   {      
+    private void RichTextBox_Loaded(object? sender, RoutedEventArgs e)
+    {
 
 #if DEBUG
-      BindSelectionPropertiesToDebuggerPanel();
+        BindSelectionPropertiesToDebuggerPanel();
 #endif
 
-      this.Focus();
+        this.Focus();
 
-      SelectionPath.Fill = this.SelectionBrush;
-      UpdateSelectionIndicators();
+        SelectionPath.Fill = this.SelectionBrush;
+        UpdateSelectionIndicators();
 
-   }
+    }
 
 
-   private void RtbVM_FlowDocChanged()
-   {
-      DocIC.DataContext = RtbVm.FlowDoc;
-      UpdateAllInlines();
-   }
+    private void RtbVM_FlowDocChanged()
+    {
+        DocIC.DataContext = RtbVm.FlowDoc;
+        UpdateAllInlines();
+    }
 
     private void RichTextBox_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-       if (e.Property == FlowDocumentProperty)
-       {
-          if (FlowDoc != null)
-          {
-             FlowDoc.ScrollInDirection -= RtbVm.FlowDoc_ScrollInDirection;
-             FlowDoc.UpdateRTBCaret -= RtbVm.FlowDoc_UpdateRTBCaret;
-          }
+        if (e.Property == FlowDocumentProperty)
+        {
+            if (FlowDoc != null)
+            {
+                FlowDoc.ScrollInDirection -= RtbVm.FlowDoc_ScrollInDirection;
+                FlowDoc.UpdateRTBCaret -= RtbVm.FlowDoc_UpdateRTBCaret;
+            }
 
-          RtbVm.FlowDoc = FlowDocument;
+            RtbVm.FlowDoc = FlowDocument;
 
-          RtbVm.FlowDoc.ScrollInDirection += RtbVm.FlowDoc_ScrollInDirection;
-          RtbVm.FlowDoc.UpdateRTBCaret += RtbVm.FlowDoc_UpdateRTBCaret;
+            RtbVm.FlowDoc.ScrollInDirection += RtbVm.FlowDoc_ScrollInDirection;
+            RtbVm.FlowDoc.UpdateRTBCaret += RtbVm.FlowDoc_UpdateRTBCaret;
 
-          RtbVm.FlowDoc.SelectionBrush = this.SelectionBrush;
-          
-          RtbVm.FlowDoc.InitializeDocument();
-          CreateClient();
+            RtbVm.FlowDoc.SelectionBrush = this.SelectionBrush;
 
-       }
-    
-       else if (e.Property == CaretBrushProperty)
-       {
-          UpdateCaretBrush();
-       }
+            RtbVm.FlowDoc.InitializeDocument();
+            CreateClient();
 
-       else if (e.Property == IsCaretVisibleProperty)
-       {
-          UpdateCaretVisibility();
-       }
+        }
+
+        else if (e.Property == CaretBrushProperty)
+        {
+            UpdateCaretBrush();
+        }
+
+        else if (e.Property == IsCaretVisibleProperty)
+        {
+            UpdateCaretVisibility();
+        }
     }
 
     private void RichTextBox_ActualThemeVariantChanged(object? sender, EventArgs e)
     {
-       UpdateCaretBrush();
+        UpdateCaretBrush();
     }
-    
+
     private void UpdateCaretVisibility()
     {
-       if (_CaretRect != null)
-       {
-          // The caret should only be visible if both:
-          // 1. IsCaretVisible property is true (control-level visibility)
-          // 2. CaretVisible from ViewModel is true (caret blinking state)
-          _CaretRect.IsVisible = this.IsCaretVisible && RtbVm.CaretVisible;
-       }
+        if (_CaretRect != null)
+        {
+            // The caret should only be visible if both:
+            // 1. IsCaretVisible property is true (control-level visibility)
+            // 2. CaretVisible from ViewModel is true (caret blinking state)
+            _CaretRect.IsVisible = this.IsCaretVisible && RtbVm.CaretVisible;
+        }
     }
 
     private void RichTextBox_GotFocus(object? sender, FocusChangedEventArgs e)
-   {
-      //Debug.WriteLine("Got focus rtb");
-   }
+    {
+        //Debug.WriteLine("Got focus rtb");
+    }
 
-   private void RichTextBox_LostFocus(object? sender, FocusChangedEventArgs e)
-   {
-      //Debug.WriteLine("lost focus rtb");
-   }
+    private void RichTextBox_LostFocus(object? sender, FocusChangedEventArgs e)
+    {
+        //Debug.WriteLine("lost focus rtb");
+    }
 
-   internal void UpdateAllInlines()
-   {
-      foreach (Paragraph p in FlowDoc.AllParagraphs)
-      {
-         p.CallRequestInlinesUpdate();
-         p.CallRequestInvalidateVisual();
+    internal void UpdateAllInlines()
+    {
+        foreach (Paragraph p in FlowDoc.AllParagraphs)
+        {
+            p.CallRequestInlinesUpdate();
+            p.CallRequestInvalidateVisual();
 
-      }
-   }
+        }
+    }
 
 
-   public void InvalidateCaret()
-   {
-      UpdateSelectionIndicators();
-      RtbVm.CaretVisible = FlowDoc.Selection.Length == 0;
-      UpdateCaretVisibility();
-   }
+    public void InvalidateCaret()
+    {
+        UpdateSelectionIndicators();
+        RtbVm.CaretVisible = FlowDoc.Selection.Length == 0;
+        UpdateCaretVisibility();
+    }
 
-   public void NewDocument() => FlowDoc.NewDocument();
-   public void CreateNewDocument() { FlowDoc.NewDocument(); RtbVm.RTBScrollOffset = new Vector(0, 0); }
-   //Load/save
-   public void LoadRtf(string rtf) => FlowDoc.LoadRtf(rtf);
-   public void LoadRtfDoc(string fileName) => FlowDoc.LoadRtfFromFile(fileName);
+    public void NewDocument() => FlowDoc.NewDocument();
+    public void CreateNewDocument() { FlowDoc.NewDocument(); RtbVm.RTBScrollOffset = new Vector(0, 0); }
+    //Load/save
+    public void LoadRtf(string rtf) => FlowDoc.LoadRtf(rtf);
+    public void LoadRtfDoc(string fileName) => FlowDoc.LoadRtfFromFile(fileName);
 
-   public string SaveRtf() => FlowDoc.SaveRtf();
-   public void SaveRtfDoc(string fileName) => FlowDoc.SaveRtfToFile(fileName);
-   public void LoadWordDoc(string fileName) => FlowDoc.LoadWordDocFromFile(fileName);
-   public void SaveWordDoc(string filename) => FlowDoc.SaveWordDocToFile(filename);
-   public void LoadHtml(string html) => FlowDoc.LoadHtml(html);
+    public string SaveRtf() => FlowDoc.SaveRtf();
+    public void SaveRtfDoc(string fileName) => FlowDoc.SaveRtfToFile(fileName);
+    public void LoadWordDoc(string fileName) => FlowDoc.LoadWordDocFromFile(fileName);
+    public void SaveWordDoc(string filename) => FlowDoc.SaveWordDocToFile(filename);
+    public void LoadHtml(string html) => FlowDoc.LoadHtml(html);
 
-   public string SaveHtml() => FlowDoc.SaveHtml();
-   public void LoadHtmlDoc(string fileName) => FlowDoc.LoadHtmlDocFromFile(fileName);
-   public void SaveHtmlDoc(string filename) => FlowDoc.SaveHtmlDocToFile(filename);
+    public string SaveHtml() => FlowDoc.SaveHtml();
+    public void LoadHtmlDoc(string fileName) => FlowDoc.LoadHtmlDocFromFile(fileName);
+    public void SaveHtmlDoc(string filename) => FlowDoc.SaveHtmlDocToFile(filename);
 
-   public void LoadXaml(string fileName) => FlowDoc.LoadXamlFromFile(fileName);
-   public void SaveXamlPackage(string fileName) => FlowDoc.SaveXamlPackage(fileName);
-   public void LoadXamlString(string xaml) => FlowDoc.LoadXaml(xaml);
-   public string SaveXamlString() => FlowDoc.SaveXaml();
-   public void SaveXaml(string fileName) => FlowDoc.SaveXamlToFile(fileName);
-   public void LoadXamlPackage(string fileName) => FlowDoc.LoadXamlPackage(fileName);
+    public void LoadXaml(string fileName) => FlowDoc.LoadXamlFromFile(fileName);
+    public void SaveXamlPackage(string fileName) => FlowDoc.SaveXamlPackage(fileName);
+    public void LoadXamlString(string xaml) => FlowDoc.LoadXaml(xaml);
+    public string SaveXamlString() => FlowDoc.SaveXaml();
+    public void SaveXaml(string fileName) => FlowDoc.SaveXamlToFile(fileName);
+    public void LoadXamlPackage(string fileName) => FlowDoc.LoadXamlPackage(fileName);
 
-   private void MovePage(int direction, bool extend)
-   {
-      double currentY = 0;
-      switch (FlowDoc.SelectionExtendMode)
-      {
-         case FlowDocument.ExtendMode.ExtendModeRight:
-         case FlowDocument.ExtendMode.ExtendModeNone:
-            currentY = FlowDoc.Selection.EndRect.Y;
-            break;
+    private void MovePage(int direction, bool extend)
+    {
+        double currentY = 0;
+        switch (FlowDoc.SelectionExtendMode)
+        {
+            case FlowDocument.ExtendMode.ExtendModeRight:
+            case FlowDocument.ExtendMode.ExtendModeNone:
+                currentY = FlowDoc.Selection.EndRect.Y;
+                break;
 
-         case FlowDocument.ExtendMode.ExtendModeLeft:
-            currentY = FlowDoc.Selection.StartRect.Y;
-            break;
-      }
+            case FlowDocument.ExtendMode.ExtendModeLeft:
+                currentY = FlowDoc.Selection.StartRect.Y;
+                break;
+        }
 
-      double distanceFromTop = currentY - RtbVm.RTBScrollOffset.Y;
-      double distanceFromLeft = FlowDoc.Selection.StartRect.X + FlowDocSV.Margin.Left;
-      double newScrollY = RtbVm.RTBScrollOffset.Y + FlowDocSV.Bounds.Height * direction;
-      double newCaretY = newScrollY + distanceFromTop;
+        double distanceFromTop = currentY - RtbVm.RTBScrollOffset.Y;
+        double distanceFromLeft = FlowDoc.Selection.StartRect.X + FlowDocSV.Margin.Left;
+        double newScrollY = RtbVm.RTBScrollOffset.Y + FlowDocSV.Bounds.Height * direction;
+        double newCaretY = newScrollY + distanceFromTop;
 
-      double scrollToY = Math.Min(DocIC.Bounds.Height, Math.Max(0, newScrollY));
+        double scrollToY = Math.Min(DocIC.Bounds.Height, Math.Max(0, newScrollY));
 
-      RtbVm.RTBScrollOffset = RtbVm.RTBScrollOffset.WithY(scrollToY);
-      //Debug.WriteLine("\nnewCaretY = " + newCaretY + "\nnewscrollY= " + newScrollY + "\ndistanceTop=" + distanceFromTop);
+        RtbVm.RTBScrollOffset = RtbVm.RTBScrollOffset.WithY(scrollToY);
+        //Debug.WriteLine("\nnewCaretY = " + newCaretY + "\nnewscrollY= " + newScrollY + "\ndistanceTop=" + distanceFromTop);
 
-      EditableParagraph? thisEP = DocIC.GetVisualDescendants().OfType<EditableParagraph>().Where(ep => ep.TranslatePoint(ep.Bounds.Position, DocIC)!.Value.Y <= newScrollY).LastOrDefault();
+        EditableParagraph? thisEP = DocIC.GetVisualDescendants().OfType<EditableParagraph>().Where(ep => ep.TranslatePoint(ep.Bounds.Position, DocIC)!.Value.Y <= newScrollY).LastOrDefault();
 
-      if (thisEP == null)
-      {
-         if (direction == -1)
-         {
-            if (FlowDoc.SelectionExtendMode == FlowDocument.ExtendMode.ExtendModeRight)
+        if (thisEP == null)
+        {
+            if (direction == -1)
             {
-               FlowDoc.Select(0, 0);
-               FlowDoc.SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeNone;
+                if (FlowDoc.SelectionExtendMode == FlowDocument.ExtendMode.ExtendModeRight)
+                {
+                    FlowDoc.Select(0, 0);
+                    FlowDoc.SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeNone;
+                }
+                else
+                    FlowDoc.MovePageSelection(-1, extend, 0);
+
+                this.Focus();
             }
-            else
-               FlowDoc.MovePageSelection(-1, extend, 0);
+        }
+        else
+        {
+            double relYInEP = newCaretY - thisEP!.TranslatePoint(thisEP!.Bounds.Position, DocIC)!.Value.Y + 18;
+            TextHitTestResult tres = thisEP.TextLayout.HitTestPoint(new Point(distanceFromLeft, relYInEP));
+            int newCharIndexInDoc = ((Paragraph)thisEP.DataContext!).StartInDoc + tres.CharacterHit.FirstCharacterIndex;
+            FlowDoc.MovePageSelection(direction, extend, newCharIndexInDoc + (int)(FlowDocSV.Bounds.Height / 2));
 
-            this.Focus();
-         }
-      }
-      else
-      {
-         double relYInEP = newCaretY - thisEP!.TranslatePoint(thisEP!.Bounds.Position, DocIC)!.Value.Y + 18;
-         TextHitTestResult tres = thisEP.TextLayout.HitTestPoint(new Point(distanceFromLeft, relYInEP));
-         int newCharIndexInDoc = ((Paragraph)thisEP.DataContext!).StartInDoc + tres.CharacterHit.FirstCharacterIndex;
-         FlowDoc.MovePageSelection(direction, extend, newCharIndexInDoc + (int)(FlowDocSV.Bounds.Height / 2));
-
-      }
+        }
 
 
-   }
+    }
 
-   private void FlowDocSV_SizeChanged(object? sender, SizeChangedEventArgs e)
-   {
-      RtbVm.ScrollViewerHeight = e.NewSize.Height;
+    private void FlowDocSV_SizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        RtbVm.ScrollViewerHeight = e.NewSize.Height;
 
-      UpdateSelectionIndicators();
-   }
+        UpdateSelectionIndicators();
+    }
 
-   private void ScrollViewer_ScrollChanged(object? sender, ScrollChangedEventArgs e)
-   {
-      RtbVm.RTBScrollOffset = FlowDocSV.Offset;
+    private void ScrollViewer_ScrollChanged(object? sender, ScrollChangedEventArgs e)
+    {
+        RtbVm.RTBScrollOffset = FlowDocSV.Offset;
 
-   }
+    }
 
-   private Animation blinkAnimation = null!;
+    private Animation blinkAnimation = null!;
 
-   private void InitializeBlinkAnimation()
-   {
-      blinkAnimation = new Animation()
-      {
-         Duration = TimeSpan.FromSeconds(0.85),
-         FillMode = FillMode.Forward,
-         IterationCount = IterationCount.Infinite,
-         Children =
+    private void InitializeBlinkAnimation()
+    {
+        blinkAnimation = new Animation()
+        {
+            Duration = TimeSpan.FromSeconds(0.85),
+            FillMode = FillMode.Forward,
+            IterationCount = IterationCount.Infinite,
+            Children =
             {
                 new KeyFrame { Cue = new (0.0), Setters = { new Setter(Rectangle.OpacityProperty, 1.0) } },
                 new KeyFrame { Cue = new (0.75), Setters = { new Setter(Rectangle.OpacityProperty, 1.0) } },
                 new KeyFrame { Cue = new (1.0), Setters = { new Setter(Rectangle.OpacityProperty, 0.0) } }
             }
-      };
+        };
 
-   }
+    }
 
-   
-   // ── Context menu ─────────────────────────────────────────────────────────
 
-   private void DocContextMenu_Opening(object? sender, System.ComponentModel.CancelEventArgs e)
-   {
-      bool overHyperlink = FlowDoc.GetHyperlinkAtSelection() != null;
+    // ── Context menu ─────────────────────────────────────────────────────────
 
-      InsertHyperlinkMenuItem.IsVisible  = !overHyperlink;
-      EditHyperlinkMenuItem.IsVisible    =  overHyperlink;
-      RemoveHyperlinkMenuItem.IsVisible  =  overHyperlink;
-   }
+    private void DocContextMenu_Opening(object? sender, System.ComponentModel.CancelEventArgs e)
+    {
+        bool overHyperlink = FlowDoc.GetHyperlinkAtSelection() != null;
 
-   private void CopySelectionMenuItem_Click(object? sender, RoutedEventArgs e)
-   {
-      if (DisableUserCopy) return;
-      CopyToClipboard();
-   }
-   
-   private void PasteSelectionMenuItem_Click(object? sender, RoutedEventArgs e)
-   {
-      if (IsReadOnly) return;
-      PasteFromClipboard();
-   }
-   
-   private void PasteSelectionAsPlainTextMenuItem_Click(object? sender, RoutedEventArgs e)
-   {
-      if (IsReadOnly) return;
-      PasteFromClipboard(plainTextOnly: true);
-   }
+        InsertHyperlinkMenuItem.IsVisible = !overHyperlink;
+        EditHyperlinkMenuItem.IsVisible = overHyperlink;
+        RemoveHyperlinkMenuItem.IsVisible = overHyperlink;
+    }
 
-   private void CutSelectionMenuItem_Click(object? sender, RoutedEventArgs e)
-   {
-      if (IsReadOnly) return;
-      CopyToClipboard();
-      FlowDoc.DeleteSelection();
-   }
-   
-   private void DeleteSelectionMenuItem_Click(object? sender, RoutedEventArgs e)
-   {
-      if (IsReadOnly) return;
-      FlowDoc.DeleteSelection();
-   }
+    private void CopySelectionMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (DisableUserCopy) return;
+        CopyToClipboard();
+    }
 
+    private void PasteSelectionMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (IsReadOnly) return;
+        PasteFromClipboard();
+    }
+
+    private void PasteSelectionAsPlainTextMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (IsReadOnly) return;
+        PasteFromClipboard(plainTextOnly: true);
+    }
+
+    private void CutSelectionMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (IsReadOnly) return;
+        CopyToClipboard();
+        FlowDoc.DeleteSelection();
+    }
+
+    private void DeleteSelectionMenuItem_Click(object? sender, RoutedEventArgs e)
+    {
+        if (IsReadOnly) return;
+        FlowDoc.DeleteSelection();
+    }
+
+    double GetWantedCellHeight(EditableCell ec)
+    {
+        if (ec.GetVisualDescendants().OfType<ItemsControl>().FirstOrDefault() is not ItemsControl ic)
+            return ec.Bounds.Height;
+
+        ic.Measure(new Size(ic.Bounds.Width, double.PositiveInfinity));
+        return Math.Ceiling(ic.DesiredSize.Height + ec.Padding.Top + ec.Padding.Bottom);
+    }
+
+    private void EditableParagraph_SizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        if (sender is not EditableParagraph thisEdPar) return;
+        if (thisEdPar.DataContext is not Paragraph thisPar) return;
+        if (thisPar.OwningTable is not Table thisTable) return;
+        if (thisPar.OwningCell is not Cell thisCell) return;
+        if (thisEdPar.Parent is not ContentPresenter contPres || contPres.Parent is not ItemsControl itemsControl) return;
+        //Debug.WriteLine("\nnew size height = " + e.NewSize);
+
+        double maxCellContentHeight = 0;
+
+        if (itemsControl.FindAncestorOfType<ItemsControl>() is ItemsControl tableIC)
+        {
+            if (tableIC?.GetVisualDescendants().OfType<ItemsPresenter>().FirstOrDefault() is ItemsPresenter presenter)
+            {
+                if (presenter?.GetVisualDescendants().OfType<BindableGrid>().FirstOrDefault() is BindableGrid bgrid)
+                {
+                    List<EditableCell> rowECs = [.. bgrid.GetVisualDescendants().OfType<EditableCell>().Where(ec => ec.DataContext is Cell c && c.RowNo == thisCell.RowNo)];
+                    maxCellContentHeight = rowECs.Max(GetWantedCellHeight);
+                    itemsControl.Measure(new Size(itemsControl.Bounds.Width, double.PositiveInfinity));
+                    var wantedHeight = Math.Ceiling(itemsControl.DesiredSize.Height + thisPar.OwningCell.Padding.Top + thisPar.OwningCell.Padding.Bottom);
+                    thisTable.RowDefs[thisPar.OwningCell.RowNo].Height = new GridLength(Math.Max(maxCellContentHeight, wantedHeight));
+                }
+            }
+        }
+
+    }
 }
 

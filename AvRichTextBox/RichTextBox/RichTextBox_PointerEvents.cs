@@ -10,22 +10,15 @@ public partial class RichTextBox
 {
 
     EditableParagraph? currentMouseOverEdPar = null;
-    //EditableTable? currentMouseOverEdTable = null;
 
     internal void EditableTable_MouseMove(EditableTable edTable, Cursor tableCursor)
     {
         CurrentCursor = tableCursor;
         this.Cursor = CurrentCursor;
-        //Debug.WriteLine("tablecursor = " + tableCursor + 
-        //    " ::: this.Cursor = " + this.Cursor + 
-        //    " :::: CurrentCursor: " + CurrentCursor + 
-        //    " ::: edtableCursor = " + edTable.Cursor);
-
     }
 
     internal void EditableTable_MouseLeave(EditableTable edTable)
     {
-        //Debug.WriteLine("left table");
         //this.Cursor = CurrentCursor;
     }
 
@@ -37,7 +30,6 @@ public partial class RichTextBox
 
     private void EditableParagraph_LostFocus(object? sender, FocusChangedEventArgs e)
     {
-        //Debug.WriteLine("\nlost partg focus");
         this.Focus();
     }
 

@@ -20,19 +20,14 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>ver 1.9.0:
-Updated to Avalonia 12.0.2
-Added EditableHyperlink
-Multiple paragraphs allowed in table
-Fixed format toggling issues.
-Table cell borders adjustable by mouse.
-ver 1.9.1:
-Crucial fix for add new paragraph</PackageReleaseNotes>
+	  <PackageReleaseNotes>ver 1.9.2:
+Updated to Avalonia 12.0.4
+</PackageReleaseNotes>
       
      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 	  <PackageOutputPath>D:\PROG\LocalNuget\AvRichTextBox</PackageOutputPath>
 	  
-	  <Version>1.9.1</Version>
+	  <Version>1.9.2</Version>
 	  <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
 	  

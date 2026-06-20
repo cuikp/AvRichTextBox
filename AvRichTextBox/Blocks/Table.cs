@@ -50,6 +50,7 @@ public partial class Table : Block
             for (int colno = 0; colno < cols; colno++)
             {
                 Paragraph newPar = new(flowDoc);
+                                
 
                 Cell newCell = new(this)
                 {
