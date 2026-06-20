@@ -135,7 +135,8 @@ public class Block : INotifyPropertyChanged
     }
 
     internal int StartInDoc { get; set { if (field != value) { field = value; NotifyPropertyChanged(nameof(StartInDoc)); } } }
-    internal int EndInDoc => StartInDoc + BlockLength;
+    //internal int EndInDoc => StartInDoc + BlockLength;
+    internal int EndInDoc => StartInDoc + BlockLength - 1;  //$$$$$$$$$$$$$$$
 
     //Updated on FlowDoc_Selection_Changed
     public int SelectionStartInBlock

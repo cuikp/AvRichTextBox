@@ -1,4 +1,6 @@
 
+using DocumentFormat.OpenXml.Spreadsheet;
+
 namespace AvRichTextBox;
 
 public partial class FlowDocument
@@ -14,10 +16,7 @@ public partial class FlowDocument
 
         if (posInBlock <= 0)
         {  // At start of paragraph, move to end of previous paragraph
-            //if (startP.IsTableCellBlock)
-            //    return Math.Max(0, startP.StartInDoc - 2);
-            //else
-                return Math.Max(0, startP.StartInDoc - 1);
+            return Math.Max(0, startP.StartInDoc - 1);
         }
 
         int computedPrevious = startP.StartInDoc + posInBlock - 1;
@@ -56,18 +55,6 @@ public partial class FlowDocument
 
         Paragraph startP = (SelectionExtendMode == ExtendMode.ExtendModeLeft) ? Selection.StartParagraph : Selection.EndParagraph;
         int posInBlock = currentPos - startP.StartInDoc;
-
-        //int parEnd = startP.IsTableCellBlock ? startP.TextLength - 1 : startP.TextLength; //xxxxxxxxxxxxxxxxxx
-        //int parEnd = startP.BlockLength;
-
-        ////if (posInBlock >= parEnd)
-        //if (posInBlock == parEnd - 1)
-        //{  // At end of paragraph, move to start of next paragraph
-
-        //    int nextPos = startP.StartInDoc + startP.BlockLength;
-        //    return Math.Min(nextPos, DocEndPoint - 1);
-        //}
-
         int computedNext = startP.StartInDoc + posInBlock + 1;
 
         // skip special
@@ -103,6 +90,33 @@ public partial class FlowDocument
 
         Paragraph relPar = (SelectionExtendMode == ExtendMode.ExtendModeLeft) ? Selection.StartParagraph : Selection.EndParagraph;
         bool atParBottom = (SelectionExtendMode == ExtendMode.ExtendModeLeft) ? relPar.IsStartAtLastLine : relPar.IsEndAtLastLine;
+        bool atCellBottom = atParBottom && relPar.IsCellBlock;
+        
+        if (atCellBottom)
+        {
+            int rowno = relPar.OwningCell.RowNo;
+            int colno = relPar.OwningCell.ColNo;
+            int colspan = relPar.OwningCell.ColSpan;
+
+            Table thisTable = relPar.OwningTable;
+            if (rowno == relPar.OwningTable.RowDefs.Count - 1)
+            {
+                if (AllParagraphs.FirstOrDefault(p => p.StartInDoc >= thisTable.EndInDoc) is Paragraph nextPar)
+                {
+                    return nextPar.StartInDoc;
+                }
+            }
+            else
+            {
+                if (thisTable.Cells.LastOrDefault(c => c.RowNo == rowno + 1 && c.ColNo <= colno + (colspan - 1)) is Cell cellBelow)
+                {
+                    if (cellBelow.CellBlocks.First() is Paragraph firstPar)
+                    {
+                        return firstPar.StartInDoc;
+                    }
+                }
+            }
+        }
 
         int posNextLineInBlock = (SelectionExtendMode == ExtendMode.ExtendModeLeft) ? Selection.StartParagraph.CharNextLineStart : Selection.EndParagraph.CharNextLineEnd; ;
         int computedNext = relPar.StartInDoc + posNextLineInBlock;
@@ -138,6 +152,33 @@ public partial class FlowDocument
         int computedPrev = relPar.StartInDoc + posPrevLineInBlock;
 
         bool atParTop = (SelectionExtendMode == ExtendMode.ExtendModeRight) ? relPar.IsEndAtFirstLine : relPar.IsStartAtFirstLine;
+        bool atCellTop = atParTop && relPar.IsCellBlock;
+
+        if (atCellTop)
+        {
+            int rowno = relPar.OwningCell.RowNo;
+            int colno = relPar.OwningCell.ColNo;
+            Table thisTable = relPar.OwningTable;
+            if (rowno == 0)
+            {
+                if (AllParagraphs.LastOrDefault(p=> p.StartInDoc < thisTable.StartInDoc) is Paragraph prevPar)
+                {
+                    return prevPar.EndInDoc;
+                }
+            }
+            else
+            {
+                if (thisTable.Cells.LastOrDefault(c => c.RowNo == rowno - 1 && c.ColNo <= colno) is Cell cellAbove)
+                {
+                    if (cellAbove.CellBlocks.Last() is Paragraph lastPar)
+                    {
+                        return lastPar.StartInDoc + lastPar.BlockLength - 1;
+                    }
+                }
+            }
+        }
+
+
 
         if (atParTop)
         {
