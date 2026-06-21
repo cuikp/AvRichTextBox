@@ -329,12 +329,14 @@ public partial class FlowDocument
     internal void DeleteWord(bool backspace)
     {
         if (backspace)
-            if (Selection.Start <= 0) return;
+            if (Selection.Start <= 0) 
+                return;
             else
+            {
                 if (Selection.Start >= Selection.StartParagraph.StartInDoc + Selection.StartParagraph.BlockLength)
                     return;
-
-
+            }
+                
         if (backspace)
             MoveLeftWord();
 
@@ -345,7 +347,7 @@ public partial class FlowDocument
 
         Paragraph startP = Selection.StartParagraph;
 
-        if (startP.SelectionStartInBlock == startP.TextLength)
+        if (startP.SelectionStartInBlock == startP.BlockLength - 1)
             MergeParagraphForward(Selection.Start, true, originalSelectionStart); //updates text ranges and adds undo
         else
         {
@@ -356,7 +358,7 @@ public partial class FlowDocument
             {
                 int IndexNextSpace = Selection.StartParagraph.Text.IndexOf(' ', Selection.Start - Selection.StartParagraph.StartInDoc);
                 if (IndexNextSpace == -1)
-                    IndexNextSpace = Selection.StartParagraph.TextLength;
+                    IndexNextSpace = Selection.StartParagraph.BlockLength - 1;
                 else
                     IndexNextSpace += 1;
                 NextWordEndPoint = Selection.StartParagraph.StartInDoc + IndexNextSpace;

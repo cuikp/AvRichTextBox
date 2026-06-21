@@ -1,17 +1,11 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Input;
-using Avalonia.Interactivity;
 using Avalonia.Media;
-using Avalonia.Threading;
 using AvRichTextBox;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace DemoApp_AvRichtextBox.Views;
 
