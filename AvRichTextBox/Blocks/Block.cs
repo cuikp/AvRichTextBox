@@ -1,5 +1,4 @@
-﻿using Avalonia.Media;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -49,7 +48,8 @@ public class Block : INotifyPropertyChanged
                        sb.Append(i.InlineText);
                     }
 
-                    sb.Append((p.IsTableCellBlock ? Environment.NewLine : "\n"));  // Environment.NewLine adds "\r\n" (Non-Unix) or "\n" (Unix) to end of paragraph text
+                    bool endOfTableCell = (p.IsTableCellBlock && p == p.OwningCell.CellBlocks.Last());
+                    sb.Append(endOfTableCell ? (char)7 : "\n");  // Environment.NewLine adds "\r\n" (Non-Unix) or "\n" (Unix) to end of paragraph text
 
                     return sb.ToString();
 
@@ -57,8 +57,11 @@ public class Block : INotifyPropertyChanged
 
                     var sbTable = new StringBuilder();
                     foreach (Cell c in t.Cells)
+                    {
                         foreach (Block b in c.CellBlocks)
                             sbTable.Append(b.Text);  //recursive since CellBlocks is a Block (Paragraph)
+                    }
+                    
                     return sbTable.ToString();
 
                 default:
@@ -76,15 +79,10 @@ public class Block : INotifyPropertyChanged
                 case Paragraph p:
                     int len = 0;
                     foreach (var i in p.Inlines)
-                    {
-                        //if (i is EditableLineBreak)
-                        //    len += 0;
-                        //else
-                            len += i.InlineText?.Length ?? 0;
-                    }
+                       len += i.InlineText?.Length ?? 0;
 
                     // paragraph CR
-                    len += 1;  // ????????
+                    len += 1;  
                     
 
                     return len;
@@ -136,7 +134,7 @@ public class Block : INotifyPropertyChanged
 
     internal int StartInDoc { get; set { if (field != value) { field = value; NotifyPropertyChanged(nameof(StartInDoc)); } } }
     //internal int EndInDoc => StartInDoc + BlockLength;
-    internal int EndInDoc => StartInDoc + BlockLength - 1;  //$$$$$$$$$$$$$$$
+    internal int EndInDoc => StartInDoc + BlockLength - 1; // changed to reflect revised logic for paragraph end navigation
 
     //Updated on FlowDoc_Selection_Changed
     public int SelectionStartInBlock

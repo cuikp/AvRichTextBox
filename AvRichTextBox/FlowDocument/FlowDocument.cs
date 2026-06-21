@@ -55,7 +55,8 @@ public partial class FlowDocument : AvaloniaObject
     }
 
     //public string Text => string.Join("", GetAllParagraphs.ToList().ConvertAll(b => string.Join("", b.Text + Environment.NewLine)));
-    public string Text => string.Join("", GetAllParagraphs.ToList().ConvertAll(p => string.Join("", p.Text))); 
+    public string Text => string.Join("", GetAllParagraphs.ToList().ConvertAll(p => string.Join("", p.Text)));
+    //public string Text => string.Join("", GetAllParagraphs.ToList().ConvertAll(p => { Debug.WriteLine("ptext = " + p.Text); return string.Join("", p.Text); })); 
 
     //public int DocEndPoint => ((Paragraph)Blocks.Last()).EndInDoc;
     public int DocEndPoint => Blocks.Last().EndInDoc;

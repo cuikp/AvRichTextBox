@@ -45,7 +45,6 @@ public partial class MainWindow : Window
         debugCB.IsChecked = true;
         debugCBPanel.Children.Add(debugCB);
         debugCBPanel.Children.Add(debugTB);
-        //DockPanel.SetDock(debugTB, Dock.Top);
         TopPanel.Children.Add(debugCBPanel);
 
 #endif
@@ -109,7 +108,7 @@ public partial class MainWindow : Window
             {
                 int cellno = rowno * noCols + colno;
                 Cell c = newTable.Cells[cellno];
-                c.CellVerticalAlignment = Avalonia.Layout.VerticalAlignment.Center;
+                c.CellVerticalAlignment = VerticalAlignment.Center;
                 Paragraph p = new (MainRTB.FlowDocument) { TextAlignment = TextAlignment.Center };
                 p.Inlines.Add(new EditableRun("c:" + colno));
                 p.Inlines.Add(new EditableLineBreak());
@@ -325,7 +324,6 @@ public partial class MainWindow : Window
 
         if (string.IsNullOrEmpty(FindTB.Text)) return;
 
-        //MatchCollection foundMatches = Regex.Matches(MainRTB.FlowDocument.Text.Replace("\r\n", "\r"), FindTB.Text);
         MatchCollection foundMatches = Regex.Matches(MainRTB.FlowDocument.Text, FindTB.Text);
 
         Match? firstMatch = foundMatches.FirstOrDefault(m => m.Index >= MainRTB.FlowDocument.Selection.End);

@@ -90,7 +90,7 @@ public partial class FlowDocument
                 AllSelectedInlines.Add(insertLastInline);
 
                 if (addToDoc)
-                    endPar.Inlines.Insert(indexOfLastInline, insertLastInline);
+                    endPar.Inlines.Insert(indexOfLastInline, insertLastInline);  //$$$$$$$$$$$$$$$$  error on delete word at par end
 
                 firstInlineText = insertLastInline.InlineText;
                 insertFirstInline = insertLastInline.Clone();

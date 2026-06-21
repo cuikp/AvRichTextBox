@@ -197,9 +197,19 @@ public partial class FlowDocument
             if (AllParagraphs.FirstOrDefault(p => p.Id == toDeleteRun.MyParagraphId) is Paragraph rangePar)
             {
                 rangePar.Inlines.Remove(toDeleteRun);
-                rangePar.CallRequestInlinesUpdate();
                 if (rangePar.Inlines.Count == 0)
-                    toRemovePars.Add(rangePar);
+                {
+                    if (rangePar.IsTableCellBlock)
+                    {  // if overlapping cell blocks got deleted, they shouldn't be removed
+                        rangePar.Inlines.Add(new EditableRun(""));
+                    }
+                    else
+                        toRemovePars.Add(rangePar);
+                }
+
+                rangePar.CallRequestInlinesUpdate();
+                rangePar.CallRequestTextLayoutInfoStart();
+                rangePar.CallRequestTextLayoutInfoEnd();
             }
         }
 
@@ -208,9 +218,12 @@ public partial class FlowDocument
         {
             foreach (Paragraph fullyContainedPar in paragraphsFullyInRange)
             {
-                fullyContainedPar.Inlines.Clear();
+                //fullyContainedPar.Inlines.Clear();
                 if (!fullyContainedPar.IsTableCellBlock && !docContainsOneBlock)
+                {
+                    fullyContainedPar.Inlines.Clear();
                     Blocks.Remove(fullyContainedPar);
+                }
             }
         }
 
