@@ -31,15 +31,15 @@ public partial class MainWindow : Window
 
     }
 
-    private void MainWindow_Loaded(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void MainWindow_Loaded(object? sender, RoutedEventArgs e)
     {
         MainRTB.FlowDocument.SelectionChanged += FlowDocument_Selection_Changed;
 
 
 #if DEBUG
 
-        DockPanel debugCBPanel = new() { VerticalAlignment = Avalonia.Layout.VerticalAlignment.Bottom, Margin = new Thickness(10) };
-        TextBlock debugTB = new() { Text = "DebugPanel", VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center };
+        DockPanel debugCBPanel = new() { VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(10) };
+        TextBlock debugTB = new() { Text = "DebugPanel", VerticalAlignment = VerticalAlignment.Center };
         CheckBox debugCB = new() { Focusable = false };
         debugCB.IsCheckedChanged += DebugPanelCB_CheckedUnchecked;
         debugCB.IsChecked = true;
@@ -55,7 +55,7 @@ public partial class MainWindow : Window
 
         //DEBUG
         //CreateTestDocumentWithTable();
-        //OpenTestDocument();
+        OpenTestDocument();
 
     }
 
@@ -260,14 +260,14 @@ public partial class MainWindow : Window
 
 
 
-    private void CreateNewDocumentMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void CreateNewDocumentMenuItem_Click(object? sender, RoutedEventArgs e)
     {
         MainRTB.CreateNewDocument();
 
     }
       
 
-    private void FindTextBox_KeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
+    private void FindTextBox_KeyDown(object? sender, KeyEventArgs e)
     {
         FindTB.Background = Brushes.White;
 

@@ -216,7 +216,7 @@ Shift+Ctrl-Home/End to select to Home/End
 Caret color is customizable  (CaretBrush)
 
 
-**[ver 1.9.0] 2026/06/19**: 
+**[ver 1.9.1] 2026/06/19**: 
 Updated to Avalonia 12.0.2
 Revamped internal inline calculations
 Added EditableHyperlink
@@ -226,6 +226,10 @@ Removed `VerticalAlignment` property from `Paragraph`: Now `Cell` has `VerticalA
 Fixed format toggling issues.
 Table cell borders adjustable by mouse.
 
+**[ver 1.9.2] 2026/06/20**
+Updated to Avalonia 12.0.4
 
-
+**[ver 1.9.3] 2026/06/21**: 
+Table/row heights now dynamically change with cell contents.
+Some important paragraph Delete/Undo fixes
 

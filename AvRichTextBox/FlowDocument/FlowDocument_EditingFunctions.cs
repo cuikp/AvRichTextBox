@@ -119,7 +119,8 @@ public partial class FlowDocument
                 Paragraph addPar = startPar;
 
                 //Remove single empty run if present
-                if (addPar.Inlines.Count == 1 && addPar.Inlines[0] is EditableRun run && run.InlineText == "")
+                //if (addPar.Inlines.Count == 1 && addPar.Inlines[0] is EditableRun run && run.InlineText == "")
+                if (addPar.IsEmptyInlinePar)
                 {
                     addPar.Inlines.RemoveAt(0);
                     insertIdx = 0;

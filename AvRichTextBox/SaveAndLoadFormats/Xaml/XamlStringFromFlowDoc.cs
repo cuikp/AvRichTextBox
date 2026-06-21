@@ -48,12 +48,10 @@ public partial class XamlConversions
                 List<UniqueBitmap> uniqueBitmaps = [];
                 foreach (Paragraph p in imageContainingParagraphs)
                 {
-                    foreach (EditableInlineUIContainer imageUIContainer in p.Inlines.Where(iline => iline.GetType() == typeof(EditableInlineUIContainer) &&
-                               ((EditableInlineUIContainer)iline).Child.GetType() == typeof(Image)))
+                    foreach (EditableInlineUIContainer imageUIContainer in p.Inlines.Where(iline => iline is EditableInlineUIContainer iuc && iuc.Child is Image))
                     {
                         if (imageUIContainer.Child is Image thisImg)
                         {
-
                             Bitmap? imgbitmap = (Bitmap)thisImg.Source!;
 
                             //Debug.WriteLine("Imagesource is null ? : " + (thisImg.Source == null));

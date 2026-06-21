@@ -20,6 +20,10 @@ public partial class FlowDocument
 
                 Selection.End = GetNextPosition();
 
+                // Don't allow selection extend to stop at next paragraph start
+                if (Selection.End == Selection.EndParagraph.StartInDoc)
+                    Selection.End = GetNextPosition();
+
                 break;
 
             case ExtendMode.ExtendModeLeft:
@@ -81,6 +85,11 @@ public partial class FlowDocument
             case ExtendMode.ExtendModeRight:
                 SelectionExtendMode = ExtendMode.ExtendModeRight;
                 Selection.End = targetPos;
+
+                // Don't allow selection extend to stop at next paragraph start
+                if (Selection.End == Selection.EndParagraph.StartInDoc)
+                    Selection.End -= 1;
+
                 break;
 
             case ExtendMode.ExtendModeLeft:

@@ -280,7 +280,7 @@ public partial class FlowDocument
 
         string parText = thisEndPar.Text;
         
-        Debug.WriteLine("partextlen = " + parText.Length + ", lastindexendline = " + thisEndPar.LastIndexEndLine);
+        //Debug.WriteLine("partextlen = " + parText.Length + ", lastindexendline = " + thisEndPar.LastIndexEndLine);
 
         char endChar = parText[thisEndPar.LastIndexEndLine];
         //if (thisEndPar.LastIndexEndLine <= parText.Length && (endChar == ' ' || IsCJKChar(endChar)))

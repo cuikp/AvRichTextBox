@@ -314,7 +314,7 @@ public partial class FlowDocument
         Paragraph parToInsert = null!;
 
         if (Selection.End == insertPar.EndInDoc)
-        {
+        {   // only need to add insert a new paragraph at the index
             parToInsert = new Paragraph(this);
             Blocks.Insert(parIndex + 1, parToInsert);
 
@@ -322,7 +322,7 @@ public partial class FlowDocument
                 Undos.Add(new AddParagraphUndo(this, parToInsert.Id, originalSelStart));
         }
         else
-        {
+        {   // current paragraph needs to be split into two
             if (GetStartInline(insertCharIndex) is not IEditable startInline) return;
             int StartRunIdx = insertPar.Inlines.IndexOf(startInline);
             //Split at selection

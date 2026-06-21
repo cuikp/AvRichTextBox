@@ -73,7 +73,6 @@ public partial class FlowDocument
                 else
                     computedNext = absHyperlinkEnd;
             }
-
         }
 
         if (GetStartInline(computedNext - 1) is EditableLineBreak)
@@ -227,11 +226,29 @@ public partial class FlowDocument
         Paragraph startP = (SelectionExtendMode == ExtendMode.ExtendModeLeft) ? Selection.StartParagraph : Selection.EndParagraph;
         int posInBlock = currentPos - startP.StartInDoc;
 
-        if (posInBlock >= startP.TextLength)
+        if (posInBlock >= startP.BlockLength - 1)
         {
-            // At end of paragraph, move to start of next paragraph
-            int nextPos = startP.StartInDoc + startP.BlockLength;
-            return Math.Min(nextPos, DocEndPoint - 1);
+            // At end of paragraph, move to start of next paragraph or next word start in next paragraph
+            if (SelectionExtendMode == ExtendMode.ExtendModeRight)
+            {  // Extended right must skip past position 0 of next par
+                Selection.End += 1;
+                Paragraph nextPar = Selection.EndParagraph;
+                if (nextPar.IsEmptyInlineOrUICPar)
+                {
+                    int nextPos = nextPar.StartInDoc + 1;
+                    return Math.Min(nextPos, DocEndPoint - 1);
+                }
+                else
+                {
+                    startP = nextPar;
+                    posInBlock = 0;
+                }
+            }
+            else
+            {
+                int nextPos = startP.StartInDoc + startP.BlockLength;
+                return Math.Min(nextPos, DocEndPoint - 1);
+            }
         }
 
         string parText = startP.Text;
@@ -241,14 +258,15 @@ public partial class FlowDocument
         while (searchFrom < parText.Length && (parText[searchFrom] == ' ' || parText[searchFrom] == '\n'))
             searchFrom++;
 
-        if (searchFrom >= parText.Length)
-            return startP.StartInDoc + startP.TextLength;
+        //if (searchFrom >= parText.Length)
+        //    return startP.StartInDoc + startP.BlockLength - 1;
 
         // Find next space from the adjusted position
         int indexNext = parText.IndexOf(' ', searchFrom);
         if (indexNext == -1)
         {  // No space found - go to end of paragraph text
-            return startP.StartInDoc + startP.TextLength;
+            int computedNext = startP.StartInDoc + startP.BlockLength - 1;
+            return computedNext;
         }
         else
         {  // Go to position after the space
