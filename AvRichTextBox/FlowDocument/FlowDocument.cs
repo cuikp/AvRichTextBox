@@ -1,5 +1,6 @@
 ﻿using Avalonia.Data;
 using Avalonia.Media;
+using Avalonia.Media.Immutable;
 using Avalonia.Threading;
 using DynamicData;
 using System.Collections.ObjectModel;
@@ -59,6 +60,7 @@ public partial class FlowDocument : AvaloniaObject
     public int DocEndPoint => Blocks.Last().EndInDoc;
 
     public TextRange Selection { get; set; }
+    //internal IBrush SelectionBrush = Brushes.LightSteelBlue;  // default
     internal IBrush SelectionBrush = Brushes.LightSteelBlue;  // default
 
     public FlowDocument()
@@ -270,16 +272,21 @@ public partial class FlowDocument : AvaloniaObject
             (b.Inlines.Count == 1 && b.Inlines[0] is EditableInlineUIContainer ?  (b.StartInDoc + b.BlockLength - 1 < end) : (b.StartInDoc + b.BlockLength - 1 <= end))
         )];
 
-    internal List<Block> GetFullBlocksInRange(int start, int end) => 
-        [.. Blocks.Where(b => 
-            b.StartInDoc >= start && 
-            b.StartInDoc + b.BlockLength - 1 < end
-        )];
-        
     internal List<Paragraph> GetOverlappingParagraphsInRange(int start, int end) => 
         [.. AllParagraphs.Where(b =>
             (b.Inlines.Count == 1 && b.Inlines[0] is EditableInlineUIContainer ?  (b.StartInDoc < end) : b.StartInDoc <= end) &&
-            //b.StartInDoc <= end && 
+            b.StartInDoc + b.BlockLength - 1 >= start
+        )];
+
+    internal List<Block> GetFullBlocksInRange(int start, int end) =>
+    [.. Blocks.Where(b =>
+            b.StartInDoc >= start &&
+            b.StartInDoc + b.BlockLength - 1 < end
+        )];
+
+    internal List<Block> GetOverlappingBlocksInRange(int start, int end) => 
+        [.. Blocks.Where(b =>
+            b.StartInDoc <= end &&
             b.StartInDoc + b.BlockLength - 1 >= start
         )];
 
@@ -291,6 +298,7 @@ public partial class FlowDocument : AvaloniaObject
         ).Cast<Table>()];
 
     internal List<Block> GetFullBlocksInRange(TextRange trange) => GetFullBlocksInRange(trange.Start, trange.End);
+    internal List<Block> GetOverlappingBlocksInRange(TextRange trange) => GetOverlappingBlocksInRange(trange.Start, trange.End);
     internal List<Paragraph> GetFullParagraphsInRange(TextRange trange) => GetFullParagraphsInRange(trange.Start, trange.End);
     internal List<Paragraph> GetOverlappingParagraphsInRange(TextRange trange) => GetOverlappingParagraphsInRange(trange.Start, trange.End);
     internal List<Table> GetFullTablesInRange(TextRange trange) => GetFulTablesInRange(trange.Start, trange.End);
@@ -328,6 +336,15 @@ public partial class FlowDocument : AvaloniaObject
         ExtendModeLeft
     }
 
+    internal static IBrush? CloneBrush(IBrush? brush)
+    {
+        return brush switch
+        {
+            SolidColorBrush b => new SolidColorBrush(b.Color, b.Opacity),
+            ImmutableSolidColorBrush b => b,
+            _ => brush
+        };
+    }
 
 }
 

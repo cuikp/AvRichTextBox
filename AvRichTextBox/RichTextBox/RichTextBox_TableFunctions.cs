@@ -36,10 +36,13 @@ public partial class RichTextBox
                 if (presenter?.GetVisualDescendants().OfType<BindableGrid>().FirstOrDefault() is BindableGrid bgrid)
                 {
                     List<EditableCell> rowECs = [.. bgrid.GetVisualDescendants().OfType<EditableCell>().Where(ec => ec.DataContext is Cell c && c.RowNo == thisCell.RowNo)];
-                    maxCellContentHeight = rowECs.Max(GetWantedCellHeight);
-                    itemsControl.Measure(new Size(itemsControl.Bounds.Width, double.PositiveInfinity));
-                    var wantedHeight = Math.Ceiling(itemsControl.DesiredSize.Height + thisPar.OwningCell.Padding.Top + thisPar.OwningCell.Padding.Bottom);
-                    thisTable.RowDefs[thisPar.OwningCell.RowNo].Height = new GridLength(Math.Max(maxCellContentHeight, wantedHeight));
+                    if (rowECs.Count > 0)
+                    {
+                        maxCellContentHeight = rowECs.Max(GetWantedCellHeight);
+                        itemsControl.Measure(new Size(itemsControl.Bounds.Width, double.PositiveInfinity));
+                        var wantedHeight = Math.Ceiling(itemsControl.DesiredSize.Height + thisPar.OwningCell.Padding.Top + thisPar.OwningCell.Padding.Bottom);
+                        thisTable.RowDefs[thisPar.OwningCell.RowNo].Height = new GridLength(Math.Max(maxCellContentHeight, wantedHeight));
+                    }
                 }
             }
         }

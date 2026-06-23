@@ -23,7 +23,7 @@ public partial class FlowDocument
             SelectionExtendMode = ExtendMode.ExtendModeNone;
         }
 
-        //Debug.WriteLine("first par deleted: " + firstParWasDeleted);
+        //Debug.WriteLine("first par deleted: " + firstBlockWasDeleted);
 
         if (tRange.StartInline is not IEditable startInline) return;
 
@@ -88,20 +88,20 @@ public partial class FlowDocument
         }
     }
 
-    internal void RestoreDeletedBlocks(List<Paragraph> parClones, int blockIndex, bool firstParWasDeleted, bool lastParWasDeleted)
+    // PASS deleted first/last par ID instead of bool. delete by searching ID.
+    //  THEN insert blockClones based on their owners
+
+    internal void RestoreDeletedBlocks(List<Block> blockClones, int blockIndex, bool firstBlockWasDeleted, bool lastBlockWasDeleted)
     {
-        //If either first or last paragraph was not deleted, it needs to be removed before restoring previous state
-        //if (!lastParWasDeleted && !firstParWasDeleted)
-        //    { } //do nothing
-        if (!lastParWasDeleted)
+        if (!lastBlockWasDeleted)
             Blocks.RemoveAt(blockIndex);
-        else if (!firstParWasDeleted)
+        else if (!firstBlockWasDeleted)
             Blocks.RemoveAt(blockIndex);
 
         //Restore all of the previous paragraphs
-        Blocks.AddOrInsertRange(parClones, blockIndex);
+        Blocks.AddOrInsertRange(blockClones, blockIndex);
 
-        foreach (Paragraph p in parClones)
+        foreach (Paragraph p in blockClones.OfType<Paragraph>())
             p.CallRequestInlinesUpdate();
 
         UpdateBlockAndInlineStarts(blockIndex);

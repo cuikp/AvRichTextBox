@@ -38,7 +38,7 @@ internal static partial class WordConversions
         UInt32 tbRight = (uint)PixToTwip(t.BorderThickness.Right);
         UInt32 tbTop = (uint)PixToTwip(t.BorderThickness.Top);
         UInt32 tbBottom = (uint)PixToTwip(t.BorderThickness.Bottom);
-        string tableBorderColor = ToOpenXmlColor(t.BorderBrush.Color);
+        string tableBorderColor = ToOpenXmlColor(t.BorderBrush is SolidColorBrush scb ? scb.Color : Colors.Transparent);
         tableBorderProps.Append(new LeftBorder() { Size = tbLeft, Color = tableBorderColor, Val = BorderValues.Single });
         tableBorderProps.Append(new RightBorder() { Size = tbRight, Color = tableBorderColor, Val = BorderValues.Single });
         tableBorderProps.Append(new TopBorder() { Size = tbTop, Color = tableBorderColor, Val = BorderValues.Single });
@@ -114,7 +114,7 @@ internal static partial class WordConversions
                     {
                         Val = ShadingPatternValues.Clear,
                         Color = "auto",
-                        Fill = new StringValue(ToOpenXmlColor(thisCell.CellBackground == null ? Colors.Transparent : thisCell.CellBackground.Color))
+                        Fill = new StringValue(ToOpenXmlColor((thisCell.CellBackground is not SolidColorBrush scbC || thisCell.CellBackground == null) ? Colors.Transparent : scbC.Color))
                     });
 
 
@@ -124,7 +124,7 @@ internal static partial class WordConversions
                     for (int i = colno; i < colno + thisCell.ColSpan; i++)
                         NextAvailableRows[i] = rowno + thisCell.RowSpan;
 
-                    currentBorderColor = ToOpenXmlColor(thisCell.BorderBrush.Color);
+                    currentBorderColor = ToOpenXmlColor(thisCell.BorderBrush is SolidColorBrush scbCB ? scbCB.Color : Colors.Transparent);
                     currentBorderThickness = thisCell.BorderThickness;
                     currentCellPadding = thisCell.Padding;
 

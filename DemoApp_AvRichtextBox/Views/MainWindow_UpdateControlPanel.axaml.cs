@@ -45,7 +45,8 @@ public partial class MainWindow
                     TablePanel.IsEnabled = true;
                     if (thisPar.GetOwningCell is Cell c)
                     {
-                        CellBackgroundCP.Color = (Color)(c.CellBackground == null ? Colors.Transparent : c.CellBackground.Color!);
+                        //CellBackgroundCP.Color = (Color)((c.CellBackground is not SolidColorBrush scb || c.CellBackground == null) ? Colors.Transparent : scb.Color!);
+                        CellBackgroundCP.Color = (Color)((c.CellBackground is not SolidColorBrush scb || c.CellBackground == null) ? Colors.Transparent : scb.Color!);
                         
                         if (c.CellVerticalAlignment.ToString() is string cellalignstring)
                         {
@@ -53,7 +54,7 @@ public partial class MainWindow
                         }
 
                         Table thisTable = c.GetOwningTable;
-                        TableBorderCP.Color = (Color)(thisTable.BorderBrush == null ? Colors.Transparent : thisTable.BorderBrush.Color!);
+                        TableBorderCP.Color = (Color)((thisTable.BorderBrush is not SolidColorBrush scbT || thisTable.BorderBrush == null) ? Colors.Transparent : scbT.Color!);
                         TableBorderNS.Value = thisTable.BorderThickness.Left;
                     }
                     break;

@@ -74,7 +74,7 @@ internal static partial class HtmlConversions
       }
 
       double tabBorderThickness = t.BorderThickness.Left;
-      string tabBorderCol = ColorToCss(t.BorderBrush.Color);
+      string tabBorderCol = ColorToCss(t.BorderBrush is SolidColorBrush scb ? scb.Color : Colors.Transparent);
 
       HtmlNode tableNode = hdoc.CreateElement("table");
       string tableStyleString =

@@ -71,7 +71,7 @@ public partial class FlowDocument
 
       // Snapshot the affected paragraphs before any edit for undo.
       // When there is a selection that may span multiple paragraphs we need all of them.
-      List<Paragraph> affectedParClones = GetOverlappingParagraphsInRange(Selection).ConvertAll(p => p.FullClone());
+      List<Block> affectedBlockClones = GetOverlappingBlocksInRange(Selection).ConvertAll(b => b.FullClone());
       int firstParIndex = AllParagraphs.IndexOf(startPar);
       int origSelStart = Selection.Start;
       bool firstParWasDeleted = false;
@@ -154,7 +154,7 @@ public partial class FlowDocument
       disableRunTextUndo = false;
 
       // undoEditOffset = -(displayText.Length) so Undo moves the selection back
-      Undos.Add(new HyperlinkParagraphUndo(affectedParClones, firstParIndex, this, origSelStart, -displayText.Length, firstParWasDeleted));
+      Undos.Add(new HyperlinkParagraphUndo(affectedBlockClones, firstParIndex, this, origSelStart, -displayText.Length, firstParWasDeleted));
    }
 
    /// <summary>

@@ -300,10 +300,9 @@ internal class InsertNewFormattedTextUndo(int parId, EditableRun removedRunClone
 
 }
 
-
 internal class PasteUndo(
-   List<Paragraph> keptPars,
-   int parIndex,
+   List<Block> keptBlocks,
+   int blockIndex,
    FlowDocument flowDoc,
    int origSelectionStart,
    int undoEditOffset,
@@ -312,6 +311,7 @@ internal class PasteUndo(
    bool firstParWasDeleted,
    bool lastParWasDeleted
    ) : IUndo
+
 {
     public int UndoEditOffset => undoEditOffset;
     public bool UpdateTextRanges => true;
@@ -324,7 +324,7 @@ internal class PasteUndo(
 
             int lengthBefore = flowDoc.Text.Length;
 
-            flowDoc.RestoreDeletedBlocks(keptPars, parIndex, firstParWasDeleted, lastParWasDeleted);
+            flowDoc.RestoreDeletedBlocks(keptBlocks, blockIndex, firstParWasDeleted, lastParWasDeleted);
 
             foreach (int bid in addedBlockIds)
                 if (flowDoc.Blocks.FirstOrDefault(b => b.Id == bid) is Block foundBlock)
@@ -332,7 +332,7 @@ internal class PasteUndo(
 
             if (firstParEmpty)
             {
-                Paragraph firstPar = flowDoc.GetAllParagraphs.ToList()[parIndex];
+                Paragraph firstPar = flowDoc.GetAllParagraphs.ToList()[blockIndex];
                 if (firstPar.Inlines.Count == 1 && firstPar.Inlines[0] is EditableRun run)
                     run.Text = "";
             }
@@ -341,7 +341,7 @@ internal class PasteUndo(
 
             int lengthAfter = flowDoc.Text.Length;
 
-            flowDoc.UpdateTextRanges(keptPars[0].StartInDoc, lengthAfter - lengthBefore);
+            flowDoc.UpdateTextRanges(keptBlocks[0].StartInDoc, lengthAfter - lengthBefore);
 
             Dispatcher.UIThread.Post(() =>
             {
@@ -356,7 +356,7 @@ internal class PasteUndo(
 }
 
 internal class DeleteRangeUndo(
-   List<Paragraph> keptBlockClones,
+   List<Block> keptBlockClones,
    int startBlockIndex,
    FlowDocument flowDoc,
    int origSelectionStart,
@@ -392,7 +392,7 @@ internal class DeleteRangeUndo(
             });
 
         }
-        catch { Debug.WriteLine($"Failed DeleteRangeUndo at Par index: {startBlockIndex}"); }
+        catch (Exception ex) { Debug.WriteLine($"Failed DeleteRangeUndo at Par index: {startBlockIndex}\n{ex.Message}"); }
     }
 
 }
@@ -597,10 +597,11 @@ internal class HyperlinkParagraphUndo : IUndo
     internal HyperlinkParagraphUndo(Paragraph parClone, int parIndex, FlowDocument flowDoc, int origSelectionStart, int undoEditOffset)
        : this([parClone], parIndex, flowDoc, origSelectionStart, undoEditOffset, false) { }
 
-    private readonly List<Paragraph> parClones;
+    private readonly List<Block> blockClones;
     private readonly int parIndex;
     private readonly FlowDocument flowDoc;
     private readonly int origSelectionStart;
+    private readonly bool firstOrLastParWasDeleted;
     private readonly bool firstParWasDeleted;
     private readonly bool lastParWasDeleted;
 
@@ -610,7 +611,7 @@ internal class HyperlinkParagraphUndo : IUndo
     public bool UpdateTextRanges => false;
 
     internal HyperlinkParagraphUndo(
-       List<Paragraph> parClones,
+       List<Block> blockClones,
        int parIndex,
        FlowDocument flowDoc,
        int origSelectionStart,
@@ -619,7 +620,7 @@ internal class HyperlinkParagraphUndo : IUndo
        bool lastParWasDeleted = false
        )
     {
-        this.parClones = parClones;
+        this.blockClones = blockClones;
         this.parIndex = parIndex;
         this.flowDoc = flowDoc;
         this.origSelectionStart = origSelectionStart;
@@ -635,10 +636,10 @@ internal class HyperlinkParagraphUndo : IUndo
             flowDoc.disableRunTextUndo = true;
 
             int lengthBefore = flowDoc.Text.Length;
-            flowDoc.RestoreDeletedBlocks(parClones, parIndex, firstParWasDeleted, lastParWasDeleted);
+            flowDoc.RestoreDeletedBlocks(blockClones, parIndex, firstParWasDeleted, lastParWasDeleted);
             flowDoc.disableRunTextUndo = false;
             int lengthAfter = flowDoc.Text.Length;
-            flowDoc.UpdateTextRanges(parClones[0].StartInDoc, lengthAfter - lengthBefore);
+            flowDoc.UpdateTextRanges(blockClones[0].StartInDoc, lengthAfter - lengthBefore);
 
             Dispatcher.UIThread.Post(() =>
             {

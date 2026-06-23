@@ -4,13 +4,14 @@ using Avalonia.Media;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using static AvRichTextBox.FlowDocument;
 
 namespace AvRichTextBox;
 
 public partial class Table : Block
 {
     public Thickness BorderThickness { get; set { field = value; NotifyPropertyChanged(nameof(BorderThickness)); } } = new(1);
-    public ISolidColorBrush BorderBrush { get; set { field = value; NotifyPropertyChanged(nameof(BorderBrush)); } } = Brushes.Black;
+    public IBrush BorderBrush { get; set { field = value; NotifyPropertyChanged(nameof(BorderBrush)); } } = Brushes.Black;
     
     public ObservableCollection<Cell> Cells { get; set; } = [];
     public ColumnDefinitions ColDefs { get; set; } = [];
@@ -83,16 +84,16 @@ public partial class Table : Block
         Table newTable = new(this.MyFlowDoc)
         {
             Id = this.Id,
-            ColDefs = this.ColDefs,
-            RowDefs = this.RowDefs,
+            ColDefs = CloneColDefs(this.ColDefs),
+            RowDefs = CloneRowDefs(this.RowDefs),
             IsTableCellBlock = this.IsTableCellBlock,
             Height = this.Height,
             Width = this.Width,
             OwningCell = this.OwningCell,
             OwningTable = this.OwningTable,
-            SelectionBrush = this.SelectionBrush,
             TableAlignment = this.TableAlignment,
-            BorderBrush = this.BorderBrush,
+            SelectionBrush = CloneBrush(this.SelectionBrush) ?? Brushes.LightSteelBlue,
+            BorderBrush = CloneBrush(this.BorderBrush) ?? Brushes.Black,
             BorderThickness = this.BorderThickness,
             Margin = this.Margin,
 
@@ -103,6 +104,8 @@ public partial class Table : Block
         return newTable;
     }
 
+    private static RowDefinitions CloneRowDefs(RowDefinitions source) { var result = new RowDefinitions(); foreach (var r in source) { result.Add(new RowDefinition { Height = r.Height, MinHeight = r.MinHeight, MaxHeight = r.MaxHeight }); } return result; }
+    private static ColumnDefinitions CloneColDefs(ColumnDefinitions source) { var result = new ColumnDefinitions(); foreach (var c in source) { result.Add(new ColumnDefinition { Width = c.Width, MinWidth = c.MinWidth, MaxWidth = c.MaxWidth }); } return result; }
 
     public Cell? GetCellAt(int rowno,  int colno)
     {
@@ -159,8 +162,8 @@ public class Cell : INotifyPropertyChanged
     public Table GetOwningTable => OwningTable;
 
     public Thickness BorderThickness { get; set { field = value; NotifyPropertyChanged(nameof(BorderThickness)); } } = new(1);
-    public ISolidColorBrush BorderBrush { get; set { field = value; NotifyPropertyChanged(nameof(BorderBrush)); } } = Brushes.Black;
-    public ISolidColorBrush CellBackground { get; set { field = value; NotifyPropertyChanged(nameof(CellBackground)); } } = null!;
+    public IBrush BorderBrush { get; set { field = value; NotifyPropertyChanged(nameof(BorderBrush)); } } = Brushes.Black;
+    public IBrush CellBackground { get; set { field = value; NotifyPropertyChanged(nameof(CellBackground)); } } = null!;
     public VerticalAlignment CellVerticalAlignment { get; set { field = value; NotifyPropertyChanged(nameof(CellVerticalAlignment)); } } = VerticalAlignment.Top;
     public Thickness Padding { get; set { field = value; NotifyPropertyChanged(nameof(Padding)); } } = new(5);
     
@@ -183,12 +186,24 @@ public class Cell : INotifyPropertyChanged
         Cell newCell = new(owningTable)
         {
             //Id = this.Id,
+            RowNo = this.RowNo,
+            ColNo = this.ColNo,
+            ColSpan = this.ColSpan,
+            RowSpan = this.RowSpan,
+            vmerged = this.vmerged,
             Height = this.Height,
-            BorderBrush = this.BorderBrush,
             BorderThickness = this.BorderThickness,
+            BorderBrush = CloneBrush(this.BorderBrush) ?? Brushes.Black,
+            CellBackground = CloneBrush(this.CellBackground) ?? null!,
+            Padding = this.Padding,
+            CellVerticalAlignment = this.CellVerticalAlignment,
+
             CellBlocks = new ObservableCollection<Block>(this.CellBlocks.Select(cb => cb.FullClone()))
+            
         };
 
+
+        
         // should be handled by CellBlocks_CollectionChanged
         //foreach (Block block in this.CellBlocks)
         //{

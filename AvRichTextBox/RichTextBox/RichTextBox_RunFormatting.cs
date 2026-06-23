@@ -68,7 +68,7 @@ public partial class RichTextBox
         int originalSelectionStart = FlowDoc.Selection.Start;
         int originalSelectionEnd = FlowDoc.Selection.End;
         TextRange insertRange = FlowDoc.Selection;
-        List<Paragraph> originalRangeParagraphs = FlowDoc.GetOverlappingParagraphsInRange(insertRange).ConvertAll(op => op.FullClone());
+        List<Block> originalRangeBlocks = FlowDoc.GetOverlappingBlocksInRange(insertRange).ConvertAll(ob => ob.FullClone());
         int deleteRangeLength = insertRange.Length;
         Paragraph startPar = insertRange.StartParagraph;
         Paragraph endPar = insertRange.EndParagraph;
@@ -76,9 +76,10 @@ public partial class RichTextBox
         bool firstParEmpty = startPar.Inlines[0] is EditableRun erun && erun.Text == "";
         int pastedTextLength = 0;
         List<int> addedBlockIds = [];
+        
         bool firstParWasDeleted = startPar.StartInDoc == originalSelectionStart && startPar.EndInDoc <= originalSelectionEnd && !firstParEmpty;
         bool lastParWasDeleted = endPar.EndInDoc == originalSelectionEnd && endPar.EndInDoc >= originalSelectionStart;
-
+        
         bool addUndo = true;
         bool contentPasted = false;
 
@@ -125,7 +126,7 @@ public partial class RichTextBox
         {
             if (addUndo)
                 FlowDoc.Undos.Add(new PasteUndo(
-                   originalRangeParagraphs,
+                   originalRangeBlocks,
                    insertParIndex,
                    FlowDoc,
                    originalSelectionStart,
@@ -135,7 +136,6 @@ public partial class RichTextBox
                    firstParWasDeleted,
                    lastParWasDeleted
                    ));
-
             
             FlowDoc.UpdateBlockAndInlineStarts(insertParIndex);
             FlowDoc.UpdateSelection();
