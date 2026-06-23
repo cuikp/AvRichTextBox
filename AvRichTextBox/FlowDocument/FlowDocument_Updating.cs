@@ -35,6 +35,7 @@ public partial class FlowDocument
                     break;
 
                 case Table thisTable:   // TODO: pass paragraph index and only update starting from that paragraph inside the table
+
                     int innerSum = 0;
 
                     foreach (Cell c in thisTable.Cells)
@@ -42,9 +43,13 @@ public partial class FlowDocument
                         foreach (Block b in c.CellBlocks)
                         {
                             b.StartInDoc = blockSum + innerSum;
+
                             if (b is Paragraph p)
+                            {
+                                Debug.WriteLine("updating paragraph : " + p.Text.TrimEnd("\r\n".ToArray()));
                                 p.UpdateEditableRunPositions();
-                            //innerSum += cellPar.BlockLength - 1;
+                            }
+
                             innerSum += b.BlockLength;
                         }
                     }
@@ -58,14 +63,15 @@ public partial class FlowDocument
 
     }
 
-    internal void UpdateBlockAndInlineStarts(Paragraph thisPar)
+    internal void UpdateBlockAndInlineStarts(Paragraph updateStartParagraph)
     {
         int fromBlockIndex = -1;
 
-        if (thisPar.IsTableCellBlock)
-            fromBlockIndex = Blocks.IndexOf(thisPar.OwningTable);
+        // if the StartParagraph is in a table, update from its owning table
+        if (updateStartParagraph.IsTableCellBlock) 
+            fromBlockIndex = Blocks.IndexOf(updateStartParagraph.OwningTable);
         else
-            fromBlockIndex = Blocks.IndexOf(thisPar);
+            fromBlockIndex = Blocks.IndexOf(updateStartParagraph);
 
 
         if (fromBlockIndex > -1)

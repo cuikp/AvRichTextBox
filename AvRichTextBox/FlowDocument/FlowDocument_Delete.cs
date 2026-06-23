@@ -164,7 +164,6 @@ public partial class FlowDocument
         int originalTRangeLength = trange.Length;
         int originalRangeEnd = trange.Start + trange.Length;
 
-        //List<Paragraph> rangePars = GetOverlappingParagraphsInRange(trange);
         List<Block> rangeBlocks = GetOverlappingBlocksInRange(trange);
 
         //int firstParId = rangePars.First().Id;
@@ -235,8 +234,8 @@ public partial class FlowDocument
 
         //Delete any full blocks contained within the range
         //if (blocksFullyInRange.Count > 1)
-        if (blocksFullyInRange.Count > 0)
-        {
+        //if (blocksFullyInRange.Count > 0)
+        //{
             foreach (Block fullyContainedBlock in blocksFullyInRange)
             {
                 if (!fullyContainedBlock.IsTableCellBlock && !docContainsOneBlock)
@@ -246,7 +245,7 @@ public partial class FlowDocument
                     Blocks.Remove(fullyContainedBlock);
                 }
             }
-        }
+        //}
 
         //Blocks.RemoveMany(tablesFullyInRange);  // needs undo
         Blocks.RemoveMany(toRemoveBlocks);

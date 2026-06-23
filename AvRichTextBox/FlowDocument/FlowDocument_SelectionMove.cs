@@ -207,8 +207,7 @@ public partial class FlowDocument
             lastPar.SelectionEndInBlock = lastPar.BlockLength - 1;
         }
 
-
-        Select(DocEndPoint - 1, 0);
+        Select(DocEndPoint, 0);
 
         UpdateRTBCaret?.Invoke();
 

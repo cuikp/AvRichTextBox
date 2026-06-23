@@ -54,7 +54,7 @@ public partial class MainWindow : Window
 
         //DEBUG
         //CreateTestDocumentWithTable();
-        //OpenTestDocument();
+        OpenTestDocument();
 
     }
 

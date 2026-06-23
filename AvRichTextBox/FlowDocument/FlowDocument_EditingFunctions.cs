@@ -1,4 +1,5 @@
 ﻿using DynamicData;
+using static AvRichTextBox.FlowDocument;
 
 namespace AvRichTextBox;
 
@@ -101,9 +102,18 @@ public partial class FlowDocument
         //Restore all of the previous paragraphs
         Blocks.AddOrInsertRange(blockClones, blockIndex);
 
-        foreach (Paragraph p in blockClones.OfType<Paragraph>())
-            p.CallRequestInlinesUpdate();
+        //Debug.WriteLine("restoring blocks = " + blockClones.Count + ", " + blockClones[0].GetType().ToString());
 
+        UpdateBlockAndInlineStarts(blockIndex);
+
+        foreach (Paragraph p in FlattenParagraphs(blockClones))
+        {
+            Debug.WriteLine("updating inlines for: " + p.Text.TrimEnd("\r\n".ToArray()) + " /// cellBlock? " + p.IsCellBlock + " /// " + p.IsTableCellBlock);
+            p.CallRequestInlinesUpdate();
+            p.CallRequestTextLayoutInfoStart();
+            p.CallRequestTextLayoutInfoEnd();
+        }
+        
         UpdateBlockAndInlineStarts(blockIndex);
                
     }

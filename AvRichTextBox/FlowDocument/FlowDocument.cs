@@ -346,5 +346,18 @@ public partial class FlowDocument : AvaloniaObject
         };
     }
 
+    static IEnumerable<Paragraph> FlattenParagraphs(IEnumerable<Block> blocks)
+    {
+        foreach (var block in blocks)
+        {
+            if (block is Paragraph parBlock)
+                yield return parBlock;
+            else if (block is Table table)
+            {
+                foreach (var tablePar in table.Cells.SelectMany(c => FlattenParagraphs(c.CellBlocks)))
+                    yield return tablePar;
+            }
+        }
+    }
 }
 

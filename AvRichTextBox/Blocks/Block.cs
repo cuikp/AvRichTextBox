@@ -40,7 +40,7 @@ public class Block : INotifyPropertyChanged
         {
             switch (this)
             {
-                case Paragraph p:
+                case Paragraph p:     
 
                     var sb = new StringBuilder();
                     foreach (var i in p.Inlines)
@@ -49,7 +49,7 @@ public class Block : INotifyPropertyChanged
                     }
 
                     bool endOfTableCell = (p.IsTableCellBlock && p == p.OwningCell.CellBlocks.Last());
-                    sb.Append(endOfTableCell ? (char)7 : "\n");  // Environment.NewLine adds "\r\n" (Non-Unix) or "\n" (Unix) to end of paragraph text
+                    sb.Append(endOfTableCell ? (char)7 : Environment.NewLine);  //  Environment.NewLine adds "\r\n" (Non-Unix) or "\n" (Unix) to end of paragraph text
 
                     return sb.ToString();
 
@@ -59,7 +59,7 @@ public class Block : INotifyPropertyChanged
                     foreach (Cell c in t.Cells)
                     {
                         foreach (Block b in c.CellBlocks)
-                            sbTable.Append(b.Text);  //recursive since CellBlocks is a Block (Paragraph)
+                            sbTable.Append(b.Text);  //recursive since each of CellBlocks is a Block
                     }
                     
                     return sbTable.ToString();
@@ -112,7 +112,6 @@ public class Block : INotifyPropertyChanged
             switch (this)
             {
                 case Paragraph p:
-                    //returnLength = p.Inlines.ToList().Sum(il => il.InlineLength) + 1;  // extra for paragraph CR
                     returnLength = p.Inlines.ToList().Sum(il => il.InlineText?.Length ?? 0) + 1;  // extra for paragraph CR
                     break;
 
@@ -177,7 +176,9 @@ public class Block : INotifyPropertyChanged
             Id = this.Id,
             IsTableCellBlock = this.IsTableCellBlock,
             OwningTable = this.OwningTable,
-            OwningCell = this.OwningCell
+            OwningCell = this.OwningCell,
+            Margin = this.Margin,
+            MyFlowDoc = this.MyFlowDoc
         };
     }
 
