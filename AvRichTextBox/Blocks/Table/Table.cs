@@ -91,14 +91,12 @@ public partial class Table : Block
             IsTableCellBlock = this.IsTableCellBlock,
             Height = this.Height,
             Width = this.Width,
-            OwningCell = this.OwningCell,
-            OwningTable = this.OwningTable,
             TableAlignment = this.TableAlignment,
             SelectionBrush = CloneBrush(this.SelectionBrush) ?? Brushes.LightSteelBlue,
             BorderBrush = CloneBrush(this.BorderBrush) ?? Brushes.Black,
             BorderThickness = this.BorderThickness,
             Margin = this.Margin,
-
+            //OwningTable & OwningCell are assigned in CellBlocks.CollectionChanged
         };
 
         newTable.Cells = new ObservableCollection<Cell>(this.Cells.Select(c => c.FullClone(newTable)));

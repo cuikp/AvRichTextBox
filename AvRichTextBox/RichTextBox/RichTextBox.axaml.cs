@@ -8,6 +8,9 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using System.Reflection.Metadata.Ecma335;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace AvRichTextBox;
 
@@ -372,5 +375,21 @@ public partial class RichTextBox : UserControl
         FlowDoc.DeleteSelection();
     }
 
+    //private void EditableCell_PointerPressed(object? sender, PointerPressedEventArgs e)
+    //{
+    //    if (sender is not EditableCell ecell || ecell.DataContext is not Cell cell) return;
+
+    //    //var options = new JsonSerializerOptions
+    //    //{
+    //    //    ReferenceHandler = ReferenceHandler.IgnoreCycles,
+    //    //    WriteIndented = true,
+    //    //    NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals
+    //    //}; 
+        
+    //    //string celljson = JsonSerializer.Serialize(cell, options);
+    //    //Debug.WriteLine("\nCELL:\n" + celljson);
+
+
+    //}
 }
 

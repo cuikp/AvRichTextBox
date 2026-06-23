@@ -1,8 +1,10 @@
 ﻿using Avalonia.Layout;
 using Avalonia.Media;
+using DynamicData;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 using static AvRichTextBox.FlowDocument;
 
 namespace AvRichTextBox;
@@ -37,7 +39,9 @@ public class Cell : INotifyPropertyChanged
         }
     }
 
+
     internal Table OwningTable = null!;
+    [JsonIgnore]
     public Table GetOwningTable => OwningTable;
 
     public Thickness BorderThickness { get; set { field = value; NotifyPropertyChanged(nameof(BorderThickness)); } } = new(1);
@@ -75,15 +79,14 @@ public class Cell : INotifyPropertyChanged
             BorderBrush = CloneBrush(this.BorderBrush) ?? Brushes.Black,
             CellBackground = CloneBrush(this.CellBackground) ?? null!,
             Padding = this.Padding,
-            CellVerticalAlignment = this.CellVerticalAlignment
+            CellVerticalAlignment = this.CellVerticalAlignment,
         };
 
-        // to trigger CellBlock.CollectionChanged after ctor:
-        newCell.CellBlocks = new ObservableCollection<Block>(this.CellBlocks.Select(cb => cb.FullClone()));
+        newCell.CellBlocks.AddRange(this.CellBlocks.Select(cb => cb.FullClone()));
 
         return newCell;
     }
 
-
+    
 }
 

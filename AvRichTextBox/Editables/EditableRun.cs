@@ -90,6 +90,7 @@ public class EditableRun : Run, IEditable
          IsLastInlineOfParagraph = this.IsLastInlineOfParagraph,
          BaselineAlignment = this.BaselineAlignment,
          Foreground = this.Foreground,
+         IsTableCellInline = this.IsTableCellInline,
       };
    
    public virtual IEditable CloneWithId()

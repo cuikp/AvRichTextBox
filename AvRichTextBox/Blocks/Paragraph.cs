@@ -160,14 +160,14 @@ public class Paragraph : Block
             FontStyle = this.FontStyle,
             FontWeight = this.FontWeight,
             IsTableCellBlock = this.IsTableCellBlock,
-            OwningTable = this.OwningTable,
-            OwningCell = this.OwningCell
+            //OwningTable & OwningCell are assigned in CellBlocks.CollectionChanged
         };
 
 
         newPar.Inlines.CollectionChanged += Inlines_CollectionChanged;
         newPar.Inlines.AddRange(this.Inlines.Select(il => il.CloneWithId()));
 
+        
         return newPar;
     }
 

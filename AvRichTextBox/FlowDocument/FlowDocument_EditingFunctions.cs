@@ -108,13 +108,13 @@ public partial class FlowDocument
 
         foreach (Paragraph p in FlattenParagraphs(blockClones))
         {
-            Debug.WriteLine("updating inlines for: " + p.Text.TrimEnd("\r\n".ToArray()) + " /// cellBlock? " + p.IsCellBlock + " /// " + p.IsTableCellBlock);
+            //Debug.WriteLine("updating inlines for: " + p.Text.TrimEnd("\r\n".ToArray()) + " /// cellBlock? " + p.IsCellBlock);
             p.CallRequestInlinesUpdate();
-            p.CallRequestTextLayoutInfoStart();
-            p.CallRequestTextLayoutInfoEnd();
+            //p.CallRequestTextLayoutInfoStart();
+            //p.CallRequestTextLayoutInfoEnd();
         }
         
-        UpdateBlockAndInlineStarts(blockIndex);
+        //UpdateBlockAndInlineStarts(blockIndex);
                
     }
 

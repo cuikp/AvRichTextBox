@@ -46,7 +46,7 @@ public partial class FlowDocument
 
                             if (b is Paragraph p)
                             {
-                                Debug.WriteLine("updating paragraph : " + p.Text.TrimEnd("\r\n".ToArray()));
+                                //Debug.WriteLine("updating paragraph : " + p.Text.TrimEnd("\r\n".ToArray()));
                                 p.UpdateEditableRunPositions();
                             }
 

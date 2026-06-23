@@ -48,8 +48,16 @@ public class Block : INotifyPropertyChanged
                        sb.Append(i.InlineText);
                     }
 
-                    bool endOfTableCell = (p.IsTableCellBlock && p == p.OwningCell.CellBlocks.Last());
+                    //bool endOfTableCell = (p.IsTableCellBlock && p == p.OwningCell.CellBlocks.Last());
+                    bool endOfTableCell = (p.IsTableCellBlock); // && p == p.OwningCell.CellBlocks.Last());
                     sb.Append(endOfTableCell ? (char)7 : Environment.NewLine);  //  Environment.NewLine adds "\r\n" (Non-Unix) or "\n" (Unix) to end of paragraph text
+
+                    //Debug.WriteLine("in Text: istablecellblock ? " + p.IsTableCellBlock + 
+                    //    ", owningcell cb count? " + (p.IsTableCellBlock ? p.OwningCell.CellBlocks.Count : 0) + ", last? " + 
+                    //    (p.IsTableCellBlock ? (p == p.OwningCell.CellBlocks.Last()) : false));
+
+                    //if (endOfTableCell)
+                    //    Debug.WriteLine("got end of table cell (start in doc): " + p.StartInDoc);
 
                     return sb.ToString();
 
@@ -145,9 +153,9 @@ public class Block : INotifyPropertyChanged
             {
                 field = value;
                 NotifyPropertyChanged(nameof(SelectionStartInBlock));
-                if (this.IsTableCellBlock)
-                    this.OwningCell.Selected = BlockLength > 0 && SelectionStartInBlock == 0 && SelectionEndInBlock == BlockLength;  
 
+                if (this.IsTableCellBlock)
+                    this.OwningCell?.Selected = BlockLength > 0 && SelectionStartInBlock == 0 && SelectionEndInBlock == BlockLength;
             }
         }
     }
@@ -162,7 +170,7 @@ public class Block : INotifyPropertyChanged
                 field = value;
                 NotifyPropertyChanged(nameof(SelectionEndInBlock));
                 if (this.IsTableCellBlock)
-                    this.OwningCell.Selected = BlockLength > 0 && SelectionStartInBlock == 0 && SelectionEndInBlock == BlockLength;  
+                    this.OwningCell?.Selected = BlockLength > 0 && SelectionStartInBlock == 0 && SelectionEndInBlock == BlockLength;
             }
         }
     }
@@ -175,10 +183,9 @@ public class Block : INotifyPropertyChanged
         { 
             Id = this.Id,
             IsTableCellBlock = this.IsTableCellBlock,
-            OwningTable = this.OwningTable,
-            OwningCell = this.OwningCell,
             Margin = this.Margin,
             MyFlowDoc = this.MyFlowDoc
+            //OwningTable & OwningCell are assigned in CellBlocks.CollectionChanged
         };
     }
 
