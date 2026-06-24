@@ -44,20 +44,11 @@ public class Block : INotifyPropertyChanged
 
                     var sb = new StringBuilder();
                     foreach (var i in p.Inlines)
-                    {
                        sb.Append(i.InlineText);
-                    }
 
-                    //bool endOfTableCell = (p.IsTableCellBlock && p == p.OwningCell.CellBlocks.Last());
-                    bool endOfTableCell = (p.IsTableCellBlock); // && p == p.OwningCell.CellBlocks.Last());
-                    sb.Append(endOfTableCell ? (char)7 : Environment.NewLine);  //  Environment.NewLine adds "\r\n" (Non-Unix) or "\n" (Unix) to end of paragraph text
-
-                    //Debug.WriteLine("in Text: istablecellblock ? " + p.IsTableCellBlock + 
-                    //    ", owningcell cb count? " + (p.IsTableCellBlock ? p.OwningCell.CellBlocks.Count : 0) + ", last? " + 
-                    //    (p.IsTableCellBlock ? (p == p.OwningCell.CellBlocks.Last()) : false));
-
-                    //if (endOfTableCell)
-                    //    Debug.WriteLine("got end of table cell (start in doc): " + p.StartInDoc);
+                    bool endOfTableCell = (p.IsTableCellBlock && p == p.OwningCell.CellBlocks.Last());
+                    //sb.Append(endOfTableCell ? (char)7 : Environment.NewLine);  //  Environment.NewLine adds "\r\n" (Non-Unix) or "\n" (Unix) to end of paragraph text
+                    sb.Append(endOfTableCell ? (char)7 : "\r");
 
                     return sb.ToString();
 
@@ -99,8 +90,11 @@ public class Block : INotifyPropertyChanged
 
                     int lenTable = 0;
                     foreach (Cell c in t.Cells)
+                    {
                         foreach (Block b in c.CellBlocks)
                             lenTable += b.Text.Length;
+                    }
+                        
                     return lenTable;
 
                 default:

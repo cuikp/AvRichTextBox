@@ -117,14 +117,13 @@ public partial class FlowDocument
             }
         }
 
-        //int posNextLineInBlock = (SelectionExtendMode == ExtendMode.ExtendModeLeft) ? Selection.StartParagraph.CharNextLineStart : Selection.EndParagraph.CharNextLineEnd;
         int posNextLineInBlock = SelectionExtendMode switch
         {
             ExtendMode.ExtendModeLeft => Selection.StartParagraph.CharNextLineStart,
             _ => Selection.EndParagraph.CharNextLineEnd
         };
 
-        int computedNext = relPar.StartInDoc + posNextLineInBlock;
+        int computedNext = Math.Min(DocEndPoint, relPar.StartInDoc + posNextLineInBlock);
 
         if (atParBottom)
         {

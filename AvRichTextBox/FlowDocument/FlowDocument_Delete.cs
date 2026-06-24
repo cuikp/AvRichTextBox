@@ -166,20 +166,14 @@ public partial class FlowDocument
 
         List<Block> rangeBlocks = GetOverlappingBlocksInRange(trange);
 
-        //int firstParId = rangePars.First().Id;
-        //int firstParIndex = GetAllParagraphs.IndexOf(rangePars.First());
-
         int firstBlockId = rangeBlocks.First().Id;
         int firstBlockIndex = Blocks.IndexOf(rangeBlocks.First());
 
         disableRunTextUndo = true;
 
-        //List<Table> tablesFullyInRange = GetFullTablesInRange(trange);
-        //List<Paragraph> blocksFullyInRange = GetFullParagraphsInRange(trange);
         List<Block> blocksFullyInRange = GetFullBlocksInRange(trange);
-        bool firstParDeleted = blocksFullyInRange.Count > 0 && blocksFullyInRange.First().StartInDoc == originalRangeStart;
-        bool lastParDeleted = blocksFullyInRange.Count > 0 && blocksFullyInRange.Last().EndInDoc == originalRangeEnd;
-        bool firstOrLastParDeleted = (firstParDeleted || lastParDeleted);
+        bool firstBlockDeleted = blocksFullyInRange.Count > 0 && blocksFullyInRange.First().StartInDoc == originalRangeStart;
+        bool lastBlockDeleted = blocksFullyInRange.Count > 0 && blocksFullyInRange.Last().EndInDoc == originalRangeEnd;
 
         //Check if selection is at end of only inline in only paragraph
         if (rangeBlocks.Count == 1 && rangeBlocks[0] is Paragraph p && p.Inlines.Count == 1)
@@ -190,17 +184,8 @@ public partial class FlowDocument
         }
 
 
-        ////Check if selection is at end of only inline in only paragraph
-        //if (rangePars.Count == 1 && rangePars[0].Inlines.Count == 1)
-        //{
-        //    IEditable lastInline = rangePars[0].Inlines.Last();
-        //    if (GetCharPosInInline(lastInline, trange.Start) == lastInline.InlineLength)
-        //        return (lastInline.Id, -1);
-        //}
-
-
         if (addUndo)
-            Undos.Add(new DeleteRangeUndo(rangeBlocks.ConvertAll(rblock => rblock.FullClone()), firstBlockIndex, this, originalRangeStart, originalTRangeLength, firstParDeleted, lastParDeleted));
+            Undos.Add(new DeleteRangeUndo(rangeBlocks.ConvertAll(rblock => rblock.FullClone()), firstBlockIndex, this, originalRangeStart, originalTRangeLength, firstBlockDeleted, lastBlockDeleted));
 
         //get the inlines in this range and split if necessary, adding newly created inlines to doc
         (List<IEditable> createdInlines, (int idLeft, int idRight) edgeIds) createdInlinesResult = GetTextRangeInlines(trange, addToDoc: true);
@@ -233,78 +218,44 @@ public partial class FlowDocument
         }
 
         //Delete any full blocks contained within the range
-        //if (blocksFullyInRange.Count > 1)
-        //if (blocksFullyInRange.Count > 0)
-        //{
-            foreach (Block fullyContainedBlock in blocksFullyInRange)
+        foreach (Block fullyContainedBlock in blocksFullyInRange)
+        {
+            if (!fullyContainedBlock.IsTableCellBlock && !docContainsOneBlock)
             {
-                if (!fullyContainedBlock.IsTableCellBlock && !docContainsOneBlock)
-                {
-                    if (fullyContainedBlock is Paragraph fullyContainedPar)
-                        fullyContainedPar.Inlines.Clear();
-                    Blocks.Remove(fullyContainedBlock);
-                }
+                if (fullyContainedBlock is Paragraph fullyContainedPar)
+                    fullyContainedPar.Inlines.Clear();
+                Blocks.Remove(fullyContainedBlock);
             }
-        //}
+        }
 
-        //Blocks.RemoveMany(tablesFullyInRange);  // needs undo
         Blocks.RemoveMany(toRemoveBlocks);
 
-        //Paragraph firstPar = rangePars[0];
-        //Paragraph lastPar = rangePars[^1];
 
-        Block firstBlock = rangeBlocks[0];
-        Block lastBlock = rangeBlocks[^1];
-
-       
-        //if (rangePars.Count == 1 && firstPar.Inlines.Count == 0)
-        //    Blocks.Remove(firstPar);
-
-        if (firstBlock is Paragraph firstPar)
-        {
+        if (rangeBlocks[0] is Paragraph firstPar)  // merging of first/last paragraphs if applicable
+        {   
             if (rangeBlocks.Count == 1 && firstPar.Inlines.Count == 0)
-                Blocks.Remove(firstBlock);
+                Blocks.Remove(firstPar);
 
-
-            //Merge inlines of last paragraph with first if present
-            if (rangeBlocks.Count > 1 && Blocks.Contains(firstBlock))
+            //Merge inlines of last paragraph with first if present and both are paragraphs
+            if (rangeBlocks.Count > 1 && Blocks.Contains(firstPar))
             {
-                if (!(firstBlock.IsTableCellBlock || lastBlock.IsTableCellBlock) && lastBlock is Paragraph lastPar)
+                if (rangeBlocks[^1] is Paragraph lastPar && !(firstPar.IsTableCellBlock || lastPar.IsTableCellBlock))
                 {
                     List<IEditable> moveInlines = [.. lastPar.Inlines];
                     lastPar.Inlines.RemoveMany(moveInlines);
                     lastPar.CallRequestInlinesUpdate();
                     firstPar.Inlines.AddRange(moveInlines);
                     firstPar.CallRequestInlinesUpdate(); // ensure any image containers are updated
-                    Blocks.Remove(lastBlock);
+                    Blocks.Remove(lastPar);
                 }
             }
-
         }
 
 
+        // Fix special cases:
         // re-add the first par if no blocks are left
         if (Blocks.Count == 0)
-            Blocks.Add(firstBlock);
-
-        ////Merge inlines of last paragraph with first if present
-        //if (rangePars.Count > 1 && Blocks.Contains(firstPar))
-        //{
-        //    if (!(firstPar.IsTableCellBlock || lastPar.IsTableCellBlock))
-        //    {
-        //        List<IEditable> moveInlines = [.. lastPar.Inlines];
-        //        lastPar.Inlines.RemoveMany(moveInlines);
-        //        lastPar.CallRequestInlinesUpdate();
-        //        firstPar.Inlines.AddRange(moveInlines);
-        //        firstPar.CallRequestInlinesUpdate(); // ensure any image containers are updated
-        //        Blocks.Remove(lastPar);
-        //    }
-        //}
-
-        //// re-add the first par if no blocks are left
-        //if (Blocks.Count == 0)
-        //    Blocks.Add(firstPar);
-
+            Blocks.Add(rangeBlocks[0]);
         //Special case with one remaining block with no inlines
         if (Blocks.Count == 1 && Blocks[0] is Paragraph onlyPar && onlyPar.Inlines.Count == 0)
             onlyPar.Inlines.Add(new EditableRun(""));

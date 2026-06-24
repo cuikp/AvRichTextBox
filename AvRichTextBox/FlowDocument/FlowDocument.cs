@@ -160,7 +160,7 @@ public partial class FlowDocument : AvaloniaObject
         Selection.Start = 0;
         Selection.End = 0;
         SelectionParagraphs.Clear();
-        Selection.End = this.DocEndPoint - 1;
+        Selection.End = this.DocEndPoint;
         this.SelectionExtendMode = ExtendMode.ExtendModeRight;
     }
 

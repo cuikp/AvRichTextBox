@@ -411,20 +411,20 @@ internal class InsertParagraphUndo(FlowDocument flowDoc, int origParId, int inse
             if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == insertedParId) is not Paragraph insertedPar) return;
             if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == origParId) is not Paragraph origPar) return;
 
-            int lengthBefore = flowDoc.Text.Length;
+            //int lengthBefore = flowDoc.Text.Length;
 
             origPar.Inlines.Clear();
             origPar.Inlines.AddRange(keepParInlines);
             flowDoc.Blocks.Remove(insertedPar);
-                      
-            int lengthAfter = flowDoc.Text.Length;
-            
+           
             int idx = flowDoc.Blocks.IndexOf(origPar); 
             flowDoc.UpdateBlockAndInlineStarts(idx);
-            flowDoc.UpdateTextRanges(origSelectionStart, lengthAfter - lengthBefore);
+            
+            flowDoc.UpdateTextRanges(origSelectionStart, -1); // offset will always be -1
 
             Dispatcher.UIThread.Post(() =>
             {
+                origPar.CallRequestInlinesUpdate();
                 flowDoc.Selection.Start = origSelectionStart;
                 flowDoc.Selection.End = flowDoc.Selection.Start;
             });
@@ -448,7 +448,7 @@ internal class AddParagraphUndo(FlowDocument flowDoc, int addedParId, int origSe
             int idx = flowDoc.Blocks.IndexOf(insertedPar);
             flowDoc.Blocks.Remove(insertedPar);
             flowDoc.UpdateBlockAndInlineStarts(idx);
-            flowDoc.UpdateTextRanges(origSelectionStart, -1);
+            flowDoc.UpdateTextRanges(origSelectionStart, -1); // offset will always be -1
 
             Dispatcher.UIThread.Post(() =>
             {

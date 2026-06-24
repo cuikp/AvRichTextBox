@@ -89,13 +89,17 @@ public partial class FlowDocument
         }
     }
 
-    // PASS deleted first/last par ID instead of bool. delete by searching ID.
-    //  THEN insert blockClones based on their owners
-
     internal void RestoreDeletedBlocks(List<Block> blockClones, int blockIndex, bool firstBlockWasDeleted, bool lastBlockWasDeleted)
     {
+        bool tablePartiallyDeleted = Blocks[blockIndex] is Table || (blockIndex < Blocks.Count - 1 && Blocks[blockIndex + 1] is Table);
+
         if (!lastBlockWasDeleted)
+        {
             Blocks.RemoveAt(blockIndex);
+            // Special case if table contents were partially deleted, leaving the old table
+            if (!firstBlockWasDeleted && tablePartiallyDeleted)
+                Blocks.RemoveAt(blockIndex);
+        }
         else if (!firstBlockWasDeleted)
             Blocks.RemoveAt(blockIndex);
 
@@ -107,14 +111,7 @@ public partial class FlowDocument
         UpdateBlockAndInlineStarts(blockIndex);
 
         foreach (Paragraph p in FlattenParagraphs(blockClones))
-        {
-            //Debug.WriteLine("updating inlines for: " + p.Text.TrimEnd("\r\n".ToArray()) + " /// cellBlock? " + p.IsCellBlock);
             p.CallRequestInlinesUpdate();
-            //p.CallRequestTextLayoutInfoStart();
-            //p.CallRequestTextLayoutInfoEnd();
-        }
-        
-        //UpdateBlockAndInlineStarts(blockIndex);
                
     }
 

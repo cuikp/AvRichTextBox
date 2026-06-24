@@ -257,7 +257,8 @@ internal static partial class RtfConversions
         foreach (IEditable ied in inlines)
         {
             string IEdRtf = GetIEditableRtf(ied, ref BoldOn, ref ItalicOn, ref UnderlineOn, ref StrikeoutOn, ref SuperscriptOn, ref SubscriptOn, ref CurrentLang, fontMap, colorMap);
-            IEdRtf = IEdRtf.Replace("\r\n", @"\par ");
+            //IEdRtf = IEdRtf.Replace("\r\n", @"\par ");
+            IEdRtf = IEdRtf.Replace("\r", @"\par ");
             sb.Append(IEdRtf);
         }
 
