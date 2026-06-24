@@ -39,6 +39,7 @@ public partial class RichTextBox
         List<IEditable> rangeInlines = FlowDoc.GetTextRangeInlines(FlowDoc.Selection, addToDoc: false).createdInlines;
 
         string rtfString = RtfConversions.GetRtfFromInlines(rangeInlines);
+        //string rtfString = RtfConversions.GetRtfFromRange(FlowDoc.Selection);
         var dataTransfer = new DataTransfer();
 
         // Rtf format

@@ -232,7 +232,8 @@ public partial class FlowDocument
 
 
         if (rangeBlocks[0] is Paragraph firstPar)  // merging of first/last paragraphs if applicable
-        {   
+        {
+            //first remove zombie paragraph if it exists
             if (rangeBlocks.Count == 1 && firstPar.Inlines.Count == 0)
                 Blocks.Remove(firstPar);
 
@@ -249,16 +250,23 @@ public partial class FlowDocument
                     Blocks.Remove(lastPar);
                 }
             }
+
+            // LineBreak must always be followed by something
+            if (firstPar.Inlines.Count > 0 && firstPar.Inlines.Last() is EditableLineBreak edLB)
+                firstPar.Inlines.Add(new EditableRun(""));
+
         }
 
 
-        // Fix special cases:
+        // Fix other special cases:
         // re-add the first par if no blocks are left
         if (Blocks.Count == 0)
             Blocks.Add(rangeBlocks[0]);
         //Special case with one remaining block with no inlines
         if (Blocks.Count == 1 && Blocks[0] is Paragraph onlyPar && onlyPar.Inlines.Count == 0)
             onlyPar.Inlines.Add(new EditableRun(""));
+
+
 
 
         disableRunTextUndo = false;
@@ -269,7 +277,7 @@ public partial class FlowDocument
         return edgeIds;
 
     }
-       
+
     internal void MergeParagraphForward(int mergeCharIndex, bool addUndo, int originalSelectionStart)
     {
         if (GetContainingParagraph(mergeCharIndex) is not Paragraph thisPar) return;

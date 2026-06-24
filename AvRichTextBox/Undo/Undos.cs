@@ -355,6 +355,7 @@ internal class PasteUndo(
     }
 }
 
+
 internal class DeleteRangeUndo(
    List<Block> keptBlockClones,
    int startBlockIndex,
@@ -374,13 +375,13 @@ internal class DeleteRangeUndo(
     {
         try
         {
-            flowDoc.disableRunTextUndo = true; 
+            flowDoc.disableRunTextUndo = true;
             int lengthBefore = flowDoc.Text.Length;  // optimize by getting flowDoc.Blocks.Last().StartInDoc + lastPar.BlockLength instead of calculating entire flowdoc text length
 
             flowDoc.RestoreDeletedBlocks(keptBlockClones, startBlockIndex, firstBlockWasDeleted, lastBlockWasDeleted);
 
             flowDoc.disableRunTextUndo = false;
-            
+
             int lengthAfter = flowDoc.Text.Length;  // optimize by getting from lastPar.StartInDoc + lastPar.BlockLength instead of calculating entire flowdoc text length
             flowDoc.UpdateTextRanges(keptBlockClones[0].StartInDoc, lengthAfter - lengthBefore);
 

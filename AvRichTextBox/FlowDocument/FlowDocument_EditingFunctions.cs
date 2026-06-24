@@ -108,11 +108,12 @@ public partial class FlowDocument
 
         //Debug.WriteLine("restoring blocks = " + blockClones.Count + ", " + blockClones[0].GetType().ToString());
 
-        UpdateBlockAndInlineStarts(blockIndex);
-
         foreach (Paragraph p in FlattenParagraphs(blockClones))
             p.CallRequestInlinesUpdate();
-               
+
+        UpdateBlockAndInlineStarts(blockIndex);
+
+
     }
 
     private int ProcessInsertBlocks(List<Block> blocks, Paragraph startPar, int insertIdx, int insertParIndex, List<int> addedBlockIds, List<IEditable> rightSplitRuns)

@@ -237,6 +237,7 @@ internal static partial class RtfConversions
 
     }
 
+
     internal static string GetRtfFromInlines(List<IEditable> inlines)
     {
         var sb = new StringBuilder();
@@ -556,5 +557,13 @@ internal static partial class RtfConversions
         return sb.ToString();
     }
 
+    internal static string GetRtfFromRange(TextRange range)
+    {
+        var sb = new StringBuilder();
 
-}
+
+
+        return sb.ToString();
+    }
+
+ }

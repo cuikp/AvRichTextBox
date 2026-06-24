@@ -273,20 +273,20 @@ public partial class FlowDocument : AvaloniaObject
         )];
 
     internal List<Paragraph> GetOverlappingParagraphsInRange(int start, int end) => 
-        [.. AllParagraphs.Where(b =>
-            (b.Inlines.Count == 1 && b.Inlines[0] is EditableInlineUIContainer ?  (b.StartInDoc < end) : b.StartInDoc <= end) &&
-            b.StartInDoc + b.BlockLength - 1 >= start
+        [.. AllParagraphs.Where(p =>
+            (p.Inlines.Count == 1 && p.Inlines[0] is EditableInlineUIContainer ?  (p.StartInDoc < end) : p.StartInDoc <= end) &&
+            p.StartInDoc + p.BlockLength - 1 >= start
         )];
 
     internal List<Block> GetFullBlocksInRange(int start, int end) =>
     [.. Blocks.Where(b =>
             b.StartInDoc >= start &&
-            b.StartInDoc + b.BlockLength - 1 < end
+            (b is Paragraph p && (p.Inlines.Count == 1 && p.Inlines[0] is EditableInlineUIContainer) ?  (b.StartInDoc + b.BlockLength - 1 < end) : (b.StartInDoc + b.BlockLength - 1 <= end))
         )];
 
     internal List<Block> GetOverlappingBlocksInRange(int start, int end) => 
         [.. Blocks.Where(b =>
-            b.StartInDoc <= end &&
+            (b is Paragraph p && (p.Inlines.Count == 1 && p.Inlines[0] is EditableInlineUIContainer) ?  (b.StartInDoc < end) : b.StartInDoc <= end) &&
             b.StartInDoc + b.BlockLength - 1 >= start
         )];
 
