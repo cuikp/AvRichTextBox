@@ -91,7 +91,7 @@ public partial class FlowDocument
 
     internal void RestoreDeletedBlocks(List<Block> blockClones, int blockIndex, bool firstBlockWasDeleted, bool lastBlockWasDeleted)
     {
-        bool tablePartiallyDeleted = Blocks[blockIndex] is Table || (blockIndex < Blocks.Count - 1 && Blocks[blockIndex + 1] is Table);
+        bool tablePartiallyDeleted = (blockClones[0] is Table && blockClones[^1] is not Table) || (blockClones[0] is not Table && blockClones[^1] is Table);
 
         if (!lastBlockWasDeleted)
         {
@@ -116,18 +116,22 @@ public partial class FlowDocument
 
     }
 
-    private int ProcessInsertBlocks(List<Block> blocks, Paragraph startPar, int insertIdx, int insertParIndex, List<int> addedBlockIds, List<IEditable> rightSplitRuns)
+    private int ProcessInsertBlocks(List<Block> blocks, Paragraph startPar, int insertIdx, int insertBlockIndex, List<int> addedBlockIds, List<IEditable> rightSplitRuns)
     {
         int pastedTextLength = 0;
         int blockno = 0;
+        int currentInsertIdx = 0;
+
         foreach (Block block in blocks)
         {
-            if (block is Paragraph p)
+            if (block is Paragraph thisPar)
             {
+                if (thisPar.IsEmptyInlinePar) 
+                    continue;
+                
                 Paragraph addPar = startPar;
 
                 //Remove single empty run if present
-                //if (addPar.Inlines.Count == 1 && addPar.Inlines[0] is EditableRun run && run.InlineText == "")
                 if (addPar.IsEmptyInlinePar)
                 {
                     addPar.Inlines.RemoveAt(0);
@@ -140,19 +144,19 @@ public partial class FlowDocument
                 {
                     case 0:
                         // insert first paragraph into existing paragraph
-                        addPar.Inlines.AddOrInsertRange(p.Inlines, insertIdx);
+                        addPar.Inlines.AddOrInsertRange(thisPar.Inlines, insertIdx);
                         break;
 
                     default:
                         // create new paragraphs for pars 1 onward
-                        addPar = (Paragraph)block;
+                        addPar = thisPar;
                         pastedTextLength += 1;
                         paragraphCreated = true;
                         break;
                 }
 
-                pastedTextLength += (p.TextLength - 1); // remove extra length for par CR
-                
+                pastedTextLength += (thisPar.TextLength - 1); // remove extra length for par CR
+
 
                 if (paragraphCreated)
                 {
@@ -162,19 +166,21 @@ public partial class FlowDocument
                         addPar.Inlines.AddRange(rightSplitRuns);
                     }
 
-                    Blocks.Insert(insertParIndex + blockno, addPar);
+                    Blocks.Insert(currentInsertIdx, addPar);
                     addedBlockIds.Add(addPar.Id);
-
                 }
+
+                
             }
             else
             { // non-Paragraph block always pastes as new block
-                Blocks.Insert(insertParIndex + blockno, block);
+                Blocks.Insert(currentInsertIdx, block);
                 addedBlockIds.Add(block.Id);
                 pastedTextLength += block.TextLength;
             }
 
             blockno++;
+            currentInsertIdx = insertBlockIndex + blockno + 1;
         }
 
         return pastedTextLength;

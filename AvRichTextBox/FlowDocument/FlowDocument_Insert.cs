@@ -8,7 +8,7 @@ namespace AvRichTextBox;
 
 public partial class FlowDocument
 {
-    internal int InsertRTF(byte[] rtfbytes, Paragraph startPar, TextRange insertRange, int insertParIndex, List<int> addedBlockIds)
+    internal int InsertRTF(byte[] rtfbytes, Paragraph startPar, TextRange insertRange, int insertBlockIndex, List<int> addedBlockIds)
     {  // delete + insert = single undo operation
 
         (int leftId, int rightId) edgeIds = DeleteRange(insertRange, false, false);
@@ -18,7 +18,7 @@ public partial class FlowDocument
 
         List<Block> rtfBlocks = GetRtfContent(rtfbytes);
 
-        return ProcessInsertBlocks(rtfBlocks, startPar, insertIdx, insertParIndex, addedBlockIds, rightSplitRuns);
+        return ProcessInsertBlocks(rtfBlocks, startPar, insertIdx, insertBlockIndex, addedBlockIds, rightSplitRuns);
 
     }
 
@@ -42,7 +42,6 @@ public partial class FlowDocument
 
     private List<Block> GetRtfContent(byte[] rtfbytes)
     {
-        int textCount = 0;
         List<Block> rtfBlockList = [];
 
         string rtfstring = Encoding.ASCII.GetString(rtfbytes);
@@ -50,7 +49,6 @@ public partial class FlowDocument
         rtfdoc.LoadRTFText(rtfstring);
 
         int domParCount = rtfdoc.Elements.OfType<RTFDomParagraph>().Count();
-        int parno = 0;
 
         foreach (RTFDomElement rtfelm in rtfdoc.Elements)
         {
@@ -60,13 +58,11 @@ public partial class FlowDocument
 
                     Paragraph rtfPar = RtfConversions.GetParagraphFromRtfDom(rtfpar, this);
                     rtfBlockList.Add(rtfPar);
-                    textCount += (rtfBlockList.Count + rtfBlockList.OfType<Paragraph>().ToList().SelectMany(p => p.Inlines).Sum(il => il.InlineLength));
-                    parno++;
-
                     break;
 
                 case RTFDomTable rtftable:
                     Table rtfTable = RtfConversions.GetTableFromRtfDom(rtftable, this, rtfdoc.ColorTable);
+                    rtfBlockList.Add(rtfTable);
                     break;
 
                 default:

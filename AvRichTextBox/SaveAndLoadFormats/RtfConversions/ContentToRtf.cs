@@ -258,7 +258,6 @@ internal static partial class RtfConversions
         foreach (IEditable ied in inlines)
         {
             string IEdRtf = GetIEditableRtf(ied, ref BoldOn, ref ItalicOn, ref UnderlineOn, ref StrikeoutOn, ref SuperscriptOn, ref SubscriptOn, ref CurrentLang, fontMap, colorMap);
-            //IEdRtf = IEdRtf.Replace("\r\n", @"\par ");
             IEdRtf = IEdRtf.Replace("\r", @"\par ");
             sb.Append(IEdRtf);
         }
@@ -392,6 +391,35 @@ internal static partial class RtfConversions
 
         if (!string.IsNullOrEmpty(erun.Text))
             iedSB.Append(GetRtfRunText(erun.Text!, ref currentLang));
+
+    }
+
+    internal static string GetRangeRtf(List<Block> rangeBlocks)
+    {
+        var sb = new StringBuilder();
+
+        //Build font map
+        var fontMap = new Dictionary<string, int>();
+        var colorMap = new Dictionary<Color, int>();
+        sb.Append(RtfConversions.GetFontAndColorTables(rangeBlocks, ref fontMap, ref colorMap));
+
+        foreach (Block b in rangeBlocks)
+        {
+            switch (b)
+            {
+                case Paragraph p:
+                    sb.Append(RtfConversions.GetParagraphRtf(p, fontMap, colorMap, false));
+                    break;
+
+                case Table t:
+                    sb.Append(RtfConversions.GetTableRtf(t, fontMap, colorMap));
+                    break;
+            }
+        }
+
+        sb.Append('}');
+
+        return sb.ToString();
 
     }
 
@@ -557,13 +585,5 @@ internal static partial class RtfConversions
         return sb.ToString();
     }
 
-    internal static string GetRtfFromRange(TextRange range)
-    {
-        var sb = new StringBuilder();
-
-
-
-        return sb.ToString();
-    }
 
  }

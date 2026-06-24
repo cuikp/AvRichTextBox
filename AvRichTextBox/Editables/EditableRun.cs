@@ -34,21 +34,21 @@ public class EditableRun : Run, IEditable
       {
          case AvaloniaProperty tp when tp == Run.TextProperty:
 
-            if (MyFlowDoc == null || MyFlowDoc.disableRunTextUndo) return;
+            //if (MyFlowDoc == null || MyFlowDoc.disableRunTextUndo) return;
 
-            if (e.Property == Run.TextProperty && e.Sender is EditableRun run)
-            {
-               var oldText = (string?)e.OldValue ?? "";
-               var newText = (string?)e.NewValue ?? "";
-               //Debug.WriteLine("\noldText: " + oldText + "\n" + "newText: " + newText);
+            //if (e.Property == Run.TextProperty && e.Sender is EditableRun run)
+            //{
+            //   var oldText = (string?)e.OldValue ?? "";
+            //   var newText = (string?)e.NewValue ?? "";
+            //   //Debug.WriteLine("\noldText: " + oldText + "\n" + "newText: " + newText);
 
-               var (start, deleteLen, insertText, deletedText) = GetDiff(oldText, newText);
+            //   var (start, deleteLen, insertText, deletedText) = GetDiff(oldText, newText);
 
-               if (deleteLen == 0 && insertText.Length == 0)
-                  return;
+            //   if (deleteLen == 0 && insertText.Length == 0)
+            //      return;
 
-               run.MyFlowDoc.Undos.Add(new TextChangedUndo(run.MyFlowDoc, run.MyParagraphId, run.Id, start, deletedText, insertText, run.MyFlowDoc.Selection.Start));
-            }
+            //   run.MyFlowDoc.Undos.Add(new TextChangedUndo(run.MyFlowDoc, run.MyParagraphId, run.Id, start, deletedText, insertText, run.MyFlowDoc.Selection.Start));
+            //}
             break;
       }
 
