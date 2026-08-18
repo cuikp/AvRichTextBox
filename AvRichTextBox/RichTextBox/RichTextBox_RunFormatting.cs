@@ -40,8 +40,6 @@ public partial class RichTextBox
 
         var dataTransfer = new DataTransfer();
 
-        List<IEditable> rangeInlines = FlowDoc.GetTextRangeInlines(FlowDoc.Selection, addToDoc: false).createdInlines;
-
         // Rtf format
         string rtfString = GetRtfFromRange(FlowDoc.Selection);
         var richTextFormat = DataFormat.CreateBytesPlatformFormat("Rich Text Format");
@@ -49,6 +47,7 @@ public partial class RichTextBox
         dataTransfer.Add(DataTransferItem.Create(richTextFormat, rtfbytes));
 
         // Plain text
+        List<IEditable> rangeInlines = FlowDoc.GetTextRangeInlines(FlowDoc.Selection, addToDoc: false).createdInlines;
         string inlinesText = string.Join("", rangeInlines.ConvertAll(il => il.InlineText));
         dataTransfer.Add(DataTransferItem.CreateText(inlinesText));
 
@@ -103,20 +102,19 @@ public partial class RichTextBox
         List<Block> originalRangeBlocks = FlowDoc.GetOverlappingBlocksInRange(insertRange).ConvertAll(ob => ob.FullClone());
         int deleteRangeLength = insertRange.Length;
 
-        Block startBlock = FlowDoc.Blocks.Last(b => b.StartInDoc < insertRange.Start);
-        Block endBlock = FlowDoc.Blocks.Last(b => b.StartInDoc < insertRange.End);
+        Block startBlock = FlowDoc.Blocks.Last(b => b is Paragraph p && p.IsEmptyInlinePar ? b.StartInDoc <= insertRange.Start : b.StartInDoc < insertRange.Start);
+        Block endBlock = FlowDoc.Blocks.Last(b => b is Paragraph p && p.IsEmptyInlinePar ? b.StartInDoc <= insertRange.End : b.StartInDoc < insertRange.End);
         
         Paragraph startPar = insertRange.StartParagraph;
-        //Paragraph endPar = insertRange.EndParagraph;
         int insertBlockIndex = FlowDoc.Blocks.IndexOf(startBlock);
         
         bool firstParEmpty = startBlock is Paragraph p && p.Inlines[0] is EditableRun erun && erun.Text == "";
         int pastedTextLength = 0;
         List<int> addedBlockIds = [];
-        
-        bool firstBlockWasDeleted = startBlock.StartInDoc == originalSelectionStart && startBlock.EndInDoc <= originalSelectionEnd && !firstParEmpty;
-        bool lastBlockWasDeleted = endBlock.EndInDoc == originalSelectionEnd && endBlock.EndInDoc >= originalSelectionStart;
-        
+
+        bool firstBlockWasDeleted = startBlock.StartInDoc == originalSelectionStart; // && startBlock.EndInDoc <= originalSelectionEnd && !firstParEmpty;
+        bool lastBlockWasDeleted = endBlock.EndInDoc == originalSelectionEnd; // && endBlock.EndInDoc >= originalSelectionStart;
+
         bool addUndo = true;
         bool contentPasted = false;
 

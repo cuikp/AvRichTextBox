@@ -4,16 +4,16 @@ namespace AvRichTextBox;
 
 public partial class RichTextBox
 {
-   private readonly record struct KeyCombo(
-      Key Key,
-      bool Ctrl = false,
-      bool Shift = false,
-      bool Alt = false
-   );
+    private readonly record struct KeyCombo(
+       Key Key,
+       bool Ctrl = false,
+       bool Shift = false,
+       bool Alt = false
+    );
 
-   private Dictionary<KeyCombo, Action>? _keyActions;
+    private Dictionary<KeyCombo, Action>? _keyActions;
 
-   private Dictionary<KeyCombo, Action> KeyActions => _keyActions ??= new()
+    private Dictionary<KeyCombo, Action> KeyActions => _keyActions ??= new()
    {
       // Ctrl shortcuts
 
@@ -163,32 +163,46 @@ public partial class RichTextBox
       { new(Key.PageUp, Shift: true), () => { MovePage(-1, true); } },
    };
 
-   private static KeyCombo GetCombo(KeyEventArgs e) =>
-      new(
-         e.Key,
-         Ctrl: e.KeyModifiers.HasFlag(KeyModifiers.Control),
-         Shift: e.KeyModifiers.HasFlag(KeyModifiers.Shift),
-         Alt: e.KeyModifiers.HasFlag(KeyModifiers.Alt)
-      );
+    private static KeyCombo GetCombo(KeyEventArgs e) =>
+       new(
+          e.Key,
+          Ctrl: e.KeyModifiers.HasFlag(KeyModifiers.Control),
+          Shift: e.KeyModifiers.HasFlag(KeyModifiers.Shift),
+          Alt: e.KeyModifiers.HasFlag(KeyModifiers.Alt)
+       );
 
-   private bool TryHandleKeyAction(KeyEventArgs e)
-   {
-      if (KeyActions.TryGetValue(GetCombo(e), out var action))
-      {
-         action();
-         e.Handled = true;
-         return true;
-      }
+    private bool TryHandleKeyAction(KeyEventArgs e)
+    {
+        if (KeyActions.TryGetValue(GetCombo(e), out var action))
+        {
+            action();
+            e.Handled = true;
+            return true;
+        }
 
-      return false;
-   }
+        return false;
+    }
 
-   private void RichTextBox_KeyDown(object? sender, KeyEventArgs e)
-   {
-      TryHandleKeyAction(e);
+    private void RichTextBox_KeyDown(object? sender, KeyEventArgs e)
+    {
+        TryHandleKeyAction(e);
 
-      RtbVm.CaretVisible = (RtbVm.FlowDoc.Selection.Length == 0);
-      if (client != null)
-         UpdatePreeditOverlay();
-   }
+        if (_CaretRect.Classes.Contains("blinking"))
+        {
+            _CaretRect.Classes.Remove("blinking");
+            _CaretRect.Opacity = 1.0;
+        }
+        
+        RtbVm.CaretVisible = (RtbVm.FlowDoc.Selection.Length == 0);
+        
+        if (client != null)
+            UpdatePreeditOverlay();
+    }
+    
+    private void RichTextBox_KeyUp(object? sender, KeyEventArgs e)
+    {
+
+        _CaretRect.Classes.Add("blinking");
+ 
+    }
 }

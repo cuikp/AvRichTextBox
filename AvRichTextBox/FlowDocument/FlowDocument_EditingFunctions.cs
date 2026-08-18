@@ -120,7 +120,7 @@ public partial class FlowDocument
     {
         int pastedTextLength = 0;
         int blockno = 0;
-        int currentInsertIdx = 0;
+        int currentInsertIdx = insertBlockIndex;
 
         foreach (Block block in blocks)
         {
@@ -180,7 +180,9 @@ public partial class FlowDocument
             }
 
             blockno++;
-            currentInsertIdx = insertBlockIndex + blockno + 1;
+            //currentInsertIdx = insertBlockIndex + blockno + 1;
+            currentInsertIdx += 1;
+            //currentInsertIdx = insertBlockIndex + blockno;
         }
 
         return pastedTextLength;

@@ -332,15 +332,21 @@ internal class PasteUndo(
 
             if (firstParEmpty)
             {
-                Paragraph firstPar = flowDoc.GetAllParagraphs.ToList()[blockIndex];
-                if (firstPar.Inlines.Count == 1 && firstPar.Inlines[0] is EditableRun run)
+                Block firstBlock = flowDoc.Blocks[blockIndex];
+                if (firstBlock is Paragraph firstPar && firstPar.Inlines.Count == 1 && firstPar.Inlines[0] is EditableRun run)
+                {
                     run.Text = "";
+                    //firstPar.CallRequestInlinesUpdate();
+                }
+                    
+
             }
 
             flowDoc.disableRunTextUndo = false;
 
             int lengthAfter = flowDoc.Text.Length;
 
+            
             flowDoc.UpdateTextRanges(keptBlocks[0].StartInDoc, lengthAfter - lengthBefore);
 
             Dispatcher.UIThread.Post(() =>

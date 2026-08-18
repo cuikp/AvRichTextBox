@@ -83,7 +83,9 @@ public partial class RichTextBox : UserControl
     {
         InitializeBlinkAnimation();
 
-        blinkAnimation.RunAsync(_CaretRect);
+        //blinkAnimation.RunAsync(_CaretRect);
+        
+        _CaretRect.Classes.Add("blinking");
 
         _CaretRect.Bind(MarginProperty, new Binding("CaretMargin"));
         _CaretRect.Bind(HeightProperty, new Binding("CaretHeight"));
@@ -319,16 +321,23 @@ public partial class RichTextBox : UserControl
     {
         blinkAnimation = new Animation()
         {
-            Duration = TimeSpan.FromSeconds(0.85),
+            Duration = TimeSpan.FromSeconds(0.80),
             FillMode = FillMode.Forward,
             IterationCount = IterationCount.Infinite,
             Children =
             {
                 new KeyFrame { Cue = new (0.0), Setters = { new Setter(Rectangle.OpacityProperty, 1.0) } },
-                new KeyFrame { Cue = new (0.75), Setters = { new Setter(Rectangle.OpacityProperty, 1.0) } },
+                new KeyFrame { Cue = new (0.45), Setters = { new Setter(Rectangle.OpacityProperty, 1.0) } },
+                new KeyFrame { Cue = new (0.50), Setters = { new Setter(Rectangle.OpacityProperty, 0.0) } },
                 new KeyFrame { Cue = new (1.0), Setters = { new Setter(Rectangle.OpacityProperty, 0.0) } }
             }
         };
+
+        _CaretRect.Styles.Add(
+           new Style(x => x.OfType<Rectangle>().Class("blinking"))
+           {
+               Animations = { blinkAnimation }
+           });
 
     }
 
