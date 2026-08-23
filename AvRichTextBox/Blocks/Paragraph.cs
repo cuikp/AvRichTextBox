@@ -20,7 +20,7 @@ public class Paragraph : Block
         MyFlowDoc = owningFlowDoc;
 
         Inlines.CollectionChanged += Inlines_CollectionChanged;
-        Id = ++FlowDocument.ParagraphIdCounter;
+        Id = ++FlowDocument.BlockIdCounter;
 
     }
 
@@ -160,7 +160,10 @@ public class Paragraph : Block
             FontStyle = this.FontStyle,
             FontWeight = this.FontWeight,
             IsTableCellBlock = this.IsTableCellBlock,
-            //OwningTable & OwningCell are assigned in CellBlocks.CollectionChanged
+            //OwningTable/OwningCell are assigned in CellBlocks.CollectionChanged only for paragraphs cloned within Cells.
+            //Cloning paragraphs in isolation for copy must set these explicitly.
+            OwningCell = this.OwningCell,
+            OwningTable = this.OwningTable
         };
 
 

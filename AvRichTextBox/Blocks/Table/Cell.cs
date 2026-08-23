@@ -16,11 +16,14 @@ public class Cell : INotifyPropertyChanged
 
     public ObservableCollection<Block> CellBlocks { get; set; } = [];
 
+    internal int Id = 0;
+
     public Cell(Table owningTable) 
     { 
         OwningTable = owningTable;
         CellBlocks.CollectionChanged += CellBlocks_CollectionChanged;
-    
+        Id = ++FlowDocument.TableCellIdCounter;
+
     }
 
     private void CellBlocks_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -34,9 +37,13 @@ public class Cell : INotifyPropertyChanged
                     b.IsTableCellBlock = true;
                     b.OwningTable = OwningTable;
                     b.OwningCell = this;
+                    b.MyFlowDoc = OwningTable.MyFlowDoc;
                 }
             }
         }
+
+        OwningTable.MyFlowDoc.AllParagraphs = [.. OwningTable.MyFlowDoc.GetAllParagraphs];  //update collection of all paragraphs
+
     }
 
 

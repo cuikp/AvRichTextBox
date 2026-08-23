@@ -405,7 +405,16 @@ internal class DeleteRangeUndo(
 }
 
 
-internal class InsertParagraphUndo(FlowDocument flowDoc, int origParId, int insertedParId, List<IEditable> keepParInlines, int origSelectionStart, int undoEditOffset) : IUndo
+internal class InsertParagraphUndo(
+    FlowDocument flowDoc, 
+    int origParId, 
+    int insertedParId, 
+    List<IEditable> keepParInlines, 
+    int origSelectionStart, 
+    int undoEditOffset, 
+    bool IsCellParagraph, 
+    int containingTableId, 
+    int containingCellId) : IUndo
 {  //all original inlines preserved, so no need to worry about split inlines
 
     public int UndoEditOffset => undoEditOffset;
@@ -415,18 +424,29 @@ internal class InsertParagraphUndo(FlowDocument flowDoc, int origParId, int inse
     {
         try
         {
-            if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == insertedParId) is not Paragraph insertedPar) return;
-            if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == origParId) is not Paragraph origPar) return;
-
-            //int lengthBefore = flowDoc.Text.Length;
-
+            int blockIdx = 0;
+            if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == insertedParId) is not Paragraph insertedPar) return;
+            if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == origParId) is not Paragraph origPar) return;
             origPar.Inlines.Clear();
             origPar.Inlines.AddRange(keepParInlines);
-            flowDoc.Blocks.Remove(insertedPar);
-           
-            int idx = flowDoc.Blocks.IndexOf(origPar); 
-            flowDoc.UpdateBlockAndInlineStarts(idx);
-            
+
+            if (IsCellParagraph)
+            {
+                if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == containingTableId) is not Table containingTable) return;
+                if (containingTable.Cells.FirstOrDefault(cell => cell.Id == containingCellId) is not Cell containingCell) return;
+
+                blockIdx = flowDoc.Blocks.IndexOf(containingTable);
+                containingCell.CellBlocks.Remove(insertedPar);
+            }
+            else
+            {
+                //int lengthBefore = flowDoc.Text.Length;
+                blockIdx = flowDoc.Blocks.IndexOf(origPar);
+                flowDoc.Blocks.Remove(insertedPar);
+            }
+
+            flowDoc.UpdateBlockAndInlineStarts(blockIdx);
+
             flowDoc.UpdateTextRanges(origSelectionStart, -1); // offset will always be -1
 
             Dispatcher.UIThread.Post(() =>
@@ -442,7 +462,7 @@ internal class InsertParagraphUndo(FlowDocument flowDoc, int origParId, int inse
     }
 }
 
-internal class AddParagraphUndo(FlowDocument flowDoc, int addedParId, int origSelectionStart) : IUndo
+internal class AddParagraphUndo(FlowDocument flowDoc, int addedParId, int origSelectionStart, bool IsCellParagraph, int containingTableId, int containingCellId) : IUndo
 {  
     public int UndoEditOffset => 1;
     public bool UpdateTextRanges => true;
@@ -451,10 +471,27 @@ internal class AddParagraphUndo(FlowDocument flowDoc, int addedParId, int origSe
     {
         try
         {
-            if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == addedParId) is not Paragraph insertedPar) return;
-            int idx = flowDoc.Blocks.IndexOf(insertedPar);
-            flowDoc.Blocks.Remove(insertedPar);
-            flowDoc.UpdateBlockAndInlineStarts(idx);
+            int blockIdx = 0;
+
+            if (IsCellParagraph)
+            {
+                if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == addedParId) is not Paragraph insertedPar) return;
+                if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == containingTableId) is not Table containingTable) return;
+                if (containingTable.Cells.FirstOrDefault(cell => cell.Id == containingCellId) is not Cell containingCell) return;
+
+                blockIdx = flowDoc.Blocks.IndexOf(containingTable);
+                containingCell.CellBlocks.Remove(insertedPar);
+
+            }
+            else
+            {
+                if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == addedParId) is not Paragraph insertedPar) return;
+                blockIdx = flowDoc.Blocks.IndexOf(insertedPar);
+                flowDoc.Blocks.Remove(insertedPar);
+            }
+
+            flowDoc.UpdateBlockAndInlineStarts(blockIdx);
+
             flowDoc.UpdateTextRanges(origSelectionStart, -1); // offset will always be -1
 
             Dispatcher.UIThread.Post(() =>

@@ -1,7 +1,6 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using RtfDomParserAv;
 using System.Text;
 using static AvRichTextBox.HelperMethods;
 
@@ -394,27 +393,40 @@ internal static partial class RtfConversions
 
     }
 
-    internal static string GetRangeRtf(List<Block> rangeBlocks)
+    internal static string GetRangeRtf(List<Paragraph> rangeParagraphs)
     {
         var sb = new StringBuilder();
+
+        int rangeEnd = rangeParagraphs[^1].EndInDoc;
 
         //Build font map
         var fontMap = new Dictionary<string, int>();
         var colorMap = new Dictionary<Color, int>();
-        sb.Append(RtfConversions.GetFontAndColorTables(rangeBlocks, ref fontMap, ref colorMap));
+        sb.Append(RtfConversions.GetFontAndColorTables(rangeParagraphs, ref fontMap, ref colorMap));
 
-        foreach (Block b in rangeBlocks)
+        for (int parno = 0; parno < rangeParagraphs.Count; parno++)
         {
-            switch (b)
-            {
-                case Paragraph p:
-                    sb.Append(RtfConversions.GetParagraphRtf(p, fontMap, colorMap, false));
-                    break;
+            Paragraph thisRangePar = rangeParagraphs[parno];
 
-                case Table t:
-                    sb.Append(RtfConversions.GetTableRtf(t, fontMap, colorMap));
-                    break;
+            // check if full table is included in range:
+            if (thisRangePar.IsCellBlock && 
+                thisRangePar.OwningTable.Cells.FirstOrDefault() is Cell firstCell && 
+                firstCell.CellBlocks.FirstOrDefault() is Paragraph firstPar && 
+                firstPar.StartInDoc == thisRangePar.StartInDoc)
+            {
+                if (thisRangePar.OwningTable.Cells.LastOrDefault() is Cell lastCell && 
+                    lastCell.CellBlocks.LastOrDefault() is Paragraph lastPar && 
+                    lastPar.EndInDoc <= rangeEnd)
+                { // full table found in range, so add its rtf
+                    sb.Append(RtfConversions.GetTableRtf(thisRangePar.OwningTable, fontMap, colorMap));
+                    parno += thisRangePar.OwningTable.GetParagraphCount() - 1;
+                }
             }
+            else
+            {
+                sb.Append(RtfConversions.GetParagraphRtf(thisRangePar, fontMap, colorMap, false));
+            }
+
         }
 
         sb.Append('}');

@@ -23,8 +23,9 @@ public partial class FlowDocument : AvaloniaObject
     internal event UpdateRTBCaret_Handler? UpdateRTBCaret;
 
     internal static int InlineIdCounter { get; set => field = (value == int.MaxValue) ? 1 : value; }
-    internal static int ParagraphIdCounter { get; set => field = (value == int.MaxValue) ? 1 : value; }
-    internal static int TableIdCounter { get; set => field = (value == int.MaxValue) ? 1 : value; }
+    //internal static int ParagraphIdCounter { get; set => field = (value == int.MaxValue) ? 1 : value; }
+    internal static int BlockIdCounter { get; set => field = (value == int.MaxValue) ? 1 : value; }
+    internal static int TableCellIdCounter { get; set => field = (value == int.MaxValue) ? 1 : value; }
 
     internal bool IsEditable { get; set; } = true;
 
@@ -198,7 +199,7 @@ public partial class FlowDocument : AvaloniaObject
     {
         Blocks.Clear();
 
-        ParagraphIdCounter = 1;
+        BlockIdCounter = 1;
         InlineIdCounter = 1;
 
         for (int tRangeNo = TextRanges.Count - 1; tRangeNo >= 0; tRangeNo--)

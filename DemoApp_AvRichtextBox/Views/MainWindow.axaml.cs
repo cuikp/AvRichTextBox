@@ -99,6 +99,10 @@ public partial class MainWindow : Window
 
         MainRTB.FlowDocument.Blocks.Add(newPar);
 
+        Paragraph secondPar = new(MainRTB.FlowDocument);
+        secondPar.Inlines.Add(new EditableRun("A second paragraph just before the table."));
+        MainRTB.FlowDocument.Blocks.Add(secondPar);
+
         //Test Table
         int noCols = 5;
         int noRows = 4;

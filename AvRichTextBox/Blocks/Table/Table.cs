@@ -25,7 +25,7 @@ public partial class Table : Block
     public Table(FlowDocument flowDoc) 
     { 
         MyFlowDoc = flowDoc; 
-        Id = ++FlowDocument.TableIdCounter; 
+        Id = ++FlowDocument.BlockIdCounter; 
         SelectionBrush = flowDoc.SelectionBrush; 
     }
 
@@ -96,9 +96,11 @@ public partial class Table : Block
             BorderBrush = CloneBrush(this.BorderBrush) ?? Brushes.Black,
             BorderThickness = this.BorderThickness,
             Margin = this.Margin,
-            //OwningTable & OwningCell are assigned in CellBlocks.CollectionChanged
+            OwningTable = this.OwningTable,
+            OwningCell = this.OwningCell
         };
 
+        //OwningTable & OwningCell of Paragraphs are assigned in CellBlocks.CollectionChanged
         newTable.Cells = new ObservableCollection<Cell>(this.Cells.Select(c => c.FullClone(newTable)));
 
         return newTable;
@@ -135,6 +137,13 @@ public partial class Table : Block
 
     }
 
+    internal int GetParagraphCount()
+    {
+        int parCount = 0;
+        foreach (var c in Cells) 
+            parCount += c.CellBlocks.Count;
+        return parCount;
+    }
 
 }
 

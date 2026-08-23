@@ -82,11 +82,7 @@ public partial class RichTextBox : UserControl
     private void InitializeAdornerElements()
     {
         InitializeBlinkAnimation();
-
-        //blinkAnimation.RunAsync(_CaretRect);
         
-        _CaretRect.Classes.Add("blinking");
-
         _CaretRect.Bind(MarginProperty, new Binding("CaretMargin"));
         _CaretRect.Bind(HeightProperty, new Binding("CaretHeight"));
         _CaretRect.DataContext = RtbVm;
@@ -338,6 +334,8 @@ public partial class RichTextBox : UserControl
            {
                Animations = { blinkAnimation }
            });
+
+        _CaretRect.Classes.Add("blinking");
 
     }
 

@@ -17,6 +17,8 @@ public partial class FlowDocument
         List<IEditable> rightSplitRuns = startPar.Inlines.ToList()[insertIdx..];
 
         List<Block> rtfBlocks = GetRtfContent(rtfbytes);
+        if (rtfBlocks.LastOrDefault() is Block lastBlock && lastBlock.Text == "\r")
+            rtfBlocks.Remove(lastBlock);
 
         return ProcessInsertBlocks(rtfBlocks, startPar, insertIdx, insertBlockIndex, addedBlockIds, rightSplitRuns);
 
@@ -285,15 +287,13 @@ public partial class FlowDocument
 
         if (GetContainingParagraph(insertCharIndex) is not Paragraph insertPar) return;
 
-        if (insertPar.IsTableCellBlock) return;
-
         if (insertPar.Inlines.Count == 1 && insertPar.Inlines[0] is EditableInlineUIContainer euic)
             return; // Don't mess with container edges
 
         List<IEditable> keepParInlineClones = [.. insertPar.Inlines.Select(il => il.CloneWithId())];
 
         int originalSelStart = insertCharIndex;
-        int parIndex = Blocks.IndexOf(insertPar);
+
         int selectionLength = 0;
 
         if (addUndo)
@@ -308,14 +308,25 @@ public partial class FlowDocument
         }
 
         Paragraph parToInsert = null!;
-
+        int blockIndex = insertPar.IsCellBlock ? Blocks.IndexOf(insertPar.OwningTable): Blocks.IndexOf(insertPar);
+        int parIndex = insertPar.IsCellBlock ? insertPar.OwningCell.CellBlocks.IndexOf(insertPar) : blockIndex;
+        
         if (Selection.End == insertPar.EndInDoc)
         {   // only need to add insert a new paragraph at the index
             parToInsert = new Paragraph(this);
-            Blocks.Insert(parIndex + 1, parToInsert);
+
+            if (insertPar.IsCellBlock)
+                insertPar.OwningCell.CellBlocks.Insert(parIndex + 1, parToInsert);
+            else
+                Blocks.Insert(parIndex + 1, parToInsert);
 
             if (addUndo)
-                Undos.Add(new AddParagraphUndo(this, parToInsert.Id, originalSelStart));
+            {
+                int tableId = insertPar.IsCellBlock ? insertPar.OwningTable.Id : -1;
+                int cellId = insertPar.IsCellBlock ? insertPar.OwningCell.Id : -1;
+                Undos.Add(new AddParagraphUndo(this, parToInsert.Id, originalSelStart, insertPar.IsCellBlock, tableId, cellId));
+            }
+                
         }
         else
         {   // current paragraph needs to be split into two
@@ -341,7 +352,11 @@ public partial class FlowDocument
             parToInsert = originalPar.PropertyClone();
             parToInsert.Inlines.AddRange(RunList2);
 
-            Blocks.Insert(parIndex + 1, parToInsert);
+            //Insert paragraph in appropriate block
+            if (insertPar.IsCellBlock)
+                insertPar.OwningCell.CellBlocks.Insert(parIndex + 1, parToInsert);
+            else
+                Blocks.Insert(parIndex + 1, parToInsert);
 
             // Empty paragraph must contain an empty run
             if (parToInsert.Inlines.Count == 0)
@@ -351,21 +366,24 @@ public partial class FlowDocument
                 parToInsert.Inlines.Add(erun);
             }
 
-            // Line break must be preceded by empty run
+            // Line break at paragraph start must be preceded by an empty run
             if (parToInsert.Inlines.First() is EditableLineBreak)
                 parToInsert.Inlines.Insert(0, new EditableRun(""));
 
             if (addUndo)
-                Undos.Add(new InsertParagraphUndo(this, originalPar.Id, parToInsert.Id, keepParInlineClones, originalSelStart, selectionLength - 1));
+            {
+                int tableId = insertPar.IsCellBlock ? insertPar.OwningTable.Id : -1;
+                int cellId = insertPar.IsCellBlock ? insertPar.OwningCell.Id : -1;
+                Undos.Add(new InsertParagraphUndo(this, originalPar.Id, parToInsert.Id, keepParInlineClones, originalSelStart, selectionLength - 1, insertPar.IsCellBlock, tableId, cellId));
+            }
 
             originalPar.CallRequestInlinesUpdate();
             originalPar.CallRequestTextLayoutInfoStart();
             originalPar.CallRequestTextLayoutInfoEnd();
-
         }
 
         UpdateTextRanges(insertCharIndex, 1);
-        UpdateBlockAndInlineStarts(parIndex);
+        UpdateBlockAndInlineStarts(blockIndex);
 
         parToInsert.CallRequestInlinesUpdate();
         parToInsert.CallRequestTextLayoutInfoStart();

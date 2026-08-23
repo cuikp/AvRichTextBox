@@ -220,7 +220,7 @@ Caret color is customizable  (CaretBrush)
 Updated to Avalonia 12.0.2
 Revamped internal inline calculations
 Added EditableHyperlink
-Multiple paragraphs allowed in table `Cell`s (theoretically any type of Blocks (such as `EditableInlineUIContainer` or even nested `Table`), but this is not at all tested).
+Multiple paragraphs allowed in table `Cell`s (theoretically any type of `Block` (such as `EditableInlineUIContainer` or even nested `Table`), but this is not at all tested).
 Hyperlink support with popup edit dialog. (`EditableHyperlink`)
 Removed `VerticalAlignment` property from `Paragraph`: Now `Cell` has `VerticalAlignment` instead, to adjust content position within cells.
 Fixed format toggling issues.
@@ -233,3 +233,11 @@ Updated to Avalonia 12.0.4
 Table/row heights now dynamically change with cell contents.
 Some important paragraph Delete/Undo fixes
 
+**[ver 1.9.4] 2026/08/19**: 
+Caret blink mechanism changed to styling
+
+**[ver 1.9.6] 2026/08/23
+ver 1.9.6:
+Fix to multi-paragraph copy/paste
+Can copy/paste full tables
+Can add new Paragraph in Table Cell
