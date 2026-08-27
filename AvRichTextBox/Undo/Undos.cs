@@ -611,7 +611,7 @@ internal class ApplyFormattingUndo(FlowDocument flowDoc, List<EditablePropertyAs
 
         flowDoc.disableRunTextUndo = false;
 
-        foreach (Paragraph p in flowDoc.GetOverlappingParagraphsInRange(rangeStart, rangeEnd).OfType<Paragraph>())
+        foreach (Paragraph p in flowDoc.GetOverlappingParagraphsInRange(rangeStart, rangeEnd, tRange.BiasForwardEnd).OfType<Paragraph>())
         {
             p.CallRequestInlinesUpdate();
             p.UpdateEditableRunPositions();

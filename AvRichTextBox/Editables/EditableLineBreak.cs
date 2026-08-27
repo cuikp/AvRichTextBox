@@ -34,13 +34,17 @@ public class EditableLineBreak : LineBreak, IEditable
     public bool IsFirstInlineOfParagraph { get; set; }
     public bool IsLastInlineOfParagraph { get; set; }
 
-    public IEditable Clone() => new EditableLineBreak() { MyParagraphId = this.MyParagraphId, MyFlowDoc = this.MyFlowDoc, };
+    public IEditable Clone() => new EditableLineBreak() 
+    { 
+        MyParagraphId = this.MyParagraphId, 
+        MyFlowDoc = this.MyFlowDoc, 
+        TextPositionOfInlineInParagraph = this.TextPositionOfInlineInParagraph 
+    };
 
     public IEditable CloneWithId()
     {
         IEditable IdClone = this.Clone();
         IdClone.Id = this.Id;
-        IdClone.TextPositionOfInlineInParagraph = this.TextPositionOfInlineInParagraph;  //necessary because clone is produced when calculating range inline positions
         return IdClone;
     }
 

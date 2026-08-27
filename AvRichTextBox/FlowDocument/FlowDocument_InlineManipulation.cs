@@ -71,6 +71,8 @@ public partial class FlowDocument
         edgeIds.idLeft = firstInline.Id;
         edgeIds.idRight = lastInline.Id;
 
+
+        //$$$$$$$$$$$$$$$$
         int lastInlineSplitIndex = trange.End - endPar.StartInDoc - lastInline.TextPositionOfInlineInParagraph;
         int firstInlineSplitIndex = trange.Start - startPar.StartInDoc - firstInline.TextPositionOfInlineInParagraph;
 
@@ -136,10 +138,15 @@ public partial class FlowDocument
             // split first run and remove initial excess run from list
             if (!RangeStartsAtInlineStart && firstInlineText != "")
             {  //Debug.WriteLine("firstinline text = " + firstInlineText + ", " + firstInlineText.Length + ", splitidx = " + firstInlineSplitIndex);
-                insertFirstInline.InlineText = firstInlineText[firstInlineSplitIndex..];
+                
+                if (firstInlineSplitIndex < firstInlineText.Length)
+                    insertFirstInline.InlineText = firstInlineText[firstInlineSplitIndex..];
 
                 int indexOfFirstInline = startPar.Inlines.IndexOf(firstInline);
-                firstInline.InlineText = firstInlineText[..firstInlineSplitIndex];
+                
+                if (firstInlineSplitIndex < firstInlineText.Length)
+                    firstInline.InlineText = firstInlineText[..firstInlineSplitIndex];
+                
                 AllSelectedInlines.Remove(firstInline);
                 AllSelectedInlines.Insert(0, insertFirstInline);
 

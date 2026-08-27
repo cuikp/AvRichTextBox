@@ -49,6 +49,10 @@ public partial class RichTextBox
 
         // Plain text
         List<IEditable> rangeInlines = FlowDoc.GetTextRangeInlines(FlowDoc.Selection, addToDoc: false).createdInlines;
+        
+        if (rangeInlines.LastOrDefault() is EditableLineBreak elb)
+            rangeInlines.Remove(elb);
+
         string inlinesText = string.Join("", rangeInlines.ConvertAll(il => il.InlineText));
         dataTransfer.Add(DataTransferItem.CreateText(inlinesText));
 
@@ -60,29 +64,51 @@ public partial class RichTextBox
     {
         var sb = new StringBuilder();
 
-        List<Paragraph> rangePars = FlowDoc.GetOverlappingParagraphsInRange(range).ConvertAll(b=> b.FullClone());
-      
+        List<Paragraph> rangePars = FlowDoc.GetOverlappingParagraphsInRange(range, range.BiasForwardEnd).ConvertAll(b=> b.FullClone());
+
         if (rangePars[0] is Paragraph firstPar && rangePars[^1] is Paragraph lastPar)
         {
             lastPar.Inlines.RemoveMany(lastPar.Inlines.Where(il => lastPar.StartInDoc + il.TextPositionOfInlineInParagraph >= range.End));
-            if (lastPar.Inlines.Count > 0 && lastPar.Inlines[^1] is EditableRun edrunL)
+            if (lastPar.Inlines.Count > 0)
             {
-                int cutEnd = range.End - lastPar.StartInDoc - edrunL.TextPositionOfInlineInParagraph;
-                if (cutEnd > 0)
-                    edrunL.Text = edrunL.Text![..cutEnd];
+                switch (lastPar.Inlines[^1])
+                {
+                    case EditableRun edrunL:
+                        int cutEnd = range.End - lastPar.StartInDoc - edrunL.TextPositionOfInlineInParagraph;
+                        if (cutEnd > 0 && cutEnd <= edrunL.InlineLength)
+                            edrunL.Text = edrunL.Text![..cutEnd];
+                        break;
+                    case EditableLineBreak edLB:
+                        lastPar.Inlines.Remove(edLB);
+                        break;
+
+                    case EditableInlineUIContainer edUIC:
+                        Paragraph attachPar = new(FlowDoc);
+                        attachPar.Inlines.Add(new EditableRun(""));
+                        rangePars.Add(attachPar);
+                        break;
+                }
             }
+            
 
             firstPar.Inlines.RemoveMany(firstPar.Inlines.Where(il => firstPar.StartInDoc + il.TextPositionOfInlineInParagraph + il.InlineLength < range.Start));
-            if (lastPar.Inlines.Count > 0 && firstPar.Inlines[0] is EditableRun edrunF)
+            if (lastPar.Inlines.Count > 0)
             {
-                int cutStart = range.Start - firstPar.StartInDoc - edrunF.TextPositionOfInlineInParagraph;
-                if (cutStart > 0)
-                    edrunF.Text = edrunF.Text![cutStart..];
-            }
+                switch (firstPar.Inlines[0])
+                {
+                    case EditableRun edrunF:
+                        int cutStart = range.Start - firstPar.StartInDoc - edrunF.TextPositionOfInlineInParagraph;
+                        if (cutStart > 0)
+                            edrunF.Text = edrunF.Text![cutStart..];
+                        break;
+                    
+                    case EditableLineBreak edLB:
+                        firstPar.Inlines.Remove(edLB);
+                        break;
+                }
+            } 
         }
-            
-            
-      
+
         return RtfConversions.GetRangeRtf(rangePars);
         
     }
@@ -144,12 +170,8 @@ public partial class RichTextBox
         int pastedTextLength = 0;
         List<int> addedBlockIds = [];
 
-        //$$$$$$$$$$$$$$$$$$$$$
         bool firstBlockWasDeleted = startBlock.StartInDoc == originalSelectionStart; // && startBlock.EndInDoc <= originalSelectionEnd && !firstParEmpty;
-        //bool lastBlockWasDeleted = endBlock.EndInDoc == originalSelectionEnd; // && endBlock.EndInDoc >= originalSelectionStart;
         bool lastBlockWasDeleted = !firstBlockWasDeleted && endBlock.EndInDoc == originalSelectionEnd;
-        
-
         bool addUndo = true;
         bool contentPasted = false;
 

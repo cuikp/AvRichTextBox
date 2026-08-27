@@ -128,21 +128,19 @@ public partial class FlowDocument
         {
             if (block is Paragraph thisPar)
             {
-                //if (thisPar.IsEmptyInlinePar) 
-                //    continue;
-
-                //Remove single empty run if present
-                if (addPar.IsEmptyInlinePar)
-                {
-                    addPar.Inlines.RemoveAt(0);
-                    insertIdx = 0;
-                }
-
                 bool paragraphCreated = false;
 
                 switch (blockno)
                 {
                     case 0:
+
+                        //Remove single empty run if present
+                        if (addPar.IsEmptyInlinePar)
+                        {
+                            addPar.Inlines.RemoveAt(0);
+                            insertIdx = 0;
+                        }
+
                         // insert first paragraph into existing paragraph
                         addPar.Inlines.AddOrInsertRange(thisPar.Inlines, insertIdx);
                         break;
@@ -177,8 +175,13 @@ public partial class FlowDocument
             blockno++;
         }
 
+        // final fixes
+        if (blocks.Count == 0)
+            addPar.Inlines.Add(new EditableRun(""));
+
         //attach right-split inlines to last pasted paragraph
-        addPar.Inlines.AddRange(rightSplitRuns);
+        if (rightSplitRuns.Count > 0 && !rightSplitRuns[0].IsEmpty)
+            addPar.Inlines.AddRange(rightSplitRuns);
 
         return pastedTextLength;
     }

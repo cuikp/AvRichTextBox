@@ -147,7 +147,7 @@ public partial class FlowDocument
 
       //UpdateBlockAndInlineStarts(AllParagraphs.IndexOf(AllParagraphs.LastOrDefault(p => p.StartInDoc <= textRange.Start)!));
       
-      foreach (Paragraph p in GetOverlappingParagraphsInRange(textRange).OfType<Paragraph>())
+      foreach (Paragraph p in GetOverlappingParagraphsInRange(textRange, textRange.BiasForwardEnd).OfType<Paragraph>())
          p.CallRequestInlinesUpdate();
 
       disableRunTextUndo = false;

@@ -7,7 +7,7 @@ public partial class FlowDocument
     internal void ExtendSelectionRight()
     {
         Selection.BiasForwardEnd = false;
-
+        
         switch (SelectionExtendMode)
         {
             case ExtendMode.ExtendModeNone:
@@ -60,8 +60,6 @@ public partial class FlowDocument
 
             case ExtendMode.ExtendModeRight:
                 if (Selection.End == 0) return;
-
-                Selection.BiasForwardEnd = true;
 
                 Selection.End = GetPreviousPosition();
 

@@ -273,11 +273,17 @@ public partial class FlowDocument : AvaloniaObject
             (b.Inlines.Count == 1 && b.Inlines[0] is EditableInlineUIContainer ?  (b.StartInDoc + b.BlockLength - 1 < end) : (b.StartInDoc + b.BlockLength - 1 <= end))
         )];
 
-    internal List<Paragraph> GetOverlappingParagraphsInRange(int start, int end) => 
+    internal List<Paragraph> GetOverlappingParagraphsInRange(int start, int end, bool rangeEndBiasForward) => 
         [.. AllParagraphs.Where(p =>
-            (p.Inlines.Count == 1 && p.Inlines[0] is EditableInlineUIContainer ?  (p.StartInDoc < end) : p.StartInDoc <= end) &&
+            (p.Inlines.Count == 1 && p.Inlines[0] is EditableInlineUIContainer ?  (p.StartInDoc < end) : (rangeEndBiasForward ? p.StartInDoc <= end : p.StartInDoc < end)) &&
             p.StartInDoc + p.BlockLength - 1 >= start
         )];
+
+    //internal List<Paragraph> GetOverlappingParagraphsInRangeOLD(int start, int end, bool rangeEndBiasForward) => 
+    //    [.. AllParagraphs.Where(p =>
+    //        (p.Inlines.Count == 1 && p.Inlines[0] is EditableInlineUIContainer ?  (p.StartInDoc < end) : p.StartInDoc <= end) &&
+    //        p.StartInDoc + p.BlockLength - 1 >= start
+    //    )];
 
     internal List<Block> GetFullBlocksInRange(int start, int end) =>
     [.. Blocks.Where(b =>
@@ -301,7 +307,7 @@ public partial class FlowDocument : AvaloniaObject
     internal List<Block> GetFullBlocksInRange(TextRange trange) => GetFullBlocksInRange(trange.Start, trange.End);
     internal List<Block> GetOverlappingBlocksInRange(TextRange trange) => GetOverlappingBlocksInRange(trange.Start, trange.End);
     internal List<Paragraph> GetFullParagraphsInRange(TextRange trange) => GetFullParagraphsInRange(trange.Start, trange.End);
-    internal List<Paragraph> GetOverlappingParagraphsInRange(TextRange trange) => GetOverlappingParagraphsInRange(trange.Start, trange.End);
+    internal List<Paragraph> GetOverlappingParagraphsInRange(TextRange trange, bool rangeEndBiasForward) => GetOverlappingParagraphsInRange(trange.Start, trange.End, rangeEndBiasForward);
     internal List<Table> GetFullTablesInRange(TextRange trange) => GetFulTablesInRange(trange.Start, trange.End);
 
     internal Paragraph GetContainingParagraph(int charIndex) => AllParagraphs.LastOrDefault(p => p.StartInDoc <= charIndex) as Paragraph ?? null!;

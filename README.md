@@ -243,3 +243,7 @@ Can add new Paragraph in Table Cell
 
 **[ver 1.9.7] 2026/08/27**
 Fixes for certain multi-paragraph copy/paste cases
+
+**[ver 1.9.8] 2026/08/28**
+Fixes for certain LineBreak cut/paste cases.
+Pasting Image adds new paragraph at end.
