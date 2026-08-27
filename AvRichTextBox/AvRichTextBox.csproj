@@ -20,15 +20,14 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>ver 1.9.6:
-Fix to multi-paragraph copy/paste
-Can copy/paste full tables
-Can add new Paragraph in Table Cell</PackageReleaseNotes>
+	  <PackageReleaseNotes>ver 1.9.7:
+Fixes for certain multii-paragraph copy/paste cases
+</PackageReleaseNotes>
       
      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 	  <PackageOutputPath>D:\PROG\LocalNuget\AvRichTextBox</PackageOutputPath>
 	  
-	  <Version>1.9.6</Version>
+	  <Version>1.9.7</Version>
 	  <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
 	  

@@ -61,95 +61,28 @@ public partial class RichTextBox
         var sb = new StringBuilder();
 
         List<Paragraph> rangePars = FlowDoc.GetOverlappingParagraphsInRange(range).ConvertAll(b=> b.FullClone());
-       
-        //// Parse whether range starts/ends in table/paragraph
-        //if (rangeBlocks[0] is Block firstBlock && rangeBlocks[^1] is Block lastBlock)
-        //{
-        //    switch (firstBlock)
-        //    {
-        //        case Table firstTable:
-                  
-        //            switch (lastBlock)
-        //            {
-        //                case Table lastTable:
+      
+        if (rangePars[0] is Paragraph firstPar && rangePars[^1] is Paragraph lastPar)
+        {
+            lastPar.Inlines.RemoveMany(lastPar.Inlines.Where(il => lastPar.StartInDoc + il.TextPositionOfInlineInParagraph >= range.End));
+            if (lastPar.Inlines.Count > 0 && lastPar.Inlines[^1] is EditableRun edrunL)
+            {
+                int cutEnd = range.End - lastPar.StartInDoc - edrunL.TextPositionOfInlineInParagraph;
+                if (cutEnd > 0)
+                    edrunL.Text = edrunL.Text![..cutEnd];
+            }
 
-        //                    if (firstTable == lastTable)
-        //                    {
-        //                        List<Paragraph> rangePars = FlowDoc.GetOverlappingParagraphsInRange(range).ConvertAll(b => b.FullClone());
-        //                        // Get start/end paragraphs within the same table, possibly different cells
-        //                        if (range.StartParagraph.OwningCell == range.EndParagraph.OwningCell)
-        //                        {
-
-        //                            if (range.EndParagraph is Paragraph endPar)
-        //                            {
-        //                                endPar.Inlines.RemoveMany(endPar.Inlines.Where(il => endPar.StartInDoc + il.TextPositionOfInlineInParagraph >= range.End));
-        //                                if (endPar.Inlines[^1] is EditableRun edrunL)
-        //                                {
-        //                                    int cutEnd = range.End - endPar.StartInDoc - edrunL.TextPositionOfInlineInParagraph;
-        //                                    if (cutEnd > 0)
-        //                                        edrunL.Text = edrunL.Text![..cutEnd];
-        //                                }
-        //                            }
-        //                            if (range.StartParagraph is Paragraph startPar)
-        //                            {
-        //                                startPar.Inlines.RemoveMany(startPar.Inlines.Where(il => startPar.StartInDoc + il.TextPositionOfInlineInParagraph + il.InlineLength < range.Start));
-        //                                if (startPar.Inlines[0] is EditableRun edrunF)
-        //                                {
-        //                                    int cutStart = range.Start - startPar.StartInDoc - edrunF.TextPositionOfInlineInParagraph;
-        //                                    if (cutStart > 0)
-        //                                        edrunF.Text = edrunF.Text![cutStart..];
-        //                                }
-        //                            }
-                                    
-        //                        }
-                                
-        //                    }
-        //                    break;
-
-        //                case Paragraph lastPar:
-
-        //                    break;
-        //            }
-
-        //            break;
-
-        //        case Paragraph firstPar:
-
-        //            switch (lastBlock)
-        //            {
-        //                case Table lastTable:
-
-        //                    break;
-
-        //                case Paragraph lastPar:
-
-                        if (rangePars[0] is Paragraph firstPar && rangePars[^1] is Paragraph lastPar)
-                        {
-                            lastPar.Inlines.RemoveMany(lastPar.Inlines.Where(il => lastPar.StartInDoc + il.TextPositionOfInlineInParagraph >= range.End));
-                            if (lastPar.Inlines[^1] is EditableRun edrunL)
-                            {
-                                int cutEnd = range.End - lastPar.StartInDoc - edrunL.TextPositionOfInlineInParagraph;
-                                if (cutEnd > 0)
-                                    edrunL.Text = edrunL.Text![..cutEnd];
-                            }
-
-                            firstPar.Inlines.RemoveMany(firstPar.Inlines.Where(il => firstPar.StartInDoc + il.TextPositionOfInlineInParagraph + il.InlineLength < range.Start));
-                            if (firstPar.Inlines[0] is EditableRun edrunF)
-                            {
-                                int cutStart = range.Start - firstPar.StartInDoc - edrunF.TextPositionOfInlineInParagraph;
-                                if (cutStart > 0)
-                                    edrunF.Text = edrunF.Text![cutStart..];
-                            }
-                        }
+            firstPar.Inlines.RemoveMany(firstPar.Inlines.Where(il => firstPar.StartInDoc + il.TextPositionOfInlineInParagraph + il.InlineLength < range.Start));
+            if (lastPar.Inlines.Count > 0 && firstPar.Inlines[0] is EditableRun edrunF)
+            {
+                int cutStart = range.Start - firstPar.StartInDoc - edrunF.TextPositionOfInlineInParagraph;
+                if (cutStart > 0)
+                    edrunF.Text = edrunF.Text![cutStart..];
+            }
+        }
             
-                            //break;
-            //        }
-            //        break;
-            //}
             
-        //}
-                
-
+      
         return RtfConversions.GetRangeRtf(rangePars);
         
     }
@@ -211,8 +144,11 @@ public partial class RichTextBox
         int pastedTextLength = 0;
         List<int> addedBlockIds = [];
 
+        //$$$$$$$$$$$$$$$$$$$$$
         bool firstBlockWasDeleted = startBlock.StartInDoc == originalSelectionStart; // && startBlock.EndInDoc <= originalSelectionEnd && !firstParEmpty;
-        bool lastBlockWasDeleted = endBlock.EndInDoc == originalSelectionEnd; // && endBlock.EndInDoc >= originalSelectionStart;
+        //bool lastBlockWasDeleted = endBlock.EndInDoc == originalSelectionEnd; // && endBlock.EndInDoc >= originalSelectionStart;
+        bool lastBlockWasDeleted = !firstBlockWasDeleted && endBlock.EndInDoc == originalSelectionEnd;
+        
 
         bool addUndo = true;
         bool contentPasted = false;

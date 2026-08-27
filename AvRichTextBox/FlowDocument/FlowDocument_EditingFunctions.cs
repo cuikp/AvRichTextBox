@@ -128,8 +128,8 @@ public partial class FlowDocument
         {
             if (block is Paragraph thisPar)
             {
-                if (thisPar.IsEmptyInlinePar) 
-                    continue;
+                //if (thisPar.IsEmptyInlinePar) 
+                //    continue;
 
                 //Remove single empty run if present
                 if (addPar.IsEmptyInlinePar)
@@ -183,76 +183,5 @@ public partial class FlowDocument
         return pastedTextLength;
     }
     
-    //private int ProcessInsertBlocksOLD(List<Block> blocks, Paragraph startPar, int insertIdx, int insertBlockIndex, List<int> addedBlockIds, List<IEditable> rightSplitRuns)
-    //{
-    //    int pastedTextLength = 0;
-    //    int blockno = 0;
-    //    int currentInsertIdx = insertBlockIndex;
-
-    //    foreach (Block block in blocks)
-    //    {
-    //        if (block is Paragraph thisPar)
-    //        {
-    //            if (thisPar.IsEmptyInlinePar) 
-    //                continue;
-                
-    //            Paragraph addPar = startPar;
-
-    //            //Remove single empty run if present
-    //            if (addPar.IsEmptyInlinePar)
-    //            {
-    //                addPar.Inlines.RemoveAt(0);
-    //                insertIdx = 0;
-    //            }
-
-    //            bool paragraphCreated = false;
-
-    //            switch (blockno)
-    //            {
-    //                case 0:
-    //                    // insert first paragraph into existing paragraph
-    //                    addPar.Inlines.AddOrInsertRange(thisPar.Inlines, insertIdx);
-    //                    break;
-
-    //                default:
-    //                    // create new paragraphs for pars 1 onward
-    //                    addPar = thisPar;
-    //                    pastedTextLength += 1;
-    //                    paragraphCreated = true;
-    //                    break;
-    //            }
-
-    //            pastedTextLength += (thisPar.TextLength - 1); // remove extra length for par CR
-
-
-    //            if (paragraphCreated)
-    //            {
-    //                if (blockno == blocks.Count - 1)
-    //                {
-    //                    startPar.Inlines.RemoveMany(rightSplitRuns);
-    //                    addPar.Inlines.AddRange(rightSplitRuns);
-    //                }
-
-    //                Blocks.Insert(currentInsertIdx, addPar);
-    //                addedBlockIds.Add(addPar.Id);
-    //            }
-
-                
-    //        }
-    //        else
-    //        { // non-Paragraph block always pastes as new block
-    //            Blocks.Insert(currentInsertIdx, block);
-    //            addedBlockIds.Add(block.Id);
-    //            pastedTextLength += block.TextLength;
-    //        }
-
-    //        blockno++;
-    //        //currentInsertIdx = insertBlockIndex + blockno + 1;
-    //        currentInsertIdx += 1;
-    //        //currentInsertIdx = insertBlockIndex + blockno;
-    //    }
-
-    //    return pastedTextLength;
-    //}
-
+   
 }

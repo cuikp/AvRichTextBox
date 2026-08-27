@@ -236,8 +236,10 @@ Some important paragraph Delete/Undo fixes
 **[ver 1.9.4] 2026/08/19**: 
 Caret blink mechanism changed to styling
 
-**[ver 1.9.6] 2026/08/23
-ver 1.9.6:
+**[ver 1.9.6] 2026/08/23**
 Fix to multi-paragraph copy/paste
 Can copy/paste full tables
 Can add new Paragraph in Table Cell
+
+**[ver 1.9.7] 2026/08/27**
+Fixes for certain multi-paragraph copy/paste cases

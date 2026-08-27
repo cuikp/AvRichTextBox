@@ -41,6 +41,7 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
    {  
       IEditable IdClone = this.Clone();
       IdClone.Id = this.Id;
+      IdClone.TextPositionOfInlineInParagraph = this.TextPositionOfInlineInParagraph;  //necessary because clone is produced when calculating range inline positions
       return IdClone;
             
    }
