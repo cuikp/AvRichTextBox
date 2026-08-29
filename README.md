@@ -13,6 +13,8 @@ The `FlowDoc` is at heart merely an `ObservableCollection` of `Block`s bound as 
 
 The hardest part of this all has been the editing functions for splitting, deleting, inserting and keeping track of the `IEditable` objects.
 
+
+
 ```mermaid
 classDiagram
     class RichTextBox{
@@ -23,8 +25,8 @@ classDiagram
         +ObservableCollection~TextRange~ TextRanges
     }
     class Block{
-        +Paragraph Paragraph
-        +Table Table
+        +Paragraph
+        +Table
     }
     class Paragraph{
         +IEditable Objects
@@ -88,7 +90,7 @@ The RichTextBox has the usual key functions:
 
 The `FlowDoc` has a `Selection` property, with `Start`, `End`, `Length`, `Select`, `Delete`, `Text`, etc.
 
-The `RichTextBox` also includes the concept of `TextRange` (of which `Selection` is merely a special case), which can be defined to format text from code independent from the current `FlowDoc.Selection`. A new `TextRange` is created with a `Start` and `End` (and its owning `FlowDoc`), whereby it is automatically added to the `FlowDoc's TextRanges List` so its Start and/or End can be updated whenever text changes in the `FlowDoc` require it. `TextRange` also has an `ApplyFormatting` property which allows any `AvaloniaProperty` to be applied that pertains to Inlines.
+The `RichTextBox` also includes the concept of `TextRange` (of which `Selection` is merely a special case), which can be defined to format text from code independent from the current `FlowDoc.Selection`. A new `TextRange` is created with a `Start` and `End` (and its owning `FlowDoc`), whereby it is automatically added to the `FlowDoc`'s `TextRanges` List, which get auto-updated whenever text changes in the `FlowDoc` require it. `TextRange` also has an `ApplyFormatting` property which allows any `AvaloniaProperty` to be applied that pertains to Inlines.
 
 The RichTextBox content can be saved/loaded either as straight Xaml or a XamlPackage (to preserve images), similar to the WPF RichTextBox.
 It can also save and load the FlowDoc content as a Word document (.docx), Rtf document (.rtf) or Html (.html), though only with a subset of attributes.  This includes text, common text/paragraph formatting, images, highlighting, forecolor, justification, borders, etc.  
@@ -96,6 +98,8 @@ It can also save and load the FlowDoc content as a Word document (.docx), Rtf do
 Content can be directly added in Xaml as well:
 			
 ```xaml  
+xmlns:avrtb="using:AvRichTextBox"
+
 <avrtb:RichTextBox ShowDebuggerPanelInDebugMode="True" >
 
 	<avrtb:RichTextBox.FlowDocument>
