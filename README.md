@@ -17,24 +17,27 @@ classDiagram
         +FlowDocument FlowDoc
     }
     class FlowDocument{
-        +ObservableCollection<Block>
+        +ObservableCollection~Block~ Blocks
+        +ObservableCollection~TextRange~ TextRanges
     }
-    class Blocks{
+    class Block{
         +Paragraph Paragraph
         +Table Table
     }
     class Paragraph{
         +IEditable Objects
-        +EditableParagraph EditableParagraph
+        +EditableParagraph
     }
     
     class Paragraph{
         +IEditable Objects
-        +EditableParagraph EditableParagraph
+        +EditableParagraph
     }
     class IEditable{
-        +EditableRun EditableRun
-        +EditableInlineUIContainer EditableInlineUIContainer
+        +EditableRun
+        +EditableInlineUIContainer
+        +EditableLineBreak
+        +EditableHyperlink
     }
     class Selection{
     }
@@ -49,24 +52,25 @@ classDiagram
     class Table{
       +ColDefs
       +RowDefs
-      +CellBlocks
+      +ObservableCollection~Cell~ Cells
     }
     class Cell{
       +RowNo
       +ColNo
       +RowSpan
       +ColSpan
+      +ObservableCollection~Block~ CellBlocks
     }
 
     RichTextBox --> FlowDocument : has
-    FlowDocument --> Blocks : has
-    FlowDocument --> TextRanges : has
+    FlowDocument --> Block : has
+    FlowDocument --> TextRange : has
     Block --> Paragraph : is
     Block --> Table : is
     Paragraph --> IEditable : has
     TextRange --> Selection : instance
     Table --> Cell : contains
-    Cell --> ObservableCollection<Block> CellBlocks : contains
+    
     
 
 ```
