@@ -144,15 +144,15 @@ If you are able, feel free to add a section to BasicUsage.md, or even create a n
 ## Change log
 
 **[ver 1.0.15] - 2025/02/22**
-Internal binding was of the RTB itself to its viewmodel, which prevented external binding to `UserControl` properties (such as IsVisible).  Internal binding is now to the immediate child (`DockPanel` "MainDP"), freeing up the properties of the `UserControl` itself.
+Internal binding was of the RTB itself to its viewmodel, which prevented external binding to `UserControl` properties (such as IsVisible).  Internal binding is now to the immediate child (`DockPanel` "MainDP"), freeing up the properties of the `UserControl` itself.  
 Also upgraded copy/paste to allow copying and pasting of paragraph breaks (\r), which were ignored before.
 
 **[ver 1.0.16] 2025/02/25**
-Now works with Avalonia 11.1.xx & 11.2.xx!  Binding update issues resolved.  Previous `AvRichTextBox` versions failed on Avalonia 11.1 and higher and have been deprecated.
+Now works with Avalonia 11.1.xx & 11.2.xx!  Binding update issues resolved.  Previous `AvRichTextBox` versions failed on Avalonia 11.1 and higher and have been deprecated.  
 In addition, added IME support for Chinese/Japanese input.  Kanji and Hanzi can now be directly inputted in the RichTextBox.
 
 **[ver 1.0.17] 2025/02/26**
-Improved IME popup location and behavior (Hides on Esc key, or after backspacing to null entry).
+Improved IME popup location and behavior (Hides on Esc key, or after backspacing to null entry).  
 In addition, the RichTextBox content can now be saved as .rtf  (`SaveRtfDoc(string fileName)`).  As of now, not all font attributes are honored in the save.
 
 **[ver 1.2.0] 2025/02/27**
@@ -168,7 +168,7 @@ Some minor fixes: run break errors, and better handling of Word colors.  Also se
 Can save/load as Html.  Rtf images/line spacing now saved.  `Paragraph` borders, colors and backgrounds supported.
 
 **[ver. 1.3.2] 2025/04/09**
-Changed the underlying strategy for Undo. Undo now creates clones instead of retaining objects, which was causing problems during complex Undo sequences.
+Changed the underlying strategy for Undo. Undo now creates clones instead of retaining objects, which was causing problems during complex Undo sequences.  
 Also made `ShowDebuggerPanelInDebugMode` default to `False`. 
 
 **[ver. 1.3.8] 2025/08/02**
@@ -189,7 +189,7 @@ Can add direct content to `RichTextBox` in Xaml
 Can set `SelectionBrush` globally for AvRichTextBox
 
 **[ver.1.6.3] 2026/03/01**
-Added preliminary `Table` support.  `Table` can be added as a `Block` in the `FlowDocument`.  (Some bugs remain to be fixed: for example, copying/pasting of tables not supported yet.)
+Added preliminary `Table` support.  `Table` can be added as a `Block` in the `FlowDocument`.  (Some bugs remain to be fixed: for example, copying/pasting of tables not supported yet.)  
 In addition, `BaselineAlignment.Superscript`/`.Subscript` runs now appear properly as such (raised/lowered text).  (Modification was necessary because Avalonia's `SelectableTextBlock` currently doesn't display them properly).  
 
 **[ver 1.6.4] 2026/03/22**:
@@ -205,32 +205,32 @@ fixed `GetVisualDescendants()` error in Debug mode
 Updated to Avalonia 12
 
 **[ver 1.7.3] 2026/04/18**: 
-Added end byte "\0" to clipboard rtfstring for some apps that need it.
-Fixed: Deleting all RTB content as a `Range` (i.e. selecting all (Ctrl-A) + Delete) prevented input or crashed.
+Added end byte "\0" to clipboard rtfstring for some apps that need it.  
+Fixed: Deleting all RTB content as a `Range` (i.e. selecting all (Ctrl-A) + Delete) prevented input or crashed.  
 Fixed: Errors with pasting of multiple paragraphs
 
 **[ver 1.7.4] 2026/04/20**: 
 Made `RtfDomParserAv` parse numbered lists (as consecutive numbers)
 
 **[ver 1.7.5] 2026/04/21**: 
-External images can now be pasted into RTB.
+External images can now be pasted into RTB.  
 Removed setting default collection on `BlocksProperty` of `FlowDocument`, which was causing multiple RTBs to point to the same collection.  `Blocks` collection is now created in `FlowDocument` ctor.
 
 **[ver 1.7.6] 2026/04/24**: 
 Fixed various pasting errors
-Added `TextRange.Load()`/`.Save()` (to and from Xaml, Rtf, Text)
-`RichTextBox` now has a `Zoom` (double) property. 
-Fixed `LoadXaml` was not parsing `FontFamily` for `EditableRun`s
+Added `TextRange.Load()`/`.Save()` (to and from Xaml, Rtf, Text)  
+`RichTextBox` now has a `Zoom` (double) property.  
+Fixed `LoadXaml` was not parsing `FontFamily` for `EditableRun`s  
 Changed default for `LineHeight` of `Paragraph` from 18.666 to 0 (height based on fontsize)
 
 **[ver 1.8.0] 2026/04/29**: 
-Completely revamped the visual method for displaying text selection (independent highlighting across the RTB, which no longer depends on each `SelectableTextBlock`).
-`EditableParagraph` therefore changed to inherit from the more lightweight `TextBlock` instead of `SelectableTextBlock`, since the selection function is no longer needed.
-This new selection method can now properly highlight linebreaks and empty paragraphs as well.
+Completely revamped the visual method for displaying text selection (independent highlighting across the RTB, which no longer depends on each `SelectableTextBlock`).  
+`EditableParagraph` therefore changed to inherit from the more lightweight `TextBlock` instead of `SelectableTextBlock`, since the selection function is no longer needed.  
+This new selection method can now properly highlight linebreaks and empty paragraphs as well.  
 Caret size and position also fixed for most cases.
 
 **[ver 1.8.1] 2026/04/29**:
-Disabled user setting of `Horizontal/VerticalContentAlignment` directly on `RichTextBox`, which would break internal measurement of caret and selection highlighting.
+Disabled user setting of `Horizontal/VerticalContentAlignment` directly on `RichTextBox`, which would break internal measurement of caret and selection highlighting.  
 Fixed mouse selection relative to `FlowDoc.PagePadding` and `Zoom`.
 Fixed issue with quotes in html/rtf loading.
 
@@ -273,7 +273,7 @@ Can add new Paragraph in Table Cell
 Fixes for certain multi-paragraph copy/paste cases
 
 **[ver 1.9.8] 2026/08/28**
-Fixes for certain LineBreak cut/paste cases.
+Fixes for certain LineBreak cut/paste cases.  
 Pasting Image adds new paragraph at end.
 
 **[ver 1.9.9] 2026/08/29**
