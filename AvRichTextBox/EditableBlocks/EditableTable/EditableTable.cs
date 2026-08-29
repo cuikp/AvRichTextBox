@@ -19,7 +19,7 @@ public partial class EditableTable : ItemsControl
     private const double ResizeGripSize = 5;
     private const double MinColumnWidth = 24;
     private const double MinRowHeight = 24;
-
+    
     private readonly Cursor _ewResizeCursor = new(StandardCursorType.SizeWestEast);
     private readonly Cursor _nsResizeCursor = new(StandardCursorType.SizeNorthSouth);
 
