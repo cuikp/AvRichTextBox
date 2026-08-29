@@ -1,11 +1,11 @@
 # A RichTextBox control for Avalonia
 [![NuGet version](https://img.shields.io/nuget/v/Simplecto.Avalonia.RichTextBox.svg?cachebuster=1)](https://www.nuget.org/packages/Simplecto.Avalonia.RichTextBox/)
 
-As of ~~2024,2025~~2026, Avalonia doesn't yet come with a RichTextBox, and since I needed one I created a "poor-man's version" based on the existing control `SelectableTextBlock`.
+As of ~~2024,2025~~2026, Avalonia doesn't yet come with a RichTextBox, and since I needed one I created a "poor-man's version" based on the existing control ~~`SelectableTextBlock`~~`TextBlock`.
 
 Mirroring WPF, this `RichTextBox` control uses the concept of a `FlowDocument` (`FlowDoc`), which contains `Blocks` (which can be either of two types: `Paragraph` or `Table`). 
 
-`Paragraph` contains `IEditable` objects (`EditableRun` (from `Avalonia.Controls.Documents.Run`) and `EditableInlineUIContainer` (from `Avalonia.Controls.Documents.InlineUIContainer`)) and it is bound to an `EditableParagraph` UI (inheriting from `TextBlock`).
+`Paragraph` contains `IEditable` objects (`EditableRun` (from `Avalonia.Controls.Documents.Run`) and `EditableInlineUIContainer` (from `Avalonia.Controls.Documents.InlineUIContainer`)) and it is bound to an `EditableParagraph` UI (inheriting from ~~`SelectableTextBlock`~~`TextBlock`).
 
 `Table` blocks contain a set of `Cell` objects each with properties `RowNo` and `ColNo`, as well as a collection of `Block`, and it is bound to an `EditableTable` UI which is an `ItemsControl`.
 
