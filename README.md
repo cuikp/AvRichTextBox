@@ -247,3 +247,6 @@ Fixes for certain multi-paragraph copy/paste cases
 **[ver 1.9.8] 2026/08/28**
 Fixes for certain LineBreak cut/paste cases.
 Pasting Image adds new paragraph at end.
+
+**[ver 1.9.9] 2026/08/29**
+Fixed rtf table cell horizontal merge

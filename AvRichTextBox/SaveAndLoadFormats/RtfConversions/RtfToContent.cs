@@ -103,7 +103,8 @@ internal static partial class RtfConversions
                 double cellPaddingBottom = 1;
 
                 bool isVMerged = false;
-
+                bool isHMerged = false;
+                
                 foreach (RTFAttribute att in celm.Attributes)
                 {
                     switch (att.Name)
@@ -116,6 +117,14 @@ internal static partial class RtfConversions
                             break;
                         case "clvertalb":
                             newCell.CellVerticalAlignment = VerticalAlignment.Bottom;
+                            break;
+
+                        case "clmrg":
+                            isHMerged = true;
+                            break;
+
+                        case "clmgf":
+                            //Debug.WriteLine("RTB: cell colspan = " + newCell.ColSpan);
                             break;
 
                         case "clvmrg":
@@ -194,7 +203,7 @@ internal static partial class RtfConversions
                     }
                 }
 
-                if (!isVMerged)
+                if (!isVMerged && !isHMerged)
                 {
                     foreach (RTFDomParagraph rtfpardom in celm.Elements.OfType<RTFDomParagraph>())
                         newCell.CellBlocks.Add(GetParagraphFromRtfDom(rtfpardom, fdoc));
@@ -204,7 +213,9 @@ internal static partial class RtfConversions
 
                     if (newCell.CellBlocks != null)
                         newtable.Cells.Add(newCell);
+
                 }
+
 
                 colno++;
             }

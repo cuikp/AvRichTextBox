@@ -20,15 +20,14 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>ver 1.9.8:
-Fixes for certain LineBreak cut/paste cases.
-Pasting Image adds new paragraph at end.
+	  <PackageReleaseNotes>ver 1.9.9:
+Fixed rtf table cell horizontal merge
 </PackageReleaseNotes>
       
      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 	  <PackageOutputPath>D:\PROG\LocalNuget\AvRichTextBox</PackageOutputPath>
 	  
-	  <Version>1.9.8</Version>
+	  <Version>1.9.9</Version>
 	  <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
 	  
