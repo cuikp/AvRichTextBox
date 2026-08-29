@@ -54,7 +54,7 @@ public partial class MainWindow : Window
 
 
         //DEBUG
-        //CreateTestDocumentWithTable();
+        CreateTestDocumentWithTable();
         //OpenTestDocument();
 
     }
@@ -135,7 +135,7 @@ public partial class MainWindow : Window
         newPar2.Inlines.Add(new EditableRun("Some extra text after the table."));
         MainRTB.FlowDocument.Blocks.Add(newPar2);
 
-
+        
         Dispatcher.UIThread.Post(() =>
         {
             MainRTB.UpdateLayout();

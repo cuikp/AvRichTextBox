@@ -95,7 +95,65 @@ The `RichTextBox` also includes the concept of `TextRange` (of which `Selection`
 The RichTextBox content can be saved/loaded either as straight Xaml or a XamlPackage (to preserve images), similar to the WPF RichTextBox.
 It can also save and load the FlowDoc content as a Word document (.docx), Rtf document (.rtf) or Html (.html), though only with a subset of attributes.  This includes text, common text/paragraph formatting, images, highlighting, forecolor, justification, borders, etc.  
 
-Content can be directly added in Xaml as well:
+Programmatically, content can be added by adding Paragraph/Table objects to FlowDocument
+
+```csharp
+
+        Paragraph firstPar = new(AvRTB.FlowDocument);
+        
+        firstPar.Inlines.AddRange([
+            new EditableRun("A first line with super/subscripts: "),
+            new EditableRun("H"),
+            new EditableRun("2") { BaselineAlignment = BaselineAlignment.Subscript },
+            new EditableRun("O"),
+            new EditableRun(" at 2 g/m") { },
+            new EditableRun("3") { BaselineAlignment = BaselineAlignment.Superscript },
+            new EditableRun(", and a simple hyperlink: "),
+            new EditableHyperlink("go to google", @"https://www.google.com"),
+            new EditableRun(" for testing.")
+        ]);
+
+        AvRTB.FlowDocument.Blocks.Add(firstPar);
+
+        Paragraph secondPar = new(AvRTB.FlowDocument);
+        secondPar.Inlines.Add(new EditableRun("A second paragraph just before the table."));
+        AvRTB.FlowDocument.Blocks.Add(secondPar);
+
+        //Add a Table
+        int noCols = 5;
+        int noRows = 4;
+        Table newTable = new (noCols, noRows, AvRTB.FlowDocument) { BorderThickness = new(1), BorderBrush = Brushes.ForestGreen, TableAlignment = HorizontalAlignment.Center };
+        
+        for (int rowno = 0; rowno < noRows; rowno++)
+        {
+            for (int colno = 0; colno < noCols; colno++)
+            {
+                int cellno = rowno * noCols + colno;
+                Cell c = newTable.Cells[cellno];
+                c.CellVerticalAlignment = VerticalAlignment.Center;
+                Paragraph p = new (AvRTB.FlowDocument) { TextAlignment = TextAlignment.Center };
+                p.Inlines.Add(new EditableRun("col:" + colno));
+                p.Inlines.Add(new EditableLineBreak());
+                p.Inlines.Add(new EditableRun("row:" + rowno));
+                c.CellBlocks[0] = p;
+            }
+        }
+
+        //Merge cells
+        newTable.GetCellAt(1, 0)?.ColSpan = 2;
+        newTable.RemoveCellAt(1, 1);
+        newTable.GetCellAt(2, 3)?.RowSpan = 2;
+        newTable.RemoveCellAt(3, 3);
+    
+        AvRTB.FlowDocument.Blocks.Add(newTable);
+        
+        Paragraph newPar = new(AvRTB.FlowDocument);
+        newPar.Inlines.Add(new EditableRun("Some extra text after the table."));
+        AvRTB.FlowDocument.Blocks.Add(newPar);
+
+```
+
+Content can also be added directly in Xaml:
 			
 ```xaml  
 xmlns:avrtb="using:AvRichTextBox"
