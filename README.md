@@ -3,12 +3,13 @@
 
 As of ~~2024,2025~~2026, Avalonia doesn't yet come with a RichTextBox, and since I needed one I created a "poor-man's version" based on the existing control `SelectableTextBlock`.
 
-Mirroring WPF, this `RichTextBox` control uses the concept of a `FlowDocument` (`FlowDoc`), which contains `Blocks` (at the current time, only `Paragraph` is available, although `Section` or `Table` could be added later). 
+Mirroring WPF, this `RichTextBox` control uses the concept of a `FlowDocument` (`FlowDoc`), which contains `Blocks` (which can be either of two types: `Paragraph` or `Table`). 
 `Paragraph` contains `IEditable` objects (`EditableRun` (from `Avalonia.Controls.Documents.Run`) and `EditableInlineUIContainer` (from `Avalonia.Controls.Documents.InlineUIContainer`)) and it is bound to an `EditableParagraph` (inheriting from `SelectableTextBlock`).
+`Table` blocks contain a set of `Cell` objects each with properties `RowNo` and `ColNo`, as well as a collection of `Block`.
 
-The `FlowDoc` is at heart merely an `ObservableCollection` of Blocks bound as the `ItemsSource` of an `ItemsControl` inside a `ScrollViewer`. Upon adding the appropriate key input handling, the control functions like a `RichTextBox`.
+The `FlowDoc` is at heart merely an `ObservableCollection` of `Block`s bound as the `ItemsSource` of an `ItemsControl` inside a `ScrollViewer`. Upon adding the appropriate key input handling and internal updating, the control functions like a `RichTextBox`.
 
-(The harder part after that was implementing the selection logic, because `Selection` for the `RichTextBox` has to be able to move between and span multiple Paragraphs (SelectableTextBlocks), both with the keyboard and the mouse, and to allow editing functions that involve splitting or merging Paragraphs. And of course the Inline logic for spanning, inserting, splitting or deleting Inlines.)
+The hardest part of this all has been the editing functions for splitting, deleting, inserting and keeping track of the `IEditable` objects.
 
 ```mermaid
 classDiagram
@@ -16,14 +17,17 @@ classDiagram
         +FlowDocument FlowDoc
     }
     class FlowDocument{
-        +ObservableCollection<Blocks>
-    }
-    class FlowDoc{
-        -List<TextRange> TextRanges
+        +ObservableCollection<Block>
     }
     class Blocks{
         +Paragraph Paragraph
+        +Table Table
     }
+    class Paragraph{
+        +IEditable Objects
+        +EditableParagraph EditableParagraph
+    }
+    
     class Paragraph{
         +IEditable Objects
         +EditableParagraph EditableParagraph
@@ -42,14 +46,28 @@ classDiagram
         +string Text
         +ApplyFormatting(AvaloniaProperty,  object)
     }
+    class Table{
+      +ColDefs
+      +RowDefs
+      +CellBlocks
+    }
+    class Cell{
+      +RowNo
+      +ColNo
+      +RowSpan
+      +ColSpan
+    }
 
     RichTextBox --> FlowDocument : has
     FlowDocument --> Blocks : has
-    FlowDoc --> TextRange : has
-    Blocks --> Paragraph : contains
+    FlowDocument --> TextRanges : has
+    Block --> Paragraph : is
+    Block --> Table : is
     Paragraph --> IEditable : has
     TextRange --> Selection : instance
-    RichTextBox --> FlowDoc : has
+    Table --> Cell : contains
+    Cell --> ObservableCollection<Block> CellBlocks : contains
+    
 
 ```
 
@@ -103,12 +121,12 @@ Content can be directly added in Xaml as well:
 
 ## Various future to-do improvements include:
 * Word/Html/RTF export and import can be fleshed out (to support more attributes)
-* Make Undo more solid, allow the Undo limit to be set, create a Redo stack
+* Allow setting of Undo limit, create a Redo stack
 
 `RtfDomParser` used for reading/parsing of rtf files can be found at https://github.com/SourceCodeBackup/RtfDomParser, but for this project I had to manually modify it to use `Avalonia.Media` instead of `System.Drawing`.  That modified library is included in this project as `RtfDomParserAv.dll`.  Generation of .rtf for saving is my own concoction with the bare minimum necessary to produce a readable .rtf file/dataobject.
 
 ## Usage Examples
-Time is always a limiting factor, so I'd appreciate any contributors who have used this library and have time/interest to add usage examples for this library.
+I'd appreciate any contributors who have used this library and have time/interest to add usage examples for this library.
 A file for usage examples is in `/docs/BasicUsage.md`.
 If you are able, feel free to add a section to BasicUsage.md, or even create a new file under `/docs`, then open a pull request.
 
