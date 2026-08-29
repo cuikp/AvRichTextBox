@@ -231,42 +231,42 @@ Caret size and position also fixed for most cases.
 
 **[ver 1.8.1] 2026/04/29**:
 Disabled user setting of `Horizontal/VerticalContentAlignment` directly on `RichTextBox`, which would break internal measurement of caret and selection highlighting.  
-Fixed mouse selection relative to `FlowDoc.PagePadding` and `Zoom`.
+Fixed mouse selection relative to `FlowDoc.PagePadding` and `Zoom`.  
 Fixed issue with quotes in html/rtf loading.
 
 
 **[ver 1.8.3] 2026/05/01**: 
-Fixed undo not working after toggling formatting on/off while typing
-Fixed underlining not saving in html.
-Added right-click ContextMenu (Copy/Paste/Cut/Delete)
-Shift+Ctrl-Right/Left to select next(previous word)
-Shift+Ctrl-Home/End to select to Home/End
+Fixed undo not working after toggling formatting on/off while typing  
+Fixed underlining not saving in html.  
+Added right-click ContextMenu (Copy/Paste/Cut/Delete)  
+Shift+Ctrl-Right/Left to select next(previous word)  
+Shift+Ctrl-Home/End to select to Home/End  
 Caret color is customizable  (CaretBrush)
 
 
 **[ver 1.9.1] 2026/06/19**: 
-Updated to Avalonia 12.0.2
-Revamped internal inline calculations
-Added EditableHyperlink
-Multiple paragraphs allowed in table `Cell`s (theoretically any type of `Block` (such as `EditableInlineUIContainer` or even nested `Table`), but this is not at all tested).
-Hyperlink support with popup edit dialog. (`EditableHyperlink`)
-Removed `VerticalAlignment` property from `Paragraph`: Now `Cell` has `VerticalAlignment` instead, to adjust content position within cells.
-Fixed format toggling issues.
+Updated to Avalonia 12.0.2  
+Revamped internal inline calculations  
+Added EditableHyperlink  
+Multiple paragraphs allowed in table `Cell`s (theoretically any type of `Block` (such as `EditableInlineUIContainer` or even nested `Table`), but this is not at all tested).  
+Hyperlink support with popup edit dialog. (`EditableHyperlink`)  
+Removed `VerticalAlignment` property from `Paragraph`: Now `Cell` has `VerticalAlignment` instead, to adjust content position within cells.  
+Fixed format toggling issues.  
 Table cell borders adjustable by mouse.
 
 **[ver 1.9.2] 2026/06/20**
 Updated to Avalonia 12.0.4
 
 **[ver 1.9.3] 2026/06/21**: 
-Table/row heights now dynamically change with cell contents.
+Table/row heights now dynamically change with cell contents.  
 Some important paragraph Delete/Undo fixes
 
 **[ver 1.9.4] 2026/08/19**: 
 Caret blink mechanism changed to styling
 
 **[ver 1.9.6] 2026/08/23**
-Fix to multi-paragraph copy/paste
-Can copy/paste full tables
+Fix to multi-paragraph copy/paste  
+Can copy/paste full tables  
 Can add new Paragraph in Table Cell
 
 **[ver 1.9.7] 2026/08/27**
