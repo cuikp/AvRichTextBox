@@ -101,7 +101,7 @@ public partial class RichTextBox : UserControl
 
         SelectionPath.Data = _geometry;
 
-        var panel = new Canvas();
+        var panel = new Canvas() ;
         panel.Children.Add(SelectionPath);
         panel.Children.Add(_CaretRect);
         AdornerLayer.SetAdorner(DocIC, panel);

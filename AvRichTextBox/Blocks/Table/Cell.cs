@@ -42,7 +42,27 @@ public class Cell : INotifyPropertyChanged
             }
         }
 
+        int lengthOffset = 0;
+        if (e.NewItems != null)
+        {
+            foreach (Block b in e.NewItems)
+                lengthOffset += b.BlockLength;
+        }
+
+        if (e.OldItems != null)
+        {
+            foreach (Block b in e.OldItems)
+                lengthOffset -= b.BlockLength;
+        }
+
         OwningTable.MyFlowDoc.AllParagraphs = [.. OwningTable.MyFlowDoc.GetAllParagraphs];  //update collection of all paragraphs
+
+        //Auto update blocks and ranges when collection changed
+        OwningTable.MyFlowDoc.UpdateBlockAndInlineStarts(Math.Max(0, OwningTable.MyFlowDoc.Blocks.IndexOf(OwningTable)));
+        
+        if (CellBlocks.Count > 0 && e.NewStartingIndex > -1)
+            OwningTable.MyFlowDoc.UpdateTextRanges(CellBlocks[e.NewStartingIndex].StartInDoc, lengthOffset);
+
 
     }
 
@@ -57,10 +77,10 @@ public class Cell : INotifyPropertyChanged
     public VerticalAlignment CellVerticalAlignment { get; set { field = value; NotifyPropertyChanged(nameof(CellVerticalAlignment)); } } = VerticalAlignment.Top;
     public Thickness Padding { get; set { field = value; NotifyPropertyChanged(nameof(Padding)); } } = new(5);
     
-    public int ColNo { get; set; }
-    public int RowNo { get; set; }
-    public int ColSpan { get; set; } = 1;
-    public int RowSpan { get; set; } = 1;
+    public int ColNo { get; set { field = value; NotifyPropertyChanged(nameof(ColNo)); } }
+    public int RowNo { get; set { field = value; NotifyPropertyChanged(nameof(RowNo)); } }
+    public int ColSpan { get; set { field = value; NotifyPropertyChanged(nameof(ColSpan)); } } = 1;
+    public int RowSpan { get; set { field = value; NotifyPropertyChanged(nameof(RowSpan)); } } = 1;
 
     public bool Selected { get; set { field = value; NotifyPropertyChanged(nameof(Selected)); } } = false;
 

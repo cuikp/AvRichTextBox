@@ -306,7 +306,7 @@ public partial class FlowDocument
                 SelectionExtendMode = ExtendMode.ExtendModeNone;
             }
         }
-
+                
         Paragraph parToInsert = null!;
         int blockIndex = insertPar.IsCellBlock ? Blocks.IndexOf(insertPar.OwningTable): Blocks.IndexOf(insertPar);
         int parIndex = insertPar.IsCellBlock ? insertPar.OwningCell.CellBlocks.IndexOf(insertPar) : blockIndex;
@@ -376,7 +376,7 @@ public partial class FlowDocument
                 int cellId = insertPar.IsCellBlock ? insertPar.OwningCell.Id : -1;
                 Undos.Add(new InsertParagraphUndo(this, originalPar.Id, parToInsert.Id, keepParInlineClones, originalSelStart, selectionLength - 1, insertPar.IsCellBlock, tableId, cellId));
             }
-
+                        
             originalPar.CallRequestInlinesUpdate();
             originalPar.CallRequestTextLayoutInfoStart();
             originalPar.CallRequestTextLayoutInfoEnd();

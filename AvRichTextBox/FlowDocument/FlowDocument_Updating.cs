@@ -48,6 +48,7 @@ public partial class FlowDocument
                             {
                                 //Debug.WriteLine("updating paragraph : " + p.Text.TrimEnd("\r\n".ToArray()));
                                 p.UpdateEditableRunPositions();
+                                
                             }
 
                             innerSum += b.BlockLength;

@@ -27,7 +27,7 @@
 		  <Setter Property="Template">
 			<ControlTemplate>
 			  <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
-				 <ItemsPresenter ItemsPanel="{TemplateBinding ItemsPanel}"/>
+				 <ItemsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" />
 			  </Border>
 			</ControlTemplate>
 		  </Setter>
@@ -96,7 +96,7 @@
 
 						<DataTemplate>
 
-							<ContentControl Content="{Binding}" HorizontalAlignment="Stretch" >
+							<ContentControl Content="{Binding}" HorizontalAlignment="Stretch" ClipToBounds="False" >
 
 								<ContentControl.DataTemplates>
 								
@@ -123,21 +123,24 @@
 
 									<!-- Template for EditableTable -->
 									<DataTemplate DataType="local:Table" >
-											
+										
+										
 										<local:EditableTable Background="GhostWhite" VerticalAlignment="Top"  BorderBrush="{Binding BorderBrush}" BorderThickness="{Binding BorderThickness}" Margin="{Binding Margin}" HorizontalAlignment="{Binding TableAlignment}" Width="{Binding Width}" Height="{Binding Height}" ItemsSource="{Binding Cells}" 
-										 MouseMove="EditableTable_MouseMove" MouseLeave="EditableTable_MouseLeave" >
-
+										 MouseMove="EditableTable_MouseMove" MouseLeave="EditableTable_MouseLeave" ClipToBounds="False"
+										 local:RequestExtensions.InvalidateVisualRequested="{Binding RequestInvalidateVisual}"
+										 >
+											
 												<ItemsControl.ItemsPanel>
 													<ItemsPanelTemplate>
-														<local:BindableGrid RowDefs="{Binding RowDefs}" ColDefs="{Binding ColDefs}" />
+															<local:BindableGrid RowDefs="{Binding RowDefs}" ColDefs="{Binding ColDefs}" ClipToBounds="False" />
 													</ItemsPanelTemplate>
 												</ItemsControl.ItemsPanel>
 
 												<ItemsControl.ItemTemplate>
 													<DataTemplate x:DataType="{x:Type local:Cell}">
 														<Grid>
-															<local:EditableCell Padding="{Binding Padding}"  BorderThickness="{Binding BorderThickness}" BorderBrush="{Binding BorderBrush}" Background="{Binding CellBackground}" SizeChanged="EditableCell_SizeChanged" >
-																
+															<local:EditableCell Padding="{Binding Padding}" Background="{Binding CellBackground}"  >
+
 																<!-- Cell interior paragraph stack -->
 																<ItemsControl ItemsSource="{Binding CellBlocks}" Margin="0" VerticalAlignment="{Binding CellVerticalAlignment}">
 																	<ItemsControl.ItemsPanel>
@@ -151,14 +154,14 @@
 																		<DataTemplate>
 
 																			<local:EditableParagraph x:DataType="local:Paragraph" Classes="paragraphBindings" xml:space="preserve" 
-																				MouseMove="EditableParagraph_MouseMove" SizeChanged="EditableParagraph_SizeChanged"
-																				LostFocus="EditableParagraph_LostFocus" 
+																				MouseMove="EditableParagraph_MouseMove" LostFocus="EditableParagraph_LostFocus" 
 																
 																				TextLayoutInfoStartRequested="{Binding RequestTextLayoutInfoStart}"
 																				TextLayoutInfoEndRequested="{Binding RequestTextLayoutInfoEnd}"
 																				local:RequestExtensions.TextBoxFocusRequested="{Binding RequestTextBoxFocus}"
 																				local:RequestExtensions.IsInlineUpdateRequested="{Binding RequestInlinesUpdate}"
 																				local:RequestExtensions.InvalidateVisualRequested="{Binding RequestInvalidateVisual}"
+																				local:RequestExtensions.SizeChangedRequested="{Binding RequestSizeChanged}"
 																				/>  
 																		</DataTemplate>
 																	</ItemsControl.ItemTemplate>
@@ -170,8 +173,11 @@
 														</Grid>
 													</DataTemplate>
 												</ItemsControl.ItemTemplate>
+																					
+
 										</local:EditableTable>
-										
+										 
+											
 									</DataTemplate>
 
 								</ContentControl.DataTemplates>

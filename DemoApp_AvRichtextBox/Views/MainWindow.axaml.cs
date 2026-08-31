@@ -123,14 +123,10 @@ public partial class MainWindow : Window
             }
         }
 
-        //Test merging cells  - also combine this into a MergeCellsAt() method
-        newTable.GetCellAt(1, 0)?.ColSpan = 2;
-        newTable.RemoveCellAt(1, 1);
-        newTable.GetCellAt(2, 3)?.RowSpan = 2;
-        newTable.RemoveCellAt(3, 3);
-    
+
         MainRTB.FlowDocument.Blocks.Add(newTable);
         
+
         Paragraph newPar2 = new(MainRTB.FlowDocument);
         newPar2.Inlines.Add(new EditableRun("Some extra text after the table."));
         MainRTB.FlowDocument.Blocks.Add(newPar2);
@@ -141,7 +137,12 @@ public partial class MainWindow : Window
             MainRTB.UpdateLayout();
             MainRTB.FlowDocument.Select(0, 0);
         });
-             
+
+        //Merge cells
+        newTable.MergeCellsRight(1, 0, 2);
+        newTable.MergeCellsDown(1, 3, 1);
+        
+        newTable.InsertColumns(0, 2);
 
     }
 

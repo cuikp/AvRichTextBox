@@ -1,6 +1,7 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Threading;
 using System.Collections.ObjectModel;
 using static AvRichTextBox.FlowDocument;
 
@@ -10,12 +11,16 @@ public partial class Table : Block
 {
     public Thickness BorderThickness { get; set { field = value; NotifyPropertyChanged(nameof(BorderThickness)); } } = new(1);
     public IBrush BorderBrush { get; set { field = value; NotifyPropertyChanged(nameof(BorderBrush)); } } = Brushes.Black;
-    
+
+    internal void CallRequestInvalidateVisual() { RequestInvalidateVisual = true; RequestInvalidateVisual = false; }
+    internal bool RequestInvalidateVisual { get; set { field = value; NotifyPropertyChanged(nameof(RequestInvalidateVisual)); } } = false;
+
+
     public ObservableCollection<Cell> Cells { get; set; } = [];
     public ColumnDefinitions ColDefs { get; set; } = [];
     public RowDefinitions RowDefs { get; set; } = [];
-    public double Height { get; set { field = value; NotifyPropertyChanged(nameof(Height)); } } = 0;
-    public double Width { get; set; } = 500;
+    public double Height { get; set { field = value; NotifyPropertyChanged(nameof(Height)); } } = 50;
+    public double Width { get; set { field = value; NotifyPropertyChanged(nameof(Width)); }} = 500;
     public HorizontalAlignment TableAlignment { get; set; } = HorizontalAlignment.Left;
 
     internal IBrush SelectionBrush = Brushes.LightSteelBlue;
@@ -37,7 +42,7 @@ public partial class Table : Block
         if (rows <= 0)
             throw new ArgumentOutOfRangeException(nameof(rows), rows, "Number of rows must be greater than zero.");
 
-        //Cells.CollectionChanged += Cells_CollectionChanged;
+        Cells.CollectionChanged += Cells_CollectionChanged;
 
         double eqWidth = Math.Truncate(Width / cols);
         double eqHeight = Math.Truncate(Height / rows);
@@ -60,7 +65,7 @@ public partial class Table : Block
                     ColNo = colno,
                     RowNo = rowno,
                     BorderThickness = new(1),
-                    BorderBrush = Brushes.Red,
+                    BorderBrush = Brushes.Black,
                     Padding = new(5)
                 };
 
@@ -78,6 +83,18 @@ public partial class Table : Block
 
         Debug.WriteLine("total cells : " + Cells.Count);
 
+        this.CallRequestInvalidateVisual();
+
+    }
+
+    private void Cells_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        if (Cells.FirstOrDefault() is Cell c)
+        {
+            if (c.CellBlocks.FirstOrDefault() is Paragraph p) 
+                MyFlowDoc.UpdateBlockAndInlineStarts(p);
+        }
+        
 
     }
 
@@ -106,7 +123,7 @@ public partial class Table : Block
         return newTable;
     }
 
-    // RowDefs and ColDefs must be cloned to be free of previously bound BindableGrid 
+    // copied RowDefs and ColDefs must be cloned to be free of previously bound BindableGrid 
     private static RowDefinitions CloneRowDefs(RowDefinitions source) 
     { 
         var result = new RowDefinitions(); 
@@ -132,8 +149,90 @@ public partial class Table : Block
             Cells.Remove(toRemoveCell);
     }
 
-    internal void InsertColumn(int idx)
+    public void InsertColumns(int columnIndex, int count)
     {
+        if (columnIndex > ColDefs.Count) return;
+
+        for (int insertCol = 0; insertCol < count;  insertCol++)
+        {
+            double newWidth = ColDefs[columnIndex].Width.Value / 2D;
+            ColDefs[columnIndex].Width = new GridLength(newWidth, GridUnitType.Pixel);
+
+            for (int rowno = RowDefs.Count - 1; rowno > -1; rowno--)
+            {
+                if (GetCellAt(rowno, columnIndex) is Cell insertBeforeCell)
+                {
+                    int insertCellIndex = Cells.IndexOf(insertBeforeCell);
+
+                    // shift all cells right one column from insertion point, *before* adding new cell at insertion point
+                    for (int colno = ColDefs.Count - 1; colno >= columnIndex; colno--)
+                    {
+                        if (GetCellAt(rowno, colno) is Cell rightCell)
+                            rightCell.ColNo += 1;
+                    }
+
+                    //Create and insert new cell
+                    Cell newCell = new(this)
+                    {
+                        OwningTable = this,
+                        ColNo = columnIndex,
+                        RowNo = rowno,
+                        BorderThickness = new(1),
+                        BorderBrush = Cells[0].BorderBrush,
+                        Padding = new(5)
+                    };
+
+                    Cells.Insert(insertCellIndex, newCell);
+
+                    Paragraph newPar = new(MyFlowDoc) { TextAlignment = TextAlignment.Center };
+                    newPar.Inlines.Add(new EditableRun(""));
+                    newCell.CellBlocks.Add(newPar);
+
+                    Dispatcher.UIThread.Post(() =>
+                    {
+                        newPar.CallRequestTextLayoutInfoStart();
+                        newPar.CallRequestTextLayoutInfoEnd();
+                    });
+                }
+            }
+
+            ColDefs.Insert(columnIndex, new ColumnDefinition(newWidth, GridUnitType.Pixel));
+            
+        }
+        
+    }
+
+    public void MergeCellsRight(int rowNo, int colNo, int numberCellsToMerge = 1)
+    {
+        if (GetCellAt(rowNo, colNo) is Cell firstCell)
+        {
+            for (int i = 1; i <= numberCellsToMerge; i++)
+            {
+                int mergeCellCol = colNo + i;
+                if (mergeCellCol == ColDefs.Count)
+                    break;
+
+                firstCell.ColSpan = mergeCellCol - colNo + 1;
+                RemoveCellAt(rowNo, mergeCellCol);
+            }
+        }
+    }
+
+    public void MergeCellsDown(int rowNo, int colNo, int numberCellsToMerge = 1)
+    {
+        if (GetCellAt(rowNo, colNo) is Cell firstCell)
+        {
+            for (int i = 1; i <= numberCellsToMerge; i++)
+            {
+                int mergeCellRow = rowNo + i;
+                if (mergeCellRow == RowDefs.Count)
+                    break;
+
+                firstCell.RowSpan = mergeCellRow - rowNo + 1;
+                RemoveCellAt(mergeCellRow, colNo);
+            }
+        }
+
 
     }
 

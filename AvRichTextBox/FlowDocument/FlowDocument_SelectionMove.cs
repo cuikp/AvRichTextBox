@@ -380,6 +380,7 @@ public partial class FlowDocument
         Selection.StartParagraph.CallRequestTextLayoutInfoEnd();
         Selection.EndParagraph.CallRequestTextLayoutInfoStart();
         Selection.EndParagraph.CallRequestTextLayoutInfoEnd();
+        UpdateRTBCaret?.Invoke();
     }
 
 

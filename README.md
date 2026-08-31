@@ -336,3 +336,9 @@ Pasting Image adds new paragraph at end instead of caret sitting at right of ima
 
 **[ver 1.9.9] 2026/08/29**
 Fixed rtf table cell horizontal merge borders
+
+**[ver 1.9.11] 2026/09/01**
+Added MergeCellsRight(), MergeCellsDown() and AddColumns() methods to Table
+Returned default Cell Border color to Brushes.Black
+Cleaner borders between table cells (no adjacent doubles)
+Shift + mouse drag on cell border increases/decreases entire table size

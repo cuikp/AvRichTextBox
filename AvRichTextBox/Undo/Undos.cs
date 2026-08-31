@@ -1,4 +1,5 @@
 ﻿using Avalonia.Threading;
+using DocumentFormat.OpenXml.Drawing.Diagrams;
 using DynamicData;
 
 namespace AvRichTextBox;
@@ -517,10 +518,26 @@ internal class MergeParagraphUndo(int origMergedParInlinesCount, int mergedParId
     {
         try
         {
-            if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == mergedParId) is not Paragraph mergedPar) return;
-            int mergedParIndex = flowDoc.Blocks.IndexOf(mergedPar);
-
+            int blockIdx = 0;
             int lengthBefore = flowDoc.Text.Length;
+            Paragraph? mergedPar = null!;
+            Cell? CellToRestore = null!;
+
+            if (removedParClone.IsCellBlock)
+            {
+                if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == removedParClone.OwningTable.Id) is not Table containingTable) return;
+                if (containingTable.Cells.FirstOrDefault(cell => cell.Id == removedParClone.OwningCell.Id) is not Cell containingCell) return;
+                CellToRestore = containingCell;
+                mergedPar = containingCell.CellBlocks.FirstOrDefault(cb => cb.Id == mergedParId) as Paragraph;
+                if (mergedPar == null!) return;
+                blockIdx = containingCell.CellBlocks.IndexOf(mergedPar);
+            }
+            else
+            {
+                mergedPar = flowDoc.Blocks.FirstOrDefault(bl => bl.Id == mergedParId) as Paragraph;
+                if (mergedPar == null!) return;
+                blockIdx = flowDoc.Blocks.IndexOf(mergedPar);
+            }
 
             for (int rno = mergedPar.Inlines.Count - 1; rno >= origMergedParInlinesCount; rno--)
                 mergedPar.Inlines.RemoveAt(rno);
@@ -531,11 +548,14 @@ internal class MergeParagraphUndo(int origMergedParInlinesCount, int mergedParId
             mergedPar.CallRequestInlinesUpdate();
             mergedPar.UpdateEditableRunPositions();
 
-            flowDoc.Blocks.Insert(mergedParIndex + 1, removedParClone);
+            if (mergedPar.IsCellBlock)
+                CellToRestore.CellBlocks.Insert(blockIdx + 1, removedParClone);
+            else
+                flowDoc.Blocks.Insert(blockIdx + 1, removedParClone);
 
             int lengthAfter = flowDoc.Text.Length;
 
-            flowDoc.UpdateBlockAndInlineStarts(mergedParIndex);
+            flowDoc.UpdateBlockAndInlineStarts(blockIdx);
             flowDoc.UpdateTextRanges(originalSelectionStart, lengthAfter - lengthBefore);
 
             flowDoc.Selection.End = originalSelectionStart;

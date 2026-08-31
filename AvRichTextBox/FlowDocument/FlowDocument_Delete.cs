@@ -9,17 +9,25 @@ public partial class FlowDocument
     {
         int originalSelectionStart = Selection.Start;
 
+        Paragraph startP = Selection.StartParagraph;
+
         //keep in cell
-        if (Selection.StartParagraph.IsTableCellBlock)
+        if (startP.IsTableCellBlock)
         {
             bool keepInCell =
-               (backspace && Selection.StartParagraph.SelectionStartInBlock == 0) ||
-               (!backspace && Selection.StartParagraph.SelectionStartInBlock >= Selection.StartParagraph.BlockLength - 1);
+               (backspace && startP == startP.OwningCell.CellBlocks.FirstOrDefault() && startP.SelectionEndInBlock == 0) ||
+               (!backspace && startP == startP.OwningCell.CellBlocks.LastOrDefault() && startP.SelectionStartInBlock >= startP.BlockLength - 1);
             if (keepInCell) return;
         }
 
         if (backspace)
+        {
             MoveSelectionLeft();
+            Selection.BiasForwardStart = false;
+            Selection.BiasForwardEnd = false;
+            startP = Selection.StartParagraph;
+        }
+       
 
         //Change bias to be forward for delete
         Selection.BiasForwardStart = true;
@@ -35,9 +43,7 @@ public partial class FlowDocument
                 MoveSelectionRight();
             return;
         }
-
-
-        Paragraph startP = Selection.StartParagraph;
+                
 
         if (startP.SelectionStartInBlock == startP.BlockLength - 1)
             MergeParagraphForward(Selection.Start, true, originalSelectionStart);
@@ -282,11 +288,12 @@ public partial class FlowDocument
     {
         if (GetContainingParagraph(mergeCharIndex) is not Paragraph thisPar) return;
 
-        int thisParIndex = Blocks.IndexOf(thisPar);
-        if (thisParIndex == Blocks.Count - 1) return; //is last Paragraph, can't merge forward
+        int thisParIndex = AllParagraphs.IndexOf(thisPar);
+        
+        if (thisParIndex == AllParagraphs.Count - 1 || (thisPar.IsCellBlock && thisPar == thisPar.OwningCell.CellBlocks.LastOrDefault())) return; //is last Paragraph, can't merge forward
         int origMergedParInlinesCount = thisPar.Inlines.Count;
 
-        if (Blocks[thisParIndex + 1] is not Paragraph nextPar) return;
+        if (AllParagraphs[thisParIndex + 1] is not Paragraph nextPar) return;
 
         bool IsNextParagraphEmpty = nextPar.Inlines.Count == 1 && nextPar.Inlines[0].IsEmpty;
         bool IsThisParagraphEmpty = thisPar.Inlines.Count == 1 && thisPar.Inlines[0].IsEmpty;
@@ -317,14 +324,22 @@ public partial class FlowDocument
             thisPar.Inlines.AddRange(inlinesToMove);
         }
 
-        Blocks.Remove(nextPar);
-
+        if (thisPar.IsCellBlock)
+        {
+            thisPar.OwningCell.CellBlocks.Remove(nextPar);
+        }
+        else
+        {
+            Blocks.Remove(nextPar);
+        }
+        
         Selection.BiasForwardStart = true;
         Selection.BiasForwardEnd = true;
 
         thisPar.CallRequestInlinesUpdate();
 
-        UpdateBlockAndInlineStarts(thisParIndex);
+        int blockIndex = thisPar.IsCellBlock ? Blocks.IndexOf(thisPar.OwningTable) : thisParIndex;
+        UpdateBlockAndInlineStarts(blockIndex);
         UpdateTextRanges(mergeCharIndex, -1);
 
         thisPar.CallRequestTextBoxFocus();
@@ -334,8 +349,65 @@ public partial class FlowDocument
 
     }
 
+    //internal void MergeParagraphForwardOLD(int mergeCharIndex, bool addUndo, int originalSelectionStart)
+    //{
+    //    if (GetContainingParagraph(mergeCharIndex) is not Paragraph thisPar) return;
+
+    //    int thisParIndex = Blocks.IndexOf(thisPar);
+        
+    //    if (thisParIndex == Blocks.Count - 1) return; //is last Paragraph, can't merge forward
+    //    int origMergedParInlinesCount = thisPar.Inlines.Count;
+
+    //    if (Blocks[thisParIndex + 1] is not Paragraph nextPar) return;
+
+    //    bool IsNextParagraphEmpty = nextPar.Inlines.Count == 1 && nextPar.Inlines[0].IsEmpty;
+    //    bool IsThisParagraphEmpty = thisPar.Inlines.Count == 1 && thisPar.Inlines[0].IsEmpty;
+
+    //    if (IsThisParagraphEmpty)
+    //    {
+    //        thisPar.Inlines.Clear();
+    //        origMergedParInlinesCount = 0;
+    //    }
+
+    //    if (addUndo)
+    //        Undos.Add(new MergeParagraphUndo(origMergedParInlinesCount, thisPar.Id, nextPar.FullClone(), this, originalSelectionStart)); // cloned with Id and inlines
+
+    //    //bool runAdded = false;
+    //    if (IsNextParagraphEmpty)
+    //    {
+    //        if (IsThisParagraphEmpty)
+    //        {
+    //            thisPar.Inlines.Add(new EditableRun(""));
+    //            //runAdded = true;
+    //        }
+    //    }
+    //    else
+    //    {
+    //        List<IEditable> inlinesToMove = [.. nextPar.Inlines];
+    //        nextPar.Inlines.Clear();
+    //        nextPar.CallRequestInlinesUpdate(); // ensure image containers are updated
+    //        thisPar.Inlines.AddRange(inlinesToMove);
+    //    }
+
+    //    Blocks.Remove(nextPar);
+
+    //    Selection.BiasForwardStart = true;
+    //    Selection.BiasForwardEnd = true;
+
+    //    thisPar.CallRequestInlinesUpdate();
+
+    //    UpdateBlockAndInlineStarts(thisParIndex);
+    //    UpdateTextRanges(mergeCharIndex, -1);
+
+    //    thisPar.CallRequestTextBoxFocus();
+
+    //    UpdateSelectedParagraphs();
+
+
+    //}
+
     internal void DeleteWord(bool backspace)
-    {
+{
         if (backspace)
             if (Selection.Start <= 0) 
                 return;

@@ -110,7 +110,11 @@ public partial class FlowDocument
                 edgeIds.idLeft = insertFirstInline.Id;
 
                 if (addToDoc)
-                    startPar.Inlines.Insert(indexOfLastInline, insertFirstInline);
+                {
+                    if (indexOfLastInline <= startPar.Inlines.Count)
+                        startPar.Inlines.Insert(indexOfLastInline, insertFirstInline);
+                }
+                    
 
                 if (RangeEndsAtInlineEnd)
                     lastInline.InlineText = firstInlineText[firstInlineSplitIndex..];
@@ -123,14 +127,17 @@ public partial class FlowDocument
             if (!RangeEndsAtInlineEnd)
             {  //Debug.WriteLine("lastinlinesplitinex = " + lastInlineSplitIndex + "\ninlintext = " +  lastInlineText);
 
-                insertLastInline.InlineText = lastInlineText[..lastInlineSplitIndex];
-                firstInlineSplitIndex = Math.Min(firstInlineSplitIndex, firstInlineText.Length);
-                lastInline.InlineText = lastInlineText[lastInlineSplitIndex..];
-                AllSelectedInlines.Remove(lastInline);
-                AllSelectedInlines.Add(insertLastInline);
+                if (lastInlineSplitIndex > -1)  // guard sometimes needed but why $$$$$$$$$$$$$$$$$
+                {
+                    insertLastInline.InlineText = lastInlineText[..lastInlineSplitIndex];
+                    firstInlineSplitIndex = Math.Min(firstInlineSplitIndex, firstInlineText.Length);
+                    lastInline.InlineText = lastInlineText[lastInlineSplitIndex..];
+                    AllSelectedInlines.Remove(lastInline);
+                    AllSelectedInlines.Add(insertLastInline);
 
-                if (addToDoc)
-                    endPar.Inlines.Insert(indexOfLastInline, insertLastInline);
+                    if (addToDoc)
+                        endPar.Inlines.Insert(indexOfLastInline, insertLastInline);
+                }
             }
 
             bool RangeStartsAtInlineStart = firstInlineSplitIndex <= 0;

@@ -1,75 +1,83 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia.Threading;
 
 namespace AvRichTextBox;
 
 public partial class FlowDocument
 {
-   
-   internal void SelectionStart_Changed(TextRange selRange, int newStart)
-   {  //Debug.WriteLine("SELECTION START CHANGED");
+    internal void InvokeSelectionChanged()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            SelectionChanged?.Invoke(Selection);
+        });
 
-      switch (GetContainingParagraph(newStart))
-      {
-         case Paragraph startPar:
+    }
 
-            selRange.StartParagraph = startPar;
-            startPar.SelectionStartInBlock = newStart - startPar.StartInDoc;
-            startPar.CallRequestTextLayoutInfoStart();
-            break;
-      }
+    internal void SelectionStart_Changed(TextRange selRange, int newStart)
+    {  //Debug.WriteLine("SELECTION START CHANGED");
 
-      UpdateSelectedParagraphs();
+        switch (GetContainingParagraph(newStart))
+        {
+            case Paragraph startPar:
 
+                selRange.StartParagraph = startPar;
+                startPar.SelectionStartInBlock = newStart - startPar.StartInDoc;
+                startPar.CallRequestTextLayoutInfoStart();
+                break;
+        }
 
-      //Make sure end is not less than start
-      if (selRange.Length > 0)
-         if (selRange.StartParagraph.SelectionEndInBlock < selRange.StartParagraph.SelectionStartInBlock)
-            selRange.StartParagraph.SelectionEndInBlock = selRange.StartParagraph.SelectionStartInBlock;
-
-      selRange.StartParagraph?.CallRequestTextLayoutInfoStart();
-      SelectionChanged?.Invoke(selRange);
-
-      UpdateHasSelectedText();
+        UpdateSelectedParagraphs();
 
 
-   }
-    
-   internal void SelectionEnd_Changed(TextRange selRange, int newEnd)
-   {
+        //Make sure end is not less than start
+        if (selRange.Length > 0)
+            if (selRange.StartParagraph.SelectionEndInBlock < selRange.StartParagraph.SelectionStartInBlock)
+                selRange.StartParagraph.SelectionEndInBlock = selRange.StartParagraph.SelectionStartInBlock;
 
-      switch (GetContainingParagraph(newEnd))
-      {
-         case Paragraph endPar:
+        selRange.StartParagraph?.CallRequestTextLayoutInfoStart();
+        SelectionChanged?.Invoke(selRange);
 
-            selRange.EndParagraph = endPar;
-            endPar.SelectionEndInBlock = newEnd - endPar.StartInDoc;
-            endPar.CallRequestTextLayoutInfoEnd();
-            break;
-      }
+        UpdateHasSelectedText();
 
-      UpdateSelectedParagraphs();
 
-           
-      selRange.EndParagraph?.CallRequestTextLayoutInfoEnd();
-      SelectionChanged?.Invoke(selRange);
+    }
 
-      UpdateHasSelectedText();
+    internal void SelectionEnd_Changed(TextRange selRange, int newEnd)
+    {
 
-     
-   }
+        switch (GetContainingParagraph(newEnd))
+        {
+            case Paragraph endPar:
 
-   bool _lastHasSelectedText = false;
-   private void UpdateHasSelectedText()
-   {
-      var oldValue = _lastHasSelectedText;
-      var newValue = Selection.Length > 0;
+                selRange.EndParagraph = endPar;
+                endPar.SelectionEndInBlock = newEnd - endPar.StartInDoc;
+                endPar.CallRequestTextLayoutInfoEnd();
+                break;
+        }
 
-      if (oldValue != newValue)
-      {
-         _lastHasSelectedText = newValue;
-         RaisePropertyChanged(HasSelectedTextProperty, oldValue, newValue);
-      }
-   }
+        UpdateSelectedParagraphs();
+
+
+        selRange.EndParagraph?.CallRequestTextLayoutInfoEnd();
+        SelectionChanged?.Invoke(selRange);
+
+        UpdateHasSelectedText();
+
+
+    }
+
+    bool _lastHasSelectedText = false;
+    private void UpdateHasSelectedText()
+    {
+        var oldValue = _lastHasSelectedText;
+        var newValue = Selection.Length > 0;
+
+        if (oldValue != newValue)
+        {
+            _lastHasSelectedText = newValue;
+            RaisePropertyChanged(HasSelectedTextProperty, oldValue, newValue);
+        }
+    }
 
 
 }

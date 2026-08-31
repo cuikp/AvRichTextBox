@@ -15,11 +15,16 @@ public partial class RichTextBox
     {
         CurrentCursor = tableCursor;
         this.Cursor = CurrentCursor;
+        
+        if (edTable._PointerPressedOnBorder)
+            UpdateSelectionIndicators();
     }
 
     internal void EditableTable_MouseLeave(EditableTable edTable)
     {
         //this.Cursor = CurrentCursor;
+        //if (edTable._PointerPressedOnBorder)
+        //    UpdateSelectionIndicators();
     }
 
     internal void EditableParagraph_MouseMove(EditableParagraph edPar, int charIndex)

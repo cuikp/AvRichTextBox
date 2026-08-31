@@ -1,4 +1,5 @@
 ﻿using Avalonia.Controls;
+using Avalonia.Threading;
 
 namespace AvRichTextBox;
 
@@ -11,9 +12,15 @@ public class EditableCell : Border
 
    private void EditableCell_SizeChanged(object? sender, SizeChangedEventArgs e)
    {
-      if (this.DataContext is not Cell cell) return;
-      cell.Height = this.Bounds.Height;
-   }
+      if (this.DataContext is not Cell thisCell) return;
+      thisCell.Height = this.Bounds.Height;
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            thisCell.OwningTable.Height = thisCell.OwningTable.RowDefs.Sum(rdef => rdef.Height.Value);
+        });
+
+    }
 
 
 }

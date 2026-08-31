@@ -20,15 +20,16 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>ver 1.9.10:
-Fixed rtf table cell horizontal merge
-Updated ReadMe
-</PackageReleaseNotes>
+	  <PackageReleaseNotes>ver 1.9.11:
+Added MergeCellsRight(), MergeCellsDown() and AddColumns() methods to Table
+Returned default Cell Border color to Brushes.Black
+Cleaner borders between table cells
+Shift + mouse drag on cell border increases/decreases entire table size</PackageReleaseNotes>
       
      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 	  <PackageOutputPath>D:\PROG\LocalNuget\AvRichTextBox</PackageOutputPath>
 	  
-	  <Version>1.9.10</Version>
+	  <Version>1.9.11</Version>
 	  <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
 	  
