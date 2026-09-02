@@ -70,8 +70,7 @@ public partial class RichTextBox
 
         rangePars = rangePars.ConvertAll(b=> 
         { 
-            Paragraph clonedPar = b.PropertyClone();
-            //Paragraph clonedPar = b.FullClone();
+            Paragraph clonedPar = b.FullClone(false);
             clonedPar.OwningCell = b.OwningCell;
             clonedPar.OwningTable = b.OwningTable;
             return clonedPar;
@@ -138,7 +137,7 @@ public partial class RichTextBox
         int originalSelectionStart = FlowDoc.Selection.Start;
         int originalSelectionEnd = FlowDoc.Selection.End;
         TextRange insertRange = FlowDoc.Selection;
-        List<Block> originalRangeBlocks = FlowDoc.GetOverlappingBlocksInRange(insertRange).ConvertAll(ob => ob.FullClone());
+        List<Block> originalRangeBlocks = FlowDoc.GetOverlappingBlocksInRange(insertRange).ConvertAll(ob => ob.FullClone(true));
         int deleteRangeLength = insertRange.Length;
 
         Block startBlock = FlowDoc.Blocks.Last(b => (b is Paragraph p && (p.IsEmptyInlinePar || p.StartInDoc == 0)) ? b.StartInDoc <= insertRange.Start : b.StartInDoc < insertRange.Start);

@@ -190,7 +190,7 @@ public partial class FlowDocument
         }
 
         if (addUndo)
-            Undos.Add(new DeleteRangeUndo(rangeBlocks.ConvertAll(rblock => rblock.FullClone()), firstBlockIndex, this, originalRangeStart, originalTRangeLength, firstBlockDeleted, lastBlockDeleted));
+            Undos.Add(new DeleteRangeUndo(rangeBlocks.ConvertAll(rblock => rblock.FullClone(true)), firstBlockIndex, this, originalRangeStart, originalTRangeLength, firstBlockDeleted, lastBlockDeleted));
 
         //get the inlines in this range and split if necessary, adding newly created inlines to doc
         (List<IEditable> createdInlines, (int idLeft, int idRight) edgeIds) createdInlinesResult = GetTextRangeInlines(trange, addToDoc: true);
@@ -299,7 +299,7 @@ public partial class FlowDocument
         }
 
         if (addUndo)
-            Undos.Add(new MergeParagraphUndo(origMergedParInlinesCount, thisPar.Id, nextPar.FullClone(), this, originalSelectionStart)); // cloned with Id and inlines
+            Undos.Add(new MergeParagraphUndo(origMergedParInlinesCount, thisPar.Id, nextPar.FullClone(true), this, originalSelectionStart)); // cloned with Id and inlines
 
         //bool runAdded = false;
         if (IsNextParagraphEmpty)

@@ -161,11 +161,10 @@ public partial class Table : Block
     }
 
   
-    internal override Table FullClone()
+    internal override Table FullClone(bool keepId)
     {
         Table newTable = new(this.MyFlowDoc)
         {
-            Id = this.Id,
             ColDefs = CloneColDefs(this.ColDefs),   // copied RowDefs and ColDefs must be cloned to be free of previously bound BindableGrid 
             RowDefs = CloneRowDefs(this.RowDefs),
             IsTableCellBlock = this.IsTableCellBlock,
@@ -180,8 +179,11 @@ public partial class Table : Block
             OwningCell = this.OwningCell
         };
 
+        if (keepId)
+            newTable.Id = this.Id;
+
         //OwningTable & OwningCell of Paragraphs are assigned in CellBlocks.CollectionChanged
-        newTable.Cells = new ObservableCollection<Cell>(this.Cells.Select(c => c.FullClone(newTable)));
+        newTable.Cells = new ObservableCollection<Cell>(this.Cells.Select(c => c.FullClone(newTable, keepId)));
 
         return newTable;
 

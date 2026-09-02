@@ -182,10 +182,12 @@ public class Block : INotifyPropertyChanged
         };
     }
     
-    internal virtual Block FullClone()
+    internal virtual Block FullClone(bool keepId)
     {
         Block newBlock = PropertyClone();
-        newBlock.Id = this.Id;
+        if (keepId)
+            newBlock.Id = this.Id;
+
         return newBlock;
     }
 

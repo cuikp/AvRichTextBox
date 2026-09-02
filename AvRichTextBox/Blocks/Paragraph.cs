@@ -146,17 +146,14 @@ public class Paragraph : Block
             StartInDoc = this.StartInDoc
 
         };
-        
-        newPar.Inlines.AddRange(this.Inlines.Select(il => il.Clone()));
-
+                
         return newPar;
     }
 
-    internal override Paragraph FullClone()
+    internal override Paragraph FullClone(bool keepId)
     {
         Paragraph newPar = new(MyFlowDoc)
         {
-            Id = this.Id,
             TextAlignment = this.TextAlignment,
             //LineSpacing = this.LineSpacing,
             BorderBrush = this.BorderBrush,
@@ -175,8 +172,10 @@ public class Paragraph : Block
 
         };
 
-        //newPar.Inlines.CollectionChanged += Inlines_CollectionChanged;
-        newPar.Inlines.AddRange(this.Inlines.Select(il => il.CloneWithId()));
+        if (keepId)
+            newPar.Id = this.Id;
+
+            newPar.Inlines.AddRange(this.Inlines.Select(il => il.CloneWithId()));
         
         return newPar;
     }

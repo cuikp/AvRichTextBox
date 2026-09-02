@@ -343,6 +343,6 @@ Returned default Cell Border color to Brushes.Black
 Cleaner borders between table cells (no adjacent doubles)
 Shift + mouse drag on cell border increases/decreases entire table size
 
-**[ver 1.9.12] 2026/09/02**
+**[ver 1.9.13] 2026/09/02**
 Added InsertColumns(idx, count) and InsertRows(idx, count) methods to Table
 Removed FontWeight on Hyperlink Popup

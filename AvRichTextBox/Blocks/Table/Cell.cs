@@ -115,17 +115,16 @@ public class Cell : INotifyPropertyChanged
         };
 
         // OwningTable and OwningCell set in CellBlocks_CollectionChanged event
-        newCell.CellBlocks.AddRange(this.CellBlocks.Select(cb => cb.PropertyClone()));
+        //newCell.CellBlocks.AddRange(this.CellBlocks.Select(cb => cb.FullClone()));
 
         return newCell;
     }
 
 
-    internal Cell FullClone(Table owningTable)
+    internal Cell FullClone(Table owningTable, bool keepId)
     {
         Cell newCell = new(owningTable)
         {
-            Id = this.Id,
             RowNo = this.RowNo,
             ColNo = this.ColNo,
             ColSpan = this.ColSpan,
@@ -140,8 +139,11 @@ public class Cell : INotifyPropertyChanged
             IsClonedCell = true
         };
 
+        if (keepId)
+            newCell.Id = this.Id;
+
         // OwningTable and OwningCell set in CellBlocks_CollectionChanged event
-        newCell.CellBlocks.AddRange(this.CellBlocks.Select(cb => cb.FullClone()));
+        newCell.CellBlocks.AddRange(this.CellBlocks.Select(cb => cb.FullClone(keepId)));
 
         return newCell;
     }
