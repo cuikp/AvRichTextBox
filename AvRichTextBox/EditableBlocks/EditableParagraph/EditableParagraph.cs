@@ -183,6 +183,12 @@ internal partial class EditableParagraph : TextBlock
         this.Focusable = true;
     }
 
+    protected override void OnPointerExited(PointerEventArgs e)
+    {
+        base.OnPointerExited(e);
+        MouseLeave?.Invoke(this);
+    }
+
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         TextHitTestResult result = this.TextLayout.HitTestPoint(e.GetPosition(this));

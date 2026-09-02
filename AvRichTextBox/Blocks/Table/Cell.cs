@@ -1,5 +1,6 @@
 ﻿using Avalonia.Layout;
 using Avalonia.Media;
+using DocumentFormat.OpenXml.Spreadsheet;
 using DynamicData;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -42,26 +43,30 @@ public class Cell : INotifyPropertyChanged
             }
         }
 
-        int lengthOffset = 0;
-        if (e.NewItems != null)
-        {
-            foreach (Block b in e.NewItems)
-                lengthOffset += b.BlockLength;
-        }
+        if (IsClonedCell) return;
 
-        if (e.OldItems != null)
-        {
-            foreach (Block b in e.OldItems)
-                lengthOffset -= b.BlockLength;
-        }
-
+        //Auto update blocks and ranges when collection changed, unless this is a Clone
         OwningTable.MyFlowDoc.AllParagraphs = [.. OwningTable.MyFlowDoc.GetAllParagraphs];  //update collection of all paragraphs
-
-        //Auto update blocks and ranges when collection changed
         OwningTable.MyFlowDoc.UpdateBlockAndInlineStarts(Math.Max(0, OwningTable.MyFlowDoc.Blocks.IndexOf(OwningTable)));
-        
+
         if (CellBlocks.Count > 0 && e.NewStartingIndex > -1)
+        {
+            int lengthOffset = 0;
+            if (e.NewItems != null)
+            {
+                foreach (Block b in e.NewItems)
+                    lengthOffset += b.BlockLength;
+            }
+
+            if (e.OldItems != null)
+            {
+                foreach (Block b in e.OldItems)
+                    lengthOffset -= b.BlockLength;
+            }
+
             OwningTable.MyFlowDoc.UpdateTextRanges(CellBlocks[e.NewStartingIndex].StartInDoc, lengthOffset);
+        }
+
 
 
     }
@@ -73,7 +78,7 @@ public class Cell : INotifyPropertyChanged
 
     public Thickness BorderThickness { get; set { field = value; NotifyPropertyChanged(nameof(BorderThickness)); } } = new(1);
     public IBrush BorderBrush { get; set { field = value; NotifyPropertyChanged(nameof(BorderBrush)); } } = Brushes.Black;
-    public IBrush CellBackground { get; set { field = value; NotifyPropertyChanged(nameof(CellBackground)); } } = null!;
+    public IBrush CellBackground { get; set { field = value; NotifyPropertyChanged(nameof(CellBackground)); } } = Brushes.Transparent;
     public VerticalAlignment CellVerticalAlignment { get; set { field = value; NotifyPropertyChanged(nameof(CellVerticalAlignment)); } } = VerticalAlignment.Top;
     public Thickness Padding { get; set { field = value; NotifyPropertyChanged(nameof(Padding)); } } = new(5);
     
@@ -89,13 +94,12 @@ public class Cell : INotifyPropertyChanged
     //public double Width { get; set; } = 100;
     public double Height { get; set; } = 60;  // arbitrary default
     public bool vmerged = false;
+    internal bool IsClonedCell = false;
 
-
-    internal Cell FullClone(Table owningTable)
+    internal Cell PropertyClone(Table owningTable)
     {
         Cell newCell = new(owningTable)
         {
-            //Id = this.Id,   // in future if Cell needs Id 
             RowNo = this.RowNo,
             ColNo = this.ColNo,
             ColSpan = this.ColSpan,
@@ -107,13 +111,41 @@ public class Cell : INotifyPropertyChanged
             CellBackground = CloneBrush(this.CellBackground) ?? null!,
             Padding = this.Padding,
             CellVerticalAlignment = this.CellVerticalAlignment,
+            IsClonedCell = true,
         };
 
+        // OwningTable and OwningCell set in CellBlocks_CollectionChanged event
+        newCell.CellBlocks.AddRange(this.CellBlocks.Select(cb => cb.PropertyClone()));
+
+        return newCell;
+    }
+
+
+    internal Cell FullClone(Table owningTable)
+    {
+        Cell newCell = new(owningTable)
+        {
+            Id = this.Id,
+            RowNo = this.RowNo,
+            ColNo = this.ColNo,
+            ColSpan = this.ColSpan,
+            RowSpan = this.RowSpan,
+            vmerged = this.vmerged,
+            Height = this.Height,
+            BorderThickness = this.BorderThickness,
+            BorderBrush = CloneBrush(this.BorderBrush) ?? Brushes.Black,
+            CellBackground = CloneBrush(this.CellBackground) ?? null!,
+            Padding = this.Padding,
+            CellVerticalAlignment = this.CellVerticalAlignment,
+            IsClonedCell = true
+        };
+
+        // OwningTable and OwningCell set in CellBlocks_CollectionChanged event
         newCell.CellBlocks.AddRange(this.CellBlocks.Select(cb => cb.FullClone()));
 
         return newCell;
     }
 
-    
+
 }
 

@@ -46,7 +46,6 @@ internal class DeleteCharUndo(int parId, int runId, int origRunIdx, char deleteC
     {
         try
         {
-            //if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == parId) is not Paragraph thisPar) return;
             if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == parId) is not Paragraph thisPar) return;
 
             flowDoc.disableRunTextUndo = true;
@@ -339,15 +338,18 @@ internal class PasteUndo(
                     run.Text = "";
                     //firstPar.CallRequestInlinesUpdate();
                 }
-                    
+            }
 
+            foreach (Block b in keptBlocks)
+            {
+                if (b is Table t)
+                    t.UpdateColAndRowPoints();
             }
 
             flowDoc.disableRunTextUndo = false;
 
             int lengthAfter = flowDoc.Text.Length;
-
-            
+                        
             flowDoc.UpdateTextRanges(keptBlocks[0].StartInDoc, lengthAfter - lengthBefore);
 
             Dispatcher.UIThread.Post(() =>
@@ -392,12 +394,17 @@ internal class DeleteRangeUndo(
             int lengthAfter = flowDoc.Text.Length;  // optimize by getting from lastPar.StartInDoc + lastPar.BlockLength instead of calculating entire flowdoc text length
             flowDoc.UpdateTextRanges(keptBlockClones[0].StartInDoc, lengthAfter - lengthBefore);
 
+            foreach (Block b in keptBlockClones)
+                if (b is Table t)
+                    t.UpdateColAndRowPoints();
+
             Dispatcher.UIThread.Post(() =>
             {
                 flowDoc.Selection.Start = origSelectionStart;
                 flowDoc.Selection.End = origSelectionStart;
                 //flowDoc.UpdateSelection();
             });
+
 
         }
         catch (Exception ex) { Debug.WriteLine($"Failed DeleteRangeUndo at Par index: {startBlockIndex}\n{ex.Message}"); }
@@ -717,3 +724,81 @@ internal class HyperlinkParagraphUndo : IUndo
 }
 
 
+
+internal class InsertColumnsUndo(int thisTableId, List<int> insertedCellIds, int insertedColumnIdx, int insertedCount, FlowDocument flowDoc, int origSelectionStart) : IUndo
+{
+    public int UndoEditOffset => -1;
+    public bool UpdateTextRanges => true;
+
+    public void PerformUndo()
+    {
+        try
+        {
+            if (flowDoc.Blocks.FirstOrDefault(b=> b.Id == thisTableId) is Table table)
+            {
+                foreach (int cellId in insertedCellIds)
+                {
+                    if (table.Cells.FirstOrDefault(c=> c.Id == cellId) is Cell cellToRemove)
+                        table.Cells.Remove(cellToRemove); 
+                }
+                
+                for (int i = 0; i < insertedCount; i++)
+                    table.ColDefs.RemoveAt(insertedColumnIdx);
+
+                for (int rowno = 0; rowno < table.RowDefs.Count; rowno++)
+                {
+                    for (int colno = insertedColumnIdx + 1; colno < table.ColDefs.Count + insertedCount; colno++)
+                    {
+                        if (table.GetCellAt(rowno, colno) is Cell shiftCell)
+                            shiftCell.ColNo -= insertedCount;
+                    }
+                }
+                
+                table.Width = table.ColDefs.Sum(cd => cd.Width.Value);
+                //table.UpdateFlowDoc();
+                flowDoc.Select(origSelectionStart, 0);
+            }
+        }
+        catch (Exception ex) { Debug.WriteLine($"Failed InsertColumnsUndo at Col index: {insertedColumnIdx}\n{ex.Message}"); }
+    }
+
+}
+
+internal class InsertRowsUndo(int thisTableId, List<int> insertedCellIds, int insertedRowIdx, int insertedCount, FlowDocument flowDoc, int origSelectionStart) : IUndo
+{
+    public int UndoEditOffset => -1;
+    public bool UpdateTextRanges => true;
+
+    public void PerformUndo()
+    {
+        try
+        {
+            if (flowDoc.Blocks.FirstOrDefault(b=> b.Id == thisTableId) is Table table)
+            {
+                foreach (int cellId in insertedCellIds)
+                {
+                    if (table.Cells.FirstOrDefault(c=> c.Id == cellId) is Cell cellToRemove)
+                        table.Cells.Remove(cellToRemove); 
+                }
+                
+                for (int i = 0; i < insertedCount; i++)
+                    table.RowDefs.RemoveAt(insertedRowIdx);
+
+                for (int rowno = insertedRowIdx + 1; rowno < table.RowDefs.Count + insertedCount; rowno++)
+                {
+                    for (int colno = 0; colno < table.ColDefs.Count; colno++)
+                    {
+                        if (table.GetCellAt(rowno, colno) is Cell shiftCell)
+                            shiftCell.RowNo -= insertedCount;
+                    }
+                }
+
+                //table.Width = table.ColDefs.Sum(cd => cd.Width.Value);
+                //table.UpdateFlowDoc();
+                flowDoc.Select(origSelectionStart, 0);
+            }
+        }
+        catch (Exception ex) { Debug.WriteLine($"Failed InsertColumnsUndo at Col index: {insertedRowIdx}\n{ex.Message}"); }
+    }
+
+}

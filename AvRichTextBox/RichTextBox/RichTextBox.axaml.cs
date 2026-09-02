@@ -8,6 +8,7 @@ using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using System.Collections.ObjectModel;
 using System.Reflection.Metadata.Ecma335;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -42,6 +43,8 @@ public partial class RichTextBox : UserControl
             RtbVm.RunDebuggerVisible = ShowDebuggerPanelInDebugMode;
             this.Width += (RtbVm.RunDebuggerVisible ? 400 : 0);
             FlowDoc.ShowDebugger = RtbVm.RunDebuggerVisible;
+
+            
         }
     }
 
@@ -82,7 +85,7 @@ public partial class RichTextBox : UserControl
     private void InitializeAdornerElements()
     {
         InitializeBlinkAnimation();
-        
+
         _CaretRect.Bind(MarginProperty, new Binding("CaretMargin"));
         _CaretRect.Bind(HeightProperty, new Binding("CaretHeight"));
         _CaretRect.DataContext = RtbVm;
@@ -101,7 +104,7 @@ public partial class RichTextBox : UserControl
 
         SelectionPath.Data = _geometry;
 
-        var panel = new Canvas() ;
+        var panel = new Canvas();
         panel.Children.Add(SelectionPath);
         panel.Children.Add(_CaretRect);
         AdornerLayer.SetAdorner(DocIC, panel);
@@ -382,6 +385,7 @@ public partial class RichTextBox : UserControl
         FlowDoc.DeleteSelection();
     }
 
+
     //private void EditableCell_PointerPressed(object? sender, PointerPressedEventArgs e)
     //{
     //    if (sender is not EditableCell ecell || ecell.DataContext is not Cell cell) return;
@@ -392,7 +396,7 @@ public partial class RichTextBox : UserControl
     //    //    WriteIndented = true,
     //    //    NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals
     //    //}; 
-        
+
     //    //string celljson = JsonSerializer.Serialize(cell, options);
     //    //Debug.WriteLine("\nCELL:\n" + celljson);
 

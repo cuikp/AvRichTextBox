@@ -171,16 +171,22 @@ public class Block : INotifyPropertyChanged
 
     public static bool IsFocusable => false;
 
-    internal virtual Block FullClone()
+    internal virtual Block PropertyClone()
     {
         return new Block() 
         { 
-            Id = this.Id,
             IsTableCellBlock = this.IsTableCellBlock,
             Margin = this.Margin,
             MyFlowDoc = this.MyFlowDoc
             //OwningTable & OwningCell are assigned in CellBlocks.CollectionChanged
         };
+    }
+    
+    internal virtual Block FullClone()
+    {
+        Block newBlock = PropertyClone();
+        newBlock.Id = this.Id;
+        return newBlock;
     }
 
 }

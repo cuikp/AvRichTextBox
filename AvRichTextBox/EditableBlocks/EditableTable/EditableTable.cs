@@ -42,9 +42,11 @@ public partial class EditableTable : ItemsControl
     {
         if (this.DataContext is not Table table)
             return;
-                        
+        
         bordersCanvas?.UpdateColPoints(table.ColDefs);
         bordersCanvas?.UpdateRowPoints(table.RowDefs);
+
+        this.UpdateLayout();
 
         //Recalculate all paragraph layouts in all cells
         foreach (Cell c in table.Cells)
@@ -59,6 +61,7 @@ public partial class EditableTable : ItemsControl
             }
         }
 
+        bordersCanvas?.InvalidateVisual();
         table.MyFlowDoc.InvokeSelectionChanged();
                 
     }
@@ -74,10 +77,23 @@ public partial class EditableTable : ItemsControl
         if (this.DataContext is not Table table)
             return;
 
+        table.ColDefsChanged += Table_ColDefsChanged;
+        table.RowDefsChanged += Table_RowDefsChanged;
+
         bordersCanvas = new BordersCanvas(table) { IsHitTestVisible = false, ClipToBounds = false };
         AdornerLayer.SetAdorner(this, bordersCanvas);
         AdornerLayer.SetIsClipEnabled(bordersCanvas, false);
 
+    }
+
+    private void Table_ColDefsChanged(Table sender)
+    {
+        bordersCanvas.UpdateColPoints(sender.ColDefs);
+    }
+
+    private void Table_RowDefsChanged(Table sender)
+    {
+        bordersCanvas.UpdateRowPoints(sender.RowDefs);
     }
 
     protected override void OnPointerExited(PointerEventArgs e)
@@ -91,7 +107,7 @@ public partial class EditableTable : ItemsControl
     {
         base.OnPointerMoved(e);
 
-        bool shiftOn = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
+        //bool shiftOn = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
 
         if (DataContext is not Table table)
             return;
@@ -101,7 +117,7 @@ public partial class EditableTable : ItemsControl
         Point position = e.GetPosition(this);
         if (_resizeMode != ResizeMode.None)
         {
-            ResizeTable(table, position, shiftOn);
+            ResizeTable(table, position);
 
             e.Handled = true;
             bordersCanvas.UpdateColPoints(table.ColDefs);
@@ -122,9 +138,6 @@ public partial class EditableTable : ItemsControl
             };
         }
 
-
-               
-
     }
 
     internal bool _PointerPressedOnBorder = false;
@@ -132,7 +145,9 @@ public partial class EditableTable : ItemsControl
     private IBrush? keepTableBackground;
     private IBrush keepTableBorderBrush = null!;
     private bool shiftWasOnAtPress = false;
-    private List<double>  origCellPaddings = [];
+    private double minCurrentCellPadding = 0;
+    private double minLowerCellPadding = 0;
+    private List<double> origCellPaddings = [];
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
@@ -140,7 +155,7 @@ public partial class EditableTable : ItemsControl
 
         if (!IsEditable || DataContext is not Table table)
             return;
-
+         
         tableWidthChange = 0;
     
         shiftWasOnAtPress = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
@@ -164,13 +179,19 @@ public partial class EditableTable : ItemsControl
         if (_resizeMode == ResizeMode.Column)
         {
             _resizeStartPrimarySize = table.ColDefs[_resizeIndex].Width.Value;
-            _resizeStartSecondarySize = table.ColDefs[_resizeIndex + 1].Width.Value;
+            if (_resizeIndex <  table.ColDefs.Count - 1)
+                _resizeStartSecondarySize = table.ColDefs[_resizeIndex + 1].Width.Value;
         }
         else
-        {
-            _resizeStartPrimarySize = table.RowDefs[_resizeIndex].Height.Value;
-            _resizeStartSecondarySize = table.RowDefs[_resizeIndex + 1].Height.Value;
+        {            
             origCellPaddings = [.. table.Cells.Where(c => c.RowNo == _resizeIndex).ToList().ConvertAll(cc => cc.Padding.Top + cc.Padding.Bottom)];
+            minCurrentCellPadding = origCellPaddings.Min();
+            _resizeStartPrimarySize = table.RowDefs[_resizeIndex].Height.Value;
+            if (_resizeIndex < table.RowDefs.Count - 1)
+            {
+                _resizeStartSecondarySize = table.RowDefs[_resizeIndex + 1].Height.Value;
+                minLowerCellPadding = table.Cells.Where(c => c.RowNo == _resizeIndex + 1).ToList().Min(cc => cc.Padding.Top + cc.Padding.Bottom);
+            }
         }
 
         e.Pointer.Capture(this);
@@ -196,7 +217,6 @@ public partial class EditableTable : ItemsControl
         //Resize table if necessary
         table.Width += tableWidthChange;
         
-
         if (shiftWasOnAtPress)
         {
             this.Background = keepTableBackground;
@@ -208,24 +228,27 @@ public partial class EditableTable : ItemsControl
 
     }
 
-    private void ResizeTable(Table table, Point position, bool shiftOn)
+    
+    private void ResizeTable(Table table, Point position)
     {
         if (_resizeMode == ResizeMode.Column)
         {
+            bool isRightEdge = _resizeIndex == table.ColDefs.Count - 1;
+
             double delta = position.X - _resizeStartPoint.X;
             
             double newPrimarySize = _resizeStartPrimarySize + delta;
-            double primaryWidth = shiftOn ? newPrimarySize : Math.Max(MinColumnWidth, newPrimarySize);
+            double primaryWidth = shiftWasOnAtPress || isRightEdge ? newPrimarySize : Math.Max(MinColumnWidth, newPrimarySize);
            
             double newSecondarySize = _resizeStartSecondarySize - (primaryWidth - _resizeStartPrimarySize);
-            double secondaryWidth = shiftOn? newSecondarySize : Math.Max(MinColumnWidth, newSecondarySize);
+            double secondaryWidth = shiftWasOnAtPress || isRightEdge ? newSecondarySize : Math.Max(MinColumnWidth, newSecondarySize);
             
             primaryWidth = Math.Max(MinColumnWidth, _resizeStartPrimarySize + (_resizeStartSecondarySize - secondaryWidth));
             double netChange = primaryWidth - _resizeStartPrimarySize;
 
             table.ColDefs[_resizeIndex].Width = new GridLength(primaryWidth, GridUnitType.Pixel);
 
-            if (shiftWasOnAtPress)
+            if (shiftWasOnAtPress || isRightEdge)
             {   // don't shorten column at right, just resize table accordingly (only on mouse up)
                 tableWidthChange = netChange;
             }
@@ -236,41 +259,34 @@ public partial class EditableTable : ItemsControl
         }
         else if (_resizeMode == ResizeMode.Row)
         {
+            bool isBottomEdge = _resizeIndex == table.RowDefs.Count - 1;
+
             double delta = position.Y - _resizeStartPoint.Y;
-            
-            double newPrimarySize = _resizeStartPrimarySize + delta;
-            double primaryHeight = shiftOn ? newPrimarySize : Math.Max(MinRowHeight, newPrimarySize);
-            
-            double newSecondarySize = _resizeStartSecondarySize - (primaryHeight - _resizeStartPrimarySize);
-            double secondaryHeight = shiftOn ? newSecondarySize : Math.Max(MinRowHeight, newSecondarySize);
-            
-            primaryHeight = Math.Max(MinRowHeight, _resizeStartPrimarySize + (_resizeStartSecondarySize - secondaryHeight));
-            //$$$$$$$$$$$$$$$$$$$$$$$
+
+            double maxPadding = shiftWasOnAtPress || isBottomEdge ? Double.MaxValue : minCurrentCellPadding + minLowerCellPadding;
 
             List<Cell> cellsToRepad = [.. table.Cells.Where(c => c.RowNo == _resizeIndex)];
-            double splitPaddingHeight = delta / 2;
             for (int cellno = 0; cellno < cellsToRepad.Count; cellno++) 
-            {                
+            {
                 Cell cell = cellsToRepad[cellno];
-                double maxPadding = primaryHeight / 2;
-                double newCellTopBottomPadding = Math.Min(maxPadding, Math.Max(0, origCellPaddings[cellno] + splitPaddingHeight));
-                cell.Padding = new Thickness(cell.Padding.Left, newCellTopBottomPadding, cell.Padding.Right, newCellTopBottomPadding);
+                double newTotalCellVerticalPadding = Math.Max(0, Math.Min(maxPadding, origCellPaddings[cellno] + delta)) ;
+                cell.Padding = new Thickness(cell.Padding.Left, newTotalCellVerticalPadding / 2, cell.Padding.Right, newTotalCellVerticalPadding / 2);
                 foreach (Block b in cell.CellBlocks)
                 {
                     if (b is Paragraph p)
                         p.CallRequestSizeChanged(); 
                 }
             }
-
-            if (shiftWasOnAtPress)
+            
+            
+            if (shiftWasOnAtPress || isBottomEdge)
             { }  // don't reduce padding in lower cells, just let table resize accordingly
             else
             {   // lower cells paddings are shortened
                 foreach (Cell lowerCell in table.Cells.Where(c=> c.RowNo == _resizeIndex + 1))
                 {
-                    double minPadding = secondaryHeight - lowerCell.Height;
-                    double newLowerCellTopBottomPadding = Math.Min(splitPaddingHeight, Math.Max(minPadding, lowerCell.Padding.Top + splitPaddingHeight));
-                    lowerCell.Padding = new Thickness(lowerCell.Padding.Left, newLowerCellTopBottomPadding, lowerCell.Padding.Right, newLowerCellTopBottomPadding);
+                    double newLowerCellTotalVerticalPadding = Math.Max(0, Math.Min(maxPadding, minLowerCellPadding - delta));
+                    lowerCell.Padding = new Thickness(lowerCell.Padding.Left, newLowerCellTotalVerticalPadding / 2, lowerCell.Padding.Right, newLowerCellTotalVerticalPadding / 2);
 
                     foreach (Block b in lowerCell.CellBlocks)
                     {
@@ -280,6 +296,7 @@ public partial class EditableTable : ItemsControl
                 }
             }
         }
+                
 
         bordersCanvas.InvalidateVisual();
         table.MyFlowDoc.UpdateSelection(); 
@@ -290,7 +307,7 @@ public partial class EditableTable : ItemsControl
     private static ResizeHit GetResizeHit(Table table, Point position)
     {
         double x = 0;
-        for (int index = 0; index < table.ColDefs.Count - 1; index++)
+        for (int index = 0; index < table.ColDefs.Count; index++)
         {
             x += table.ColDefs[index].Width.Value;
             if (Math.Abs(position.X - x) <= ResizeGripSize)
@@ -298,7 +315,7 @@ public partial class EditableTable : ItemsControl
         }
 
         double y = 0;
-        for (int index = 0; index < table.RowDefs.Count - 1; index++)
+        for (int index = 0; index < table.RowDefs.Count; index++)
         {
             y += table.RowDefs[index].Height.Value;
             if (Math.Abs(position.Y - y) <= ResizeGripSize)

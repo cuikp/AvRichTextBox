@@ -213,9 +213,7 @@ internal static partial class RtfConversions
 
                     if (newCell.CellBlocks != null)
                         newtable.Cells.Add(newCell);
-
                 }
-
 
                 colno++;
             }

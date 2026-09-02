@@ -166,5 +166,7 @@ public partial class MainWindow : Window
             Process.Start("xdg-open", filesPath);
     }
 
-    
+    private void Button_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+    }
 }

@@ -47,6 +47,8 @@ public partial class RichTextBox
         byte[] rtfbytes = Encoding.ASCII.GetBytes(rtfString + "\0");
         dataTransfer.Add(DataTransferItem.Create(richTextFormat, rtfbytes));
 
+        Debug.WriteLine("copy rtf string " + rtfString);
+
         // Plain text
         List<IEditable> rangeInlines = FlowDoc.GetTextRangeInlines(FlowDoc.Selection, addToDoc: false).createdInlines;
         
@@ -64,7 +66,16 @@ public partial class RichTextBox
     {
         var sb = new StringBuilder();
 
-        List<Paragraph> rangePars = FlowDoc.GetOverlappingParagraphsInRange(range, range.BiasForwardEnd).ConvertAll(b=> b.FullClone());
+        List<Paragraph> rangePars = FlowDoc.GetOverlappingParagraphsInRange(range, range.BiasForwardEnd);
+
+        rangePars = rangePars.ConvertAll(b=> 
+        { 
+            Paragraph clonedPar = b.PropertyClone();
+            //Paragraph clonedPar = b.FullClone();
+            clonedPar.OwningCell = b.OwningCell;
+            clonedPar.OwningTable = b.OwningTable;
+            return clonedPar;
+        });
 
         if (rangePars[0] is Paragraph firstPar && rangePars[^1] is Paragraph lastPar)
         {
@@ -113,36 +124,6 @@ public partial class RichTextBox
         
     }
 
-    //internal string GetRtfFromRange(TextRange range)
-    //{
-    //    var sb = new StringBuilder();
-    //    List<Block> rangeBlocks = FlowDoc.GetOverlappingBlocksInRange(range).ConvertAll(b=> b.FullClone());
-
-    //    // split first/last paragraphs at range
-    //    if (rangeBlocks[0] is Paragraph firstPar && rangeBlocks[^1] is Paragraph lastPar)
-    //    {
-    //        lastPar.Inlines.RemoveMany(lastPar.Inlines.Where(il => lastPar.StartInDoc + il.TextPositionOfInlineInParagraph >= range.End));
-    //        if (lastPar.Inlines[^1] is EditableRun edrunL)
-    //        {
-    //            int cutEnd = range.End - lastPar.StartInDoc - edrunL.TextPositionOfInlineInParagraph;
-    //            if (cutEnd > 0)
-    //                edrunL.Text = edrunL.Text![..cutEnd];
-    //        }
-
-    //        firstPar.Inlines.RemoveMany(firstPar.Inlines.Where(il => firstPar.StartInDoc + il.TextPositionOfInlineInParagraph + il.InlineLength < range.Start));
-    //        if (firstPar.Inlines[0] is EditableRun edrunF)
-    //        {
-    //            int cutStart = range.Start - firstPar.StartInDoc - edrunF.TextPositionOfInlineInParagraph;
-    //            if (cutStart > 0)
-    //                edrunF.Text = edrunF.Text![cutStart..];
-    //        }
-    //    }
-
-    //    return RtfConversions.GetRangeRtf(rangeBlocks);
-        
-    //}
-
-
     readonly static DataFormat<byte[]> richTextFormat = DataFormat.CreateBytesPlatformFormat("Rich Text Format");
 
     private async void PasteFromClipboard(bool plainTextOnly = false)
@@ -179,7 +160,7 @@ public partial class RichTextBox
 
         // Get clipboard content
         if (!plainTextOnly && await clipboard.TryGetValueAsync(richTextFormat) is byte[] rtfbytes)
-        {
+        {            
             pastedTextLength = FlowDoc.InsertRTF(rtfbytes, startPar, insertRange, insertBlockIndex, addedBlockIds);
             contentPasted = true;
         }
@@ -228,7 +209,9 @@ public partial class RichTextBox
                    firstBlockWasDeleted,
                    lastBlockWasDeleted
                    ));
-            
+
+            startPar.CallRequestInlinesUpdate();
+
             FlowDoc.UpdateBlockAndInlineStarts(insertBlockIndex);
             FlowDoc.UpdateSelection();
 

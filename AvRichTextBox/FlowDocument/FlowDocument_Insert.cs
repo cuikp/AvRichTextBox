@@ -17,6 +17,11 @@ public partial class FlowDocument
         List<IEditable> rightSplitRuns = startPar.Inlines.ToList()[insertIdx..];
 
         List<Block> rtfBlocks = GetRtfContent(rtfbytes);
+
+        
+        // pasted cloned cells are no longer flagged as clones
+        rtfBlocks.OfType<Table>().ToList().ForEach(table => table.Cells.ToList().ForEach(c => c.IsClonedCell = false));
+
         if (rtfBlocks.LastOrDefault() is Block lastBlock && lastBlock.Text == "\r")
             rtfBlocks.Remove(lastBlock);
 
@@ -50,20 +55,26 @@ public partial class FlowDocument
         RTFDomDocument rtfdoc = new();
         rtfdoc.LoadRTFText(rtfstring);
 
-        int domParCount = rtfdoc.Elements.OfType<RTFDomParagraph>().Count();
+        Debug.WriteLine("RTF: " + rtfstring);
+
+        //int domParCount = rtfdoc.Elements.OfType<RTFDomParagraph>().Count();
+        RTFDomElement lastElm = null!;
 
         foreach (RTFDomElement rtfelm in rtfdoc.Elements)
         {
             switch (rtfelm)
             {
                 case RTFDomParagraph rtfpar:
-
                     Paragraph rtfPar = RtfConversions.GetParagraphFromRtfDom(rtfpar, this);
                     rtfBlockList.Add(rtfPar);
                     break;
 
                 case RTFDomTable rtftable:
                     Table rtfTable = RtfConversions.GetTableFromRtfDom(rtftable, this, rtfdoc.ColorTable);
+                    
+                    if (lastElm is RTFDomParagraph lastRtfPar && rtfBlockList.Last() is Paragraph lastPar && lastPar.IsEmptyInlinePar)
+                        rtfBlockList.Remove(lastPar);  // Table doesn't need to be in a new paragraph 
+
                     rtfBlockList.Add(rtfTable);
                     break;
 
@@ -71,6 +82,7 @@ public partial class FlowDocument
                     Debug.WriteLine("unknown rtfdoc element: " + rtfelm.GetType());
                     break;
             }
+            lastElm = rtfelm;
         }
 
         return rtfBlockList;

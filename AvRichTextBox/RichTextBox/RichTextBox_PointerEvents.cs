@@ -8,16 +8,38 @@ namespace AvRichTextBox;
 
 public partial class RichTextBox
 {
-
     EditableParagraph? currentMouseOverEdPar = null;
+    EditableCell? currentMouseOverEdCell = null;
+    bool MouseOverCellEmptyArea = false;
+
+    internal void EditableCell_MouseMove(EditableCell edCell, Point cellPoint) 
+    { 
+        currentMouseOverEdCell = edCell;
+        if (currentMouseOverEdPar == null)
+            MouseOverCellEmptyArea = true;
+    }
+
+    internal void EditableCell_MouseLeave(EditableCell edCell) { currentMouseOverEdCell = null!; MouseOverCellEmptyArea = false; }
 
     internal void EditableTable_MouseMove(EditableTable edTable, Cursor tableCursor)
     {
         CurrentCursor = tableCursor;
         this.Cursor = CurrentCursor;
-        
+
         if (edTable._PointerPressedOnBorder)
             UpdateSelectionIndicators();
+
+        
+    }
+
+    private void EditableTable_SizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        this.FlowDocSV.UpdateLayout();
+        this.DocIC.InvalidateMeasure();
+        this.DocIC.InvalidateArrange();
+        this.DocIC.UpdateLayout();
+
+
     }
 
     internal void EditableTable_MouseLeave(EditableTable edTable)
@@ -29,8 +51,16 @@ public partial class RichTextBox
 
     internal void EditableParagraph_MouseMove(EditableParagraph edPar, int charIndex)
     {
+        MouseOverCellEmptyArea = false;
+
         if (!PointerDownOverRTB)
             currentMouseOverEdPar = edPar;
+                
+    }
+
+    internal void EditableParagraph_MouseLeave(EditableParagraph edPar)
+    {
+        currentMouseOverEdPar = null!;
     }
 
     private void EditableParagraph_LostFocus(object? sender, FocusChangedEventArgs e)
@@ -41,10 +71,27 @@ public partial class RichTextBox
 
     internal int SelectionOrigin = 0;
     bool PointerDownOverRTB = false;
+    Point downPoint = new Point();
 
     private void FlowDocSV_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (currentMouseOverEdPar == null) return;
+        downPoint = e.GetPosition(this);
+
+        if (MouseOverCellEmptyArea)
+        {
+            if (currentMouseOverEdCell?.DataContext is Cell overCell)
+            {
+                if (overCell.CellBlocks.FirstOrDefault() is Paragraph firstPar)
+                {
+                    FlowDoc.Selection.Start = firstPar.StartInDoc;
+                    FlowDoc.Selection.CollapseToStart(); // FlowDoc.Selection.End = FlowDoc.Selection.Start;
+                }
+            }
+        }
+
+        if (currentMouseOverEdPar == null) 
+            return;
+
         if (currentMouseOverEdPar.DataContext is not Paragraph thisPar) return;
 
         // Hyperlink mouse down processing
@@ -164,10 +211,15 @@ public partial class RichTextBox
         }
     }
 
+    double downX, downY;
+
     private void FlowDocSV_PointerMoved(object? sender, PointerEventArgs e)
     {
-        //Debug.WriteLine("flowdoccursor = " + this.Cursor + " , " + CurrentCursor);
-
+        Point currPoint = e.GetPosition(this);
+        if (Math.Abs(currPoint.X - downPoint.X) < 2 && Math.Abs(currPoint.Y - downPoint.Y) < 2)
+            return;
+            
+        
         if (PointerDownOverRTB)
         {
             EditableParagraph overEP = null!;

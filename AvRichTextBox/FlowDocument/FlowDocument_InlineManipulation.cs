@@ -20,7 +20,8 @@ public partial class FlowDocument
       {
          int ilineAbsoluteStart = p.StartInDoc + iline.TextPositionOfInlineInParagraph;
          int ilineAbsoluteEnd = ilineAbsoluteStart + iline.InlineLength;
-         bool EndAtLeastStart = ilineAbsoluteEnd >= trange.Start;
+         //bool EndAtLeastStart = ilineAbsoluteEnd >= trange.Start;
+         bool EndAtLeastStart = ilineAbsoluteEnd > trange.Start;
          bool EndsAtInlineStart = ilineAbsoluteStart == trange.End;
 
          bool withinRange = (iline.IsLastInlineOfParagraph && iline is not EditableInlineUIContainer) switch

@@ -139,10 +139,11 @@ public partial class MainWindow : Window
         });
 
         //Merge cells
-        newTable.MergeCellsRight(1, 0, 2);
-        newTable.MergeCellsDown(1, 3, 1);
+        //newTable.MergeCellsRight(1, 2, 1);
+        newTable.MergeCellsRight(1, 1, 1);
+        //newTable.MergeCellsDown(1, 3, 1);
         
-        newTable.InsertColumns(0, 2);
+        //newTable.InsertColumns(0, 1);
 
     }
 

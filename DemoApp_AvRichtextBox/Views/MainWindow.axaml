@@ -221,20 +221,28 @@
 						</DockPanel>
 					</Border>
 					
-					<Border x:Name="TablePanel" BorderBrush="Black" BorderThickness="3" Padding="2" Width="170" >
+					<Border x:Name="TablePanel" BorderBrush="Black" BorderThickness="3" Padding="2" Width="255" >
 						<DockPanel LastChildFill="False" >
 							<TextBlock Text="Table" DockPanel.Dock="Top" TextAlignment="Center"/>
 							<DockPanel DockPanel.Dock="Top" Margin="0, 5">
+							
 								<DockPanel DockPanel.Dock="Left">
 									<TextBlock DockPanel.Dock="Top" Text="Border thickness" Width="70" VerticalAlignment="Center" Margin="0, -10, 0, 0"  TextWrapping="Wrap" HorizontalAlignment="Right"/>
 									<cc:NumericSpinner x:Name="TableBorderNS" Width="42" Margin="3" MinValue="0" MaxValue="20" Value="0" Height="30" DockPanel.Dock="Right" 
 													   FontSize="16" UserValueChanged="TableBorderNS_UserValueChanged"/>
 								</DockPanel>
 
-								<DockPanel Margin="4">
-									<TextBlock Text="Border color:" DockPanel.Dock="Top" Width="50" TextAlignment="Right" TextWrapping="Wrap" HorizontalAlignment="Right" Margin="3,0" VerticalAlignment="Top"/>
-									<ColorPicker Color="Black" x:Name="TableBorderCP" ColorChanged="TableBorder_ColorChanged" DockPanel.Dock="Right" Width="70"  Height="25" Background="White"
+								<DockPanel Margin="4" DockPanel.Dock="Left" >
+									<TextBlock Text="Border color:" DockPanel.Dock="Top" Width="50" TextAlignment="Left" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="3,0" VerticalAlignment="Top"/>
+									<ColorPicker Color="Black" HorizontalAlignment="Left" x:Name="TableBorderCP" ColorChanged="TableBorder_ColorChanged" DockPanel.Dock="Right" Width="70"  Height="25" Background="White"
 										Focusable="False" />
+									
+								</DockPanel>
+
+								<DockPanel Margin="4" DockPanel.Dock="Left" >
+									<Button Content="Insert cols" DockPanel.Dock="Top" Focusable="False" Width="75" Padding="0" Click="AddColsButton_Click" HorizontalAlignment="Left" Margin="3,0" VerticalAlignment="Top"/>
+									<Button Content="Insert rows" DockPanel.Dock="Top" Focusable="False" Width="75" Padding="0" Click="AddRowsButton_Click" HorizontalAlignment="Left" Margin="3,0" VerticalAlignment="Top"/>
+									<cc:NumericSpinner x:Name="InsertNumberNS" HorizontalAlignment="Center" Margin="0" Value="1" MaxValue="10" MinValue="1" DockPanel.Dock="Right" Width="43" Height="25" Background="White" Focusable="False" />
 									
 								</DockPanel>
 							</DockPanel>

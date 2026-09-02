@@ -108,6 +108,7 @@
 
 											<local:EditableParagraph Classes="paragraphBindings" xml:space="preserve" Background="Transparent"	
 													MouseMove="EditableParagraph_MouseMove" 
+													MouseLeave="EditableParagraph_MouseLeave" 
 													LostFocus="EditableParagraph_LostFocus" 
 
 													TextLayoutInfoStartRequested="{Binding RequestTextLayoutInfoStart}"
@@ -127,7 +128,7 @@
 										
 										<local:EditableTable Background="GhostWhite" VerticalAlignment="Top"  BorderBrush="{Binding BorderBrush}" BorderThickness="{Binding BorderThickness}" Margin="{Binding Margin}" HorizontalAlignment="{Binding TableAlignment}" Width="{Binding Width}" Height="{Binding Height}" ItemsSource="{Binding Cells}" 
 										 MouseMove="EditableTable_MouseMove" MouseLeave="EditableTable_MouseLeave" ClipToBounds="False"
-										 local:RequestExtensions.InvalidateVisualRequested="{Binding RequestInvalidateVisual}"
+										 local:RequestExtensions.InvalidateVisualRequested="{Binding RequestInvalidateVisual}" SizeChanged="EditableTable_SizeChanged"
 										 >
 											
 												<ItemsControl.ItemsPanel>
@@ -139,7 +140,8 @@
 												<ItemsControl.ItemTemplate>
 													<DataTemplate x:DataType="{x:Type local:Cell}">
 														<Grid>
-															<local:EditableCell Padding="{Binding Padding}" Background="{Binding CellBackground}"  >
+															<local:EditableCell Padding="{Binding Padding}" Background="{Binding CellBackground}" 
+																					  MouseMove="EditableCell_MouseMove" MouseLeave="EditableCell_MouseLeave">
 
 																<!-- Cell interior paragraph stack -->
 																<ItemsControl ItemsSource="{Binding CellBlocks}" Margin="0" VerticalAlignment="{Binding CellVerticalAlignment}">
@@ -154,7 +156,7 @@
 																		<DataTemplate>
 
 																			<local:EditableParagraph x:DataType="local:Paragraph" Classes="paragraphBindings" xml:space="preserve" 
-																				MouseMove="EditableParagraph_MouseMove" LostFocus="EditableParagraph_LostFocus" 
+																				MouseMove="EditableParagraph_MouseMove" LostFocus="EditableParagraph_LostFocus" MouseLeave="EditableParagraph_MouseLeave" 
 																
 																				TextLayoutInfoStartRequested="{Binding RequestTextLayoutInfoStart}"
 																				TextLayoutInfoEndRequested="{Binding RequestTextLayoutInfoEnd}"
@@ -196,7 +198,7 @@
 						BorderThickness="1" CornerRadius="4" Padding="10" BoxShadow="0 2 8 0 #40000000">
 					<StackPanel Orientation="Vertical" Spacing="8" Width="320" KeyDown="HyperlinkPopup_KeyDown">
 
-						<TextBlock x:Name="HyperlinkPopupTitle" Text="Insert Hyperlink" FontWeight="SemiBold" FontSize="13"/>
+						<TextBlock x:Name="HyperlinkPopupTitle" Text="Insert Hyperlink" FontSize="13"/>
 
 						<!-- Text field -->
 						<StackPanel Orientation="Vertical" Spacing="3">

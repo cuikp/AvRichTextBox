@@ -156,14 +156,26 @@ internal static partial class RtfConversions
                     foreach (Block b in thisCell.CellBlocks)
                     {
                         if (b is Paragraph p)
-                            appendParString = GetParagraphRtf(p, fontMap, colorMap, true);
-                    }
+                        {
 
+                            if (thisCell.CellBlocks.FirstOrDefault() != p)
+                            {
+                                appendParString += "\\par ";
+                            }
+
+                            //cellContents.Append(appendParString);
+                            //appendParString = GetParagraphRtf(p, fontMap, colorMap, true);
+                            appendParString += GetParagraphRtf(p, fontMap, colorMap, true);
+
+                        }
+
+                    }
+                    //appendParString.Remove(appendParString.Length - 4, 4);
 
                     nextVMergeStartswColSpans[colno].VMergeStart = rowno + thisCell.RowSpan;
                     nextVMergeStartswColSpans[colno].colspan = thisCell.ColSpan;
                     nextVMergeStartswColSpans[colno].cellPadding = thisCell.Padding;
-                                     
+                                    
 
                     cellContents.Append(appendParString);
                     cellContents.Append(@"\cell ");
@@ -215,165 +227,13 @@ internal static partial class RtfConversions
                         
         }
 
-        Debug.WriteLine ("tableRTF:\n" + tableRtf.ToString());
+        //Debug.WriteLine ("tableRTF:\n" + tableRtf.ToString());
 
         return tableRtf.ToString();
 
     }
 
-    //internal static string GetTableRtfOLD(Table table, Dictionary<string, int> fontMap, Dictionary<Color, int> colorMap)
-    //{
-
-    //    int[] colRights = new int[table.ColDefs.Count];
-    //    int x = 0;
-    //    for (int i = 0; i < table.ColDefs.Count; i++)
-    //    {
-    //        x += (int)PixToTwip(table.ColDefs[i].Width.Value);
-    //        colRights[i] = x;
-    //    }
-
-    //    (int VMergeStart, int colspan, int cellBorderColorIdx, int cellBackColorIdx, Thickness cellPadding)[] nextVMergeStartswColSpans = new (int VMergeStart, int colspan, int cellBorderColorIdx, int cellBackColorIdx, Thickness cellPadding)[table.ColDefs.Count];
-
-    //    StringBuilder tableRtf = new();
-    //    for (int rowno = 0; rowno < table.RowDefs.Count; rowno++)
-    //    {
-    //        tableRtf.Append(@"\trowd ");
-
-    //        switch (table.TableAlignment)
-    //        {
-    //            case Avalonia.Layout.HorizontalAlignment.Left:
-    //            default:
-    //                tableRtf.Append(@"\trql");
-    //                break;
-    //            case Avalonia.Layout.HorizontalAlignment.Center:
-    //                tableRtf.Append(@"\trqc");
-    //                break;
-    //            case Avalonia.Layout.HorizontalAlignment.Right:
-    //                tableRtf.Append(@"\trqr");
-    //                break;
-    //        }
-
-                    
-
-    //        for (int colno = 0; colno < table.ColDefs.Count; colno++)
-    //        {
-    //            if (rowno < nextVMergeStartswColSpans[colno].VMergeStart)
-    //                tableRtf.Append(@"\clvmrg");
-
-    //            string appendParString = "";
-    //            int advanceColNo = 0;
-    //            int horizColSpan = 1;
-    //            bool isExistingCell = false;
-
-    //            if (table.Cells.FirstOrDefault(c => c.RowNo == rowno && c.ColNo == colno) is Cell thisCell)
-    //            {
-    //                isExistingCell = true;
-    //                horizColSpan = thisCell.ColSpan;
-
-    //                switch (thisCell.CellVerticalAlignment)
-    //                {
-    //                    case Avalonia.Layout.VerticalAlignment.Top:
-    //                        tableRtf.Append(@"\clvertalt");
-    //                        break;
-    //                    case Avalonia.Layout.VerticalAlignment.Center:
-    //                        tableRtf.Append(@"\clvertalc");
-    //                        break;
-    //                    case Avalonia.Layout.VerticalAlignment.Bottom:
-    //                        tableRtf.Append(@"\clvertalb");
-    //                        break;
-    //                }
-
-
-    //                if (thisCell.RowSpan > 1)
-    //                    tableRtf.Append(@"\clvmgf");
-
-    //                if (thisCell.ColSpan > 1)
-    //                {
-    //                    tableRtf.Append(@"\clmgf");
-    //                    //tableRtf.Append($@"\cellx{colRights[colno + thisCell.ColSpan - 1]} ");
-    //                    tableRtf.Append($@"\cellx{colRights[colno]} ");
-
-    //                    for (int n = 1; n < horizColSpan; n++)
-    //                    {
-    //                        tableRtf.Append(@"\clmrg");
-    //                        tableRtf.Append($@"\cellx{colRights[colno + n]} ");
-    //                        //Debug.WriteLine("cell merge horiz");
-    //                    }
-
-    //                }
-
-    //                advanceColNo = thisCell.ColSpan - 1;
-
-    //                foreach (Block b in thisCell.CellBlocks)
-    //                {
-    //                    if (b is Paragraph p)
-    //                        appendParString = GetParagraphRtf(p, fontMap, colorMap, true);
-    //                }
-
-
-    //                nextVMergeStartswColSpans[colno].VMergeStart = rowno + thisCell.RowSpan;
-    //                nextVMergeStartswColSpans[colno].colspan = thisCell.ColSpan;
-    //                nextVMergeStartswColSpans[colno].cellPadding = thisCell.Padding;
-
-    //                if (thisCell.BorderBrush is ISolidColorBrush borderBrush && colorMap.TryGetValue(borderBrush.Color, out int colorIndexBorderF))
-    //                    nextVMergeStartswColSpans[colno].cellBorderColorIdx = colorIndexBorderF;
-
-    //                if (thisCell.CellBackground is ISolidColorBrush backgroundBrush && colorMap.TryGetValue(backgroundBrush.Color, out int colorIndexBackF))
-    //                    nextVMergeStartswColSpans[colno].cellBackColorIdx = colorIndexBackF;
-
-    //            }
-    //            else
-    //            {
-    //                advanceColNo = nextVMergeStartswColSpans[colno].colspan - 1;
-    //            }
-
-                            
-
-    //            if (isExistingCell)
-    //            {
-    //                int borderColorIdx = nextVMergeStartswColSpans[colno].cellBorderColorIdx;
-    //                if (borderColorIdx != 0)
-    //                    tableRtf.Append(
-    //                       $@"\clbrdrt\brdrs\brdrw20\brdrcf{borderColorIdx}" +
-    //                       $@"\clbrdrl\brdrs\brdrw20\brdrcf{borderColorIdx}" +
-    //                       $@"\clbrdrb\brdrs\brdrw20\brdrcf{borderColorIdx}" +
-    //                       $@"\clbrdrr\brdrs\brdrw20\brdrcf{borderColorIdx}");
-
-    //                int backColorIdx = nextVMergeStartswColSpans[colno].cellBackColorIdx;
-    //                if (backColorIdx != 0)
-    //                    tableRtf.Append($@"\clcbpat{backColorIdx}");
-
-    //                //cell padding
-    //                Thickness cellPad = nextVMergeStartswColSpans[colno].cellPadding;
-    //                int padL = (int)PixToTwip(cellPad.Left);
-    //                int padT = (int)PixToTwip(cellPad.Top);
-    //                int padR = (int)PixToTwip(cellPad.Right);
-    //                int padB = (int)PixToTwip(cellPad.Bottom);
-    //                tableRtf.Append($@"\clpadl{padL}\clpadfl3\clpadt{padT}\clpadft3\clpadr{padR}\clpadfr3\clpadb{padB}\clpadfb3");
-
-    //                if (horizColSpan == 1)
-    //                    tableRtf.Append($@"\cellx{colRights[colno]} ");
-
-    //                tableRtf.Append(appendParString);
-
-    //                for (int i = 0; i < horizColSpan; i++)
-    //                    tableRtf.Append(@"\cell ");
-    //            }
-
-
-    //            colno += advanceColNo;
-
-    //        }
-
-    //        tableRtf.Append(@"\row");
-    //    }
-
-
-
-    //    return tableRtf.ToString();
-
-    //}
-
+   
     internal static string GetParagraphRtf(Paragraph par, Dictionary<string, int> fontMap, Dictionary<Color, int> colorMap, bool isTablePar = false)
     {
         bool BoldOn = false;
@@ -609,12 +469,14 @@ internal static partial class RtfConversions
         //Build font map
         var fontMap = new Dictionary<string, int>();
         var colorMap = new Dictionary<Color, int>();
-        List<Block> allBlocks = rangeParagraphs.First().MyFlowDoc.GetFullBlocksInRange(rangeStart, rangeEnd);
-        sb.Append(RtfConversions.GetFontAndColorTables(allBlocks, ref fontMap, ref colorMap));
+
+        sb.Append(RtfConversions.GetFontAndColorTables(rangeParagraphs, ref fontMap, ref colorMap));
 
         for (int parno = 0; parno < rangeParagraphs.Count; parno++)
         {
             Paragraph thisRangePar = rangeParagraphs[parno];
+
+            //Debug.WriteLine("ranparText = " + thisRangePar.Text);
 
             // check if full table is included in range:
             if (thisRangePar.IsCellBlock && 

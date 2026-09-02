@@ -125,31 +125,10 @@ public class Paragraph : Block
 
     }
 
-    internal Paragraph PropertyClone()
+    internal override Paragraph PropertyClone()
     {
-        return new Paragraph(MyFlowDoc)
+        Paragraph newPar = new(MyFlowDoc)
         {
-            TextAlignment = this.TextAlignment,
-            //LineSpacing = this.LineSpacing,
-            BorderBrush = this.BorderBrush,
-            BorderThickness = this.BorderThickness,
-            LineHeight = this.LineHeight,
-            Margin = this.Margin,
-            Background = this.Background,
-            FontFamily = this.FontFamily,
-            FontSize = this.FontSize,
-            FontStyle = this.FontStyle,
-            FontWeight = this.FontWeight,
-            IsTableCellBlock = this.IsTableCellBlock
-        };
-    }
-
-    internal override Paragraph FullClone()
-    {
-        Paragraph newPar = new(this.MyFlowDoc)
-        {
-            Id = this.Id,
-            StartInDoc = this.StartInDoc,
             TextAlignment = this.TextAlignment,
             //LineSpacing = this.LineSpacing,
             BorderBrush = this.BorderBrush,
@@ -162,16 +141,42 @@ public class Paragraph : Block
             FontStyle = this.FontStyle,
             FontWeight = this.FontWeight,
             IsTableCellBlock = this.IsTableCellBlock,
-            //OwningTable/OwningCell are assigned in CellBlocks.CollectionChanged only for paragraphs cloned within Cells.
-            //Cloning paragraphs in isolation for copy must set these explicitly.
+            OwningTable = this.OwningTable,
             OwningCell = this.OwningCell,
-            OwningTable = this.OwningTable
+            StartInDoc = this.StartInDoc
+
+        };
+        
+        newPar.Inlines.AddRange(this.Inlines.Select(il => il.Clone()));
+
+        return newPar;
+    }
+
+    internal override Paragraph FullClone()
+    {
+        Paragraph newPar = new(MyFlowDoc)
+        {
+            Id = this.Id,
+            TextAlignment = this.TextAlignment,
+            //LineSpacing = this.LineSpacing,
+            BorderBrush = this.BorderBrush,
+            BorderThickness = this.BorderThickness,
+            LineHeight = this.LineHeight,
+            Margin = this.Margin,
+            Background = this.Background,
+            FontFamily = this.FontFamily,
+            FontSize = this.FontSize,
+            FontStyle = this.FontStyle,
+            FontWeight = this.FontWeight,
+            IsTableCellBlock = this.IsTableCellBlock,
+            OwningTable = this.OwningTable,
+            OwningCell = this.OwningCell,
+            StartInDoc = this.StartInDoc
+
         };
 
-
-        newPar.Inlines.CollectionChanged += Inlines_CollectionChanged;
+        //newPar.Inlines.CollectionChanged += Inlines_CollectionChanged;
         newPar.Inlines.AddRange(this.Inlines.Select(il => il.CloneWithId()));
-
         
         return newPar;
     }

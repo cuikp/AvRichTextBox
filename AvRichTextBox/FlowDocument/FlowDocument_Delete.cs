@@ -171,7 +171,7 @@ public partial class FlowDocument
         int originalRangeEnd = trange.Start + trange.Length;
 
         List<Block> rangeBlocks = GetOverlappingBlocksInRange(trange);
-
+                
         int firstBlockId = rangeBlocks.First().Id;
         int firstBlockIndex = Blocks.IndexOf(rangeBlocks.First());
 
@@ -188,7 +188,6 @@ public partial class FlowDocument
             if (GetCharPosInInline(lastInline, trange.Start) == lastInline.InlineLength)
                 return (lastInline.Id, -1);
         }
-
 
         if (addUndo)
             Undos.Add(new DeleteRangeUndo(rangeBlocks.ConvertAll(rblock => rblock.FullClone()), firstBlockIndex, this, originalRangeStart, originalTRangeLength, firstBlockDeleted, lastBlockDeleted));
@@ -263,7 +262,6 @@ public partial class FlowDocument
 
         }
 
-
         // Fix other special cases:
         // re-add the first par if no blocks are left
         if (Blocks.Count == 0)
@@ -272,13 +270,9 @@ public partial class FlowDocument
         if (Blocks.Count == 1 && Blocks[0] is Paragraph onlyPar && onlyPar.Inlines.Count == 0)
             onlyPar.Inlines.Add(new EditableRun(""));
 
-
-
-
         disableRunTextUndo = false;
 
         UpdateTextRanges(originalRangeStart, -originalTRangeLength);
-
 
         return edgeIds;
 

@@ -31,7 +31,7 @@ public partial class RichTextBox
 
       HyperlinkUrlBox.Text = existing?.NavigateUri ?? "";
 
-      HyperlinkPopupTitle.Text = isEdit ? "Edit Hyperlink" : "Insert Hyperlink";
+      HyperlinkPopupTitle.Text = isEdit ? "EDIT Hyperlink" : "INSERT Hyperlink";
       HyperlinkDeleteButton.IsVisible = isEdit;
 
       HyperlinkPopup.IsOpen = true;

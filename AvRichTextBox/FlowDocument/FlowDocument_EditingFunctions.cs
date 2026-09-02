@@ -113,7 +113,7 @@ public partial class FlowDocument
 
         UpdateBlockAndInlineStarts(blockIndex);
 
-
+        
     }
 
     private int ProcessInsertBlocks(List<Block> blocks, Paragraph startPar, int insertIdx, int insertBlockIndex, List<int> addedBlockIds, List<IEditable> rightSplitRuns)

@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
 using AvRichTextBox;
@@ -245,6 +246,25 @@ public partial class MainWindow
         }
             
     }
+
+    private void AddColsButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock && thisPar.GetOwningCell is Cell c && c.GetOwningTable is Table t)
+        {
+            t.InsertColumns(0, (int)InsertNumberNS.Value);
+        }
+    }
+    
+    private void AddRowsButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock && thisPar.GetOwningCell is Cell c && c.GetOwningTable is Table t)
+        {
+            t.InsertRows(0, (int)InsertNumberNS.Value);
+        }
+
+
+    }
+
 
 
 

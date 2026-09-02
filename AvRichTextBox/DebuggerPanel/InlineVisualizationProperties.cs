@@ -13,12 +13,12 @@ public class InlineVisualizationProperties : INotifyPropertyChanged
    private static readonly PropertyChangedEventArgs InlineSelectedBorderThicknessChangedArgs = new(nameof(InlineSelectedBorderThickness));
    private static readonly PropertyChangedEventArgs IsTableCellInlineChangedArgs = new(nameof(IsTableCellInline));
 
-   public bool IsStartInline { get; set { field = value; InvokeProperty(BackBrushChangedArgs); InvokeProperty(InlineSelectedBorderThicknessChangedArgs); } }
-   public bool IsEndInline { get; set { field = value; InvokeProperty(BackBrushChangedArgs); InvokeProperty(InlineSelectedBorderThicknessChangedArgs); } }
-   public bool IsWithinSelectionInline { get; set { field = value; InvokeProperty(BackBrushChangedArgs); } }
-   public bool IsTableCellInline { get; set { field = value; InvokeProperty(IsTableCellInlineChangedArgs); } }
+    public bool IsStartInline { get; set { field = value; InvokeProperty(BackBrushChangedArgs); InvokeProperty(InlineSelectedBorderThicknessChangedArgs); } }
+    public bool IsEndInline { get; set { field = value; InvokeProperty(BackBrushChangedArgs); InvokeProperty(InlineSelectedBorderThicknessChangedArgs); } }
+    public bool IsWithinSelectionInline { get; set { field = value; InvokeProperty(BackBrushChangedArgs); } }
+    public bool IsTableCellInline { get; set { field = value; InvokeProperty(IsTableCellInlineChangedArgs); } }
 
-   public Thickness InlineSelectedBorderThickness => (IsStartInline || IsEndInline) ? new Thickness(3) : new Thickness(1);
+    public Thickness InlineSelectedBorderThickness => (IsStartInline || IsEndInline) ? new Thickness(3) : new Thickness(1);
 
    readonly SolidColorBrush startInlineBrush = new(Colors.LawnGreen);
    readonly SolidColorBrush endInlineBrush = new(Colors.Pink);
