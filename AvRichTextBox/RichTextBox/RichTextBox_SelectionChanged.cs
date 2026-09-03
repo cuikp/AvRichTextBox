@@ -123,7 +123,7 @@ public partial class RichTextBox : UserControl
                   Rect leftRect = new(0, 0, 0, 0);
                   //try { leftRect = p.TextLayout.HitTestTextPosition(0); }
                   try { leftRect = p.TextLayout.HitTestTextPosition(lineStartIndex); }
-                  catch { Debug.WriteLine($"HitTestTextPosition at lineStartIndex: {lineStartIndex} failed"); continue; }
+                  catch { Debug.WriteLine($"HitTestTextPosition at lineStartIndex: {lineStartIndex} failed (par = {p.Text})"); continue; }
 
                   double tlineLeft = leftRect.Left;
                   double tlineWidth = tline.Width;

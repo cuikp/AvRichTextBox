@@ -20,14 +20,15 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>ver 1.9.13:
-Added InsertColumns(idx, count) and InsertRows(idx, count) methods to Table
-Removed FontWeight on Hyperlink Popup</PackageReleaseNotes>
+	  <PackageReleaseNotes>ver 1.9.14:
+Fixed problem with pasting multiple paragraphs into Cell
+FlowDoc.ScrollToCaret() method added
+Changed public -&gt; internal for some classes/properties that do not need to be public</PackageReleaseNotes>
       
      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 	  <PackageOutputPath>D:\PROG\LocalNuget\AvRichTextBox</PackageOutputPath>
 	  
-	  <Version>1.9.13</Version>
+	  <Version>1.9.14</Version>
 	  <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
 	  

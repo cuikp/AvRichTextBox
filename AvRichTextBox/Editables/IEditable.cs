@@ -30,9 +30,9 @@ public interface IEditable
 
 #if DEBUG
    // FOR DEBUGGER PANEL
-   public string InlineToolTip { get; }
-   public InlineVisualizationProperties InlineVP { get; set; }
-   public string DisplayInlineText { get; }
+   internal string InlineToolTip { get; }
+   internal InlineVisualizationProperties InlineVP { get; set; }
+   internal string DisplayInlineText { get; }
 #endif
 
 }

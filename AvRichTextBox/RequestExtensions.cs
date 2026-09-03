@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace AvRichTextBox;
 
-public static class RequestExtensions
+internal static class RequestExtensions
 {
 
     public static readonly AttachedProperty<bool> TextBoxFocusRequestedProperty = AvaloniaProperty.RegisterAttached<EditableParagraph, bool>("TextBoxFocusRequested", typeof(RequestExtensions));

@@ -1,6 +1,6 @@
 ﻿using Avalonia.Threading;
-using DocumentFormat.OpenXml.Drawing.Diagrams;
 using DynamicData;
+using System.Collections.ObjectModel;
 
 namespace AvRichTextBox;
 
@@ -309,7 +309,10 @@ internal class PasteUndo(
    bool firstParEmpty,
    List<int> addedBlockIds,
    bool firstParWasDeleted,
-   bool lastParWasDeleted
+   bool lastParWasDeleted,
+   bool pastedInCellBlock,
+   int containingTableId,
+   int containingCellId
    ) : IUndo
 
 {
@@ -324,33 +327,42 @@ internal class PasteUndo(
 
             int lengthBefore = flowDoc.Text.Length;
 
-            flowDoc.RestoreDeletedBlocks(keptBlocks, blockIndex, firstParWasDeleted, lastParWasDeleted);
+            Cell? containingCell = null;
+            int updateBlocksFromIndex = blockIndex;
+            ObservableCollection<Block> blockCollection = flowDoc.Blocks;
+            if (pastedInCellBlock)
+            {
+                if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == containingTableId) is not Table containingTable) return;
+                if (containingTable.Cells.FirstOrDefault(cell => cell.Id == containingCellId) is not Cell cell) return;
+                containingCell = cell;
+                updateBlocksFromIndex = flowDoc.Blocks.IndexOf(containingTable);
+                blockCollection = containingCell.CellBlocks;
+            }
 
+            flowDoc.RestoreDeletedBlocks(keptBlocks, blockIndex, firstParWasDeleted, lastParWasDeleted, blockCollection, updateBlocksFromIndex);
+
+         
             foreach (int bid in addedBlockIds)
-                if (flowDoc.Blocks.FirstOrDefault(b => b.Id == bid) is Block foundBlock)
-                    flowDoc.Blocks.Remove(foundBlock);
+                if (blockCollection.FirstOrDefault(b => b.Id == bid) is Block foundBlock)
+                    blockCollection.Remove(foundBlock);
 
             if (firstParEmpty)
             {
-                Block firstBlock = flowDoc.Blocks[blockIndex];
+                Block firstBlock = blockCollection[blockIndex];
                 if (firstBlock is Paragraph firstPar && firstPar.Inlines.Count == 1 && firstPar.Inlines[0] is EditableRun run)
-                {
-                    run.Text = "";
-                    //firstPar.CallRequestInlinesUpdate();
-                }
+                    run.Text = ""; //firstPar.CallRequestInlinesUpdate();
             }
 
-            foreach (Block b in keptBlocks)
-            {
-                if (b is Table t)
-                    t.UpdateColAndRowPoints();
-            }
+
+            foreach (Table t in keptBlocks.OfType<Table>())
+                t.UpdateColAndRowPoints();
 
             flowDoc.disableRunTextUndo = false;
 
             int lengthAfter = flowDoc.Text.Length;
                         
             flowDoc.UpdateTextRanges(keptBlocks[0].StartInDoc, lengthAfter - lengthBefore);
+
 
             Dispatcher.UIThread.Post(() =>
             {
@@ -387,16 +399,27 @@ internal class DeleteRangeUndo(
             flowDoc.disableRunTextUndo = true;
             int lengthBefore = flowDoc.Text.Length;  // optimize by getting flowDoc.Blocks.Last().StartInDoc + lastPar.BlockLength instead of calculating entire flowdoc text length
 
-            flowDoc.RestoreDeletedBlocks(keptBlockClones, startBlockIndex, firstBlockWasDeleted, lastBlockWasDeleted);
+            //Cell? containingCell = null;
+            //int updateBlocksFromIndex = startBlockIndex;
+            //ObservableCollection<Block> blockCollection = flowDoc.Blocks;
+            //if (pastedInCellBlock)
+            //{
+            //    if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == containingTableId) is not Table containingTable) return;
+            //    if (containingTable.Cells.FirstOrDefault(cell => cell.Id == containingCellId) is not Cell cell) return;
+            //    containingCell = cell;
+            //    updateBlocksFromIndex = flowDoc.Blocks.IndexOf(containingTable);
+            //    blockCollection = containingCell.CellBlocks;
+            //}
+
+            flowDoc.RestoreDeletedBlocks(keptBlockClones, startBlockIndex, firstBlockWasDeleted, lastBlockWasDeleted, flowDoc.Blocks, startBlockIndex);
 
             flowDoc.disableRunTextUndo = false;
 
             int lengthAfter = flowDoc.Text.Length;  // optimize by getting from lastPar.StartInDoc + lastPar.BlockLength instead of calculating entire flowdoc text length
             flowDoc.UpdateTextRanges(keptBlockClones[0].StartInDoc, lengthAfter - lengthBefore);
 
-            foreach (Block b in keptBlockClones)
-                if (b is Table t)
-                    t.UpdateColAndRowPoints();
+            foreach (Table t in keptBlockClones.OfType<Table>())
+                t.UpdateColAndRowPoints();
 
             Dispatcher.UIThread.Post(() =>
             {
@@ -707,7 +730,7 @@ internal class HyperlinkParagraphUndo : IUndo
             flowDoc.disableRunTextUndo = true;
 
             int lengthBefore = flowDoc.Text.Length;
-            flowDoc.RestoreDeletedBlocks(blockClones, parIndex, firstParWasDeleted, lastParWasDeleted);
+            flowDoc.RestoreDeletedBlocks(blockClones, parIndex, firstParWasDeleted, lastParWasDeleted, flowDoc.Blocks, parIndex); //$$$$$$$$$$$$$$$$$
             flowDoc.disableRunTextUndo = false;
             int lengthAfter = flowDoc.Text.Length;
             flowDoc.UpdateTextRanges(blockClones[0].StartInDoc, lengthAfter - lengthBefore);

@@ -13,6 +13,9 @@ public partial class FlowDocument : AvaloniaObject
     public delegate void ScrollInDirection_Handler(int direction);
     internal event ScrollInDirection_Handler? ScrollInDirection;
 
+    public delegate void ScrollToCaret_Handler();
+    internal event ScrollToCaret_Handler? ScrollToCaret;
+
     public delegate void SelectionChanged_Handler(TextRange selection);
     public event SelectionChanged_Handler? SelectionChanged;
 
@@ -29,16 +32,17 @@ public partial class FlowDocument : AvaloniaObject
 
     internal bool IsEditable { get; set; } = true;
 
-    public static readonly DirectProperty<FlowDocument, bool> HasSelectedTextProperty = AvaloniaProperty.RegisterDirect<FlowDocument, bool>(nameof(HasSelectedText), o => o.HasSelectedText);
-    public bool HasSelectedText => Selection.Length > 0;
+    internal static readonly DirectProperty<FlowDocument, bool> HasSelectedTextProperty = AvaloniaProperty.RegisterDirect<FlowDocument, bool>(nameof(HasSelectedText), o => o.HasSelectedText);
+    internal bool HasSelectedText => Selection.Length > 0;
 
     internal ObservableCollection<IUndo> Undos { get; set; } = [];
     internal ObservableCollection<Paragraph> SelectionParagraphs { get; set; } = [];
-    internal ObservableCollection<TextRange> TextRanges = [];
+    public ObservableCollection<TextRange> TextRanges = [];
 
     internal bool disableRunTextUndo = false;
 
     public void ScrollFlowDocInDirection(int direction) { ScrollInDirection?.Invoke(direction); }
+    public void ScrollFlowDocToCaret() { ScrollToCaret?.Invoke(); }
 
     public List<Paragraph> GetSelectedParagraphs => [.. AllParagraphs.Where(p => p.StartInDoc <= Selection.Start && p.EndInDoc >= Selection.End).Select(b => (Paragraph)b)];
 

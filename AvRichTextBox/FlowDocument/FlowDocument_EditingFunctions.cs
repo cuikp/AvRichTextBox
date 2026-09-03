@@ -1,4 +1,5 @@
 ﻿using DynamicData;
+using System.Collections.ObjectModel;
 using static AvRichTextBox.FlowDocument;
 
 namespace AvRichTextBox;
@@ -89,42 +90,53 @@ public partial class FlowDocument
         }
     }
 
-    internal void RestoreDeletedBlocks(List<Block> blockClones, int blockIndex, bool firstBlockWasDeleted, bool lastBlockWasDeleted)
+    internal void RestoreDeletedBlocks(
+        List<Block> blockClones, 
+        int blockIndex, 
+        bool firstBlockWasDeleted, 
+        bool lastBlockWasDeleted, 
+        ObservableCollection<Block> blockCollection, 
+        int updateBlocksFromIndex)
     {
         bool tablePartiallyDeleted = (blockClones[0] is Table && blockClones[^1] is not Table) || (blockClones[0] is not Table && blockClones[^1] is Table);
 
         if (!lastBlockWasDeleted)
         {
-            Blocks.RemoveAt(blockIndex);
+            //Blocks.RemoveAt(blockIndex);
+            blockCollection.RemoveAt(blockIndex);
             // Special case if table contents were partially deleted, leaving the old table
             if (!firstBlockWasDeleted && tablePartiallyDeleted)
-                Blocks.RemoveAt(blockIndex);
+                //Blocks.RemoveAt(blockIndex);
+                blockCollection.RemoveAt(blockIndex);
         }
         else if (!firstBlockWasDeleted)
-            Blocks.RemoveAt(blockIndex);
+            //Blocks.RemoveAt(blockIndex);
+            blockCollection.RemoveAt(blockIndex);
 
         //Restore all of the previous paragraphs
-        Blocks.AddOrInsertRange(blockClones, blockIndex);
+        //Blocks.AddOrInsertRange(blockClones, blockIndex);
+        blockCollection.AddOrInsertRange(blockClones, blockIndex);
 
-        //Debug.WriteLine("restoring blocks = " + blockClones.Count + ", " + blockClones[0].GetType().ToString());
+        //Debug.WriteLine("restoring blocksToInsert = " + blockClones.Count + ", " + blockClones[0].GetType().ToString());
 
         foreach (Paragraph p in FlattenParagraphs(blockClones))
             p.CallRequestInlinesUpdate();
 
-        UpdateBlockAndInlineStarts(blockIndex);
+                
+        UpdateBlockAndInlineStarts(updateBlocksFromIndex);
 
-        
+
     }
 
-    private int ProcessInsertBlocks(List<Block> blocks, Paragraph startPar, int insertIdx, int insertBlockIndex, List<int> addedBlockIds, List<IEditable> rightSplitRuns)
+    private int ProcessInsertBlocks(List<Block> blocksToInsert, Paragraph destinationStartPar, int insertIdx, int insertBlockIndex, List<int> addedBlockIds, List<IEditable> rightSplitRuns)
     {
         int pastedTextLength = 0;
         int blockno = 0;
         int currentInsertIdx = insertBlockIndex;
-        startPar.Inlines.RemoveMany(rightSplitRuns);  
-        Paragraph addPar = startPar;
+        destinationStartPar.Inlines.RemoveMany(rightSplitRuns);  
+        Paragraph addPar = destinationStartPar;
 
-        foreach (Block block in blocks)
+        foreach (Block block in blocksToInsert)
         {
             if (block is Paragraph thisPar)
             {
@@ -148,6 +160,7 @@ public partial class FlowDocument
                     default:
                         // create new paragraphs for pars 1 onward
                         addPar = thisPar;
+                        addPar.CopyPropertiesFromParagraph(destinationStartPar);
                         pastedTextLength += 1;
                         paragraphCreated = true;
                         break;
@@ -159,7 +172,16 @@ public partial class FlowDocument
                 if (paragraphCreated)
                 {
                     currentInsertIdx += 1;
-                    Blocks.Insert(currentInsertIdx, addPar);
+                    //Blocks.Insert(currentInsertIdx, addParthat
+                    if (destinationStartPar.IsCellBlock)
+                    {
+                        destinationStartPar.OwningCell.CellBlocks.Insert(currentInsertIdx, addPar);
+                    }
+                    else
+                    {
+                        Blocks.Insert(currentInsertIdx, addPar);
+                    }
+                    
                     addedBlockIds.Add(addPar.Id);
                 }
                 
@@ -176,12 +198,13 @@ public partial class FlowDocument
         }
 
         // final fixes
-        if (blocks.Count == 0)
+        if (blocksToInsert.Count == 0)
             addPar.Inlines.Add(new EditableRun(""));
 
         //attach right-split inlines to last pasted paragraph
         if (rightSplitRuns.Count > 0 && !rightSplitRuns[0].IsEmpty)
             addPar.Inlines.AddRange(rightSplitRuns);
+            
 
         return pastedTextLength;
     }

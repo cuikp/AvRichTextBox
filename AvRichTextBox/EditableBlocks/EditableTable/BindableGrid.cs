@@ -5,7 +5,7 @@ using Avalonia.Media;
 
 namespace AvRichTextBox;
 
-public class BordersCanvas : Control
+internal class BordersCanvas : Control
 {
     readonly List<double> ColPoints = [];
     readonly List<double> RowPoints = [];
@@ -104,7 +104,7 @@ public class BordersCanvas : Control
     }
 }
 
-public class BindableGrid : Grid
+internal class BindableGrid : Grid
 {
     public BindableGrid()
     {

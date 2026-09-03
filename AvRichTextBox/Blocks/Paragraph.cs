@@ -38,6 +38,7 @@ public class Paragraph : Block
             ied.NextInline = ilineno == Inlines.Count - 1 ? null! : Inlines[ilineno + 1];
         }
 
+        this.CallRequestInlinesUpdate();
     }
 
     public Thickness BorderThickness { get; set { field = value; NotifyPropertyChanged(nameof(BorderThickness)); } } = new(0);
@@ -178,6 +179,25 @@ public class Paragraph : Block
             newPar.Inlines.AddRange(this.Inlines.Select(il => il.CloneWithId()));
         
         return newPar;
+    }
+
+    internal void CopyPropertiesFromParagraph(Paragraph sourceP)
+    {
+        this.TextAlignment = sourceP.TextAlignment;
+        //this.LineSpacing = sourceP.LineSpacing;
+        this.BorderBrush = sourceP.BorderBrush;
+        this.BorderThickness = sourceP.BorderThickness;
+        this.LineHeight = sourceP.LineHeight;
+        this.Margin = sourceP.Margin;
+        this.Background = sourceP.Background;
+        this.FontFamily = sourceP.FontFamily;
+        this.FontSize = sourceP.FontSize;
+        this.FontStyle = sourceP.FontStyle;
+        this.FontWeight = sourceP.FontWeight;
+        this.IsTableCellBlock = sourceP.IsTableCellBlock;
+        //this.OwningTable = sourceP.OwningTable;
+        //this.OwningCell = sourceP.OwningCell;
+
     }
 
     internal void EnsureEmptyRuns()

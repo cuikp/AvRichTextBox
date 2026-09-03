@@ -154,12 +154,14 @@ public partial class RichTextBox : UserControl
             if (FlowDoc != null)
             {
                 FlowDoc.ScrollInDirection -= RtbVm.FlowDoc_ScrollInDirection;
+                FlowDoc.ScrollToCaret -= RtbVm.FlowDoc_ScrollToCaret;
                 FlowDoc.UpdateRTBCaret -= RtbVm.FlowDoc_UpdateRTBCaret;
             }
 
             RtbVm.FlowDoc = FlowDocument;
 
             RtbVm.FlowDoc.ScrollInDirection += RtbVm.FlowDoc_ScrollInDirection;
+            FlowDoc.ScrollToCaret += RtbVm.FlowDoc_ScrollToCaret;
             RtbVm.FlowDoc.UpdateRTBCaret += RtbVm.FlowDoc_UpdateRTBCaret;
 
             RtbVm.FlowDoc.SelectionBrush = this.SelectionBrush;

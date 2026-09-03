@@ -190,6 +190,7 @@ xmlns:avrtb="using:AvRichTextBox"
 ## Various future to-do improvements include:
 * Word/Html/RTF export and import can be fleshed out (to support more attributes)
 * Allow setting of Undo limit, create a Redo stack
+* Undo sequence currently logs only end user interaction, not programmatic changes 
 
 `RtfDomParser` used for reading/parsing of rtf files can be found at https://github.com/SourceCodeBackup/RtfDomParser, but for this project I had to manually modify it to use `Avalonia.Media` instead of `System.Drawing`.  That modified library is included in this project as `RtfDomParserAv.dll`.  Generation of .rtf for saving is my own concoction with the bare minimum necessary to produce a readable .rtf file/dataobject.
 
@@ -346,3 +347,8 @@ Shift + mouse drag on cell border increases/decreases entire table size
 **[ver 1.9.13] 2026/09/02**
 Added InsertColumns(idx, count) and InsertRows(idx, count) methods to Table
 Removed FontWeight on Hyperlink Popup
+
+**[ver 1.9.14] 2026/09/04**
+Fixed problem with pasting multiple paragraphs into Cell
+FlowDoc.ScrollToCaret() method added
+Changed public -> internal for some classes/properties that do not need to be public

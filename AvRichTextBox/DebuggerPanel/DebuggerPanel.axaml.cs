@@ -2,9 +2,9 @@ using Avalonia.Controls;
 
 namespace AvRichTextBox;
 
-public partial class DebuggerPanel : UserControl
+internal partial class DebuggerPanel : UserControl
 {
-   public DebuggerPanel()
+   internal DebuggerPanel()
    {
       InitializeComponent();
 

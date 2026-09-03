@@ -3,7 +3,7 @@ using Avalonia.VisualTree;
 
 namespace AvRichTextBox;
 
-public static class VisualHelper
+internal static class VisualHelper
 {
     internal static double GetUserY(this Visual? visual)
     {

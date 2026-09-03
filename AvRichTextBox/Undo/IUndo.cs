@@ -1,6 +1,6 @@
 ﻿namespace AvRichTextBox;
 
-public interface IUndo
+internal interface IUndo
 {
    public void PerformUndo();
    public int UndoEditOffset { get; }

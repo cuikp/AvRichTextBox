@@ -3,7 +3,6 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Media.Immutable;
-using DocumentFormat.OpenXml.Drawing.Charts;
 using HtmlAgilityPack;
 using System.Net;
 using System.Text;

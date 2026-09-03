@@ -6,7 +6,7 @@ using static AvRichTextBox.FlowDocument;
 
 namespace AvRichTextBox;
 
-public class RichTextBoxViewModel : INotifyPropertyChanged
+internal class RichTextBoxViewModel : INotifyPropertyChanged
 {
    public event PropertyChangedEventHandler? PropertyChanged;
    private void NotifyPropertyChanged([CallerMemberName] String propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
@@ -67,6 +67,11 @@ public class RichTextBoxViewModel : INotifyPropertyChanged
       FlowDoc.Selection.StartParagraph?.CallRequestInvalidateVisual();
       CaretVisible = FlowDoc.Selection.Length == 0;
    }
+
+    internal void FlowDoc_ScrollToCaret()
+    {
+        RTBScrollOffset = RTBScrollOffset.WithY(FlowDoc.Selection.EndRect.Y);
+    }
 
    internal void FlowDoc_ScrollInDirection(int direction)
    {

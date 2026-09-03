@@ -9,7 +9,7 @@ using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;
 
-public partial class XamlConversions
+internal partial class XamlConversions
 {
 
     internal static string SectionTextDefault => "<Section xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\">";

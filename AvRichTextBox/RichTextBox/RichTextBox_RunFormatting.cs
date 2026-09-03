@@ -47,7 +47,7 @@ public partial class RichTextBox
         byte[] rtfbytes = Encoding.ASCII.GetBytes(rtfString + "\0");
         dataTransfer.Add(DataTransferItem.Create(richTextFormat, rtfbytes));
 
-        Debug.WriteLine("copy rtf string " + rtfString);
+        //Debug.WriteLine("copy rtf string " + rtfString);
 
         // Plain text
         List<IEditable> rangeInlines = FlowDoc.GetTextRangeInlines(FlowDoc.Selection, addToDoc: false).createdInlines;
@@ -137,21 +137,29 @@ public partial class RichTextBox
         int originalSelectionStart = FlowDoc.Selection.Start;
         int originalSelectionEnd = FlowDoc.Selection.End;
         TextRange insertRange = FlowDoc.Selection;
-        List<Block> originalRangeBlocks = FlowDoc.GetOverlappingBlocksInRange(insertRange).ConvertAll(ob => ob.FullClone(true));
         int deleteRangeLength = insertRange.Length;
 
-        Block startBlock = FlowDoc.Blocks.Last(b => (b is Paragraph p && (p.IsEmptyInlinePar || p.StartInDoc == 0)) ? b.StartInDoc <= insertRange.Start : b.StartInDoc < insertRange.Start);
-        Block endBlock = FlowDoc.Blocks.Last(b => (b is Paragraph p && (p.IsEmptyInlinePar || p.StartInDoc == 0)) ? b.StartInDoc <= insertRange.End : b.StartInDoc < insertRange.End);
+        Paragraph destStartPar = FlowDoc.AllParagraphs.Last(p => (p.IsEmptyInlinePar || p.StartInDoc == 0) ? p.StartInDoc <= insertRange.Start : p.StartInDoc < insertRange.Start);
+        Paragraph destEndPar = FlowDoc.AllParagraphs.Last(p => (p.IsEmptyInlinePar || p.StartInDoc == 0) ? p.StartInDoc <= insertRange.End : p.StartInDoc < insertRange.End);
 
-        Paragraph startPar = insertRange.StartParagraph;
-        int insertBlockIndex = FlowDoc.Blocks.IndexOf(startBlock);
-        
-        bool firstParEmpty = startBlock is Paragraph p && p.Inlines[0] is EditableRun erun && erun.Text == "";
+        List<Block> originalRangeBlocks = destStartPar.IsCellBlock switch 
+        {
+            true => FlowDoc.GetOverlappingParagraphsInRange(insertRange, false).ConvertAll(ob => ob.FullClone(true) as Block),
+            _ => FlowDoc.GetOverlappingBlocksInRange(insertRange).ConvertAll(ob => ob.FullClone(true))
+        };
+
+        int insertParIndex = -1;
+        if (destStartPar.IsCellBlock)
+            insertParIndex = destStartPar.OwningCell.CellBlocks.IndexOf(destStartPar);
+        else
+            insertParIndex = FlowDoc.Blocks.IndexOf(destStartPar);
+
+        bool firstParEmpty = destStartPar is Paragraph p && p.Inlines[0] is EditableRun erun && erun.Text == "";
         int pastedTextLength = 0;
         List<int> addedBlockIds = [];
 
-        bool firstBlockWasDeleted = startBlock.StartInDoc == originalSelectionStart; // && startBlock.EndInDoc <= originalSelectionEnd && !firstParEmpty;
-        bool lastBlockWasDeleted = !firstBlockWasDeleted && endBlock.EndInDoc == originalSelectionEnd;
+        bool firstBlockWasDeleted = destStartPar.StartInDoc == originalSelectionStart; // && destStartPar.EndInDoc <= originalSelectionEnd && !firstParEmpty;
+        bool lastBlockWasDeleted = !firstBlockWasDeleted && destEndPar.EndInDoc == originalSelectionEnd;
         bool addUndo = true;
         bool contentPasted = false;
 
@@ -160,7 +168,7 @@ public partial class RichTextBox
         // Get clipboard content
         if (!plainTextOnly && await clipboard.TryGetValueAsync(richTextFormat) is byte[] rtfbytes)
         {            
-            pastedTextLength = FlowDoc.InsertRTF(rtfbytes, startPar, insertRange, insertBlockIndex, addedBlockIds);
+            pastedTextLength = FlowDoc.InsertRTF(rtfbytes, destStartPar, insertRange, insertParIndex, addedBlockIds);
             contentPasted = true;
         }
         else if (!plainTextOnly && await clipboard.TryGetBitmapAsync() is Bitmap pasteBitmap)
@@ -171,8 +179,8 @@ public partial class RichTextBox
             newPar.Inlines.Add(newEIUC);
             Paragraph extraPar = new(FlowDoc);
             // force pasted image into a new paragraph
-            FlowDoc.Blocks.Insert(insertBlockIndex + 1, newPar);
-            FlowDoc.Blocks.Insert(insertBlockIndex + 2, extraPar);
+            FlowDoc.Blocks.Insert(insertParIndex + 1, newPar);
+            FlowDoc.Blocks.Insert(insertParIndex + 2, extraPar);
             addedBlockIds.Add(newPar.Id);
             addedBlockIds.Add(extraPar.Id);
             pastedTextLength = 2;
@@ -197,21 +205,26 @@ public partial class RichTextBox
         if (contentPasted)
         {
             if (addUndo)
+            {
                 FlowDoc.Undos.Add(new PasteUndo(
                    originalRangeBlocks,
-                   insertBlockIndex,
+                   insertParIndex,
                    FlowDoc,
                    originalSelectionStart,
                    deleteRangeLength - pastedTextLength,
                    firstParEmpty,
                    addedBlockIds,
                    firstBlockWasDeleted,
-                   lastBlockWasDeleted
+                   lastBlockWasDeleted,
+                   destStartPar.IsCellBlock,
+                   destStartPar.OwningTable == null ? -1 : destStartPar.OwningTable.Id,
+                   destStartPar.OwningCell == null ? -1 : destStartPar.OwningCell.Id
                    ));
+            }
 
-            startPar.CallRequestInlinesUpdate();
+            destStartPar.CallRequestInlinesUpdate();
 
-            FlowDoc.UpdateBlockAndInlineStarts(insertBlockIndex);
+            FlowDoc.UpdateBlockAndInlineStarts(insertParIndex);
             FlowDoc.UpdateSelection();
 
             this.DocIC.UpdateLayout();
@@ -225,9 +238,8 @@ public partial class RichTextBox
             FlowDoc.SelectionExtendMode = ExtendMode.ExtendModeNone;
             FlowDoc.Selection.BiasForwardStart = false;
             FlowDoc.Selection.BiasForwardEnd = false;
-
-            FlowDoc.ScrollFlowDocInDirection(1);
-
+            FlowDoc.ScrollFlowDocToCaret();
+            
         }
     }
 

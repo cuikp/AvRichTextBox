@@ -1,6 +1,7 @@
 ﻿using Avalonia.Threading;
 using DynamicData;
 using RtfDomParserAv;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Xml;
 
@@ -8,7 +9,7 @@ namespace AvRichTextBox;
 
 public partial class FlowDocument
 {
-    internal int InsertRTF(byte[] rtfbytes, Paragraph startPar, TextRange insertRange, int insertBlockIndex, List<int> addedBlockIds)
+    internal int InsertRTF(byte[] rtfbytes, Paragraph startPar, TextRange insertRange, int insertParIndex, List<int> addedBlockIds)
     {  // delete + insert = single undo operation
 
         (int leftId, int rightId) edgeIds = DeleteRange(insertRange, false, false);
@@ -16,19 +17,40 @@ public partial class FlowDocument
 
         List<IEditable> rightSplitRuns = startPar.Inlines.ToList()[insertIdx..];
 
-        List<Block> rtfBlocks = GetRtfContent(rtfbytes);
+        List<Block> rtfBlocksToInsert = GetRtfContent(rtfbytes);
 
         
         // pasted cloned cells are no longer flagged as clones
-        rtfBlocks.OfType<Table>().ToList().ForEach(table => table.Cells.ToList().ForEach(c => c.IsClonedCell = false));
+        rtfBlocksToInsert.OfType<Table>().ToList().ForEach(table => table.Cells.ToList().ForEach(c => c.IsClonedCell = false));
 
-        if (rtfBlocks.LastOrDefault() is Block lastBlock && lastBlock.Text == "\r")
-            rtfBlocks.Remove(lastBlock);
+        if (rtfBlocksToInsert.LastOrDefault() is Block lastBlock && lastBlock.Text == "\r")
+            rtfBlocksToInsert.Remove(lastBlock);
+        int pastedTextLength = ProcessInsertBlocks(rtfBlocksToInsert, startPar, insertIdx, insertParIndex, addedBlockIds, rightSplitRuns);
 
-        return ProcessInsertBlocks(rtfBlocks, startPar, insertIdx, insertBlockIndex, addedBlockIds, rightSplitRuns);
+        this.UpdateTextLayouts(rtfBlocksToInsert);
+
+        return pastedTextLength;
 
     }
 
+    internal void UpdateTextLayouts(IEnumerable<Block> blocksToUpdate)
+    {
+        foreach (Block b in blocksToUpdate)
+        {
+            switch (b) 
+            {
+                case Paragraph p:
+                    p.CallRequestTextLayoutInfoStart();
+                    p.CallRequestTextLayoutInfoEnd();
+                    break;
+                
+                case Table t:
+                    foreach (Cell c in t.Cells)
+                        UpdateTextLayouts(c.CellBlocks);
+                    break;
+            }
+        }
+    }
 
     private int GetInsertIndexAfterDelete(Paragraph startPar, int leftId, TextRange insertRange)
     {
@@ -55,7 +77,7 @@ public partial class FlowDocument
         RTFDomDocument rtfdoc = new();
         rtfdoc.LoadRTFText(rtfstring);
 
-        Debug.WriteLine("RTF: " + rtfstring);
+        //Debug.WriteLine("RTF: " + rtfstring);
 
         //int domParCount = rtfdoc.Elements.OfType<RTFDomParagraph>().Count();
         RTFDomElement lastElm = null!;

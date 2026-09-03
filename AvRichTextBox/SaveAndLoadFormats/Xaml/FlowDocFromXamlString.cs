@@ -9,7 +9,7 @@ using System.Xml;
 
 namespace AvRichTextBox;
 
-public partial class XamlConversions
+internal partial class XamlConversions
 {
 
     readonly static List<Bitmap> consecutiveImageBitmaps = [];

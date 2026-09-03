@@ -31,7 +31,7 @@ public partial class MainWindow : Window
             new("all files") { Patterns = ["*.*"] }
 
            ],
-
+                       
             AllowMultiple = false
         };
 
