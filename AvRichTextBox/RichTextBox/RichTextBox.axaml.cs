@@ -6,12 +6,7 @@ using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Styling;
-using Avalonia.Threading;
 using Avalonia.VisualTree;
-using System.Collections.ObjectModel;
-using System.Reflection.Metadata.Ecma335;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace AvRichTextBox;
 
@@ -19,37 +14,6 @@ public partial class RichTextBox : UserControl
 {
     internal FlowDocument FlowDoc => RtbVm.FlowDoc;
     private RichTextBoxViewModel RtbVm { get; set; } = new();
-
-#if DEBUG
-    //VISUAL DEBUGGER -Panel for visualization of runs. Only created in Debug mode, default hidden but can be shown by: ShowDebuggerPanelInDebugMode=true
-    private DebuggerPanel debuggerPanel = null!;
-    private void ToggleDebuggerPanel(bool visible) { debuggerPanel?.IsVisible = visible; }
-
-    private void BindSelectionPropertiesToDebuggerPanel()
-    {
-        if (ShowDebuggerPanelInDebugMode)
-        {
-            //Create Debugger Panel only in debug mode and if shown
-            debuggerPanel = new() { Width = 400, DataContext = FlowDoc };
-            DockPanel.SetDock(debuggerPanel, Dock.Right);
-            MainDP.Children.Insert(0, debuggerPanel);
-            debuggerPanel.DataContext = RtbVm;
-            debuggerPanel.Bind(Visual.IsVisibleProperty, new Binding("RunDebuggerVisible"));
-            debuggerPanel.SelEndTB.Bind(TextBlock.TextProperty, new Binding("FlowDoc.Selection.End") { StringFormat = "DocSelEnd={0}" });
-            debuggerPanel.SelStartTB.Bind(TextBlock.TextProperty, new Binding("FlowDoc.Selection.Start") { StringFormat = "DocSelStart={0}" });
-            debuggerPanel.BiasForwardEndTB.Bind(TextBlock.TextProperty, new Binding("FlowDoc.Selection.BiasForwardEnd") { StringFormat = "BiasForwardEnd={0}" });
-            debuggerPanel.BiasForwardStartTB.Bind(TextBlock.TextProperty, new Binding("FlowDoc.Selection.BiasForwardStart") { StringFormat = "BiasForwardStart={0}" });
-            debuggerPanel.ParagraphsLB.ItemsSource = FlowDoc.SelectionParagraphs;
-            RtbVm.RunDebuggerVisible = ShowDebuggerPanelInDebugMode;
-            this.Width += (RtbVm.RunDebuggerVisible ? 400 : 0);
-            FlowDoc.ShowDebugger = RtbVm.RunDebuggerVisible;
-
-            
-        }
-    }
-
-#endif
-
 
     public void ScrollToSelection()
     {
@@ -137,6 +101,8 @@ public partial class RichTextBox : UserControl
 
         SelectionPath.Fill = this.SelectionBrush;
         UpdateSelectionIndicators();
+
+        FlowDoc.disableUndoStack = false;
 
     }
 
@@ -388,21 +354,5 @@ public partial class RichTextBox : UserControl
     }
 
 
-    //private void EditableCell_PointerPressed(object? sender, PointerPressedEventArgs e)
-    //{
-    //    if (sender is not EditableCell ecell || ecell.DataContext is not Cell cell) return;
-
-    //    //var options = new JsonSerializerOptions
-    //    //{
-    //    //    ReferenceHandler = ReferenceHandler.IgnoreCycles,
-    //    //    WriteIndented = true,
-    //    //    NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals
-    //    //}; 
-
-    //    //string celljson = JsonSerializer.Serialize(cell, options);
-    //    //Debug.WriteLine("\nCELL:\n" + celljson);
-
-
-    //}
 }
 

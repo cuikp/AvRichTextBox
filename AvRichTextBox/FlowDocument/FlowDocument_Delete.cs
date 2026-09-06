@@ -175,6 +175,7 @@ public partial class FlowDocument
         int firstBlockId = rangeBlocks.First().Id;
         int firstBlockIndex = Blocks.IndexOf(rangeBlocks.First());
 
+        disableUndoStack = true;
         disableRunTextUndo = true;
 
         List<Block> blocksFullyInRange = GetFullBlocksInRange(trange);
@@ -271,6 +272,7 @@ public partial class FlowDocument
             onlyPar.Inlines.Add(new EditableRun(""));
 
         disableRunTextUndo = false;
+        disableUndoStack = false;
 
         UpdateTextRanges(originalRangeStart, -originalTRangeLength);
 

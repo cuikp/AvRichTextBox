@@ -1,7 +1,6 @@
 ﻿using Avalonia.Threading;
 using DynamicData;
 using RtfDomParserAv;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Xml;
 
@@ -344,7 +343,7 @@ public partial class FlowDocument
         Paragraph parToInsert = null!;
         int blockIndex = insertPar.IsCellBlock ? Blocks.IndexOf(insertPar.OwningTable): Blocks.IndexOf(insertPar);
         int parIndex = insertPar.IsCellBlock ? insertPar.OwningCell.CellBlocks.IndexOf(insertPar) : blockIndex;
-        
+
         if (Selection.End == insertPar.EndInDoc)
         {   // only need to add insert a new paragraph at the index
             parToInsert = new Paragraph(this);
@@ -379,6 +378,7 @@ public partial class FlowDocument
             originalPar.Inlines.Clear();
             originalPar.Inlines.AddRange(RunList1);
 
+
             // Ending line break must be followed by empty run
             if (originalPar.Inlines.Last() is EditableLineBreak)
                 originalPar.Inlines.Insert(originalPar.Inlines.Count, new EditableRun(""));
@@ -386,11 +386,13 @@ public partial class FlowDocument
             parToInsert = originalPar.PropertyClone();
             parToInsert.Inlines.AddRange(RunList2);
 
-            //Insert paragraph in appropriate block
+
+            //Insert paragraph in appropriate block  $$$$$$$$$$$$$$$
             if (insertPar.IsCellBlock)
                 insertPar.OwningCell.CellBlocks.Insert(parIndex + 1, parToInsert);
             else
                 Blocks.Insert(parIndex + 1, parToInsert);
+
 
             // Empty paragraph must contain an empty run
             if (parToInsert.Inlines.Count == 0)
@@ -415,6 +417,7 @@ public partial class FlowDocument
             originalPar.CallRequestTextLayoutInfoStart();
             originalPar.CallRequestTextLayoutInfoEnd();
         }
+               
 
         UpdateTextRanges(insertCharIndex, 1);
         UpdateBlockAndInlineStarts(blockIndex);

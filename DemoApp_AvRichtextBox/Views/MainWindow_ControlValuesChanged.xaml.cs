@@ -5,7 +5,10 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
 using AvRichTextBox;
+using DynamicData;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 
 namespace DemoApp_AvRichtextBox.Views;
@@ -15,24 +18,28 @@ public partial class MainWindow
 
     internal void PagePaddingNSL_ValueChanged(double value)
     {
+        if (progChange) return;
         Thickness p = MainRTB.FlowDocument.PagePadding;
         MainRTB.FlowDocument.PagePadding = new Thickness(PagePaddingNSL.Value, p.Top, p.Right, p.Bottom);
     }
 
     internal void PagePaddingNST_ValueChanged(double value)
     {
+        if (progChange) return;
         Thickness p = MainRTB.FlowDocument.PagePadding;
         MainRTB.FlowDocument.PagePadding = new Thickness(p.Left, PagePaddingNST.Value, p.Right, p.Bottom);
     }
 
     internal void PagePaddingNSR_ValueChanged(double value)
     {
+        if (progChange) return;
         Thickness p = MainRTB.FlowDocument.PagePadding;
         MainRTB.FlowDocument.PagePadding = new Thickness(p.Left, p.Top, PagePaddingNSR.Value, p.Bottom);
     }
 
     internal void PagePaddingNSB_ValueChanged(double value)
     {
+        if (progChange) return;
         Thickness p = MainRTB.FlowDocument.PagePadding;
         MainRTB.FlowDocument.PagePadding = new Thickness(p.Left, p.Top, p.Right, PagePaddingNSB.Value);
     }
@@ -265,7 +272,25 @@ public partial class MainWindow
 
     }
 
+    private void DoButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph p)
+        {
+            MainRTB.FlowDocument.InsertParagraphAt(120);
 
+            //ObservableCollection<Block> bcol = p.IsCellBlock ? p.GetOwningCell.GetCellBlocks : MainRTB.FlowDocument.Blocks;
+            
+            ////Object? blocksParent = p.IsCellBlock ? p.GetOwningCell : MainRTB.FlowDocument;
+            
+            //int insertIdx = bcol.IndexOf(p);
 
+            //Paragraph newPar = new (MainRTB.FlowDocument);
+            //newPar.Inlines.Add(new EditableRun("This is my new run."));
 
+            //MainRTB.FlowDocument.InsertBlockIntoCollectionAt(bcol, insertIdx, newPar);
+        }
+                
+    }
+
+    
 }

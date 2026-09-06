@@ -9,10 +9,9 @@ public partial class FlowDocument
    internal bool ShowDebugger = false;
 
    private void UpdateDebuggerSelectionParagraphs()
-   {
-
+   {        
         //Visuals for DebuggerPanel
-        foreach (Paragraph p in SelectionParagraphs.OfType<Paragraph>())
+        foreach (Paragraph p in SelectionParagraphs)
         {
             foreach (IEditable ied in p.Inlines)
             {

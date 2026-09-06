@@ -77,14 +77,14 @@ internal partial class EditableParagraph
             {
                 if (this.TranslatePoint(new Point(0, 0), myDocIC) is Point p)
                 {
-                    ThisPar.DocICRelativeTop = p.Y + ThisPar.Margin.Top;
-                    ThisPar.DocICRelativeLeft = p.X + ThisPar.Margin.Left;
+                    ThisPar.DocICRelativeTop = p.Y; 
+                    ThisPar.DocICRelativeLeft = p.X;
                 }
             }
         }
     }
 
-    public void UpdateVMFromEPStart()
+    internal void UpdateVMFromEPStart()
     {
         this.SetValue(TextLayoutInfoStartRequestedProperty, false);
         this.UpdateLayout();
@@ -92,7 +92,7 @@ internal partial class EditableParagraph
 
     }
 
-    public void UpdateVMFromEPEnd()
+    internal void UpdateVMFromEPEnd()
     {
         this.SetValue(TextLayoutInfoEndRequestedProperty, false);
         this.UpdateLayout();

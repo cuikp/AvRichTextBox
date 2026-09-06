@@ -1,6 +1,7 @@
-﻿using DynamicData;
+﻿using DocumentFormat.OpenXml.Drawing.Charts;
+using DynamicData;
 using System.Collections.ObjectModel;
-using static AvRichTextBox.FlowDocument;
+using System.Runtime.CompilerServices;
 
 namespace AvRichTextBox;
 
@@ -25,7 +26,8 @@ public partial class FlowDocument
             SelectionExtendMode = ExtendMode.ExtendModeNone;
         }
 
-        //Debug.WriteLine("first par deleted: " + firstBlockWasDeleted);
+
+        /////// can just call paste text here instead?:::::$$$$$$$$$$$$$$$$$
 
         if (tRange.StartInline is not IEditable startInline) return;
 
@@ -69,15 +71,20 @@ public partial class FlowDocument
         if (Undos.Count > 0)
         {
             disableRunTextUndo = true;
+            disableUndoStack = true;
 
             Undos.Last().PerformUndo();
 
             UpdateSelection();
+            UpdateCaret();
 
             if (Undos.Last().UpdateTextRanges)
                 UpdateTextRanges(Selection.Start, Undos.Last().UndoEditOffset);
 
             Undos.RemoveAt(Undos.Count - 1);
+
+            Debug.WriteLine("\n\nundos count = " + Undos.Count + "\n" + string.Join("   ", Undos.ToList().ConvertAll(undo => undo.GetType().ToString())));
+
 
             UpdateSelectedParagraphs();
 
@@ -86,7 +93,7 @@ public partial class FlowDocument
             ScrollInDirection?.Invoke(-1);
 
             disableRunTextUndo = false;
-
+            disableUndoStack = false;
         }
     }
 
@@ -208,6 +215,64 @@ public partial class FlowDocument
 
         return pastedTextLength;
     }
+
+    internal void InsertBlockIntoCollectionAt(ObservableCollection<Block> blockCollection, int insertIdx, Block blockToInsert)
+    {
+        this.disableUndoStack = true;
+
+        blockCollection.Insert(insertIdx, blockToInsert);
+        blockToInsert.IsAttachedToDocument = true;
+
+        int tableId = blockToInsert.IsCellBlock ? blockToInsert.OwningTable.Id : -1;
+        int cellId = blockToInsert.IsCellBlock ? blockToInsert.OwningCell.Id : -1;
+        int updateIdx = blockToInsert.IsCellBlock ? Blocks.IndexOf(blockToInsert.OwningTable) : Blocks.IndexOf(blockToInsert);
+
+        bool addUndo = !blockToInsert.IsCellBlock || blockToInsert.OwningTable.IsAttachedToDocument;
+
+        if (addUndo)
+            Undos.Add(new InsertBlockUndo(this, blockToInsert.Id, blockToInsert.BlockLength, blockToInsert.IsCellBlock, tableId, cellId));
+        
+        this.disableUndoStack = false;
+    }
     
-   
+    internal void RemoveBlockFromCollectionAt(ObservableCollection<Block> blockCollection, int removeAtIndex)
+    {
+        if (blockCollection.Count == 1 && blockCollection[0].Text == "")
+            throw new Exception("Cannot remove default empty paragraph in the collection.");
+
+        Block blockToRemove = blockCollection[removeAtIndex];
+        RemoveBlockFromCollection(blockCollection, blockToRemove);
+
+        if (blockCollection.Count == 0)
+            AddDefaultParagraph(blockCollection);
+    }
+
+    internal void RemoveBlockFromCollection(ObservableCollection<Block> blockCollection, Block? blockToRemove)
+    {
+        if (blockToRemove == null) 
+            throw new Exception("Block to remove must not be null."); 
+        if (!blockCollection.Contains(blockToRemove))
+            throw new Exception("Block to remove is not contained in specified Block collection.");
+
+        this.disableUndoStack = true;
+
+
+        int tableId = blockToRemove.IsCellBlock ? blockToRemove.OwningTable.Id : -1;
+        int cellId = blockToRemove.IsCellBlock ? blockToRemove.OwningCell.Id : -1;
+        int removeAtIdx = blockCollection.IndexOf(blockToRemove);
+        Block removedBlockClone = blockToRemove.FullClone(true);
+
+        blockCollection.Remove(blockToRemove);
+        
+        bool addUndo = !blockToRemove.IsCellBlock || blockToRemove.OwningTable.IsAttachedToDocument;
+        
+        if (addUndo)
+            Undos.Add(new RemoveBlockUndo(this, removeAtIdx, removedBlockClone, blockToRemove.BlockLength, blockToRemove.IsCellBlock, tableId, cellId));
+
+        this.disableUndoStack = false;
+
+    }
+
+    
+
 }

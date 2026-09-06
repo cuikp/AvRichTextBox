@@ -284,7 +284,7 @@ internal static partial class RtfConversions
 
         }
 
-        if (par.Background != null && par.Background.Color != Colors.Transparent)
+        if (par.Background != null && GetPrimaryColor(par.Background) != Colors.Transparent)
         {
             int bkColIdx = 0;
             if (par.Background is ISolidColorBrush backgroundBrush && colorMap.TryGetValue(backgroundBrush.Color, out int colorIndexF))

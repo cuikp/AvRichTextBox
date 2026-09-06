@@ -1,6 +1,4 @@
-﻿using Avalonia.Threading;
-using DocumentFormat.OpenXml.Math;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Text;
 using static AvRichTextBox.XamlConversions;
 
@@ -134,13 +132,10 @@ public class TextRange : INotifyPropertyChanged, IDisposable
     }
 
     public Paragraph? GetStartPar() => myFlowDoc.AllParagraphs.LastOrDefault(p => p.StartInDoc <= Start);
-    //public Paragraph? GetEndParOLD() => myFlowDoc.AllParagraphs.LastOrDefault(p => p.Inlines.Count == 1 && p.Inlines[0].IsUIContainer ? p.StartInDoc < End : p.StartInDoc <= End);
-    public Paragraph? GetEndPar() => 
-        myFlowDoc.AllParagraphs.LastOrDefault(p => ((p.Inlines.Count == 1 && p.Inlines[0].IsUIContainer) || !this.BiasForwardEnd) ? p.StartInDoc < End : p.StartInDoc <= End);
-    
+    public Paragraph? GetEndPar() => myFlowDoc.AllParagraphs.LastOrDefault(p => ((p.Inlines.Count == 1 && p.Inlines[0].IsUIContainer) || !this.BiasForwardEnd) ? p.StartInDoc < End : p.StartInDoc <= End);
 
-    public bool GetIsEndAtStartOfEndInline => End == EndParagraph.StartInDoc + EndInline?.TextPositionOfInlineInParagraph;
-    public bool GetIsStartAtStartOfStartInline => Start == StartParagraph.StartInDoc + StartInline?.TextPositionOfInlineInParagraph;
+    internal bool GetIsEndAtStartOfEndInline => End == EndParagraph.StartInDoc + EndInline?.TextPositionOfInlineInParagraph;
+    internal bool GetIsStartAtStartOfStartInline => Start == StartParagraph.StartInDoc + StartInline?.TextPositionOfInlineInParagraph;
 
     public object? GetFormatting(AvaloniaProperty avProp)
     {

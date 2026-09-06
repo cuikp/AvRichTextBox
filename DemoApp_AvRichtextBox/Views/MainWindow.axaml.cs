@@ -16,6 +16,9 @@ using DynamicData;
 
 namespace DemoApp_AvRichtextBox.Views;
 
+// Search for public
+//public (?!class|interface|event|partial|delegate|void PerformUndo|int UndoEditOffset|bool UpdateTextRanges|enum Content|-> internal|override|static (void|bool).*Requested|entry points|BindableGrid\(\)|EditableCell\(\)|EditableParagraph\(\)|EditableInlineUIContainer\(|EditableRun\(|EditableHyperlink\(|EditableLineBreak\(|void Update|void Select|Cell\(|Table\(|Paragraph\(|EditableTable\(|bool IsEditable)
+
 public partial class MainWindow : Window
 {
     public MainWindow()
@@ -52,10 +55,9 @@ public partial class MainWindow : Window
 
         progChange = false;
         
-        
-        
+                
         //DEBUG
-        //CreateTestDocumentWithTable();
+        CreateTestDocumentWithTable();
         //OpenTestDocument();
 
     }
@@ -81,7 +83,7 @@ public partial class MainWindow : Window
 
     internal void CreateTestDocumentWithTable()
     {
-        MainRTB.FlowDocument.Blocks.Clear();
+        MainRTB.FlowDocument.ClearBlocks();
 
         Paragraph newPar = new(MainRTB.FlowDocument);
         
@@ -98,11 +100,13 @@ public partial class MainWindow : Window
             new EditableRun(" for testing.")
         ]);
 
-        MainRTB.FlowDocument.Blocks.Add(newPar);
+        //MainRTB.FlowDocument.Blocks.Add(newPar);
+        MainRTB.FlowDocument.InsertBlockAt(MainRTB.FlowDocument.GetBlocks.Count(), newPar);
 
         Paragraph secondPar = new(MainRTB.FlowDocument);
         secondPar.Inlines.Add(new EditableRun("A second paragraph just before the table."));
-        MainRTB.FlowDocument.Blocks.Add(secondPar);
+        //MainRTB.FlowDocument.Blocks.Add(secondPar);
+        MainRTB.FlowDocument.InsertBlockAt(MainRTB.FlowDocument.GetBlocks.Count(), secondPar);
 
         //Test Table
         int noCols = 5;
@@ -114,25 +118,36 @@ public partial class MainWindow : Window
             for (int colno = 0; colno < noCols; colno++)
             {
                 int cellno = rowno * noCols + colno;
-                Cell c = newTable.Cells[cellno];
-                c.CellVerticalAlignment = VerticalAlignment.Center;
-                Paragraph p = new (MainRTB.FlowDocument) { TextAlignment = TextAlignment.Center };
-                p.Inlines.Add(new EditableRun("col:" + colno));
-                p.Inlines.Add(new EditableLineBreak());
-                p.Inlines.Add(new EditableRun("row:" + rowno));
-                c.CellBlocks[0] = p;
+                if (newTable.GetCells.ElementAt(cellno) is Cell c)
+                {                    
+                    c.CellVerticalAlignment = VerticalAlignment.Center;
+                    Paragraph p = new(MainRTB.FlowDocument) { TextAlignment = TextAlignment.Center };
+                    p.Inlines.Add(new EditableRun("col:" + colno));
+                    p.Inlines.Add(new EditableLineBreak());
+                    p.Inlines.Add(new EditableRun("row:" + rowno));
+                    
+                    c.InsertBlockAt(0, p);
+                    c.RemoveBlockAt(c.GetCellBlocks.Count() - 1);
+
+                }
             }
         }
 
 
-        MainRTB.FlowDocument.Blocks.Add(newTable);
-        
+        //MainRTB.FlowDocument.Blocks.Add(newTable);
+        MainRTB.FlowDocument.InsertBlockAt(MainRTB.FlowDocument.GetBlocks.Count(), newTable);
+
+        Paragraph newnewPar = new (MainRTB.FlowDocument);
+        newnewPar.Inlines.Add(new EditableRun("lkjasdlfkjasdlfkj"));
+        newTable.GetCells.ElementAt(0).InsertBlockAt(0, newnewPar);
+
 
         Paragraph newPar2 = new(MainRTB.FlowDocument);
         newPar2.Inlines.Add(new EditableRun("Some extra text after the table."));
-        MainRTB.FlowDocument.Blocks.Add(newPar2);
-
+        //MainRTB.FlowDocument.Blocks.Add(newPar2);
+        MainRTB.FlowDocument.InsertBlockAt(MainRTB.FlowDocument.GetBlocks.Count(), newPar2);
         
+
         Dispatcher.UIThread.Post(() =>
         {
             MainRTB.UpdateLayout();
@@ -142,9 +157,11 @@ public partial class MainWindow : Window
         //Merge cells
         //newTable.MergeCellsRight(1, 2, 1);
         newTable.MergeCellsRight(1, 1, 1);
-        //newTable.MergeCellsDown(1, 3, 1);
-        
+        newTable.MergeCellsDown(1, 3, 1);
+
         //newTable.InsertColumns(0, 1);
+
+        MainRTB.FlowDocument.RemoveBlockAt(0); //Remove the default paragraph that remains at start
 
     }
 
@@ -192,14 +209,18 @@ public partial class MainWindow : Window
         MainRTB.FlowDocument.Select(currentStart + 1, 0);
 
         if (MainRTB.FlowDocument.Selection.GetStartPar() is not Paragraph currParagraph) return;
-        int insertParIndex = MainRTB.FlowDocument.Blocks.IndexOf(currParagraph);
+        //int insertParIndex = MainRTB.FlowDocument.Blocks.IndexOf(currParagraph);
+        int insertParIndex = MainRTB.FlowDocument.GetBlocks.IndexOf(currParagraph);
+        
 
         int noCols = Convert.ToInt32(AddColsNS.Value);
         int noRows = Convert.ToInt32(AddRowsNS.Value);
 
         Table newTable = new (noCols, noRows, MainRTB.FlowDocument);
 
-        MainRTB.FlowDocument.Blocks.Insert(insertParIndex, newTable);
+        //MainRTB.FlowDocument.Blocks.Insert(insertParIndex, newTable);
+        MainRTB.FlowDocument.InsertBlockAt(insertParIndex, newTable);
+
         int endOfTable = currentStart + noCols * noRows;
         MainRTB.FlowDocument.Select(endOfTable, 0);
 

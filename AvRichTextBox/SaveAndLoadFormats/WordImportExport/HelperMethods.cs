@@ -138,7 +138,10 @@ internal static partial class HelperMethods
         { HighlightColorValues.None, Colors.Transparent }
     };
 
-   internal static string ToOpenXmlColor(AvColor color) => $"{color.R:X2}{color.G:X2}{color.B:X2}";
+   internal static string ToOpenXmlColor(AvColor? color) => 
+        color == null ? 
+        $"{Colors.Transparent.R:X2}{Colors.Transparent.G:X2}{Colors.Transparent.B:X2}" : 
+        $"{color?.R:X2}{color?.G:X2}{color?.B:X2}";
 
    internal static ISolidColorBrush FromOpenXmlColor(string openxmlhex)
    {
@@ -179,4 +182,16 @@ internal static partial class HelperMethods
    internal static bool IsCJKChar(char c) => GetLanguageForChar(c) is 2052 or 1041 or 1042 or 1028;
    [GeneratedRegex("[#0-9a-f]")]
    private static partial Regex hexColorRegex();
+
+    internal static Avalonia.Media.Color? GetPrimaryColor(IBrush? brush)
+    {
+        return brush switch
+        {
+            ISolidColorBrush solid => solid.Color,
+            IGradientBrush gradient when gradient.GradientStops.Count > 0
+                => gradient.GradientStops[0].Color,
+            _ => null
+        };
+    }
+
 }

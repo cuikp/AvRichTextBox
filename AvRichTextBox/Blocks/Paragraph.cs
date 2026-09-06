@@ -1,5 +1,4 @@
-﻿using Avalonia.Layout;
-using Avalonia.Media;
+﻿using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
 using DynamicData;
 using System.Collections.ObjectModel;
@@ -13,15 +12,20 @@ public class Paragraph : Block
 
     public ObservableCollection<IEditable> Inlines { get; set; } = [];
 
-    //public Paragraph() { }
-
     public Paragraph(FlowDocument owningFlowDoc)
     {
+        //this.PropertyChanged += Paragraph_PropertyChanged;
         MyFlowDoc = owningFlowDoc;
 
         Inlines.CollectionChanged += Inlines_CollectionChanged;
         Id = ++FlowDocument.BlockIdCounter;
 
+    }
+
+    private void Paragraph_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        //if (e.PropertyName == "FontWeight")
+            //Debug.WriteLine("par: " + e.PropertyName); 
     }
 
     private void Inlines_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -41,12 +45,43 @@ public class Paragraph : Block
         this.CallRequestInlinesUpdate();
     }
 
-    public Thickness BorderThickness { get; set { field = value; NotifyPropertyChanged(nameof(BorderThickness)); } } = new(0);
-    public ISolidColorBrush BorderBrush { get; set { field = value; NotifyPropertyChanged(nameof(BorderBrush)); } } = new SolidColorBrush(Colors.Transparent);
-    public ISolidColorBrush Background { get; set { field = value; NotifyPropertyChanged(nameof(Background)); } } = new SolidColorBrush(Colors.Transparent);
-    public FontFamily FontFamily { get; set { field = value; NotifyPropertyChanged(nameof(FontFamily)); } } = new("Meiryo");
-    public double FontSize { get; set { field = value; NotifyPropertyChanged(nameof(FontSize)); } } = 16D;
-    public double LineHeight { get; set { field = value; NotifyPropertyChanged(nameof(LineHeight)); } } = 0;  // based on fontsize 
+    public TextAlignment TextAlignment 
+    { 
+        get; 
+        set 
+        { 
+            TextAlignment oldTextAlign = field;
+
+            field = value;
+
+            if (!IsAttachedToDocument) return;
+
+            if (!MyFlowDoc.disableUndoStack)
+                MyFlowDoc.Undos.Add(new ParagraphTextAlignmentChangeUndo(this.Id, oldTextAlign, MyFlowDoc));
+
+            NotifyPropertyChanged(nameof(TextAlignment)); 
+        } 
+    } = TextAlignment.Left;
+
+    public double LineHeight 
+    { 
+        get; 
+        set 
+        { 
+            double oldLineHeight = field;
+            field = value;
+
+            if (!IsAttachedToDocument) return;
+
+            if (!MyFlowDoc.disableUndoStack)
+                MyFlowDoc.Undos.Add(new ParagraphLineHeightChangeUndo(this.Id, oldLineHeight, MyFlowDoc));
+
+            NotifyPropertyChanged(nameof(LineHeight));
+
+            MyFlowDoc.InvokeSelectionChanged();
+
+        } 
+    } = 0;  // based on fontsize 
 
     internal TextLayout TextLayout = null!;
     internal double DocICRelativeTop = 0;
@@ -64,9 +99,6 @@ public class Paragraph : Block
     //   } 
     //} = 0D;
 
-    public FontWeight FontWeight { get; set { field = value; NotifyPropertyChanged(nameof(FontWeight)); } } = FontWeight.Normal;
-    public FontStyle FontStyle { get; set { field = value; NotifyPropertyChanged(nameof(FontStyle)); } } = FontStyle.Normal;
-    public TextAlignment TextAlignment { get; set { field = value; NotifyPropertyChanged(nameof(TextAlignment)); } } = TextAlignment.Left;
 
     internal double DistanceSelectionEndFromLeft = 0;
     internal double DistanceSelectionStartFromLeft = 0;
@@ -128,6 +160,8 @@ public class Paragraph : Block
 
     internal override Paragraph PropertyClone()
     {
+        MyFlowDoc.disableUndoStack = true;
+
         Paragraph newPar = new(MyFlowDoc)
         {
             TextAlignment = this.TextAlignment,
@@ -147,12 +181,16 @@ public class Paragraph : Block
             StartInDoc = this.StartInDoc
 
         };
-                
+
+        MyFlowDoc.disableUndoStack = false;
+
         return newPar;
     }
 
     internal override Paragraph FullClone(bool keepId)
     {
+        MyFlowDoc.disableUndoStack = true;
+
         Paragraph newPar = new(MyFlowDoc)
         {
             TextAlignment = this.TextAlignment,
@@ -176,13 +214,17 @@ public class Paragraph : Block
         if (keepId)
             newPar.Id = this.Id;
 
-            newPar.Inlines.AddRange(this.Inlines.Select(il => il.CloneWithId()));
-        
+        newPar.Inlines.AddRange(this.Inlines.Select(il => il.CloneWithId()));
+
+        MyFlowDoc.disableUndoStack = false;
+
         return newPar;
     }
 
     internal void CopyPropertiesFromParagraph(Paragraph sourceP)
     {
+        MyFlowDoc.disableUndoStack = true;
+
         this.TextAlignment = sourceP.TextAlignment;
         //this.LineSpacing = sourceP.LineSpacing;
         this.BorderBrush = sourceP.BorderBrush;
@@ -198,6 +240,7 @@ public class Paragraph : Block
         //this.OwningTable = sourceP.OwningTable;
         //this.OwningCell = sourceP.OwningCell;
 
+        MyFlowDoc.disableUndoStack = false;
     }
 
     internal void EnsureEmptyRuns()

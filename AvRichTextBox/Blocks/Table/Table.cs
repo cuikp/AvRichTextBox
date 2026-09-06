@@ -9,32 +9,50 @@ using static AvRichTextBox.FlowDocument;
 namespace AvRichTextBox;
 
 public partial class Table : Block
-{
-    public Thickness BorderThickness { get; set { field = value; NotifyPropertyChanged(nameof(BorderThickness)); } } = new(1);
-    public IBrush BorderBrush { get; set { field = value; NotifyPropertyChanged(nameof(BorderBrush)); } } = Brushes.Black;
+{   
+    public HorizontalAlignment TableAlignment 
+    { 
+        get; 
+        set 
+        {
+            HorizontalAlignment oldHAlign = field;
+
+            field = value;
+
+            if (!IsAttachedToDocument) return;
+
+            if (!MyFlowDoc.disableUndoStack)
+                MyFlowDoc.Undos.Add(new TableAlignmentChangeUndo(this.Id, oldHAlign, MyFlowDoc));
+
+            NotifyPropertyChanged(nameof(TableAlignment)); 
+        } 
+    } = HorizontalAlignment.Left;
 
     internal void CallRequestInvalidateVisual() { RequestInvalidateVisual = true; RequestInvalidateVisual = false; }
     internal bool RequestInvalidateVisual { get; set { field = value; NotifyPropertyChanged(nameof(RequestInvalidateVisual)); } } = false;
 
-    public delegate void ColDefsChangedHandler(Table sender);
-    public event ColDefsChangedHandler? ColDefsChanged;
-    public delegate void RowDefsChangedHandler(Table sender);
-    public event RowDefsChangedHandler? RowDefsChanged;
+    internal delegate void ColDefsChangedHandler(Table sender);
+    internal event ColDefsChangedHandler? ColDefsChanged;
+    internal delegate void RowDefsChangedHandler(Table sender);
+    internal event RowDefsChangedHandler? RowDefsChanged;
 
+    internal ObservableCollection<Cell> Cells { get; } = [];
+    public IEnumerable<Cell> GetCells => Cells;
 
-    public ObservableCollection<Cell> Cells { get; set; } = [];
-    public ColumnDefinitions ColDefs { get; set; } = [];
-    public RowDefinitions RowDefs { get; set; } = [];
-    public double Height { get; set { field = value; NotifyPropertyChanged(nameof(Height)); } } = 50;
-    public double Width { get; set { field = value; NotifyPropertyChanged(nameof(Width)); }} = 500;
-    public HorizontalAlignment TableAlignment { get; set { field = value; NotifyPropertyChanged(nameof(TableAlignment)); } } = HorizontalAlignment.Left;
-
+    internal ColumnDefinitions ColDefs { get; set; } = [];
+    internal RowDefinitions RowDefs { get; set; } = [];
+    
+    internal double Height { get; set { field = value; NotifyPropertyChanged(nameof(Height)); } } = 50;
+    internal double Width { get; set { field = value; NotifyPropertyChanged(nameof(Width)); } } = 500;
+    
     internal IBrush SelectionBrush = Brushes.LightSteelBlue;
 
     public Table() { }
 
     public Table(FlowDocument flowDoc) 
-    { 
+    {
+        flowDoc.disableUndoStack = true;
+
         MyFlowDoc = flowDoc; 
         Id = ++FlowDocument.BlockIdCounter; 
         SelectionBrush = flowDoc.SelectionBrush;
@@ -42,27 +60,38 @@ public partial class Table : Block
         ColDefs.CollectionChanged += ColDefs_CollectionChanged;
         RowDefs.CollectionChanged += RowDefs_CollectionChanged;
         Cells.CollectionChanged += Cells_CollectionChanged;
+
+        //flowDoc.disableUndoStack = false;
+
     }
 
     internal void UpdateColAndRowPoints()
     {
-        
+
         Dispatcher.UIThread.Post(() =>
         {
+            this.Width = ColDefs.Sum(cd => cd.Width.Value) + this.BorderThickness.Left + this.BorderThickness.Right;
+            
             ColDefsChanged?.Invoke(this);
             RowDefsChanged?.Invoke(this);
-            this.Width = ColDefs.Sum(cd => cd.Width.Value);
             this.CallRequestInvalidateVisual();
         });
 
     }
 
+    internal void UpdateCellParagraphSizes()
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            foreach (Cell cell in Cells)
+                cell.ResizeCellBlocks();
+        });
+    }
+
     private void ColDefs_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
-
         ColDefsChanged?.Invoke(this);
-        this.Width = ColDefs.Sum(cd => cd.Width.Value);
-
+        this.UpdateColAndRowPoints();
     }
 
     private void RowDefs_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -77,6 +106,7 @@ public partial class Table : Block
         if (rows <= 0)
             throw new ArgumentOutOfRangeException(nameof(rows), rows, "Number of rows must be greater than zero.");
 
+        flowDoc.disableUndoStack = true;
        
         double eqWidth = Math.Truncate(Width / cols);
         double eqHeight = Math.Truncate(Height / rows);
@@ -117,6 +147,8 @@ public partial class Table : Block
 
         Debug.WriteLine("total cells : " + Cells.Count);
 
+        flowDoc.disableUndoStack = false;
+
         this.CallRequestInvalidateVisual();
 
     }
@@ -126,18 +158,17 @@ public partial class Table : Block
         if (Cells.FirstOrDefault() is Cell c)
         {
             if (c.CellBlocks.FirstOrDefault() is Paragraph p)
-            {
                 MyFlowDoc.UpdateBlockAndInlineStarts(p);
-            }
-                
         }
-      
-        //this.Width = ColDefs.Sum(cd => cd.Width.Value);
+
+        MyFlowDoc.AllParagraphs = [.. MyFlowDoc.GetAllParagraphs];
 
     }
 
     internal override Table PropertyClone()
     {
+        MyFlowDoc.disableUndoStack = true;
+
         Table newTable = new(this.MyFlowDoc)
         {
             ColDefs = CloneColDefs(this.ColDefs),   // copied RowDefs and ColDefs must be cloned to be free of previously bound BindableGrid 
@@ -149,13 +180,16 @@ public partial class Table : Block
             SelectionBrush = CloneBrush(this.SelectionBrush) ?? Brushes.LightSteelBlue,
             BorderBrush = CloneBrush(this.BorderBrush) ?? Brushes.Black,
             BorderThickness = this.BorderThickness,
+            Background = this.Background,
             Margin = this.Margin,
             OwningTable = this.OwningTable,
             OwningCell = this.OwningCell
         };
 
         //OwningTable & OwningCell of Paragraphs are assigned in CellBlocks.CollectionChanged
-        newTable.Cells = new ObservableCollection<Cell>(this.Cells.Select(c => c.PropertyClone(newTable)));
+        newTable.Cells.AddRange(this.Cells.Select(c => c.PropertyClone(newTable)));
+
+        MyFlowDoc.disableUndoStack = false;
 
         return newTable;
     }
@@ -163,6 +197,8 @@ public partial class Table : Block
   
     internal override Table FullClone(bool keepId)
     {
+        MyFlowDoc.disableUndoStack = true;
+
         Table newTable = new(this.MyFlowDoc)
         {
             ColDefs = CloneColDefs(this.ColDefs),   // copied RowDefs and ColDefs must be cloned to be free of previously bound BindableGrid 
@@ -174,6 +210,7 @@ public partial class Table : Block
             SelectionBrush = CloneBrush(this.SelectionBrush) ?? Brushes.LightSteelBlue,
             BorderBrush = CloneBrush(this.BorderBrush) ?? Brushes.Black,
             BorderThickness = this.BorderThickness,
+            Background = this.Background,
             Margin = this.Margin,
             OwningTable = this.OwningTable,
             OwningCell = this.OwningCell
@@ -183,7 +220,9 @@ public partial class Table : Block
             newTable.Id = this.Id;
 
         //OwningTable & OwningCell of Paragraphs are assigned in CellBlocks.CollectionChanged
-        newTable.Cells = new ObservableCollection<Cell>(this.Cells.Select(c => c.FullClone(newTable, keepId)));
+        newTable.Cells.AddRange(this.Cells.Select(c => c.FullClone(newTable, keepId)));
+
+        MyFlowDoc.disableUndoStack = false;
 
         return newTable;
 
@@ -209,12 +248,6 @@ public partial class Table : Block
         return Cells.FirstOrDefault(c=> c.RowNo == rowno && c.ColNo == colno);
     }
 
-    public void RemoveCellAt(int rowno,  int colno)
-    {
-        if (Cells.FirstOrDefault(c => c.RowNo == rowno && c.ColNo == colno) is Cell toRemoveCell)
-            Cells.Remove(toRemoveCell);
-    }
-
     public void InsertColumns(int insertColumnIndex, int count)
     {
         int origSelectionStart = MyFlowDoc.Selection.Start;
@@ -224,8 +257,8 @@ public partial class Table : Block
 
         for (int insertCol = 0; insertCol < count;  insertCol++)
         {            
-            //double newWidth = ColDefs[insertColumnIndex].Width.Value / 2D;  // only halve if table is at some max size
             double newWidth = ColDefs[insertColumnIndex].Width.Value;
+            //double newWidth = ColDefs[insertColumnIndex].Width.Value / 2D;  // only halve if table is at some max size
             //ColDefs[insertColumnIndex].Width = new GridLength(newWidth, GridUnitType.Pixel);
 
             ColDefs.Insert(insertColumnIndex, new ColumnDefinition(newWidth, GridUnitType.Pixel));
@@ -253,12 +286,14 @@ public partial class Table : Block
                     };
 
                     Cells.Insert(insertCellIndex, newCell);
+                    newCell.IsAttachedToDocument = true;
+
                     addedCellIds.Add(newCell.Id);
 
                     Paragraph newPar = new(MyFlowDoc) { TextAlignment = TextAlignment.Center };
                     newPar.Inlines.Add(new EditableRun(""));
                     newCell.CellBlocks.Add(newPar);
-
+                                        
                     Dispatcher.UIThread.Post(() =>
                     {
                         newPar.CallRequestTextLayoutInfoStart();
@@ -271,37 +306,7 @@ public partial class Table : Block
         MyFlowDoc.Undos.Add(new InsertColumnsUndo(this.Id, addedCellIds, insertColumnIndex, count, MyFlowDoc, origSelectionStart));
         this.CallRequestInvalidateVisual();
 
-
-        //UpdateFlowDoc( count);
-
     }
-
-    //internal void UpdateFlowDoc(int fromCharIndex, int lengthOffset)
-    //{
-    //    //Auto update blocks and ranges when collection changed
-    //    MyFlowDoc.AllParagraphs = [.. MyFlowDoc.GetAllParagraphs];  //update collection of all paragraphs
-    //    MyFlowDoc.UpdateBlockAndInlineStarts(Math.Max(0, MyFlowDoc.Blocks.IndexOf(OwningTable)));
-
-    //    //if (CellBlocks.Count > 0 && e.NewStartingIndex > -1)
-    //    //{
-    //    //    int lengthOffset = 0;
-    //    //    if (e.NewItems != null)
-    //    //    {
-    //    //        foreach (Block b in e.NewItems)
-    //    //            lengthOffset += b.BlockLength;
-    //    //    }
-
-    //    //    if (e.OldItems != null)
-    //    //    {
-    //    //        foreach (Block b in e.OldItems)
-    //    //            lengthOffset -= b.BlockLength;
-    //    //    }
-
-        
-    //    MyFlowDoc.UpdateTextRanges(fromCharIndex, lengthOffset);
-    //    //}
-
-    //}
 
     public void InsertRows(int insertRowIndex, int count)
     {
@@ -329,7 +334,7 @@ public partial class Table : Block
                             lowerCell.RowNo += 1;
                     }
                 }
-
+                
                 for (int colno = ColDefs.Count - 1; colno >= 0; colno--)
                 {
                     //Create and insert new cell
@@ -342,6 +347,8 @@ public partial class Table : Block
                     };
 
                     Cells.Insert(insertCellIndex, newCell);
+                    newCell.IsAttachedToDocument = true;
+
                     addedCellIds.Add(newCell.Id);
 
                     Paragraph newPar = new(MyFlowDoc) { TextAlignment = TextAlignment.Center };
@@ -366,40 +373,49 @@ public partial class Table : Block
 
     public void MergeCellsRight(int rowNo, int colNo, int numberCellsToMerge = 1)
     {
-        if (GetCellAt(rowNo, colNo) is Cell firstCell)
+
+        if (GetCellAt(rowNo, colNo) is not Cell firstCell) return;
+
+        List<Cell> getMergeCells = [.. this.Cells.Where(c => c.RowNo == rowNo && c.ColNo >= colNo && c.ColNo <= colNo + numberCellsToMerge)];
+        List<Cell> origMergedCellClones = [.. getMergeCells.Select(cell => cell.FullClone(this, true))];
+        List<int> origMergedCellCloneIndexes = getMergeCells.ConvertAll(cc=> this.Cells.IndexOf(cc));
+
+        for (int i = 1; i <= numberCellsToMerge; i++)
         {
-            for (int i = 1; i <= numberCellsToMerge; i++)
+            if (GetCellAt(rowNo, colNo + i) is Cell cellToMerge)
             {
-                if (GetCellAt(rowNo, colNo + i) is Cell cellToMerge)
-                {
-                    firstCell.ColSpan += cellToMerge.ColSpan;
-                    firstCell.CellBlocks.AddRange(cellToMerge.CellBlocks);
-                    cellToMerge.CellBlocks.Clear();
-                    Cells.Remove(cellToMerge);
-                }
+                firstCell.ColSpan += cellToMerge.ColSpan;
+                firstCell.CellBlocks.AddRange(cellToMerge.CellBlocks);
+                cellToMerge.CellBlocks.Clear();
+                Cells.Remove(cellToMerge);
             }
         }
-
-        
+        MyFlowDoc.Undos.Add(new MergeCellsUndo(this.Id, firstCell, origMergedCellClones, origMergedCellCloneIndexes, MyFlowDoc));
+                
     }
 
     public void MergeCellsDown(int rowNo, int colNo, int numberCellsToMerge = 1)
     {
-        if (GetCellAt(rowNo, colNo) is Cell firstCell)
+        if (GetCellAt(rowNo, colNo) is not Cell firstCell) return;
+
+        List<Cell> getMergeCells = [.. this.Cells.Where(c => c.ColNo == colNo && c.RowNo >= rowNo && c.RowNo <= rowNo + numberCellsToMerge)];
+        List<Cell> origMergedCellClones = [.. getMergeCells.Select(cell => cell.FullClone(this, true))];
+        List<int> origMergedCellCloneIndexes = getMergeCells.ConvertAll(cc=> this.Cells.IndexOf(cc));
+
+        for (int i = 1; i <= numberCellsToMerge; i++)
         {
-            for (int i = 1; i <= numberCellsToMerge; i++)
+            if (GetCellAt(rowNo + 1, colNo) is Cell cellToMerge)
             {
-                if (GetCellAt(rowNo + 1, colNo) is Cell cellToMerge)
-                {
-                    firstCell.RowSpan += cellToMerge.RowSpan;
-                    firstCell.CellBlocks.AddRange(cellToMerge.CellBlocks);
-                    cellToMerge.CellBlocks.Clear();
-                    Cells.Remove(cellToMerge);
-                }
+                firstCell.RowSpan += cellToMerge.RowSpan;
+                firstCell.CellBlocks.AddRange(cellToMerge.CellBlocks);
+                cellToMerge.CellBlocks.Clear();
+                Cells.Remove(cellToMerge);
             }
         }
 
-
+        MyFlowDoc.Undos.Add(new MergeCellsUndo(this.Id, firstCell, origMergedCellClones, origMergedCellCloneIndexes, MyFlowDoc));
+        
+        
     }
 
     internal int GetParagraphCount()

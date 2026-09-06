@@ -11,23 +11,33 @@ internal class RichTextBoxViewModel : INotifyPropertyChanged
    public event PropertyChangedEventHandler? PropertyChanged;
    private void NotifyPropertyChanged([CallerMemberName] String propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
-   public delegate void FlowDocChanged_Handler();
+   internal delegate void FlowDocChanged_Handler();
    internal event FlowDocChanged_Handler? FlowDocChanged;
       
-   public Vector RTBScrollOffset { get; set { if (field != value) { field = value; NotifyPropertyChanged(nameof(RTBScrollOffset)); } } }
+   internal Vector RTBScrollOffset { get; set { if (field != value) { field = value; NotifyPropertyChanged(nameof(RTBScrollOffset)); } } }
 
-   public FlowDocument FlowDoc { get; set { field = value; NotifyPropertyChanged(nameof(FlowDoc)); FlowDocChanged?.Invoke(); } } = null!;
+   internal FlowDocument FlowDoc 
+    { 
+        get; 
+        set 
+        { 
+            field = value; 
+            NotifyPropertyChanged(nameof(FlowDoc)); 
+            FlowDocChanged?.Invoke();
+            field.Undos.Clear();
+        } 
+    } = null!;
    
    internal bool RunDebuggerVisible { get; set { field = value; NotifyPropertyChanged(nameof(RunDebuggerVisible)); } }
-   public double MinWidth => RunDebuggerVisible ? 500 : 100;
+   internal double MinWidth => RunDebuggerVisible ? 500 : 100;
 
-   public RichTextBoxViewModel() {  }
+   internal RichTextBoxViewModel() {  }
 
    internal double ScrollViewerHeight = 10;
    
-   public double CaretHeight { get; set { field = value; NotifyPropertyChanged(nameof(CaretHeight)); } } = 5;
-   public Thickness CaretMargin { get; set { field = value; NotifyPropertyChanged(nameof(CaretMargin)); } } = new(0);
-   public bool CaretVisible { get; set { field = value; NotifyPropertyChanged(nameof(CaretVisible)); } } = true;
+   internal double CaretHeight { get; set { field = value; NotifyPropertyChanged(nameof(CaretHeight)); } } = 5;
+   internal Thickness CaretMargin { get; set { field = value; NotifyPropertyChanged(nameof(CaretMargin)); } } = new(0);
+   internal bool CaretVisible { get; set { field = value; NotifyPropertyChanged(nameof(CaretVisible)); } } = true;
 
    internal void CalculateCaretHeightAndPosition(TextLine currTextLine, double caretMLeft, double glyphRunHeight, BaselineAlignment balign)
    {

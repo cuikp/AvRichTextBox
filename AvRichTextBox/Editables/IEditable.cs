@@ -5,7 +5,7 @@ public interface IEditable
 {
    internal int MyParagraphId { get; set; }
    internal FlowDocument MyFlowDoc { get; set; }
-   internal int Id { get; set; }
+   int Id { get; set; }
    internal bool IsLastInlineOfParagraph { get; set; }
    internal bool IsFirstInlineOfParagraph { get; set; }
    internal int TextPositionOfInlineInParagraph { get; set; }
@@ -17,15 +17,15 @@ public interface IEditable
    internal bool IsLineBreak => this is EditableLineBreak;
    internal bool IsHyperlink => this is EditableHyperlink;
 
-   public string InlineText { get; set; }
-   public int InlineLength { get; }
-   public double InlineHeight { get; }
+   internal string InlineText { get; set; }
+   internal int InlineLength { get; }
+   internal double InlineHeight { get; }
 
    internal IEditable Clone();
    internal IEditable CloneWithId();
 
-   IEditable? PreviousInline { get; set; }
-   IEditable? NextInline { get; set;}
+   internal IEditable? PreviousInline { get; set; }
+   internal IEditable? NextInline { get; set;}
 
 
 #if DEBUG

@@ -95,7 +95,7 @@ internal static partial class WordConversions
       return newrun;
    }
 
-   public static void ParseRunText(ref DOW.Run r, string tData)
+   internal static void ParseRunText(ref DOW.Run r, string tData)
    {
       //var newLineArray = new[] { Constants.vbLf };
       //var textArray = tData.Split(newLineArray, StringSplitOptions.None);

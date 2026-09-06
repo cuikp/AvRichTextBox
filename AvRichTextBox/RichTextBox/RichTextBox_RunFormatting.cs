@@ -1,7 +1,6 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Input.Platform;
 using Avalonia.Media.Imaging;
-using DocumentFormat.OpenXml.InkML;
 using DynamicData;
 using System.Text;
 using static AvRichTextBox.FlowDocument;
@@ -130,6 +129,7 @@ public partial class RichTextBox
         if (IsReadOnly) return;
         if (FlowDoc.Selection.StartInline is not IEditable startInline) return;
 
+        
         var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
         if (clipboard == null) return;
 
@@ -164,6 +164,7 @@ public partial class RichTextBox
         bool contentPasted = false;
 
         FlowDoc.disableRunTextUndo = true;
+        FlowDoc.disableUndoStack = true;
 
         // Get clipboard content
         if (!plainTextOnly && await clipboard.TryGetValueAsync(richTextFormat) is byte[] rtfbytes)
@@ -200,6 +201,7 @@ public partial class RichTextBox
         }
 
         FlowDoc.disableRunTextUndo = false;
+        FlowDoc.disableUndoStack = false;
 
         //Update based on pasted content
         if (contentPasted)

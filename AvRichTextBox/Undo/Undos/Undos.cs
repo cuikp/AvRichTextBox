@@ -2,7 +2,7 @@
 using DynamicData;
 using System.Collections.ObjectModel;
 
-namespace AvRichTextBox;
+namespace AvRichTextBox; 
 
 internal class InsertCharUndo(int parId, int runId, int insertPos, FlowDocument flowDoc, int origSelectionStart) : IUndo
 {
@@ -15,7 +15,7 @@ internal class InsertCharUndo(int parId, int runId, int insertPos, FlowDocument 
         {            
             if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == parId) is not Paragraph thisPar) return;
             if (thisPar.Inlines.FirstOrDefault(r => r.Id == runId) is not EditableRun thisRun) return;
-
+            
             flowDoc.disableRunTextUndo = true;
 
             thisRun.Text = thisRun.Text!.Remove(insertPos, 1);
@@ -32,7 +32,7 @@ internal class InsertCharUndo(int parId, int runId, int insertPos, FlowDocument 
             });
 
         }
-        catch { Debug.WriteLine($"Failed InsertCharUndo at runId: {runId}"); }
+        catch { Debug.WriteLine($"Failed {this.GetType().Name} at runId: {runId}"); }
 
     }
 }
@@ -71,7 +71,7 @@ internal class DeleteCharUndo(int parId, int runId, int origRunIdx, char deleteC
             });
 
         }
-        catch { Debug.WriteLine($"Failed DeleteCharUndo at delete pos: {deletePos}"); }
+        catch { Debug.WriteLine($"Failed {this.GetType().Name} at delete pos: {deletePos}"); }
     }
 
 }
@@ -136,7 +136,7 @@ internal class DeleteImageUndo(int parId, IEditable deletedIUC, int deletedInlin
                 flowDoc.Selection.End = flowDoc.Selection.Start;
             });
         }
-        catch { Debug.WriteLine("Failed DeleteImageUndo at delete pos: " + origSelectionStart); }
+        catch { Debug.WriteLine($"Failed {this.GetType().Name} at delete pos: {origSelectionStart}"); }
     }
 
 }
@@ -169,7 +169,7 @@ internal class DeleteRunUndo(int parId, EditableRun removedRunClone, int deleted
             });
 
         }
-        catch { Debug.WriteLine("Failed DeleteImageUndo at delete pos: " + origSelectionStart); }
+        catch { Debug.WriteLine($"Failed {this.GetType().Name} at delete pos: {origSelectionStart}"); }
     }
 
 }
@@ -207,7 +207,7 @@ internal class InsertLineBreakUndo(int insertParId, int insertedLBId, List<int> 
             flowDoc.Selection.End = flowDoc.Selection.Start;
             flowDoc.disableRunTextUndo = false;
         }
-        catch { Debug.WriteLine("Failed InsertCharUndo of linebreak"); }
+        catch { Debug.WriteLine($"Failed {this.GetType().Name}"); }
 
     }
 }
@@ -295,7 +295,7 @@ internal class InsertNewFormattedTextUndo(int parId, EditableRun removedRunClone
             flowDoc.Selection.Start = origSelectionStart;
             flowDoc.Selection.End = flowDoc.Selection.Start;
         }
-        catch { Debug.WriteLine("Failed InsertNewFormattedTextUndo at delete pos: " + origSelectionStart); }
+        catch { Debug.WriteLine($"Failed {this.GetType().Name} at delete pos: {origSelectionStart}"); }
     }
 
 }
@@ -372,7 +372,7 @@ internal class PasteUndo(
             });
 
         }
-        catch { Debug.WriteLine("Failed Undo at OrigSelectionStart: " + origSelectionStart); }
+        catch { Debug.WriteLine($"Failed {this.GetType().Name} at OrigSelectionStart: {origSelectionStart}"); }
     }
 }
 
@@ -397,6 +397,7 @@ internal class DeleteRangeUndo(
         try
         {
             flowDoc.disableRunTextUndo = true;
+            flowDoc.disableUndoStack = true;
             int lengthBefore = flowDoc.Text.Length;  // optimize by getting flowDoc.Blocks.Last().StartInDoc + lastPar.BlockLength instead of calculating entire flowdoc text length
 
             //Cell? containingCell = null;
@@ -414,6 +415,7 @@ internal class DeleteRangeUndo(
             flowDoc.RestoreDeletedBlocks(keptBlockClones, startBlockIndex, firstBlockWasDeleted, lastBlockWasDeleted, flowDoc.Blocks, startBlockIndex);
 
             flowDoc.disableRunTextUndo = false;
+            flowDoc.disableUndoStack = false;
 
             int lengthAfter = flowDoc.Text.Length;  // optimize by getting from lastPar.StartInDoc + lastPar.BlockLength instead of calculating entire flowdoc text length
             flowDoc.UpdateTextRanges(keptBlockClones[0].StartInDoc, lengthAfter - lengthBefore);
@@ -430,7 +432,7 @@ internal class DeleteRangeUndo(
 
 
         }
-        catch (Exception ex) { Debug.WriteLine($"Failed DeleteRangeUndo at Par index: {startBlockIndex}\n{ex.Message}"); }
+        catch (Exception ex) { Debug.WriteLine($"Failed {this.GetType().Name} at Par index: {startBlockIndex}\n{ex.Message}"); }
     }
 
 }
@@ -478,17 +480,18 @@ internal class InsertParagraphUndo(
 
             flowDoc.UpdateBlockAndInlineStarts(blockIdx);
 
-            flowDoc.UpdateTextRanges(origSelectionStart, -1); // offset will always be -1
+            flowDoc.UpdateTextRanges(origSelectionStart, -undoEditOffset);
 
             Dispatcher.UIThread.Post(() =>
             {
                 origPar.CallRequestInlinesUpdate();
                 flowDoc.Selection.Start = origSelectionStart;
                 flowDoc.Selection.End = flowDoc.Selection.Start;
+                flowDoc.InvokeSelectionChanged();
             });
 
         }
-        catch { Debug.WriteLine("Failed InsertParagraphUndo at Inserted par id: " + insertedParId); }
+        catch { Debug.WriteLine($"Failed {this.GetType().Name} at Inserted par id: {insertedParId}"); }
 
     }
 }
@@ -532,7 +535,7 @@ internal class AddParagraphUndo(FlowDocument flowDoc, int addedParId, int origSe
             });
 
         }
-        catch { Debug.WriteLine("Failed InsertParagraphUndo at Inserted par id: " + addedParId); }
+        catch { Debug.WriteLine($"Failed {this.GetType().Name} at Inserted par id: {addedParId}"); }
 
     }
 }
@@ -592,7 +595,7 @@ internal class MergeParagraphUndo(int origMergedParInlinesCount, int mergedParId
             flowDoc.Selection.Start = originalSelectionStart;
 
         }
-        catch { Debug.WriteLine("Failed MergeParagraphUndo at MergedPar: " + mergedParId); }
+        catch { Debug.WriteLine($"Failed {this.GetType().Name} at MergedPar: {mergedParId}"); }
     }
 }
 
@@ -742,86 +745,9 @@ internal class HyperlinkParagraphUndo : IUndo
                 flowDoc.UpdateSelection();
             });
         }
-        catch { Debug.WriteLine("Failed HyperlinkParagraphUndo at parIndex: " + parIndex); }
+        catch { Debug.WriteLine($"Failed {this.GetType().Name} at parIndex: " + parIndex); }
     }
 }
 
 
 
-internal class InsertColumnsUndo(int thisTableId, List<int> insertedCellIds, int insertedColumnIdx, int insertedCount, FlowDocument flowDoc, int origSelectionStart) : IUndo
-{
-    public int UndoEditOffset => -1;
-    public bool UpdateTextRanges => true;
-
-    public void PerformUndo()
-    {
-        try
-        {
-            if (flowDoc.Blocks.FirstOrDefault(b=> b.Id == thisTableId) is Table table)
-            {
-                foreach (int cellId in insertedCellIds)
-                {
-                    if (table.Cells.FirstOrDefault(c=> c.Id == cellId) is Cell cellToRemove)
-                        table.Cells.Remove(cellToRemove); 
-                }
-                
-                for (int i = 0; i < insertedCount; i++)
-                    table.ColDefs.RemoveAt(insertedColumnIdx);
-
-                for (int rowno = 0; rowno < table.RowDefs.Count; rowno++)
-                {
-                    for (int colno = insertedColumnIdx + 1; colno < table.ColDefs.Count + insertedCount; colno++)
-                    {
-                        if (table.GetCellAt(rowno, colno) is Cell shiftCell)
-                            shiftCell.ColNo -= insertedCount;
-                    }
-                }
-                
-                table.Width = table.ColDefs.Sum(cd => cd.Width.Value);
-                //table.UpdateFlowDoc();
-                flowDoc.Select(origSelectionStart, 0);
-            }
-        }
-        catch (Exception ex) { Debug.WriteLine($"Failed InsertColumnsUndo at Col index: {insertedColumnIdx}\n{ex.Message}"); }
-    }
-
-}
-
-internal class InsertRowsUndo(int thisTableId, List<int> insertedCellIds, int insertedRowIdx, int insertedCount, FlowDocument flowDoc, int origSelectionStart) : IUndo
-{
-    public int UndoEditOffset => -1;
-    public bool UpdateTextRanges => true;
-
-    public void PerformUndo()
-    {
-        try
-        {
-            if (flowDoc.Blocks.FirstOrDefault(b=> b.Id == thisTableId) is Table table)
-            {
-                foreach (int cellId in insertedCellIds)
-                {
-                    if (table.Cells.FirstOrDefault(c=> c.Id == cellId) is Cell cellToRemove)
-                        table.Cells.Remove(cellToRemove); 
-                }
-                
-                for (int i = 0; i < insertedCount; i++)
-                    table.RowDefs.RemoveAt(insertedRowIdx);
-
-                for (int rowno = insertedRowIdx + 1; rowno < table.RowDefs.Count + insertedCount; rowno++)
-                {
-                    for (int colno = 0; colno < table.ColDefs.Count; colno++)
-                    {
-                        if (table.GetCellAt(rowno, colno) is Cell shiftCell)
-                            shiftCell.RowNo -= insertedCount;
-                    }
-                }
-
-                //table.Width = table.ColDefs.Sum(cd => cd.Width.Value);
-                //table.UpdateFlowDoc();
-                flowDoc.Select(origSelectionStart, 0);
-            }
-        }
-        catch (Exception ex) { Debug.WriteLine($"Failed InsertColumnsUndo at Col index: {insertedRowIdx}\n{ex.Message}"); }
-    }
-
-}

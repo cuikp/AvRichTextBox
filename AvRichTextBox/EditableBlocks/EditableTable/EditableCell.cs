@@ -1,32 +1,46 @@
 ﻿using Avalonia.Controls;
-using Avalonia.Media;
+using Avalonia.Remote.Protocol;
 using Avalonia.Threading;
 
 namespace AvRichTextBox;
 
 public class EditableCell : Border
 {
-    public delegate void MouseMoveHandler(EditableCell sender, Point cellPoint);
-    public event MouseMoveHandler? MouseMove;
+    internal delegate void MouseMoveHandler(EditableCell sender, Point cellPoint);
+    internal event MouseMoveHandler? MouseMove;
 
-    public delegate void MouseLeaveHandler(EditableCell sender);
-    public event MouseLeaveHandler? MouseLeave;
+    internal delegate void MouseLeaveHandler(EditableCell sender);
+    internal event MouseLeaveHandler? MouseLeave;
 
     public EditableCell()
-   {
-      this.SizeChanged += EditableCell_SizeChanged;
-   }
+    {
+        this.SizeChanged += EditableCell_SizeChanged;
+        this.PropertyChanged += EditableCell_PropertyChanged;
+    }
 
-   private void EditableCell_SizeChanged(object? sender, SizeChangedEventArgs e)
-   {
-      if (this.DataContext is not Cell thisCell) return;
-      thisCell.Height = this.Bounds.Height;
+    private void EditableCell_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (this.DataContext is not Cell thisCell) return;
+
+        switch (e.Property.Name)
+        {
+            case "BorderThickness":
+                this.UpdateLayout();
+                thisCell.OwningTable.UpdateColAndRowPoints();
+                break;
+        }
+    }
+
+    private void EditableCell_SizeChanged(object? sender, SizeChangedEventArgs e)
+    {
+        if (this.DataContext is not Cell thisCell) return;
+        thisCell.Height = this.Bounds.Height;
 
         Dispatcher.UIThread.Post(() =>
         {
             //thisCell.OwningTable.Width = thisCell.OwningTable.ColDefs.Sum(cd => cd.Width.Value);
-            thisCell.OwningTable.Height = thisCell.OwningTable.RowDefs.Sum(rdef => rdef.Height.Value);
-            
+            //thisCell.OwningTable.Height = thisCell.OwningTable.RowDefs.Sum(rdef => rdef.Height.Value);
+            thisCell.OwningTable.Height = thisCell.OwningTable.RowDefs.Sum(rdef => rdef.Height.Value) + thisCell.OwningTable.BorderThickness.Top + thisCell.OwningTable.BorderThickness.Bottom;
         });
 
     }

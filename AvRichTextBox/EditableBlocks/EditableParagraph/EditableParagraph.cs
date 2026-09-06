@@ -9,20 +9,21 @@ namespace AvRichTextBox;
 
 internal partial class EditableParagraph : TextBlock
 {
-    public static readonly StyledProperty<bool> TextLayoutInfoStartRequestedProperty = AvaloniaProperty.Register<EditableParagraph, bool>(nameof(TextLayoutInfoStartRequested));
-    public bool TextLayoutInfoStartRequested { get => GetValue(TextLayoutInfoStartRequestedProperty); set { SetValue(TextLayoutInfoStartRequestedProperty, value); } }
+    internal static readonly StyledProperty<bool> TextLayoutInfoStartRequestedProperty = AvaloniaProperty.Register<EditableParagraph, bool>(nameof(TextLayoutInfoStartRequested));
+    internal bool TextLayoutInfoStartRequested { get => GetValue(TextLayoutInfoStartRequestedProperty); set { SetValue(TextLayoutInfoStartRequestedProperty, value); } }
 
-    public static readonly StyledProperty<bool> TextLayoutInfoEndRequestedProperty = AvaloniaProperty.Register<EditableParagraph, bool>(nameof(TextLayoutInfoEndRequested));
-    public bool TextLayoutInfoEndRequested { get => GetValue(TextLayoutInfoEndRequestedProperty); set { SetValue(TextLayoutInfoEndRequestedProperty, value); } }
+    internal static readonly StyledProperty<bool> TextLayoutInfoEndRequestedProperty = AvaloniaProperty.Register<EditableParagraph, bool>(nameof(TextLayoutInfoEndRequested));
+    internal bool TextLayoutInfoEndRequested { get => GetValue(TextLayoutInfoEndRequestedProperty); set { SetValue(TextLayoutInfoEndRequestedProperty, value); } }
 
     public bool IsEditable { get; set; } = true;
 
     Paragraph? ThisPar => this.DataContext as Paragraph;
 
-    public int RectCharacterIndex = 0;
+    internal int RectCharacterIndex = 0;
 
     public EditableParagraph()
     {
+        
         this.Loaded += EditableParagraph_Loaded;
         this.PropertyChanged += EditableParagraph_PropertyChanged;
         this.MouseMove += EditableParagraph_MouseMove;
@@ -107,6 +108,12 @@ internal partial class EditableParagraph : TextBlock
         {
             switch (e.Property.Name)
             {
+                case "Margin":
+                case "BorderThickness":
+
+                    UpdateParRelativePos();
+                    break;
+
                 case "Bounds":
                     //Necessary for initial setting for each created paragraph
                     ThisPar.FirstIndexLastLine = this.TextLayout.TextLines[^1].FirstTextSourceIndex;
@@ -197,9 +204,9 @@ internal partial class EditableParagraph : TextBlock
     }
 
 
-    public new string Text => this.DataContext is Paragraph p ? string.Join("", p.Inlines.ToList().ConvertAll(edinline => edinline.InlineText)) : "";
+    internal new string Text => this.DataContext is Paragraph p ? string.Join("", p.Inlines.ToList().ConvertAll(edinline => edinline.InlineText)) : "";
 
-    public int TextLength
+    internal int TextLength
     {
         get
         {

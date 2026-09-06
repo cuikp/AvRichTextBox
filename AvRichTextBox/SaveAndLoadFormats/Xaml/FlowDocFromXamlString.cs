@@ -15,7 +15,7 @@ internal partial class XamlConversions
     readonly static List<Bitmap> consecutiveImageBitmaps = [];
 
     [GeneratedRegex(@"Xaml/Image[0-9]{1,}\.png")]
-    public static partial Regex FindXamlImageEntriesRegex();
+    private static partial Regex FindXamlImageEntriesRegex();
 
     [GeneratedRegex(@"<Relationship Type=.*?/xaml/entry.*?/>")]
     private static partial Regex XamlRelationshipEntryRegex();

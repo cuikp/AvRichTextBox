@@ -70,10 +70,10 @@
 										<Grid ColumnDefinitions="50* 15* 10* 10*" HorizontalAlignment="Stretch" ShowGridLines="True" Margin="0" >
 											<Grid  Margin="3, 0" Grid.Column="0" >
 												<Border Background="{StaticResource TableInlineBrush}" IsVisible="{Binding InlineVP.IsTableCellInline}"/>
-												<TextBlock  Text="{Binding DisplayInlineText}" TextWrapping="Wrap" FontWeight="{Binding FontWeight}" FontStyle="{Binding FontStyle}" TextDecorations="{Binding TextDecorations}" ToolTip.Tip="{Binding InlineToolTip}" />
+												<TextBlock  Text="{Binding DisplayInlineText}" TextWrapping="Wrap" FontWeight="{Binding FontWeight, TargetNullValue=FontWeights.Normal}" FontStyle="{Binding FontStyle, TargetNullValue=FontStyles.Normal}" TextDecorations="{Binding TextDecorations}" ToolTip.Tip="{Binding InlineToolTip}" />
 											</Grid>
 											<TextBlock  Grid.Column="1" Text="{Binding TextPositionOfInlineInParagraph}" TextAlignment="Center" />
-											<TextBlock  Grid.Column="2" Text="{Binding InlineText.Length}" TextAlignment="Center" />
+											<TextBlock  Grid.Column="2" Text="{Binding InlineLength}" TextAlignment="Center" />
 											<TextBlock  Grid.Column="3" Text="{Binding Id}" TextAlignment="Center" />
 										</Grid>
 									</Border>

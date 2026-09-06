@@ -4,80 +4,88 @@ namespace AvRichTextBox;
 
 public class EditableHyperlink : EditableRun
 {
-   private static readonly ISolidColorBrush displayBrush = Brushes.Blue;
-   private static readonly TextDecorationCollection displayDecoration = 
-      [ new() { 
-         Location = TextDecorationLocation.Underline, 
-         Stroke = displayBrush, 
-         StrokeThicknessUnit = TextDecorationUnit.Pixel, 
-         StrokeThickness = 1 
+    private static readonly ISolidColorBrush displayBrush = Brushes.Blue;
+    private static readonly TextDecorationCollection displayDecoration =
+       [ new() {
+         Location = TextDecorationLocation.Underline,
+         Stroke = displayBrush,
+         StrokeThicknessUnit = TextDecorationUnit.Pixel,
+         StrokeThickness = 1
       }];
 
-   public EditableHyperlink(string displayText, string navigateUri) 
-   {  
-      Id = ++FlowDocument.InlineIdCounter; 
-      Text = displayText;
-      NavigateUri = navigateUri;
+    public EditableHyperlink(string displayText, string navigateUri)
+    {
+        Id = ++FlowDocument.InlineIdCounter;
+        Text = displayText;
+        NavigateUri = navigateUri;
 
-      ForceFormatting();
-      
-   }
+        ForceFormatting();
 
-   private void ForceFormatting()
-   {
-      this.Foreground = displayBrush;
-      this.TextDecorations = displayDecoration;
-   }
+    }
 
-   internal EditableHyperlink() { ForceFormatting(); }
+    private void ForceFormatting()
+    {
+        this.Foreground = displayBrush;
+        this.TextDecorations = displayDecoration;
+    }
 
-   protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
-   {
-      base.OnPropertyChanged(change);
-
-      //Prevent user change to hyperlink formatting
-      if (change.Property == ForegroundProperty && !Equals(change.NewValue, displayBrush))
-      {
-         SetCurrentValue(ForegroundProperty, displayBrush);
-      }
-      else if (change.Property == TextDecorationsProperty && !Equals(change.NewValue, displayDecoration))
-      {
-         SetCurrentValue(TextDecorationsProperty, displayDecoration);
-      }
-   }
-
-   public string NavigateUri { get; set; } = "";
-
-   public override IEditable Clone() =>
-
-     new EditableHyperlink(this.Text!, this.NavigateUri)
-     {
-        FontStyle = this.FontStyle,
-        FontWeight = this.FontWeight,
-        TextDecorations = this.TextDecorations,
-        FontSize = this.FontSize,
-        FontFamily = this.FontFamily,
-        Background = this.Background,
-        MyParagraphId = this.MyParagraphId,
-        MyFlowDoc = this.MyFlowDoc,
-        TextPositionOfInlineInParagraph = this.TextPositionOfInlineInParagraph,  //necessary because clone is produced when calculating range inline positions
-        IsLastInlineOfParagraph = this.IsLastInlineOfParagraph,
-        BaselineAlignment = this.BaselineAlignment,
-        Foreground = this.Foreground,
-     };
+    internal EditableHyperlink() { ForceFormatting(); }
 
 
-   public override IEditable CloneWithId()
-   {
-      IEditable IdClone = this.Clone();
-      IdClone.Id = this.Id;
-      return IdClone;
-   }
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        //Prevent user change to hyperlink formatting
+        if (change.Property == ForegroundProperty && !Equals(change.NewValue, displayBrush))
+        {
+            SetCurrentValue(ForegroundProperty, displayBrush);
+        }
+        else if (change.Property == TextDecorationsProperty && !Equals(change.NewValue, displayDecoration))
+        {
+            SetCurrentValue(TextDecorationsProperty, displayDecoration);
+        }
+    }
+
+    internal string NavigateUri { get; set; } = "";
+
+    public override IEditable Clone()
+    {
+        MyFlowDoc.disableUndoStack = true;
+
+        EditableHyperlink newEHL = new(this.Text!, this.NavigateUri)
+        {
+            FontStyle = this.FontStyle,
+            FontWeight = this.FontWeight,
+            TextDecorations = this.TextDecorations,
+            FontSize = this.FontSize,
+            FontFamily = this.FontFamily,
+            Background = this.Background,
+            MyParagraphId = this.MyParagraphId,
+            MyFlowDoc = this.MyFlowDoc,
+            TextPositionOfInlineInParagraph = this.TextPositionOfInlineInParagraph,  //necessary because clone is produced when calculating range inline positions
+            IsLastInlineOfParagraph = this.IsLastInlineOfParagraph,
+            IsTableCellInline = this.IsTableCellInline,
+            BaselineAlignment = this.BaselineAlignment,
+            Foreground = this.Foreground,
+        };
+
+        MyFlowDoc.disableUndoStack = false;
+
+        return newEHL;
+    }
+
+    public override IEditable CloneWithId()
+    {
+        IEditable IdClone = this.Clone();
+        IdClone.Id = this.Id;
+        return IdClone;
+    }
 
 
 #if DEBUG
-   // FOR DEBUGGER PANEL
-   public override string DisplayInlineText => "{>HYPERLINK<}" + $" \"{Text}\"";
+    // FOR DEBUGGER PANEL
+    public override string DisplayInlineText => "{>HYPERLINK<}" + $" \"{Text}\"";
 #endif
 
 }

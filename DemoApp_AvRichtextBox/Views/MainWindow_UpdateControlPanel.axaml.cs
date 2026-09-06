@@ -13,10 +13,12 @@ public partial class MainWindow
 {
     private void ShowPagePaddingValue()
     {
+        progChange = true;
         PagePaddingNSL.Value = MainRTB.FlowDocument.PagePadding.Left;
         PagePaddingNSR.Value = MainRTB.FlowDocument.PagePadding.Right;
         PagePaddingNST.Value = MainRTB.FlowDocument.PagePadding.Top;
         PagePaddingNSB.Value = MainRTB.FlowDocument.PagePadding.Bottom;
+        progChange = false;
     }
 
 
@@ -88,8 +90,8 @@ public partial class MainWindow
         {
             LineHeightNS.Value = selPar.LineHeight;
             ParagraphBorderNS.Value = selPar.BorderThickness.Left;
-            ParBorderCP.Color = selPar.BorderBrush == null ? Colors.Transparent : selPar.BorderBrush.Color;
-            ParBackgroundCP.Color = selPar.Background == null ? Colors.Transparent : selPar.Background.Color;
+            ParBorderCP.Color = selPar.BorderBrush == null ? Colors.Transparent : GetPrimaryColor(selPar.BorderBrush) ?? Colors.Transparent;
+            ParBackgroundCP.Color = GetPrimaryColor(selPar.Background) ?? Colors.Transparent;
             fontFamily = selPar.FontFamily;
 
         }
@@ -131,5 +133,14 @@ public partial class MainWindow
 
     }
 
-
+    internal static Avalonia.Media.Color? GetPrimaryColor(IBrush? brush)
+    {
+        return brush switch
+        {
+            ISolidColorBrush solid => solid.Color,
+            IGradientBrush gradient when gradient.GradientStops.Count > 0
+                => gradient.GradientStops[0].Color,
+            _ => null
+        };
+    }
 }

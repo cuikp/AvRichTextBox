@@ -1,6 +1,8 @@
 ﻿using Avalonia.Controls;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using static AvRichTextBox.HelperMethods;
@@ -29,19 +31,21 @@ internal static partial class WordConversions
             }
          };
 
-         if (p.Background != null && p.Background.Color != Avalonia.Media.Colors.Transparent)
-            pPr.Shading = new() { Val = ShadingPatternValues.Clear, Color = "auto", Fill = ToOpenXmlColor(p.Background.Color) };
+         if (p.Background != null && GetPrimaryColor(p.Background) != Colors.Transparent)
+            pPr.Shading = new() { Val = ShadingPatternValues.Clear, Color = "auto", Fill = ToOpenXmlColor(GetPrimaryColor(p.Background) ?? Colors.Transparent) };
 
-         if (p.BorderBrush != null && p.BorderBrush.Color != Avalonia.Media.Colors.Transparent)
+         if (p.BorderBrush != null &&  GetPrimaryColor(p.BorderBrush) != Colors.Transparent)
          {
             if (p.BorderThickness != default)
             {
+               Avalonia.Media.Color? borderColor = GetPrimaryColor(p.BorderBrush);
+
                pPr.ParagraphBorders = new()
                {
-                  LeftBorder = new() { Val = BorderValues.Single, Color = ToOpenXmlColor(p.BorderBrush.Color), Size = (uint)(p.BorderThickness.Left * 6), Space = 0 },
-                  TopBorder = new() { Val = BorderValues.Single, Color = ToOpenXmlColor(p.BorderBrush.Color), Size = (uint)(p.BorderThickness.Top * 6), Space = 0 },
-                  RightBorder = new() { Val = BorderValues.Single, Color = ToOpenXmlColor(p.BorderBrush.Color), Size = (uint)(p.BorderThickness.Right * 6), Space = 0 },
-                  BottomBorder = new() { Val = BorderValues.Single, Color = ToOpenXmlColor(p.BorderBrush.Color), Size = (uint)(p.BorderThickness.Bottom * 6), Space = 0 },
+                  LeftBorder = new() { Val = BorderValues.Single, Color = ToOpenXmlColor(borderColor), Size = (uint)(p.BorderThickness.Left * 6), Space = 0 },
+                  TopBorder = new() { Val = BorderValues.Single, Color = ToOpenXmlColor(borderColor), Size = (uint)(p.BorderThickness.Top * 6), Space = 0 },
+                  RightBorder = new() { Val = BorderValues.Single, Color = ToOpenXmlColor(borderColor), Size = (uint)(p.BorderThickness.Right * 6), Space = 0 },
+                  BottomBorder = new() { Val = BorderValues.Single, Color = ToOpenXmlColor(borderColor), Size = (uint)(p.BorderThickness.Bottom * 6), Space = 0 },
                };
             }
                

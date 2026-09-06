@@ -1,5 +1,6 @@
 ﻿using Avalonia.Controls.Documents;
 using Avalonia.Media;
+using System.Runtime.InteropServices;
 
 namespace AvRichTextBox;
 
@@ -54,29 +55,54 @@ public class EditableRun : Run, IEditable
 
     }
 
-    public int Id { get; set; }
-    public int MyParagraphId { get; set; }
+    internal int Id { get; set; }
+    int IEditable.Id { get => Id; set => Id = value; }
+
+    internal int MyParagraphId { get; set; }
+    int IEditable.MyParagraphId { get => MyParagraphId; set => MyParagraphId = value; }
+
     public FlowDocument MyFlowDoc { get; set; } = null!;
-    public int TextPositionOfInlineInParagraph { get; set; }
+    
+    internal int TextPositionOfInlineInParagraph { get; set; }
+    int IEditable.TextPositionOfInlineInParagraph { get => TextPositionOfInlineInParagraph; set => TextPositionOfInlineInParagraph = value; }
+    public int GetTextPositionOfInlineInParagraph => TextPositionOfInlineInParagraph;
 
-    public virtual string InlineText { get => Text!; set => Text = value; }
+    //int _InlineLength = 0;
+    //internal string InlineText { get => Text!; set { Text = value; _InlineLength = Text!.Length; } }
+    
+    //public int InlineLength => _InlineLength;
     public virtual int InlineLength => InlineText.Length;
-    public double InlineHeight => FontSize;
 
+    internal string InlineText { get => Text!; set => Text = value; }
+    string IEditable.InlineText { get => InlineText; set => InlineText  = value; }
+    
+    public double InlineHeight => FontSize;
 
     public bool IsEmpty => InlineText.Length == 0;
     public string FontName => FontFamily?.Name == null ? "" : FontFamily?.Name!;
 
-    public bool IsFirstInlineOfParagraph { get; set; }
-    public bool IsLastInlineOfParagraph { get; set; }
-    public bool IsTableCellInline { get; set; } = false;
+    bool IEditable.IsFirstInlineOfParagraph { get; set; }
 
-    public IEditable? PreviousInline { get; set; } = null!;
-    public IEditable? NextInline { get; set; } = null!;
+    internal bool IsLastInlineOfParagraph { get; set; }
+    bool IEditable.IsLastInlineOfParagraph { get => IsLastInlineOfParagraph; set => IsLastInlineOfParagraph = value; }
+
+    internal bool IsTableCellInline { get; set; }
+    bool IEditable.IsTableCellInline { get => IsTableCellInline; set => IsTableCellInline = value; }
+
+    IEditable? PreviousInline { get; set; } = null!;
+    IEditable? IEditable.PreviousInline { get => PreviousInline; set => PreviousInline = value; } 
+    IEditable? NextInline { get; set; } = null!;
+    IEditable? IEditable.NextInline { get => NextInline; set => NextInline = value; }
+
+    public IEditable? GetPreviousInline => PreviousInline;
+    public IEditable? GetNextInline => NextInline;
+
 
     public virtual IEditable Clone()
     {
-        EditableRun clonedRun = new EditableRun(this.Text!)
+        MyFlowDoc.disableUndoStack = true;
+
+        EditableRun clonedRun = new (this.Text!)
         {
             FontStyle = this.FontStyle,
             FontWeight = this.FontWeight,
@@ -87,11 +113,13 @@ public class EditableRun : Run, IEditable
             MyParagraphId = this.MyParagraphId,
             MyFlowDoc = this.MyFlowDoc,
             TextPositionOfInlineInParagraph = this.TextPositionOfInlineInParagraph,  //necessary because clone is produced when calculating range inline positions
-            IsLastInlineOfParagraph = this.IsLastInlineOfParagraph,
             BaselineAlignment = this.BaselineAlignment,
             Foreground = this.Foreground,
+            IsLastInlineOfParagraph = this.IsLastInlineOfParagraph,
             IsTableCellInline = this.IsTableCellInline,
         };
+
+        MyFlowDoc.disableUndoStack = false;
 
         return clonedRun;
     }

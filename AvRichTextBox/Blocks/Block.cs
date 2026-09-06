@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using Avalonia.Media;
+using System.ComponentModel;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -8,14 +9,16 @@ namespace AvRichTextBox;
 public class Block : INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
-    public void NotifyPropertyChanged([CallerMemberName] String propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
+    internal void NotifyPropertyChanged([CallerMemberName] String propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
     internal int Id = 0;
 
     internal bool IsTableCellBlock = false;
-    public bool IsCellBlock => IsTableCellBlock;
     internal Table OwningTable = null!;
     internal Cell OwningCell = null!;
+    internal bool IsAttachedToDocument = false;
+
+    public bool IsCellBlock => IsTableCellBlock;
     public Cell GetOwningCell => OwningCell;
 
     internal FlowDocument MyFlowDoc
@@ -32,7 +35,148 @@ public class Block : INotifyPropertyChanged
         }
     } = null!;
 
-    public Thickness Margin { get; set { field = value; NotifyPropertyChanged(nameof(Margin)); } }
+    public Thickness Margin 
+    { 
+        get; 
+        set 
+        {
+            Thickness oldMargin = field;
+            field = value;
+
+            if (!MyFlowDoc.disableUndoStack)
+                MyFlowDoc.Undos.Add(new BlockMarginChangedUndo(this.Id, oldMargin, MyFlowDoc));
+
+            NotifyPropertyChanged(nameof(Margin));
+
+            MyFlowDoc.InvokeSelectionChanged();
+            
+            
+        }
+    }
+
+    public IBrush BorderBrush
+    {
+        get;
+        set
+        {
+            IBrush oldBrush = field;
+
+            field = value;
+
+            if (!IsAttachedToDocument) return;
+
+            if (!MyFlowDoc.disableUndoStack)
+                MyFlowDoc.Undos.Add(new BlockBorderBrushChangedUndo(this.Id, oldBrush, MyFlowDoc));
+
+            NotifyPropertyChanged(nameof(BorderBrush));
+        }
+    } = Brushes.Black;
+
+    public Thickness BorderThickness
+    {
+        get;
+        set
+        {
+            Thickness oldThickness = field;
+            field = value;
+            
+            if (!IsAttachedToDocument) return;
+
+            if (!MyFlowDoc.disableUndoStack)
+                MyFlowDoc.Undos.Add(new BlockBorderThicknessChangedUndo(this.Id, oldThickness, MyFlowDoc));
+
+            if (this is Table t)
+                t.UpdateColAndRowPoints();
+
+            NotifyPropertyChanged(nameof(BorderThickness));
+        }
+    } = new(0);
+
+    public IBrush Background 
+    { 
+        get; 
+        set 
+        {
+            IBrush oldBrush = field;
+
+            field = value;
+            if (!IsAttachedToDocument) return;
+
+
+            if (!MyFlowDoc.disableUndoStack)
+                MyFlowDoc.Undos.Add(new BlockBackgroundChangedUndo(this.Id, oldBrush, MyFlowDoc));
+
+            NotifyPropertyChanged(nameof(Background)); 
+        } 
+    } = new SolidColorBrush(Colors.Transparent);
+
+    public FontFamily FontFamily 
+    { 
+        get; 
+        set 
+        {
+            FontFamily oldFontFamily = field;
+
+            field = value;
+
+            if (!IsAttachedToDocument) return;
+
+            if (!MyFlowDoc.disableUndoStack)
+                MyFlowDoc.Undos.Add(new BlockFontFamilyChangedUndo(this.Id, oldFontFamily, MyFlowDoc));
+
+            NotifyPropertyChanged(nameof(FontFamily)); 
+        } 
+    
+    } = new("Meiryo");
+    
+    public double FontSize 
+    { 
+        get; 
+        set 
+        {
+            double oldFontSize = field;
+            field = value;
+
+            if (!MyFlowDoc.disableUndoStack)
+                MyFlowDoc.Undos.Add(new BlockFontSizeChangedUndo(this.Id, oldFontSize, MyFlowDoc));
+
+            NotifyPropertyChanged(nameof(FontSize)); 
+        } 
+    } = 16D;
+
+    public FontWeight FontWeight 
+    { 
+        get; 
+        set 
+        {
+            FontWeight oldFontWeight = field;
+            field = value;
+
+            if (!IsAttachedToDocument) return;
+
+            if (!MyFlowDoc.disableUndoStack)
+                MyFlowDoc.Undos.Add(new BlockFontWeightChangedUndo(this.Id, oldFontWeight, MyFlowDoc));
+
+            NotifyPropertyChanged(nameof(FontWeight)); 
+        } 
+    } = FontWeight.Normal;
+
+    public FontStyle FontStyle 
+    { 
+        get; 
+        set 
+        {
+            FontStyle oldFontStyle = field;
+            field = value;
+
+            if (!MyFlowDoc.disableUndoStack)
+                MyFlowDoc.Undos.Add(new BlockFontStyleChangedUndo(this.Id, oldFontStyle, MyFlowDoc));
+
+            NotifyPropertyChanged(nameof(FontStyle)); 
+        } 
+    } = FontStyle.Normal;
+
+
 
     public string Text
     {
@@ -104,7 +248,7 @@ public class Block : INotifyPropertyChanged
         }
     }
 
-    internal int SelectionLength => SelectionEndInBlock - SelectionStartInBlock;
+    public int SelectionLength => SelectionEndInBlock - SelectionStartInBlock;
 
     public int BlockLength
     {
@@ -133,12 +277,16 @@ public class Block : INotifyPropertyChanged
 
     }
 
+    public int GetStartInDoc => StartInDoc;
+    public int GetEndInDoc => EndInDoc;
+    public int GetSelectionStartInBlock => SelectionStartInBlock;
+    public int GetSelectionEndInBlock => SelectionEndInBlock;
+
     internal int StartInDoc { get; set { if (field != value) { field = value; NotifyPropertyChanged(nameof(StartInDoc)); } } }
-    //internal int EndInDoc => StartInDoc + BlockLength;
     internal int EndInDoc => StartInDoc + BlockLength - 1; // changed to reflect revised logic for paragraph end navigation
 
     //Updated on FlowDoc_Selection_Changed
-    public int SelectionStartInBlock
+    internal int SelectionStartInBlock
     {
         get;
         set
@@ -154,7 +302,7 @@ public class Block : INotifyPropertyChanged
         }
     }
 
-    public int SelectionEndInBlock
+    internal int SelectionEndInBlock
     {
         get;
         set
@@ -169,24 +317,34 @@ public class Block : INotifyPropertyChanged
         }
     }
 
-    public static bool IsFocusable => false;
+    internal static bool IsFocusable => false;
 
     internal virtual Block PropertyClone()
     {
-        return new Block() 
+        MyFlowDoc.disableUndoStack = true;
+        
+        Block newBlock = new () 
         { 
             IsTableCellBlock = this.IsTableCellBlock,
             Margin = this.Margin,
             MyFlowDoc = this.MyFlowDoc
             //OwningTable & OwningCell are assigned in CellBlocks.CollectionChanged
         };
+
+        MyFlowDoc.disableUndoStack = false;
+
+        return newBlock;
     }
     
     internal virtual Block FullClone(bool keepId)
     {
+        MyFlowDoc.disableUndoStack = true;
+
         Block newBlock = PropertyClone();
         if (keepId)
             newBlock.Id = this.Id;
+
+        MyFlowDoc.disableUndoStack = false;
 
         return newBlock;
     }

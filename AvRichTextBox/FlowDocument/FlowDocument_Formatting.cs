@@ -137,7 +137,7 @@ public partial class FlowDocument
             edPropAssoc.PropertyValue = o;
       }
 
-      Undos.Add(new ApplyFormattingUndo(this, propertyAssociations, edgeIds, Selection.Start, textRange));
+      this.Undos.Add(new ApplyFormattingUndo(this, propertyAssociations, edgeIds, Selection.Start, textRange));
 
 
       if (formatRunsActions.TryGetValue(avProperty, out var applyToRunsAction))
@@ -168,11 +168,7 @@ public partial class FlowDocument
       // Finally must update the selection rectangles/caret size for some formatting changes (bold, fontsize, etc.)
       if (textRange == Selection)
       {
-         Dispatcher.UIThread.Post(() =>
-         {
-            SelectionChanged?.Invoke(Selection);
-
-         }, DispatcherPriority.Background);
+         Dispatcher.UIThread.Post(() => { SelectionChanged?.Invoke(Selection);  }, DispatcherPriority.Background);
       }
 
    }

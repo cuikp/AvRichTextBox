@@ -303,10 +303,7 @@ public partial class FlowDocument
         Selection.BiasForwardEnd = Selection.BiasForwardStart;
 
         Selection.IsAtEndOfLineSpace = false;
-
-        IEditable? startInline = Selection.StartInline;
-        IEditable? nextInline = startInline == null ? null : startInline.NextInline;
-
+                
     }
 
     internal void MovePageSelection(int direction, bool extend, int newIndexInDoc)

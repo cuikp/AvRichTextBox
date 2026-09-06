@@ -8,38 +8,52 @@ public class EditableLineBreak : LineBreak, IEditable
 
     public FlowDocument MyFlowDoc { get; set; } = null!;
 
-    public int Id { get; set; }
-    public int MyParagraphId { get; set; }
+    internal int Id { get; set; }
+    int IEditable.Id { get => Id; set => Id = value; }
 
-    public int TextPositionOfInlineInParagraph { get; set; }
-    public bool IsTableCellInline { get; set; } = false;
-
+    internal int MyParagraphId { get; set; }
+    int IEditable.MyParagraphId { get => MyParagraphId; set => MyParagraphId = value; }
+        
+    string IEditable.InlineText { get => InlineText; set { InlineText = value; } }
     internal string InlineText { get; private set; } = @"\n"; //make literal to count as 2 characters
     public int InlineLength => 2;  //because LineBreak acts as a double character in TextBlock
-
-    //internal string InlineText { get; private set; } = "\n";
-    //public int InlineLength => 1;  
-
-    string IEditable.InlineText { get => InlineText; set { InlineText = value; } }
 
     public double InlineHeight => FontSize;
 
     public IEditable? PreviousInline { get; set; }
     public IEditable? NextInline { get; set; }
+    bool IEditable.IsFirstInlineOfParagraph { get; set; }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static")]
-    public string FontName => "---";
+    internal bool IsLastInlineOfParagraph { get; set; }
+    bool IEditable.IsLastInlineOfParagraph { get => IsLastInlineOfParagraph; set => IsLastInlineOfParagraph = value; }
+
+    internal bool IsTableCellInline { get; set; }
+    bool IEditable.IsTableCellInline { get => IsTableCellInline; set => IsTableCellInline = value; }
+
+    int TextPositionOfInlineInParagraph { get; set; }
+    int IEditable.TextPositionOfInlineInParagraph { get => TextPositionOfInlineInParagraph; set => TextPositionOfInlineInParagraph = value; }
+    public int GetTextPositionOfInlineInParagraph => TextPositionOfInlineInParagraph;
 
     public bool IsEmpty => false;
-    public bool IsFirstInlineOfParagraph { get; set; }
-    public bool IsLastInlineOfParagraph { get; set; }
 
-    public IEditable Clone() => new EditableLineBreak() 
-    { 
-        MyParagraphId = this.MyParagraphId, 
-        MyFlowDoc = this.MyFlowDoc, 
-        TextPositionOfInlineInParagraph = this.TextPositionOfInlineInParagraph 
-    };
+    public IEditable Clone()
+    {
+        MyFlowDoc.disableUndoStack = true;
+
+        EditableLineBreak eLB = new()
+        {
+            MyParagraphId = this.MyParagraphId,
+            MyFlowDoc = this.MyFlowDoc,
+            TextPositionOfInlineInParagraph = this.TextPositionOfInlineInParagraph,
+            IsLastInlineOfParagraph = this.IsLastInlineOfParagraph,
+            IsTableCellInline = this.IsTableCellInline,
+        };
+
+        MyFlowDoc.disableUndoStack = false;
+
+        return eLB;
+
+    }
 
     public IEditable CloneWithId()
     {
@@ -47,6 +61,9 @@ public class EditableLineBreak : LineBreak, IEditable
         IdClone.Id = this.Id;
         return IdClone;
     }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static")]
+    public string FontName => "---";
 
 
 #if DEBUG

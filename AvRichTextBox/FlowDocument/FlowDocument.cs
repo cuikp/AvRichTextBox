@@ -10,33 +10,33 @@ namespace AvRichTextBox;
 
 public partial class FlowDocument : AvaloniaObject
 {
-    public delegate void ScrollInDirection_Handler(int direction);
+    internal delegate void ScrollInDirection_Handler(int direction);
     internal event ScrollInDirection_Handler? ScrollInDirection;
 
-    public delegate void ScrollToCaret_Handler();
+    internal delegate void ScrollToCaret_Handler();
     internal event ScrollToCaret_Handler? ScrollToCaret;
 
     public delegate void SelectionChanged_Handler(TextRange selection);
     public event SelectionChanged_Handler? SelectionChanged;
 
-    public delegate void PagePaddingChanged_Handler();
-    public event PagePaddingChanged_Handler? PagePaddingChanged;
+    internal delegate void PagePaddingChanged_Handler();
+    internal event PagePaddingChanged_Handler? PagePaddingChanged;
 
-    public delegate void UpdateRTBCaret_Handler();
+    internal delegate void UpdateRTBCaret_Handler();
     internal event UpdateRTBCaret_Handler? UpdateRTBCaret;
 
     internal static int InlineIdCounter { get; set => field = (value == int.MaxValue) ? 1 : value; }
-    //internal static int ParagraphIdCounter { get; set => field = (value == int.MaxValue) ? 1 : value; }
     internal static int BlockIdCounter { get; set => field = (value == int.MaxValue) ? 1 : value; }
     internal static int TableCellIdCounter { get; set => field = (value == int.MaxValue) ? 1 : value; }
 
     internal bool IsEditable { get; set; } = true;
+    internal bool disableUndoStack = true;
 
     internal static readonly DirectProperty<FlowDocument, bool> HasSelectedTextProperty = AvaloniaProperty.RegisterDirect<FlowDocument, bool>(nameof(HasSelectedText), o => o.HasSelectedText);
     internal bool HasSelectedText => Selection.Length > 0;
 
     internal ObservableCollection<IUndo> Undos { get; set; } = [];
-    internal ObservableCollection<Paragraph> SelectionParagraphs { get; set; } = [];
+    internal ObservableCollection<Paragraph> SelectionParagraphs { get; } = [];
     public ObservableCollection<TextRange> TextRanges = [];
 
     internal bool disableRunTextUndo = false;
@@ -46,23 +46,40 @@ public partial class FlowDocument : AvaloniaObject
 
     public List<Paragraph> GetSelectedParagraphs => [.. AllParagraphs.Where(p => p.StartInDoc <= Selection.Start && p.EndInDoc >= Selection.End).Select(b => (Paragraph)b)];
 
-    public static readonly StyledProperty<ObservableCollection<Block>> BlocksProperty = AvaloniaProperty.Register<FlowDocument, ObservableCollection<Block>>(nameof(Blocks), defaultBindingMode: BindingMode.TwoWay);
-    public ObservableCollection<Block> Blocks
+    internal static readonly StyledProperty<ObservableCollection<Block>> BlocksProperty = AvaloniaProperty.Register<FlowDocument, ObservableCollection<Block>>(nameof(Blocks), defaultBindingMode: BindingMode.TwoWay);
+    //public ObservableCollection<Block> Blocks
+    internal ObservableCollection<Block> Blocks
     {
         get => GetValue(BlocksProperty);
         set { SetValue(BlocksProperty, value); }
     }
 
-    public static readonly DirectProperty<FlowDocument, Thickness> PagePaddingProperty = AvaloniaProperty.RegisterDirect<FlowDocument, Thickness>(nameof(PagePadding), o => o.PagePadding, (o, v) => o.PagePadding = v);
+    public IEnumerable<Block> GetBlocks => Blocks;
+
+    public void ClearBlocks() { Blocks.Clear(); AddDefaultParagraph(Blocks); }
+    public void InsertBlockAt(int index, Block block) { InsertBlockIntoCollectionAt(Blocks, index, block); }
+    public void RemoveBlockAt(int index) { RemoveBlockFromCollectionAt(Blocks, index); }
+    public void RemoveBlock(Block block) { RemoveBlockFromCollection(Blocks, block); }
+
+
+    internal static readonly DirectProperty<FlowDocument, Thickness> PagePaddingProperty = AvaloniaProperty.RegisterDirect<FlowDocument, Thickness>(nameof(PagePadding), o => o.PagePadding, (o, v) => o.PagePadding = v);
     public Thickness PagePadding
     {
         get;
-        set => SetAndRaise(PagePaddingProperty, ref field, value);
+        set 
+        {
+            Thickness oldPagePadding = field;
+
+            SetAndRaise(PagePaddingProperty, ref field, value);
+            
+            if (!disableUndoStack)
+                Undos.Add(new FlowDocumentPagePaddingChangedUndo(oldPagePadding, this));
+        }
     }
 
     public string Text => string.Join("", GetAllParagraphs.ToList().ConvertAll(p => string.Join("", p.Text)));
 
-    public int DocEndPoint => Blocks.Last().EndInDoc;
+    public int DocEndPoint => Blocks.LastOrDefault()?.EndInDoc ?? 0;
 
     public TextRange Selection { get; set; }
     //internal IBrush SelectionBrush = Brushes.LightSteelBlue;  // default
@@ -164,14 +181,14 @@ public partial class FlowDocument : AvaloniaObject
     {
         Selection.Start = 0;
         Selection.End = 0;
-        SelectionParagraphs.Clear();
+        //SelectionParagraphs.Clear();
         Selection.End = this.DocEndPoint;
         this.SelectionExtendMode = ExtendMode.ExtendModeRight;
     }
 
     public void Select(int Start, int Length)
     {
-        SelectionParagraphs.Clear();
+        //SelectionParagraphs.Clear();
 
         Selection.Start = Start;
         Selection.End = Start + Length;
@@ -184,25 +201,26 @@ public partial class FlowDocument : AvaloniaObject
     {
         ClearDocument();
 
-        AddDefaultParagraph();
+        AddDefaultParagraph(Blocks);
 
         InitializeDocument();
 
     }
 
-    private void AddDefaultParagraph()
+    internal void AddDefaultParagraph(ObservableCollection<Block> blockCollection)
     {
+        disableUndoStack = true;
         Paragraph newpar = new(this);
         EditableRun newerun = new("");
         newpar.Inlines.Add(newerun);
-        Blocks.Add(newpar);
-
+        blockCollection.Add(newpar);
+        disableUndoStack = false;
     }
 
     internal void ClearDocument()
     {
         Blocks.Clear();
-
+        disableUndoStack = true;
         BlockIdCounter = 1;
         InlineIdCounter = 1;
 
@@ -223,7 +241,7 @@ public partial class FlowDocument : AvaloniaObject
 
         //Fail-safe in case imported document has no content.
         if (AllParagraphs.Count == 0)
-            AddDefaultParagraph();
+            AddDefaultParagraph(Blocks);
 
         Selection.Start = 0;  //necessary
         Selection.CollapseToStart();
@@ -252,6 +270,7 @@ public partial class FlowDocument : AvaloniaObject
 
         UpdateAllRangeContexts();
 
+        disableUndoStack = false;
     }
 
     private void UpdateAllRangeContexts()
@@ -364,5 +383,39 @@ public partial class FlowDocument : AvaloniaObject
             }
         }
     }
+
+    internal Block? GetBlockFromId(int blockId) => GetBlockFromId(blockId, this.Blocks);
+    
+    internal Block? GetBlockFromId(int blockId, ObservableCollection<Block> blocks)
+    {
+        Block? returnBlock = null!;
+
+        foreach (Block b in blocks)
+        {
+            switch (b)
+            {
+                case Paragraph p:
+                    if (p.Id == blockId)
+                        returnBlock = p;
+                    break;
+
+                case Table t:
+                    if (t.Id == blockId)
+                        returnBlock = t;
+                    else
+                    {
+                        foreach (Cell c in t.Cells)
+                        {
+                            if (GetBlockFromId(blockId, c.CellBlocks) is Block cellBlock)
+                                return cellBlock;
+                        }
+                    }
+                    break;
+            }
+        }
+        return returnBlock;
+    }
+
 }
+
 
