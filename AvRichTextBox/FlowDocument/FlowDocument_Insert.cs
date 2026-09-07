@@ -154,14 +154,18 @@ public partial class FlowDocument
 
     internal void InsertText(string? insertText)
     {
+
+        //Selection.UpdateContextStart();
+        //Selection.UpdateContextEnd();
+
         if (Selection.StartInline is not IEditable startInline || startInline is EditableInlineUIContainer) return;
+        
 
         if (startInline is EditableHyperlink && Selection.GetIsStartAtStartOfStartInline)
         {
             // Caret is at the start of a hyperlink.
             // If there is a non-hyperlink inline immediately before it, append text there instead.
-            // If the hyperlink is the first inline in the paragraph, insert a new plain run before it
-            // so the user can type text preceding the hyperlink.
+            // If the hyperlink is the first inline in the paragraph, insert a new plain run before it so the user can type text preceding the hyperlink.
             int hyperlinkIdx = Selection.StartParagraph.Inlines.IndexOf(startInline);
             if (hyperlinkIdx > 0 && Selection.StartParagraph.Inlines[hyperlinkIdx - 1] is EditableRun precedingRun)
             {
@@ -224,7 +228,9 @@ public partial class FlowDocument
                 startInline.InlineText = insertText;
 
                 toggleFormatRun?.Invoke(startInline);
+                
                 InsertRunMode = false;
+
             }
             else
             {
@@ -239,6 +245,8 @@ public partial class FlowDocument
                     }
                 }
                 catch (Exception ex) { Debug.WriteLine($"insert Error: startInlinetext = {startInline.InlineText}, idx = {insertIdx}\n{ex.Message}***"); }
+
+                //Debug.WriteLine("biasforward start = " + Selection.BiasForwardStart + ", end = " + Selection.BiasForwardEnd.ToString());
             }
 
             disableRunTextUndo = false;

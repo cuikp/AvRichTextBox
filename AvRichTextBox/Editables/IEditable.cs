@@ -5,7 +5,7 @@ public interface IEditable
 {
    internal int MyParagraphId { get; set; }
    internal FlowDocument MyFlowDoc { get; set; }
-   int Id { get; set; }
+   internal int Id { get; set; }
    internal bool IsLastInlineOfParagraph { get; set; }
    internal bool IsFirstInlineOfParagraph { get; set; }
    internal int TextPositionOfInlineInParagraph { get; set; }

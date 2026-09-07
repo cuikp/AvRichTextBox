@@ -40,7 +40,7 @@ internal partial class XamlConversions
 
 
             //Save images, if any  
-            List<Paragraph> imageContainingParagraphs = [.. fdoc.AllParagraphs.Where(p => p.Inlines.Where(iline => iline is EditableInlineUIContainer eIUC && eIUC.Child is Image).Any())];
+            List<Paragraph> imageContainingParagraphs = [.. fdoc.AllParagraphs.Where(p => p.Inlines.Where(iline => iline is EditableInlineUIContainer eIUC && eIUC.GetChild() is Image).Any())];
 
             if (imageContainingParagraphs.Count != 0)
             {
@@ -48,9 +48,9 @@ internal partial class XamlConversions
                 List<UniqueBitmap> uniqueBitmaps = [];
                 foreach (Paragraph p in imageContainingParagraphs)
                 {
-                    foreach (EditableInlineUIContainer imageUIContainer in p.Inlines.Where(iline => iline is EditableInlineUIContainer iuc && iuc.Child is Image))
+                    foreach (EditableInlineUIContainer imageUIContainer in p.Inlines.Where(iline => iline is EditableInlineUIContainer iuc && iuc.GetChild() is Image))
                     {
-                        if (imageUIContainer.Child is Image thisImg)
+                        if (imageUIContainer.GetChild() is Image thisImg)
                         {
                             Bitmap? imgbitmap = (Bitmap)thisImg.Source!;
 
@@ -285,9 +285,8 @@ internal partial class XamlConversions
                         string InlineUIHeader = $"<InlineUIContainer FontFamily=\"{eIUC.FontFamily.Name}\" BaselineAlignment=\"{eIUC.BaselineAlignment}\">";
                         runXamlBuilder.Append(InlineUIHeader);
 
-                        if (eIUC.Child.GetType() == typeof(Image))
+                        if (eIUC.GetChild() is Image childImage)
                         {
-                            Image childImage = (Image)eIUC.Child;
                             string ImageHeader = $"<Image Stretch=\"Fill\" Width=\"{childImage.Width}\" Height=\"{childImage.Height}\">";
                             runXamlBuilder.Append(ImageHeader);
 

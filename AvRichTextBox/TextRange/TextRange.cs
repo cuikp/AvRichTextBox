@@ -66,8 +66,8 @@ public class TextRange : INotifyPropertyChanged, IDisposable
         }
     }
 
-    internal bool BiasForwardStart { get; set { if (field == value) return; field = value; InvokeProperty(BiasForwardStartChangedArgs); } }
-    internal bool BiasForwardEnd { get; set { if (field == value) return; field = value; InvokeProperty(BiasForwardEndChangedArgs); } }
+    internal bool BiasForwardStart { get; set { if (field == value) return; field = value; UpdateContextStart(); InvokeProperty(BiasForwardStartChangedArgs); } }
+    internal bool BiasForwardEnd { get; set { if (field == value) return; field = value; UpdateContextEnd(); InvokeProperty(BiasForwardEndChangedArgs); } }
 
     internal Rect PrevCharRect;
     internal Rect StartRect { get; set; }
@@ -97,7 +97,9 @@ public class TextRange : INotifyPropertyChanged, IDisposable
         if (GetStartPar() is not Paragraph startPar) return;
         this.StartParagraph = startPar;
 
-        if (StartParagraph.Inlines.LastOrDefault(ied => StartParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph <= Start) is IEditable startinline)
+        //if (StartParagraph.Inlines.LastOrDefault(ied => StartParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph <= Start) is IEditable startinline)
+        int relStart = BiasForwardStart ? Start + 1 : Start;
+        if (StartParagraph.Inlines.LastOrDefault(ied => StartParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph < relStart) is IEditable startinline)
         {
             StartInline = startinline;
 
@@ -105,7 +107,8 @@ public class TextRange : INotifyPropertyChanged, IDisposable
                 StartInline = elb.PreviousInline;
         }
 
-        if (StartParagraph.Inlines.LastOrDefault(ied => StartParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph < Start) is IEditable startinlineprev)
+        //if (StartParagraph.Inlines.LastOrDefault(ied => StartParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph < Start) is IEditable startinlineprev)
+        if (StartParagraph.Inlines.LastOrDefault(ied => StartParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph < relStart - 1) is IEditable startinlineprev)
         {
             StartInlinePrevious = startinlineprev;
         }
@@ -117,14 +120,18 @@ public class TextRange : INotifyPropertyChanged, IDisposable
         if (GetEndPar() is not Paragraph endPar) return;
         this.EndParagraph = endPar;
 
-        if (EndParagraph.Inlines.LastOrDefault(ied => EndParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph <= End) is IEditable endinline)
+        //if (EndParagraph.Inlines.LastOrDefault(ied => EndParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph <= End) is IEditable endinline)
+        int relEnd = BiasForwardEnd ? End + 1 : End;
+        if (EndParagraph.Inlines.LastOrDefault(ied => EndParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph < relEnd) is IEditable endinline)
         {
             EndInline = endinline;
 
             if (EndInline is EditableLineBreak elb)
                 EndInline = elb.PreviousInline;
         }
-        if (EndParagraph.Inlines.LastOrDefault(ied => EndParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph < End) is IEditable endinlineprev)
+        
+        //if (EndParagraph.Inlines.LastOrDefault(ied => EndParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph < End) is IEditable endinlineprev)
+        if (EndParagraph.Inlines.LastOrDefault(ied => EndParagraph.StartInDoc + ied.TextPositionOfInlineInParagraph < relEnd - 1) is IEditable endinlineprev)
         {
             EndInlinePrevious = endinlineprev;
         }

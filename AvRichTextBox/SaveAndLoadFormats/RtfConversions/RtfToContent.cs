@@ -300,7 +300,7 @@ internal static partial class RtfConversions
 
                 MemoryStream memStream = new(rtfImage.Data) { Position = 0 };
                 img.Source = new Bitmap(memStream);
-                eIUC.Child = img;
+                eIUC.SetChild(img);
                 returnList.Add(eIUC);
             }
 

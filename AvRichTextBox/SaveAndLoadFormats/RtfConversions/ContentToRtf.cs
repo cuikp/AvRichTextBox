@@ -362,7 +362,7 @@ internal static partial class RtfConversions
 
             case EditableInlineUIContainer eIUC:
 
-                if (eIUC.Child is Image thisImg && thisImg.Source is Bitmap imgbitmap)
+                if (eIUC.GetChild() is Image thisImg && thisImg.Source is Bitmap imgbitmap)
                 {
                     int picw = imgbitmap.PixelSize.Width;
                     int pich = imgbitmap.PixelSize.Height;

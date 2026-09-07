@@ -57,7 +57,7 @@ public partial class MainWindow : Window
         
                 
         //DEBUG
-        CreateTestDocumentWithTable();
+        //CreateTestDocumentWithTable();
         //OpenTestDocument();
 
     }
@@ -86,8 +86,8 @@ public partial class MainWindow : Window
         MainRTB.FlowDocument.ClearBlocks();
 
         Paragraph newPar = new(MainRTB.FlowDocument);
-        
-        newPar.Inlines.AddRange([
+
+        newPar.InsertInlinesAt(0, [
             new EditableRun("A "),
             new EditableRun("first line with super/subscripts:"),
             new EditableRun(" H"),
@@ -100,32 +100,43 @@ public partial class MainWindow : Window
             new EditableRun(" for testing.")
         ]);
 
-        //MainRTB.FlowDocument.Blocks.Add(newPar);
         MainRTB.FlowDocument.InsertBlockAt(MainRTB.FlowDocument.GetBlocks.Count(), newPar);
 
         Paragraph secondPar = new(MainRTB.FlowDocument);
-        secondPar.Inlines.Add(new EditableRun("A second paragraph just before the table."));
-        //MainRTB.FlowDocument.Blocks.Add(secondPar);
+        secondPar.InsertInlineAt(0, new EditableRun("A second paragraph just before the table."));
         MainRTB.FlowDocument.InsertBlockAt(MainRTB.FlowDocument.GetBlocks.Count(), secondPar);
+
+        newPar.InsertInlineAt(newPar.GetInlines.Count() - 1, new EditableRun(" mostly and predominantly"));
+
+        newPar.InsertInlinesAt(newPar.GetInlines.Count(), [
+            new EditableRun("  Also "),
+            new EditableRun("don't forget "),
+            new EditableRun("CO"),
+            new EditableRun("2") { BaselineAlignment = BaselineAlignment.Subscript },
+            new EditableRun(" at 5 g/m") { },
+            new EditableRun("3") { BaselineAlignment = BaselineAlignment.Superscript },
+            new EditableRun(", for good measure.")
+        ]);
+
 
         //Test Table
         int noCols = 5;
         int noRows = 4;
-        Table newTable = new (noCols, noRows, MainRTB.FlowDocument) { BorderThickness = new(1), BorderBrush = Brushes.ForestGreen, TableAlignment = HorizontalAlignment.Center };
-        
+        Table newTable = new(noCols, noRows, MainRTB.FlowDocument) { BorderThickness = new(1), BorderBrush = Brushes.ForestGreen, TableAlignment = HorizontalAlignment.Center };
+
         for (int rowno = 0; rowno < noRows; rowno++)
         {
             for (int colno = 0; colno < noCols; colno++)
             {
                 int cellno = rowno * noCols + colno;
                 if (newTable.GetCells.ElementAt(cellno) is Cell c)
-                {                    
+                {
                     c.CellVerticalAlignment = VerticalAlignment.Center;
                     Paragraph p = new(MainRTB.FlowDocument) { TextAlignment = TextAlignment.Center };
-                    p.Inlines.Add(new EditableRun("col:" + colno));
-                    p.Inlines.Add(new EditableLineBreak());
-                    p.Inlines.Add(new EditableRun("row:" + rowno));
-                    
+                    p.AddInline(new EditableRun("col:" + colno));
+                    p.AddInline(new EditableLineBreak());
+                    p.AddInline(new EditableRun("row:" + rowno));
+
                     c.InsertBlockAt(0, p);
                     c.RemoveBlockAt(c.GetCellBlocks.Count() - 1);
 
@@ -134,19 +145,17 @@ public partial class MainWindow : Window
         }
 
 
-        //MainRTB.FlowDocument.Blocks.Add(newTable);
         MainRTB.FlowDocument.InsertBlockAt(MainRTB.FlowDocument.GetBlocks.Count(), newTable);
 
-        Paragraph newnewPar = new (MainRTB.FlowDocument);
-        newnewPar.Inlines.Add(new EditableRun("lkjasdlfkjasdlfkj"));
+        Paragraph newnewPar = new(MainRTB.FlowDocument);
+        newnewPar.AddInline(new EditableRun("Added text in the cell"));
         newTable.GetCells.ElementAt(0).InsertBlockAt(0, newnewPar);
 
 
         Paragraph newPar2 = new(MainRTB.FlowDocument);
-        newPar2.Inlines.Add(new EditableRun("Some extra text after the table."));
-        //MainRTB.FlowDocument.Blocks.Add(newPar2);
+        newPar2.AddInline(new EditableRun("Some extra text after the table."));
         MainRTB.FlowDocument.InsertBlockAt(MainRTB.FlowDocument.GetBlocks.Count(), newPar2);
-        
+
 
         Dispatcher.UIThread.Post(() =>
         {
@@ -155,7 +164,6 @@ public partial class MainWindow : Window
         });
 
         //Merge cells
-        //newTable.MergeCellsRight(1, 2, 1);
         newTable.MergeCellsRight(1, 1, 1);
         newTable.MergeCellsDown(1, 3, 1);
 
@@ -163,6 +171,12 @@ public partial class MainWindow : Window
 
         MainRTB.FlowDocument.RemoveBlockAt(0); //Remove the default paragraph that remains at start
 
+        EditableRun erun = new("sdf");
+        EditableHyperlink ehyp = new("sdf", "");
+        EditableInlineUIContainer econt = new();
+        EditableLineBreak elb = new();
+                
+        
     }
 
     private void CreateNewDocumentMenuItem_Click(object? sender, RoutedEventArgs e)

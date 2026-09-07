@@ -1,6 +1,9 @@
-﻿using Avalonia.Data;
+﻿using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 using Avalonia.Media.Immutable;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using DynamicData;
 using System.Collections.ObjectModel;
@@ -82,7 +85,6 @@ public partial class FlowDocument : AvaloniaObject
     public int DocEndPoint => Blocks.LastOrDefault()?.EndInDoc ?? 0;
 
     public TextRange Selection { get; set; }
-    //internal IBrush SelectionBrush = Brushes.LightSteelBlue;  // default
     internal IBrush SelectionBrush = Brushes.LightSteelBlue;  // default
 
     public FlowDocument()
@@ -271,6 +273,7 @@ public partial class FlowDocument : AvaloniaObject
         UpdateAllRangeContexts();
 
         disableUndoStack = false;
+
     }
 
     private void UpdateAllRangeContexts()

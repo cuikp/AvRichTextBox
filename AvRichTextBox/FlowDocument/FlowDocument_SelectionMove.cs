@@ -41,7 +41,6 @@ public partial class FlowDocument
     {
         Selection.BiasForwardStart = true;
         Selection.BiasForwardEnd = true;
-        Selection.UpdateContextStart();
 
         switch (SelectionExtendMode)
         {

@@ -1,5 +1,6 @@
 ﻿using Avalonia.Controls.Documents;
 using Avalonia.Media;
+using Avalonia.Media.TextFormatting;
 using System.Runtime.InteropServices;
 
 namespace AvRichTextBox;
@@ -10,13 +11,7 @@ public class EditableRun : Run, IEditable
 
     public EditableRun() { InitializeRun(); }
 
-    public EditableRun(string text)
-    {
-        this.Text = text;
-
-        InitializeRun();
-
-    }
+    public EditableRun(string text) : this() { this.Text = text; }
 
     private void InitializeRun()
     {
@@ -24,17 +19,56 @@ public class EditableRun : Run, IEditable
         BaselineAlignment = BaselineAlignment.Baseline;
         //FontFamily = "Meiryo";
         FontSize = 16;
-
+        
         PropertyChanged += EditableRun_PropertyChanged;
     }
 
     private void EditableRun_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
 
+        //Debug.WriteLine($"ieditablerun {e.Property.Name} set");
+
         switch (e.Property)
         {
+            case AvaloniaProperty tp when tp == Run.FontWeightProperty:
+                
+                break;
+
+            case AvaloniaProperty tp when tp == Run.FontFamilyProperty:
+                
+                break;
+
+            case AvaloniaProperty tp when tp == Run.FontSizeProperty:
+                
+                break;
+
+            case AvaloniaProperty tp when tp == Run.FontStretchProperty:
+                
+                break;
+
+            case AvaloniaProperty tp when tp == Run.FontStyleProperty:
+                
+                break;
+
+            case AvaloniaProperty tp when tp == Run.ForegroundProperty:
+                
+                break;
+
+            case AvaloniaProperty tp when tp == Run.BackgroundProperty:
+                
+                break;
+
+            case AvaloniaProperty tp when tp == Run.BaselineAlignmentProperty:
+                
+                break;
+
+            case AvaloniaProperty tp when tp == Run.TextDecorationsProperty:
+                
+                break;
+
             case AvaloniaProperty tp when tp == Run.TextProperty:
 
+                
                 //if (MyFlowDoc == null || MyFlowDoc.disableRunTextUndo) return;
 
                 //if (e.Property == Run.TextProperty && e.Sender is EditableRun run)
@@ -61,16 +95,13 @@ public class EditableRun : Run, IEditable
     internal int MyParagraphId { get; set; }
     int IEditable.MyParagraphId { get => MyParagraphId; set => MyParagraphId = value; }
 
-    public FlowDocument MyFlowDoc { get; set; } = null!;
-    
+    internal FlowDocument MyFlowDoc { get; set; } = null!;
+    FlowDocument IEditable.MyFlowDoc { get => MyFlowDoc; set => MyFlowDoc = value; }
+
     internal int TextPositionOfInlineInParagraph { get; set; }
     int IEditable.TextPositionOfInlineInParagraph { get => TextPositionOfInlineInParagraph; set => TextPositionOfInlineInParagraph = value; }
     public int GetTextPositionOfInlineInParagraph => TextPositionOfInlineInParagraph;
 
-    //int _InlineLength = 0;
-    //internal string InlineText { get => Text!; set { Text = value; _InlineLength = Text!.Length; } }
-    
-    //public int InlineLength => _InlineLength;
     public virtual int InlineLength => InlineText.Length;
 
     internal string InlineText { get => Text!; set => Text = value; }
@@ -131,11 +162,12 @@ public class EditableRun : Run, IEditable
         return IdClone;
 
     }
-
+       
 
 #if DEBUG
     // FOR DEBUGGER PANEL
-    public InlineVisualizationProperties InlineVP { get; set; } = new();
+    internal InlineVisualizationProperties InlineVP { get; set; } = new();
+    InlineVisualizationProperties IEditable.InlineVP { get => InlineVP; set => InlineVP = value; }
     public string InlineToolTip => $"Background: {Background}\nForeground: {Foreground}\nFontFamily: {FontFamily}\nFontSize: {FontSize}\nPrevInlineLineBreak?: {PreviousInline?.IsLineBreak}\nNextInlineLineBreak?: {NextInline?.IsLineBreak}";
     public virtual string DisplayInlineText => IsEmpty ? "{>EMPTY<}" : (InlineText.Length == 1 ? Text!.Replace(" ", "{>SPACE<}").Replace("\t", "{>TAB<}") : Text!.Replace("\t", "{>TAB<}"));
 

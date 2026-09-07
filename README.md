@@ -197,18 +197,18 @@ xmlns:avrtb="using:AvRichTextBox"
 ## Usage Examples
 I'd appreciate any contributors who have used this library and have time/interest to add usage examples for this library.
 A file for usage examples is in `/docs/BasicUsage.md`.
-If you are able, feel free to add a section to BasicUsage.md, or even create a new file under `/docs`, then open a pull request.
+If you are able, feel free to add a section to `BasicUsage.md`, or even create a new file under `/docs`, then open a pull request.
 
 
 ## Change log
 
 **[ver 1.0.15] - 2025/02/22**  
-Internal binding was of the RTB itself to its viewmodel, which prevented external binding to `UserControl` properties (such as IsVisible).  Internal binding is now to the immediate child (`DockPanel` "MainDP"), freeing up the properties of the `UserControl` itself.  
+Internal binding was of the RTB itself to its viewmodel, which prevented external binding to `UserControl` properties (such as `IsVisible`).  Internal binding is now to the immediate child (`DockPanel` "MainDP"), freeing up the properties of the `UserControl` itself.  
 Also upgraded copy/paste to allow copying and pasting of paragraph breaks (\r), which were ignored before.
 
 **[ver 1.0.16] 2025/02/25**  
 Now works with Avalonia 11.1.xx & 11.2.xx!  Binding update issues resolved.  Previous `AvRichTextBox` versions failed on Avalonia 11.1 and higher and have been deprecated.  
-In addition, added IME support for Chinese/Japanese input.  Kanji and Hanzi can now be directly inputted in the RichTextBox.
+In addition, added IME support for Chinese/Japanese input.  Kanji and Hanzi can now be directly inputted in `AvRichTextBox`.
 
 **[ver 1.0.17] 2025/02/26**  
 Improved IME popup location and behavior (Hides on Esc key, or after backspacing to null entry).  
@@ -236,10 +236,12 @@ Includes changes such as fix to mouse selection (wasn't working in Release mode)
 ...
 
 **[ver 1.4.5] 2026/01/28**  
-Multiple/overlapping text formatting and undos now work better being based on `IEditable` Ids rather than using their in-paragraph indexes. Also `Paragraph` Ids instead of indexes.  Fixed erroneous deletion of required empty inline before `EditableLineBreak`.  `Paragraph` text ends with "\r\n" as is proper (rather than "\r").
+Multiple/overlapping text formatting and undos now work better being based on `IEditable` Ids rather than using their in-paragraph indexes. Also `Paragraph` Ids instead of indexes.  
+Fixed erroneous deletion of required empty inline before `EditableLineBreak`.  
+`Paragraph` text ends with "\r\n" as is proper (rather than "\r").
 
 **[ver 1.4.7] 2026/01/30**  
-No `DebugPanel` created at all (not just hidden) in Release mode.  Should have been this way from the start...
+No `DebugPanel` created at all (not just hidden) in Release mode, as it should have been from the start.
 
 **[ver. 1.5.0] 2026/01/30**  
 Can add direct content to `RichTextBox` in Xaml
@@ -300,13 +302,13 @@ Fixed underlining not saving in html.
 Added right-click ContextMenu (Copy/Paste/Cut/Delete)  
 Shift+Ctrl-Right/Left to select next(previous word)  
 Shift+Ctrl-Home/End to select to Home/End  
-Caret color is customizable  (CaretBrush)
+Caret color is customizable  (`CaretBrush`)
 
 
 **[ver 1.9.1] 2026/06/19**  
 Updated to Avalonia 12.0.2  
 Revamped internal inline calculations  
-Added EditableHyperlink  
+Added `EditableHyperlink`  
 Multiple paragraphs allowed in table `Cell`s (theoretically any type of `Block`, so even a nested `Table`), but this is not at all tested).  
 Hyperlink support with popup edit dialog. (`EditableHyperlink`)  
 Removed `VerticalAlignment` property from `Paragraph`: Now `Cell` has `VerticalAlignment` instead, to adjust content position within cells.  
@@ -332,32 +334,47 @@ Can add new `Paragraph` in Table Cell using keyboard (`Enter` key)
 Fixes for certain multi-paragraph copy/paste cases
 
 **[ver 1.9.8] 2026/08/28**  
-Fixes for certain LineBreak cut/paste cases.  
-Pasting Image adds new paragraph at end instead of caret sitting at right of image.
+Fixes for certain `EditableLineBreak` cut/paste cases.  
+Pasting an image adds new paragraph at end instead of caret sitting at right of image.
 
 **[ver 1.9.9] 2026/08/29**  
 Fixed rtf table cell horizontal merge borders
 
 **[ver 1.9.11] 2026/09/01**  
-Added MergeCellsRight(), MergeCellsDown() and AddColumns() methods to Table  
-Returned default Cell Border color to Brushes.Black  
+Added `MergeCellsRight()`, `MergeCellsDown()` and `AddColumns()` methods to `Table`  
+Returned default `Cell.BorderBrush` to `Brushes.Black`  
 Cleaner borders between table cells (no adjacent doubles)  
 Shift + mouse drag on cell border increases/decreases entire table size
 
 **[ver 1.9.13] 2026/09/02**  
-Added InsertColumns(idx, count) and InsertRows(idx, count) methods to Table  
-Removed FontWeight on Hyperlink Popup
+Added `InsertColumns(idx, count)` and `InsertRows(idx, count)` methods to `Table`  
+Removed `FontWeight` on `Hyperlink` Popup
 
 **[ver 1.9.14] 2026/09/04**  
 Fixed problem with pasting multiple paragraphs into Cell  
-FlowDoc.ScrollToCaret() method added  
+`FlowDoc.ScrollToCaret()` method added  
 Changed public -> internal for some classes/properties that do not need to be public
 
 **[ver 1.10.0-preview.1] 2026/09/07**  
-**This version onward has potentially breaking changes:  
-Direct manipulation of the collections FlowDocument.Blocks and Cell.CellBlocks is now prevented in favor of public methods (InsertBlockAt, RemoveBlockAt, RemoveBlock, etc.), in order to ensure Undo integrity.**  
-Undos have been added for programmable properties (such as FontSize, Background, BorderThickness), so app-defined changes will also be undoable by Ctrl-Z.
+**This version onward has potentially breaking changes:**  
+Direct manipulation of the collections `FlowDocument.Blocks` and `Cell.CellBlocks` is now prevented in favor of public methods (`InsertBlockAt`, `RemoveBlockAt`, `RemoveBlock`, etc.), in order to ensure Undo integrity.  
+Undos have been added for programmable properties (such as `FontSize`, `Background`, `BorderThickness`), so app-defined changes will also be undoable by `Ctrl-Z`.
 **Other changes:**  
-Mouse dragging resize of rows/cols undoable with Ctrl-Z  
-Fixed wrong caret position when setting Margin on a Paragraph  
+Mouse dragging resize of rows/cols undoable with `Ctrl-Z`  
+Fixed wrong caret position when setting Margin on a `Paragraph`  
 Many previous public properties are now internal like they should be.  
+
+**[ver 1.10.0-preview.2] 2026/09/08**  
+Direct setting of `Child` on `EditableInlineUIContainer` is prevented in favor of `SetChild()`/`GetChild()` (which are logged in the Undo list)  
+Fixed continuous typing for inline formatting change (Bold/Italic/Underline)  
+
+**[ver 1.10.0] 2026/09/08**  
+**This version onward has potentially breaking changes**  
+Direct manipulation of the collections `FlowDocument.Blocks` and `Cell.CellBlocks` is now prevented in favor of public methods (`InsertBlockAt`, `RemoveBlockAt`, `RemoveBlock`, etc.), in order to ensure Undo integrity.  
+Undos have been added for programmable properties (such as `FontSize`, `Background`, `BorderThickness`), so app-defined changes will also be undoable by `Ctrl-Z`.
+**Other changes:**  
+Mouse dragging resize of rows/cols undoable with `Ctrl-Z`  
+Fixed wrong caret position when setting `Margin` on a `Paragraph`  
+Many previous public properties are now internal like they should be.  
+Direct setting of `Child` on `EditableInlineUIContainer` is prevented in favor of `SetChild()`/`GetChild()` (which are logged in the Undo list)  
+Fixed continuous typing for inline formatting change (Bold/Italic/Underline)  

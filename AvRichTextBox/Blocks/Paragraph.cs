@@ -1,5 +1,6 @@
 ﻿using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
+using DocumentFormat.OpenXml.Drawing.Charts;
 using DynamicData;
 using System.Collections.ObjectModel;
 
@@ -10,7 +11,8 @@ public class Paragraph : Block
 {
     internal string ParToolTip => $"Background: {Background}\nLineHeight: {LineHeight}";
 
-    public ObservableCollection<IEditable> Inlines { get; set; } = [];
+    internal ObservableCollection<IEditable> Inlines { get; } = [];
+    public IEnumerable<IEditable> GetInlines => Inlines;
 
     public Paragraph(FlowDocument owningFlowDoc)
     {
@@ -158,6 +160,78 @@ public class Paragraph : Block
 
     }
 
+    public void InsertInlinesAt(int index, IEnumerable<IEditable> inlinesToAdd)
+    {
+        if (!inlinesToAdd.Any()) return;
+
+        if (inlinesToAdd.FirstOrDefault(il=> il == null) is IEditable nullIED)
+            throw new Exception("The passed inlinesToAdd collection contains a null IEditable");
+
+        for (int inlineno = inlinesToAdd.Count() - 1; inlineno >= 0; inlineno --)
+            this.Inlines.Insert(index, inlinesToAdd.ElementAt(inlineno));
+
+        bool addUndo = !MyFlowDoc.disableUndoStack && this.IsAttachedToDocument;
+        
+        if (addUndo)
+            MyFlowDoc.Undos.Add(new InsertInlinesAtUndo(this.Id, [.. inlinesToAdd.Select(il=> il.Id)], MyFlowDoc));
+
+    }
+
+    public void InsertInlineAt(int index, IEditable inlineToAdd)
+    {
+        if (inlineToAdd == null) return;
+
+        if (index < 0 || index > this.Inlines.Count)
+            throw new Exception("IEditable index is out of bounds of paragraph Inlines");
+
+        this.Inlines.Insert(index, inlineToAdd);
+
+        bool addUndo = !MyFlowDoc.disableUndoStack && this.IsAttachedToDocument;
+
+        if (addUndo)
+            MyFlowDoc.Undos.Add(new InsertInlineAtUndo(this.Id, inlineToAdd.Id, MyFlowDoc));
+
+    }
+
+    public void AddInline(IEditable inlineToAdd)
+    {
+        if (inlineToAdd == null) return;
+        InsertInlineAt(this.Inlines.Count, inlineToAdd);
+    }
+
+    public void RemoveInlineAt(int index)
+    {
+        if (index < 0 || index >= this.Inlines.Count)
+            throw new Exception("IEditable index is out of bounds of paragraph Inlines");
+
+        if (this.Inlines[index] is IEditable inlineToRemove)
+        {
+            bool addUndo = !MyFlowDoc.disableUndoStack && this.IsAttachedToDocument;
+
+            if (addUndo)
+                MyFlowDoc.Undos.Add(new RemoveInlineUndo(this.Id, index, inlineToRemove.CloneWithId(), MyFlowDoc));
+
+            RemoveInline(inlineToRemove);
+
+            if (Inlines.Count == 0)
+                AddDefaultRun();
+        }
+    }
+
+    internal void AddDefaultRun()
+    {
+        MyFlowDoc.disableUndoStack = true;
+        this.Inlines.Add(new EditableRun(""));
+        MyFlowDoc.disableUndoStack = false;
+    }
+
+    public void RemoveInline(IEditable inlineToRemove)
+    {
+        if (inlineToRemove == null) return;
+        int removeIndex = this.Inlines.IndexOf(inlineToRemove);
+        RemoveInlineAt(removeIndex);
+    }
+
     internal override Paragraph PropertyClone()
     {
         MyFlowDoc.disableUndoStack = true;
@@ -245,7 +319,7 @@ public class Paragraph : Block
 
     internal void EnsureEmptyRuns()
     {
-
+        
         if (this.Inlines.Count == 0)
             this.Inlines.Add(new EditableRun(""));
 
@@ -263,6 +337,8 @@ public class Paragraph : Block
             if (addBefore)
                 this.Inlines.Insert(i, new EditableRun(""));
         }
+
+        
     }
 
 }

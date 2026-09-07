@@ -90,11 +90,9 @@ internal static partial class WordConversions
 
                case EditableInlineUIContainer edUIC:
 
-                  if (edUIC.Child.GetType() == typeof(Image))
+                  if (edUIC.GetChild() is Image img)
                   {
                      //string fontFamily = edUIC.FontFamily.ToString();
-
-                     Image img = (Image)edUIC.Child;
                      img.Width = img.Bounds.Width;
                      img.Height = img.Bounds.Height;
                      if (img.Source is Bitmap imgbitmap)

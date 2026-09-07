@@ -6,7 +6,8 @@ public class EditableLineBreak : LineBreak, IEditable
 {
     public EditableLineBreak() { Id = ++FlowDocument.InlineIdCounter; }
 
-    public FlowDocument MyFlowDoc { get; set; } = null!;
+    internal FlowDocument MyFlowDoc { get; set; } = null!;
+    FlowDocument IEditable.MyFlowDoc { get => MyFlowDoc; set => MyFlowDoc = value; }
 
     internal int Id { get; set; }
     int IEditable.Id { get => Id; set => Id = value; }
@@ -20,8 +21,14 @@ public class EditableLineBreak : LineBreak, IEditable
 
     public double InlineHeight => FontSize;
 
-    public IEditable? PreviousInline { get; set; }
-    public IEditable? NextInline { get; set; }
+    internal IEditable? PreviousInline { get; set; }
+    IEditable? IEditable.PreviousInline { get => PreviousInline; set => PreviousInline = value; }
+    internal IEditable? NextInline { get; set; }
+    IEditable? IEditable.NextInline { get => NextInline; set => NextInline = value; }
+
+    public IEditable? GetPreviousInline => PreviousInline;
+    public IEditable? GetNextInline => NextInline;
+
     bool IEditable.IsFirstInlineOfParagraph { get; set; }
 
     internal bool IsLastInlineOfParagraph { get; set; }
@@ -68,7 +75,9 @@ public class EditableLineBreak : LineBreak, IEditable
 
 #if DEBUG
     // FOR DEBUGGER PANEL
-    public InlineVisualizationProperties InlineVP { get; set; } = new();
+
+    internal InlineVisualizationProperties InlineVP { get; set; } = new();
+    InlineVisualizationProperties IEditable.InlineVP { get => InlineVP ; set => InlineVP = value; }
     public string InlineToolTip => "";
     public string DisplayInlineText => "{>LINEBREAK<}";
 

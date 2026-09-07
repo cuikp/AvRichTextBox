@@ -83,8 +83,7 @@ public partial class FlowDocument
 
             Undos.RemoveAt(Undos.Count - 1);
 
-            Debug.WriteLine("\n\nundos count = " + Undos.Count + "\n" + string.Join("   ", Undos.ToList().ConvertAll(undo => undo.GetType().ToString())));
-
+            //Debug.WriteLine("\nundos count = " + Undos.Count + "\n" + string.Join("   ", Undos.ToList().ConvertAll(undo => undo.GetType().ToString())));
 
             UpdateSelectedParagraphs();
 
@@ -218,6 +217,9 @@ public partial class FlowDocument
 
     internal void InsertBlockIntoCollectionAt(ObservableCollection<Block> blockCollection, int insertIdx, Block blockToInsert)
     {
+        if (insertIdx < 0 || insertIdx > blockCollection.Count)
+            throw new Exception("Block index is out of bounds of the block collection.");
+
         this.disableUndoStack = true;
 
         blockCollection.Insert(insertIdx, blockToInsert);
@@ -237,6 +239,9 @@ public partial class FlowDocument
     
     internal void RemoveBlockFromCollectionAt(ObservableCollection<Block> blockCollection, int removeAtIndex)
     {
+        if (removeAtIndex < 0 || removeAtIndex >= blockCollection.Count)
+            throw new Exception("Block index is out of bounds of the block collection.");
+        
         if (blockCollection.Count == 1 && blockCollection[0].Text == "")
             throw new Exception("Cannot remove default empty paragraph in the collection.");
 
@@ -250,12 +255,10 @@ public partial class FlowDocument
     internal void RemoveBlockFromCollection(ObservableCollection<Block> blockCollection, Block? blockToRemove)
     {
         if (blockToRemove == null) 
-            throw new Exception("Block to remove must not be null."); 
-        if (!blockCollection.Contains(blockToRemove))
-            throw new Exception("Block to remove is not contained in specified Block collection.");
+            throw new Exception("Block to remove must not be null.");
+        if (!blockCollection.Contains(blockToRemove)) return;
 
         this.disableUndoStack = true;
-
 
         int tableId = blockToRemove.IsCellBlock ? blockToRemove.OwningTable.Id : -1;
         int cellId = blockToRemove.IsCellBlock ? blockToRemove.OwningCell.Id : -1;
@@ -273,6 +276,5 @@ public partial class FlowDocument
 
     }
 
-    
 
 }

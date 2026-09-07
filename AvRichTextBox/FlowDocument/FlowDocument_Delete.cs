@@ -27,13 +27,14 @@ public partial class FlowDocument
             Selection.BiasForwardEnd = false;
             startP = Selection.StartParagraph;
         }
-       
+        else
+        {
+            //Change bias to be forward for delete
+            Selection.BiasForwardStart = true;
+            Selection.BiasForwardEnd = true;
+        }
 
-        //Change bias to be forward for delete
-        Selection.BiasForwardStart = true;
-        Selection.BiasForwardEnd = true;
-        Selection.UpdateContextStart();
-        Selection.UpdateContextEnd();
+        Selection.StartInline = GetStartInline(Selection.Start);
 
         if (Selection.StartInline is not IEditable startInline) return;
 

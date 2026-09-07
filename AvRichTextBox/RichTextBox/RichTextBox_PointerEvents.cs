@@ -196,7 +196,6 @@ public partial class RichTextBox
         if (position < SelectionOrigin)
         {
             FlowDoc.Selection.BiasForwardStart = true;
-            FlowDoc.Selection.UpdateContextStart();
             FlowDoc.SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeLeft;
             FlowDoc.Selection.End = SelectionOrigin;
             FlowDoc.Selection.Start = position;
@@ -204,7 +203,6 @@ public partial class RichTextBox
         else
         {
             FlowDoc.Selection.BiasForwardEnd = false;
-            FlowDoc.Selection.UpdateContextEnd();
             FlowDoc.SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeRight;
             FlowDoc.Selection.Start = SelectionOrigin;
             FlowDoc.Selection.End = position;

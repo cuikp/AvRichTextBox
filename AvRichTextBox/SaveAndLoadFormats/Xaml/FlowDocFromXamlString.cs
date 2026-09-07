@@ -92,7 +92,7 @@ internal partial class XamlConversions
                 }
             }
         }
-        catch (Exception ex) { return false; }
+        catch (Exception ex) { Debug.WriteLine($"Error loading Xaml Package: {ex.Message}"); return false; }
 
         return true;
 
@@ -437,7 +437,7 @@ internal partial class XamlConversions
                                 }
                             }
 
-                            eIUC.Child = img;
+                            eIUC.SetChild(img);
                         }
                     }
 

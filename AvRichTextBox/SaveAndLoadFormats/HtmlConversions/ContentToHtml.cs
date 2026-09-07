@@ -190,7 +190,7 @@ internal static partial class HtmlConversions
 
             case EditableInlineUIContainer eUIC:
                {
-                  if (eUIC.Child is Image img && img.Source is Bitmap bmp)
+                  if (eUIC.GetChild() is Image img && img.Source is Bitmap bmp)
                   {
                      using var memStream = new MemoryStream();
                      bmp.Save(memStream);
