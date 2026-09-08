@@ -224,7 +224,8 @@ public partial class FlowDocument
         if (allPars.LastOrDefault(b => b.StartInDoc <= charIndex) is Paragraph startPar)
         {
             //Check if start is at end of last paragraph (cannot span from end of a paragraph)
-            if (startPar != allPars.Last() && startPar.EndInDoc == charIndex)
+            //if (startPar != allPars.Last() && startPar.EndInDoc == charIndex)
+            if (startPar == allPars.Last() && startPar.EndInDoc == charIndex)
             {
                 return null;
             }

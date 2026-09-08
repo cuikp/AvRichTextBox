@@ -16,9 +16,6 @@ using DynamicData;
 
 namespace DemoApp_AvRichtextBox.Views;
 
-// Search for public
-//public (?!class|interface|event|partial|delegate|void PerformUndo|int UndoEditOffset|bool UpdateTextRanges|enum Content|-> internal|override|static (void|bool).*Requested|entry points|BindableGrid\(\)|EditableCell\(\)|EditableParagraph\(\)|EditableInlineUIContainer\(|EditableRun\(|EditableHyperlink\(|EditableLineBreak\(|void Update|void Select|Cell\(|Table\(|Paragraph\(|EditableTable\(|bool IsEditable)
-
 public partial class MainWindow : Window
 {
     public MainWindow()
@@ -57,7 +54,7 @@ public partial class MainWindow : Window
         
                 
         //DEBUG
-        //CreateTestDocumentWithTable();
+        CreateTestDocumentWithTable();
         //OpenTestDocument();
 
     }

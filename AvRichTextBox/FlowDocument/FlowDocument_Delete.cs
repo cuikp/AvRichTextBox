@@ -23,12 +23,12 @@ public partial class FlowDocument
         if (backspace)
         {
             MoveSelectionLeft();
-            if (Selection.Start > 0)
+            
+            if (Selection.Start > 0 && Selection.StartParagraph.StartInDoc != Selection.Start)
             {
                 Selection.BiasForwardStart = false;
                 Selection.BiasForwardEnd = false;
             }
-            startP = Selection.StartParagraph;
         }
         else
         {
@@ -37,10 +37,13 @@ public partial class FlowDocument
             Selection.BiasForwardEnd = true;
         }
 
-        Selection.StartInline = GetStartInline(Selection.Start);
+        startP = Selection.StartParagraph;
 
+        Selection.StartInline = GetStartInline(Selection.Start);
         if (Selection.StartInline is not IEditable startInline) return;
 
+        if (!Selection.BiasForwardStart) Selection.StartInline = Selection.StartInline.NextInline;
+                
         if (startInline is EditableHyperlink hyperlink && hyperlink.InlineLength < 2)
         {
             if (backspace)

@@ -8,8 +8,8 @@ public partial class FlowDocument
     internal void MoveSelectionRight()
     {
         bool previousBiasForwardEnd = Selection.BiasForwardEnd;
-        Selection.BiasForwardStart = false;
-        Selection.BiasForwardEnd = false;
+        Selection.BiasForwardStart = true;
+        Selection.BiasForwardEnd = true;
 
         switch (SelectionExtendMode)
         {
@@ -21,6 +21,13 @@ public partial class FlowDocument
                     return;  // End of document
 
                 Selection.End = GetNextPosition();
+                Selection.CollapseToEnd();
+
+                if (Selection.GetStartPar() is Paragraph p)
+                    Selection.StartParagraph = p;
+
+                Selection.BiasForwardStart = Selection.Start == Selection.StartParagraph.StartInDoc;
+                Selection.BiasForwardEnd = Selection.BiasForwardStart;
 
                 break;
             case ExtendMode.ExtendModeRight:
@@ -31,7 +38,7 @@ public partial class FlowDocument
                 break;
         }
 
-        Selection.CollapseToEnd();
+        //Selection.CollapseToEnd();
         SelectionExtendMode = ExtendMode.ExtendModeNone;
         ScrollInDirection?.Invoke(1);
 
@@ -39,8 +46,10 @@ public partial class FlowDocument
 
     internal void MoveSelectionLeft()
     {
-        Selection.BiasForwardStart = true;
-        Selection.BiasForwardEnd = true;
+            
+        Selection.BiasForwardStart = Selection.Start >= Selection.StartParagraph.StartInDoc;
+        Selection.BiasForwardEnd = Selection.BiasForwardStart;
+
 
         switch (SelectionExtendMode)
         {
@@ -48,6 +57,10 @@ public partial class FlowDocument
 
                 if (Selection.Start > 0)
                     Selection.Start = GetPreviousPosition();
+
+                if (Selection.GetStartPar() is Paragraph p)
+                    Selection.StartParagraph = p;
+
                 break;
 
             case ExtendMode.ExtendModeRight:
@@ -144,6 +157,7 @@ public partial class FlowDocument
     {
         Selection.BiasForwardStart = biasForward;
 
+        
         if (Selection.Length > 0)
             Selection.CollapseToStart();
 
@@ -158,6 +172,9 @@ public partial class FlowDocument
         //}
 
         Selection.Start = nextStart;
+
+        if (Selection.GetStartPar() is Paragraph p)
+            Selection.StartParagraph = p;
 
         Selection.CollapseToStart();
 
@@ -256,13 +273,12 @@ public partial class FlowDocument
     internal void MoveToEndOfLine(bool selExtend)
     {
 
-        Selection.BiasForwardStart = false;
-        Selection.BiasForwardEnd = false;
+        Selection.BiasForwardStart = true;
+        Selection.BiasForwardEnd = true;
 
         if (Selection.StartParagraph.TextLength == 0) return;
 
-        // When flipping from ExtendModeLeft, the anchor is Selection.End.
-        // We need to reset Start to the anchor before computing the new End.
+        // When flipping from ExtendModeLeft, the anchor is Selection.End. Start needs to be reset to the anchor before computing the new End.
         if (selExtend && SelectionExtendMode == ExtendMode.ExtendModeLeft)
         {
             int anchor = Selection.End;

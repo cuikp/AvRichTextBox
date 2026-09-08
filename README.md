@@ -355,20 +355,7 @@ Fixed problem with pasting multiple paragraphs into Cell
 `FlowDoc.ScrollToCaret()` method added  
 Changed public -> internal for some classes/properties that do not need to be public
 
-**[ver 1.10.0-preview.1] 2026/09/07**  
-**This version onward has potentially breaking changes:**  
-Direct manipulation of the collections `FlowDocument.Blocks` and `Cell.CellBlocks` is now prevented in favor of public methods (`InsertBlockAt`, `RemoveBlockAt`, `RemoveBlock`, etc.), in order to ensure Undo integrity.  
-Undos have been added for programmable properties (such as `FontSize`, `Background`, `BorderThickness`), so app-defined changes will also be undoable by `Ctrl-Z`.
-**Other changes:**  
-Mouse dragging resize of rows/cols undoable with `Ctrl-Z`  
-Fixed wrong caret position when setting Margin on a `Paragraph`  
-Many previous public properties are now internal like they should be.  
-
-**[ver 1.10.0-preview.2] 2026/09/08**  
-Direct setting of `Child` on `EditableInlineUIContainer` is prevented in favor of `SetChild()`/`GetChild()` (which are logged in the Undo list)  
-Fixed continuous typing for inline formatting change (Bold/Italic/Underline)  
-
-**[ver 1.10.0] 2026/09/08**  
+**[ver 1.10.1] 2026/09/08**  
 **This version onward has potentially breaking changes**  
 Direct manipulation of the collections `FlowDocument.Blocks` and `Cell.CellBlocks` is now prevented in favor of public methods (`InsertBlockAt`, `RemoveBlockAt`, `RemoveBlock`, etc.), in order to ensure Undo integrity.  
 Undos have been added for programmable properties (such as `FontSize`, `Background`, `BorderThickness`), so app-defined changes will also be undoable by `Ctrl-Z`.
@@ -378,3 +365,6 @@ Fixed wrong caret position when setting `Margin` on a `Paragraph`
 Many previous public properties are now internal like they should be.  
 Direct setting of `Child` on `EditableInlineUIContainer` is prevented in favor of `SetChild()`/`GetChild()` (which are logged in the Undo list)  
 Fixed continuous typing for inline formatting change (Bold/Italic/Underline)  
+
+**[ver 1.10.2] 2026/09/08**  
+Fixed some caret movement quirks.  

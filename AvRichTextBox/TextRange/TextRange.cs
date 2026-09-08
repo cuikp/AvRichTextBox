@@ -138,7 +138,8 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 
     }
 
-    public Paragraph? GetStartPar() => myFlowDoc.AllParagraphs.LastOrDefault(p => p.StartInDoc <= Start);
+    //public Paragraph? GetStartPar() => myFlowDoc.AllParagraphs.LastOrDefault(p => p.StartInDoc <= Start);
+    public Paragraph? GetStartPar() => myFlowDoc.AllParagraphs.LastOrDefault(p => this.BiasForwardStart ? p.StartInDoc <= Start : p.StartInDoc < Start);
     public Paragraph? GetEndPar() => myFlowDoc.AllParagraphs.LastOrDefault(p => ((p.Inlines.Count == 1 && p.Inlines[0].IsUIContainer) || !this.BiasForwardEnd) ? p.StartInDoc < End : p.StartInDoc <= End);
 
     internal bool GetIsEndAtStartOfEndInline => End == EndParagraph.StartInDoc + EndInline?.TextPositionOfInlineInParagraph;

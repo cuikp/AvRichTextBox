@@ -27,8 +27,12 @@ internal class InsertCharUndo(int parId, int runId, int insertPos, FlowDocument 
 
             Dispatcher.UIThread.Post(() =>
             {
+                flowDoc.Selection.BiasForwardStart = thisPar.StartInDoc != flowDoc.Selection.Start;
+                flowDoc.Selection.BiasForwardEnd = flowDoc.Selection.BiasForwardStart;
+
                 flowDoc.Selection.Start = origSelectionStart;
                 flowDoc.Selection.End = flowDoc.Selection.Start;
+                
             });
 
         }
@@ -593,6 +597,8 @@ internal class MergeParagraphUndo(int origMergedParInlinesCount, int mergedParId
 
             flowDoc.Selection.End = originalSelectionStart;
             flowDoc.Selection.Start = originalSelectionStart;
+
+            flowDoc.InvokeSelectionChanged();
 
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at MergedPar: {mergedParId}"); }

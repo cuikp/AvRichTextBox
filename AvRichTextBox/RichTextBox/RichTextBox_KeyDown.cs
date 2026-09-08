@@ -151,7 +151,7 @@ public partial class RichTextBox
          }
       },
 
-      { new(Key.Up), () => { FlowDoc.MoveSelectionUp(false); } },
+      { new(Key.Up), () => { FlowDoc.MoveSelectionUp(true); } },
       { new(Key.Up, Shift: true), () => { FlowDoc.ExtendSelectionUp(); } },
       { new(Key.Down), () => { FlowDoc.MoveSelectionDown(true); } },
       { new(Key.Down, Shift: true), () => { FlowDoc.ExtendSelectionDown(); } },

@@ -129,7 +129,7 @@ public partial class RichTextBox
         if (IsReadOnly) return;
         if (FlowDoc.Selection.StartInline is not IEditable startInline) return;
 
-        
+
         var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
         if (clipboard == null) return;
 
@@ -139,8 +139,19 @@ public partial class RichTextBox
         TextRange insertRange = FlowDoc.Selection;
         int deleteRangeLength = insertRange.Length;
 
-        Paragraph destStartPar = FlowDoc.AllParagraphs.Last(p => (p.IsEmptyInlinePar || p.StartInDoc == 0) ? p.StartInDoc <= insertRange.Start : p.StartInDoc < insertRange.Start);
-        Paragraph destEndPar = FlowDoc.AllParagraphs.Last(p => (p.IsEmptyInlinePar || p.StartInDoc == 0) ? p.StartInDoc <= insertRange.End : p.StartInDoc < insertRange.End);
+
+        Paragraph destStartPar = FlowDoc.AllParagraphs.Last(p =>
+        {
+            bool pasteForward = p.IsEmptyInlinePar || p.StartInDoc == 0 || p.StartInDoc == FlowDoc.Selection.Start;
+            return pasteForward ? p.StartInDoc <= insertRange.Start : p.StartInDoc < insertRange.Start;
+        });
+
+        Paragraph destEndPar = FlowDoc.AllParagraphs.Last(p =>
+        {
+            bool pasteForward = p.IsEmptyInlinePar || p.StartInDoc == 0 || p.StartInDoc == FlowDoc.Selection.Start;
+            return pasteForward ? p.StartInDoc <= insertRange.End : p.StartInDoc < insertRange.End;
+        });
+
 
         List<Block> originalRangeBlocks = destStartPar.IsCellBlock switch 
         {
