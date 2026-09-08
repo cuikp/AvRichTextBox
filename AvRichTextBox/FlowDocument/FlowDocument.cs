@@ -38,7 +38,9 @@ public partial class FlowDocument : AvaloniaObject
     internal static readonly DirectProperty<FlowDocument, bool> HasSelectedTextProperty = AvaloniaProperty.RegisterDirect<FlowDocument, bool>(nameof(HasSelectedText), o => o.HasSelectedText);
     internal bool HasSelectedText => Selection.Length > 0;
 
-    internal ObservableCollection<IUndo> Undos { get; set; } = [];
+    internal List<IEditDo> Undos = [];
+    internal List<IEditDo> Redos = [];
+
     internal ObservableCollection<Paragraph> SelectionParagraphs { get; } = [];
     public ObservableCollection<TextRange> TextRanges = [];
 
@@ -76,7 +78,7 @@ public partial class FlowDocument : AvaloniaObject
             SetAndRaise(PagePaddingProperty, ref field, value);
             
             if (!disableUndoStack)
-                Undos.Add(new FlowDocumentPagePaddingChangedUndo(oldPagePadding, this));
+                Undos.Add(new FlowDocumentPagePaddingChangedUndo(oldPagePadding, value, this));
         }
     }
 

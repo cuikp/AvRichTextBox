@@ -1,10 +1,9 @@
 ﻿using Avalonia.Layout;
 using Avalonia.Threading;
-using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace AvRichTextBox;
 
-internal class InsertColumnsUndo(int thisTableId, List<int> insertedCellIds, int insertedColumnIdx, int insertedCount, FlowDocument flowDoc, int origSelectionStart) : IUndo
+internal class InsertColumnsUndo(int thisTableId, List<int> insertedCellIds, int insertedColumnIdx, int insertedCount, FlowDocument flowDoc, int origSelectionStart) : IEditDo
 {
     public int UndoEditOffset => -insertedCount;
     public bool UpdateTextRanges => true;
@@ -44,9 +43,12 @@ internal class InsertColumnsUndo(int thisTableId, List<int> insertedCellIds, int
         finally { flowDoc.disableUndoStack = false; }
     }
 
+    public void PerformRedo()
+    {
+    }
 }
 
-internal class InsertRowsUndo(int thisTableId, List<int> insertedCellIds, int insertedRowIdx, int insertedCount, FlowDocument flowDoc, int origSelectionStart) : IUndo
+internal class InsertRowsUndo(int thisTableId, List<int> insertedCellIds, int insertedRowIdx, int insertedCount, FlowDocument flowDoc, int origSelectionStart) : IEditDo
 {
     public int UndoEditOffset => -insertedCount;
     public bool UpdateTextRanges => true;
@@ -85,12 +87,15 @@ internal class InsertRowsUndo(int thisTableId, List<int> insertedCellIds, int in
         }
         catch (Exception ex) { Debug.WriteLine($"Failed InsertColumnsUndo at Col index: {insertedRowIdx}\n{ex.Message}"); }
         finally { flowDoc.disableUndoStack = false; }
+    }
 
+    public void PerformRedo()
+    {
     }
 
 }
 
-internal class AdjustTableColumnSizeUndo(int thisTableId, int columnIndex, double oldPrimarySize, bool shiftWasOn, double oldSecondarySize, FlowDocument flowDoc) : IUndo
+internal class AdjustTableColumnSizeUndo(int thisTableId, int columnIndex, double oldPrimarySize, bool shiftWasOn, double oldSecondarySize, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -123,9 +128,13 @@ internal class AdjustTableColumnSizeUndo(int thisTableId, int columnIndex, doubl
         finally { flowDoc.disableUndoStack = false; }
     }
 
+    public void PerformRedo()
+    {
+    }
+
 }
 
-internal class AdjustTableRowSizeUndo(int thisTableId, int rowIndex, List<double> oldVertPaddings1, bool shiftWasOn, List<double> oldVertPaddings2, FlowDocument flowDoc) : IUndo
+internal class AdjustTableRowSizeUndo(int thisTableId, int rowIndex, List<double> oldVertPaddings1, bool shiftWasOn, List<double> oldVertPaddings2, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -171,10 +180,14 @@ internal class AdjustTableRowSizeUndo(int thisTableId, int rowIndex, List<double
         finally { flowDoc.disableUndoStack = false; }
     }
 
+    public void PerformRedo()
+    {
+    }
+
 }
 
 
-internal class TableAlignmentChangeUndo(int tableId, HorizontalAlignment oldHAlign, FlowDocument flowDoc) : IUndo
+internal class TableAlignmentChangeUndo(int tableId, HorizontalAlignment oldHAlign, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -193,9 +206,13 @@ internal class TableAlignmentChangeUndo(int tableId, HorizontalAlignment oldHAli
         catch (Exception ex) { Debug.WriteLine($"Failed {this.GetType().Name} at tableId: {tableId}\n{ex.Message}"); }
         finally { flowDoc.disableUndoStack = false; }
     }
+
+    public void PerformRedo()
+    {
+    }
 }
 
-internal class MergeCellsUndo(int tableId, Cell currentMergedCell, List<Cell> origMergedCellClones, List<int> origMergedCellCloneIndexes, FlowDocument flowDoc) : IUndo
+internal class MergeCellsUndo(int tableId, Cell currentMergedCell, List<Cell> origMergedCellClones, List<int> origMergedCellCloneIndexes, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -228,6 +245,10 @@ internal class MergeCellsUndo(int tableId, Cell currentMergedCell, List<Cell> or
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} for Merged Cells count: {origMergedCellClones.Count}"); }
         finally { flowDoc.disableUndoStack = false; flowDoc.disableRunTextUndo = false; }
+    }
+
+    public void PerformRedo()
+    {
     }
 }
 

@@ -25,42 +25,47 @@ public partial class RichTextBox
       { new(Key.X, Ctrl: true), () => { if (DisableEditingShortcuts) return; CutToClipboard(); } },
       { new(Key.V, Ctrl: true), () => { if(DisableEditingShortcuts) return; PasteFromClipboard(); } },
       { new(Key.V, Ctrl: true, Shift: true), () => PasteFromClipboard(plainTextOnly: true) },
-
-      { new(Key.Z, Ctrl: true), () =>
-         {
-            if (IsReadOnly || DisableEditingShortcuts) return;
-            FlowDoc.Undo();
-         }
-      },
-
+      { new(Key.Z, Ctrl: true), () => { if (IsReadOnly || DisableEditingShortcuts) return; FlowDoc.Undo(); } },
+      { new(Key.Y, Ctrl: true), () => { if (IsReadOnly || DisableEditingShortcuts) return; FlowDoc.Redo(); } },
       { new(Key.A, Ctrl: true), () => { if (DisableEditingShortcuts) return; FlowDoc.SelectAll() ; } },
-
       { new(Key.K, Ctrl: true), () => { if (DisableEditingShortcuts) return; OpenHyperlinkPopup(); } },
-
-      { new(Key.Delete, Ctrl: true), () =>
-         {
-            if (IsReadOnly || DisableEditingShortcuts) return;
-            FlowDoc.DeleteWord(false);
-         }
-      },
-
-      { new(Key.Back, Ctrl: true), () =>
-         {
-            if (IsReadOnly || DisableEditingShortcuts) return;
-            FlowDoc.DeleteWord(true);
-         }
-      },
+      { new(Key.Delete, Ctrl: true), () => { if (IsReadOnly || DisableEditingShortcuts) return; FlowDoc.DeleteWord(false); } },
+      { new(Key.Back, Ctrl: true), () => { if (IsReadOnly || DisableEditingShortcuts) return; FlowDoc.DeleteWord(true); } },
       ///////////////////////////////////////////////////
 
+      
+      { new(Key.Enter), () => { InsertParagraph(); } },
 
-      // Ctrl navigation
-      { new(Key.Home, Ctrl: true), () =>
+      { new(Key.Enter, Shift: true), () =>
          {
-            FlowDoc.MoveToDocStart();
-            FlowDocSV.ScrollToHome();
+            if (LineBreakOnShiftEnter)
+               InsertLineBreak();
+            else
+               InsertParagraph();
          }
       },
 
+        { new(Key.Tab), () =>
+         {
+            if (FlowDoc.Selection.GetStartPar() is Paragraph p && p.IsTableCellBlock && p.OwningCell is Cell thisCell)
+                FlowDoc.MoveToNextCell(thisCell);
+            else
+               InsertTab();
+         }
+      },
+
+      { new(Key.Tab, Shift: true), () =>
+         {
+            if (FlowDoc.Selection.GetStartPar() is Paragraph p && p.IsTableCellBlock && p.OwningCell is Cell thisCell)
+                FlowDoc.MoveToPreviousCell(thisCell);
+            else
+               InsertTab();
+         }
+      },
+
+      // NAVIGATION KEYS  ///////////////////////////////
+      // Ctrl navigation
+      { new(Key.Home, Ctrl: true), () => { FlowDoc.MoveToDocStart(); FlowDocSV.ScrollToHome(); } },
       { new(Key.Home, Ctrl: true, Shift: true), () => { FlowDoc.ExtendSelectionToDocStart(); } },
       { new(Key.End, Ctrl: true), () => { FlowDoc.MoveToDocEnd(); } },
       { new(Key.End, Ctrl: true, Shift: true), () => { FlowDoc.ExtendSelectionToDocEnd(); } },
@@ -78,79 +83,15 @@ public partial class RichTextBox
                HideIMEOverlay();
          }
       },
-
-      { new(Key.Tab), () =>
-         {
-            if (FlowDoc.Selection.GetStartPar() is Paragraph p && p.IsTableCellBlock)
-            {
-               if (FlowDoc.GetNextParagraph(p) is Paragraph nextPar)
-                  FlowDoc.Select(nextPar.StartInDoc, 0);
-            }
-            else
-            {
-               InsertTab();
-            }
-         }
-      },
-
-      { new(Key.Tab, Shift: true), () =>
-         {
-            if (FlowDoc.Selection.GetStartPar() is Paragraph p && p.IsTableCellBlock)
-            {
-               if (FlowDoc.GetPreviousParagraph(p) is Paragraph prevPar)
-                  FlowDoc.Select(prevPar.StartInDoc, 0);
-            }
-            else
-            {
-               InsertTab();
-            }
-         }
-      },
-
-      { new(Key.Enter), () => { InsertParagraph(); } },
-
-      { new(Key.Enter, Shift: true), () =>
-         {
-            if (LineBreakOnShiftEnter)
-               InsertLineBreak();
-            else
-               InsertParagraph();
-         }
-      },
-
+                
       { new(Key.Home), () => { FlowDoc.MoveToStartOfLine(false); } },
       { new(Key.Home, Shift: true), () => { FlowDoc.MoveToStartOfLine(true); } },
       { new(Key.End), () => { FlowDoc.MoveToEndOfLine(false); } },
       { new(Key.End, Shift: true), () => { FlowDoc.MoveToEndOfLine(true); } },
-
-      { new(Key.Right), () =>
-         {
-            FlowDoc.MoveSelectionRight();
-            FlowDoc.ResetInsertFormatting();
-         }
-      },
-
-      { new(Key.Right, Shift: true), () =>
-         {
-            FlowDoc.ExtendSelectionRight();
-            FlowDoc.ResetInsertFormatting();
-         }
-      },
-
-      { new(Key.Left), () =>
-         {
-            FlowDoc.MoveSelectionLeft();
-            FlowDoc.ResetInsertFormatting();
-         }
-      },
-
-      { new(Key.Left, Shift: true), () =>
-         {
-            FlowDoc.ExtendSelectionLeft();
-            FlowDoc.ResetInsertFormatting();
-         }
-      },
-
+      { new(Key.Right), () => { FlowDoc.MoveSelectionRight(); FlowDoc.ResetInsertFormatting(); } }, 
+      { new(Key.Right, Shift: true), () => { FlowDoc.ExtendSelectionRight(); FlowDoc.ResetInsertFormatting(); } },
+      { new(Key.Left), () => { FlowDoc.MoveSelectionLeft(); FlowDoc.ResetInsertFormatting(); } },
+      { new(Key.Left, Shift: true), () => { FlowDoc.ExtendSelectionLeft(); FlowDoc.ResetInsertFormatting(); } },
       { new(Key.Up), () => { FlowDoc.MoveSelectionUp(true); } },
       { new(Key.Up, Shift: true), () => { FlowDoc.ExtendSelectionUp(); } },
       { new(Key.Down), () => { FlowDoc.MoveSelectionDown(true); } },
@@ -192,17 +133,17 @@ public partial class RichTextBox
             _CaretRect.Classes.Remove("blinking");
             _CaretRect.Opacity = 1.0;
         }
-        
+
         RtbVm.CaretVisible = (RtbVm.FlowDoc.Selection.Length == 0);
-        
+
         if (client != null)
             UpdatePreeditOverlay();
     }
-    
+
     private void RichTextBox_KeyUp(object? sender, KeyEventArgs e)
     {
 
         _CaretRect.Classes.Add("blinking");
- 
+
     }
 }

@@ -187,6 +187,18 @@ public class Cell : INotifyPropertyChanged
     internal bool vmerged = false;
     internal bool IsClonedCell = false;
 
+    public Cell? GetNextCell()
+    {
+        int thisIdx = OwningTable.Cells.IndexOf(this);
+        return thisIdx < OwningTable.Cells.Count - 1 ? OwningTable.Cells[thisIdx + 1] : null;
+    }
+
+    public Cell? GetPreviousCell()
+    {
+        int thisIdx = OwningTable.Cells.IndexOf(this);
+        return thisIdx > 0 ? OwningTable.Cells[thisIdx - 1] : null;
+    }
+
     internal Cell PropertyClone(Table owningTable)
     {
         OwningTable.MyFlowDoc.disableUndoStack = true;

@@ -1,7 +1,7 @@
 ﻿
 namespace AvRichTextBox; 
 
-internal class FlowDocumentPagePaddingChangedUndo(Thickness oldPagePadding, FlowDocument flowDoc) : IUndo
+internal class FlowDocumentPagePaddingChangedUndo(Thickness oldPagePadding, Thickness newPagePadding, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -16,6 +16,18 @@ internal class FlowDocumentPagePaddingChangedUndo(Thickness oldPagePadding, Flow
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} for PagePadding: { oldPagePadding }"); }
         finally { flowDoc.disableUndoStack = false; }
+    }
+
+    public void PerformRedo()
+    {
+        try
+        {
+            flowDoc.disableUndoStack = true;
+            flowDoc.PagePadding = newPagePadding;
+            flowDoc.disableUndoStack = false;
+        }
+        catch { Debug.WriteLine($"Failed {this.GetType().Name} for PagePadding: {oldPagePadding}"); }
+        finally { { flowDoc.disableUndoStack = false; } }
     }
 }
 

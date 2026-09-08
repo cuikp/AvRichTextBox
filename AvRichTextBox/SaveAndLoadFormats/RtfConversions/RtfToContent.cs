@@ -2,7 +2,6 @@
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using DocumentFormat.OpenXml.Drawing.Diagrams;
 using DynamicData;
 using RtfDomParserAv;
 using System.Text.RegularExpressions;

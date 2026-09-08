@@ -155,9 +155,6 @@ public partial class FlowDocument
     internal void InsertText(string? insertText)
     {
 
-        //Selection.UpdateContextStart();
-        //Selection.UpdateContextEnd();
-
         if (Selection.StartInline is not IEditable startInline || startInline is EditableInlineUIContainer) return;
         
 
@@ -178,6 +175,7 @@ public partial class FlowDocument
                 UpdateBlockAndInlineStarts(Selection.StartParagraph);
                 Selection.UpdateContextStart();
                 startInline = newRun;
+                Redos.Clear();
             }
             else
                 return;
@@ -250,6 +248,8 @@ public partial class FlowDocument
             }
 
             disableRunTextUndo = false;
+            
+            Redos.Clear();
 
             Selection.StartParagraph.CallRequestInlinesUpdate();
 
@@ -258,7 +258,6 @@ public partial class FlowDocument
 
             for (int i = 0; i < insertText.Length; i++)
                 MoveSelectionRight();
-
 
         }
 

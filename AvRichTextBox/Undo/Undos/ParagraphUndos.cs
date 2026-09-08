@@ -2,7 +2,7 @@
 
 namespace AvRichTextBox;
 
-internal class ParagraphTextAlignmentChangeUndo(int parId, TextAlignment oldTextAlign, FlowDocument flowDoc) : IUndo
+internal class ParagraphTextAlignmentChangeUndo(int parId, TextAlignment oldTextAlign, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -23,10 +23,14 @@ internal class ParagraphTextAlignmentChangeUndo(int parId, TextAlignment oldText
         catch (Exception ex) { Debug.WriteLine($"Failed {this.GetType().Name} at parId: {parId}\n{ex.Message}"); }
         finally { flowDoc.disableUndoStack = false; }
     }
+
+    public void PerformRedo()
+    {
+    }
 }
 
 
-internal class ParagraphLineHeightChangeUndo(int parId, double oldLineHeight, FlowDocument flowDoc) : IUndo
+internal class ParagraphLineHeightChangeUndo(int parId, double oldLineHeight, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -45,10 +49,14 @@ internal class ParagraphLineHeightChangeUndo(int parId, double oldLineHeight, Fl
         catch (Exception ex) { Debug.WriteLine($"Failed {this.GetType().Name} at parId: {parId}\n{ex.Message}"); }
         finally { flowDoc.disableUndoStack = false; }
     }
+
+    public void PerformRedo()
+    {
+    }
 }
 
 
-internal class InsertInlineAtUndo(int parId, int inlineId, FlowDocument flowDoc) : IUndo
+internal class InsertInlineAtUndo(int parId, int inlineId, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -69,9 +77,13 @@ internal class InsertInlineAtUndo(int parId, int inlineId, FlowDocument flowDoc)
         catch (Exception ex) { Debug.WriteLine($"Failed {this.GetType().Name} at inlineId: {inlineId}\n{ex.Message}"); }
         finally { flowDoc.disableUndoStack = false; }
     }
+
+    public void PerformRedo()
+    {
+    }
 }
 
-internal class InsertInlinesAtUndo(int parId, List<int> inlineIds, FlowDocument flowDoc) : IUndo
+internal class InsertInlinesAtUndo(int parId, List<int> inlineIds, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -95,9 +107,13 @@ internal class InsertInlinesAtUndo(int parId, List<int> inlineIds, FlowDocument 
         catch (Exception ex) { Debug.WriteLine($"Failed {this.GetType().Name} with inlineIds: {inlineIds.Count}\n{ex.Message}"); }
         finally { flowDoc.disableUndoStack = false; }
     }
+
+    public void PerformRedo()
+    {
+    }
 }
 
-internal class RemoveInlineUndo(int parId, int origInlineIndex, IEditable removedInlineClone, FlowDocument flowDoc) : IUndo
+internal class RemoveInlineUndo(int parId, int origInlineIndex, IEditable removedInlineClone, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -115,5 +131,9 @@ internal class RemoveInlineUndo(int parId, int origInlineIndex, IEditable remove
         }
         catch (Exception ex) { Debug.WriteLine($"Failed {this.GetType().Name} at inline index: {origInlineIndex}\n{ex.Message}"); }
         finally { flowDoc.disableUndoStack = false; }
+    }
+
+    public void PerformRedo()
+    {
     }
 }

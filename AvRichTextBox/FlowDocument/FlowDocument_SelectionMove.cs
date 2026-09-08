@@ -386,6 +386,49 @@ public partial class FlowDocument
 
     }
 
+    internal void MoveToNextCell(Cell currentCell)
+    {
+        Selection.BiasForwardStart = true;
+        Selection.BiasForwardEnd = true;
+
+        if (currentCell.GetNextCell() is Cell nextCell)
+        {
+            if (nextCell.CellBlocks.FirstOrDefault() is Paragraph firstParNextCell)
+                Select(firstParNextCell.StartInDoc, 0);
+        }
+        else
+        {
+            if (currentCell.CellBlocks.LastOrDefault() is Paragraph lastPar)
+            {
+                if (GetNextParagraph(lastPar) is Paragraph nextPar)
+                    Select(nextPar.StartInDoc, 0);
+            }
+        }
+
+    }
+
+    internal void MoveToPreviousCell(Cell currentCell)
+    {
+        Selection.BiasForwardStart = true;
+        Selection.BiasForwardEnd = true;
+
+        if (currentCell.GetPreviousCell() is Cell prevCell)
+        {
+            if (prevCell.CellBlocks.FirstOrDefault() is Paragraph firstPar)
+                Select(firstPar.StartInDoc, 0);
+        }
+        else
+        {
+            if (currentCell.CellBlocks.FirstOrDefault() is Paragraph firstPar)
+            {
+                if (GetPreviousParagraph(firstPar) is Paragraph prevPar)
+                    Select(prevPar.EndInDoc, 0);
+            }
+        }
+
+
+    }
+
     internal void UpdateCaret()
     {
         Selection.StartParagraph.CallRequestTextLayoutInfoStart();

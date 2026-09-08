@@ -2,7 +2,7 @@
 
 namespace AvRichTextBox; 
 
-internal class EditableUIContainerChildUndo(int parId, int uicId, Control? oldChildClone, FlowDocument flowDoc) : IUndo
+internal class EditableUIContainerChildUndo(int parId, int uicId, Control? oldChildClone, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -20,6 +20,10 @@ internal class EditableUIContainerChildUndo(int parId, int uicId, Control? oldCh
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at uicId: {uicId}"); }
         finally { flowDoc.disableUndoStack = false; }
+    }
+
+    public void PerformRedo()
+    {
     }
 }
 

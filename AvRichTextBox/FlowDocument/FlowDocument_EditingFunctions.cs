@@ -73,15 +73,51 @@ public partial class FlowDocument
             disableRunTextUndo = true;
             disableUndoStack = true;
 
-            Undos.Last().PerformUndo();
+            IEditDo lastUndo = Undos.Last();
+
+            lastUndo.PerformUndo();
 
             UpdateSelection();
             UpdateCaret();
 
-            if (Undos.Last().UpdateTextRanges)
-                UpdateTextRanges(Selection.Start, Undos.Last().UndoEditOffset);
+            if (lastUndo.UpdateTextRanges)
+                UpdateTextRanges(Selection.Start, lastUndo.UndoEditOffset);
 
-            Undos.RemoveAt(Undos.Count - 1);
+            
+            Undos.Remove(lastUndo);
+            Redos.Add(lastUndo);
+
+            //Debug.WriteLine("\nundos count = " + Undos.Count + "\n" + string.Join("   ", Undos.ToList().ConvertAll(undo => undo.GetType().ToString())));
+
+            UpdateSelectedParagraphs();
+
+
+            ScrollInDirection?.Invoke(1);
+            ScrollInDirection?.Invoke(-1);
+
+            disableRunTextUndo = false;
+            disableUndoStack = false;
+        }
+    }
+    
+    internal void Redo()
+    {
+        if (Redos.Count > 0)
+        {
+            disableRunTextUndo = true;
+            disableUndoStack = true;
+
+            IEditDo lastRedo = Redos.Last();
+            lastRedo.PerformRedo();
+
+            UpdateSelection();
+            UpdateCaret();
+
+            if (lastRedo.UpdateTextRanges)
+                UpdateTextRanges(Selection.Start, lastRedo.UndoEditOffset);
+
+            Redos.Remove(lastRedo);
+            Undos.Add(lastRedo);
 
             //Debug.WriteLine("\nundos count = " + Undos.Count + "\n" + string.Join("   ", Undos.ToList().ConvertAll(undo => undo.GetType().ToString())));
 

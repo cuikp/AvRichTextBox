@@ -3,9 +3,9 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using DynamicData;
 
-namespace AvRichTextBox; 
+namespace AvRichTextBox;
 
-internal class BlockMarginChangedUndo(int blockId, Thickness oldMargin, FlowDocument flowDoc) : IUndo
+internal class BlockMarginChangedUndo(int blockId, Thickness oldMargin, FlowDocument flowDoc) : IEditDo
 {
 
     public int UndoEditOffset => 0;
@@ -25,9 +25,14 @@ internal class BlockMarginChangedUndo(int blockId, Thickness oldMargin, FlowDocu
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
         finally { flowDoc.disableUndoStack = false; }
     }
+
+    public void PerformRedo()
+    {
+    }
+
 }
 
-internal class BlockBackgroundChangedUndo(int blockId, IBrush oldBrush, FlowDocument flowDoc) : IUndo
+internal class BlockBackgroundChangedUndo(int blockId, IBrush oldBrush, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -46,9 +51,13 @@ internal class BlockBackgroundChangedUndo(int blockId, IBrush oldBrush, FlowDocu
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
         finally { flowDoc.disableUndoStack = false; }
     }
+    
+    public void PerformRedo()
+    {
+    }
 }
 
-internal class BlockBorderBrushChangedUndo(int blockId, IBrush oldBrush, FlowDocument flowDoc) : IUndo
+internal class BlockBorderBrushChangedUndo(int blockId, IBrush oldBrush, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -67,9 +76,13 @@ internal class BlockBorderBrushChangedUndo(int blockId, IBrush oldBrush, FlowDoc
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
         finally { flowDoc.disableUndoStack = false; }
     }
+
+    public void PerformRedo()
+    {
+    }
 }
 
-internal class BlockBorderThicknessChangedUndo(int blockId, Thickness oldThickness, FlowDocument flowDoc) : IUndo
+internal class BlockBorderThicknessChangedUndo(int blockId, Thickness oldThickness, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -88,9 +101,13 @@ internal class BlockBorderThicknessChangedUndo(int blockId, Thickness oldThickne
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
         finally { flowDoc.disableUndoStack = false; }
     }
+
+    public void PerformRedo()
+    {
+    }
 }
 
-internal class BlockFontFamilyChangedUndo(int blockId, FontFamily oldFontFamily, FlowDocument flowDoc) : IUndo
+internal class BlockFontFamilyChangedUndo(int blockId, FontFamily oldFontFamily, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -109,9 +126,13 @@ internal class BlockFontFamilyChangedUndo(int blockId, FontFamily oldFontFamily,
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
         finally { flowDoc.disableUndoStack = false; }
     }
+
+    public void PerformRedo()
+    {
+    }
 }
 
-internal class BlockFontSizeChangedUndo(int blockId, double oldFontSize, FlowDocument flowDoc) : IUndo
+internal class BlockFontSizeChangedUndo(int blockId, double oldFontSize, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -130,9 +151,13 @@ internal class BlockFontSizeChangedUndo(int blockId, double oldFontSize, FlowDoc
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
         finally { flowDoc.disableUndoStack = false; }
     }
+
+    public void PerformRedo()
+    {
+    }
 }
 
-internal class BlockFontWeightChangedUndo(int blockId, FontWeight oldFontWeight, FlowDocument flowDoc) : IUndo
+internal class BlockFontWeightChangedUndo(int blockId, FontWeight oldFontWeight, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -151,9 +176,13 @@ internal class BlockFontWeightChangedUndo(int blockId, FontWeight oldFontWeight,
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
         finally { flowDoc.disableUndoStack = false; }
     }
+
+    public void PerformRedo()
+    {
+    }
 }
 
-internal class BlockFontStyleChangedUndo(int blockId, FontStyle oldFontStyle, FlowDocument flowDoc) : IUndo
+internal class BlockFontStyleChangedUndo(int blockId, FontStyle oldFontStyle, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -172,9 +201,13 @@ internal class BlockFontStyleChangedUndo(int blockId, FontStyle oldFontStyle, Fl
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
         finally { flowDoc.disableUndoStack = false; }
     }
+
+    public void PerformRedo()
+    {
+    }
 }
 
-internal class InsertBlockUndo( FlowDocument flowDoc, int insertedBlockId, int undoEditOffset, bool IsCellParagraph, int containingTableId, int containingCellId) : IUndo
+internal class InsertBlockUndo( FlowDocument flowDoc, int insertedBlockId, int undoEditOffset, bool IsCellParagraph, int containingTableId, int containingCellId) : IEditDo
 {  
     public int UndoEditOffset => undoEditOffset;
     public bool UpdateTextRanges => true;
@@ -214,9 +247,13 @@ internal class InsertBlockUndo( FlowDocument flowDoc, int insertedBlockId, int u
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at Inserted block id: {insertedBlockId}"); }
 
     }
+
+    public void PerformRedo()
+    {
+    }
 }
 
-internal class RemoveBlockUndo(FlowDocument flowDoc, int originalIndex, Block removedBlockClone, int undoEditOffset, bool IsCellParagraph, int containingTableId, int containingCellId) : IUndo
+internal class RemoveBlockUndo(FlowDocument flowDoc, int originalIndex, Block removedBlockClone, int undoEditOffset, bool IsCellParagraph, int containingTableId, int containingCellId) : IEditDo
 {  
     public int UndoEditOffset => undoEditOffset;
     public bool UpdateTextRanges => true;
@@ -243,6 +280,11 @@ internal class RemoveBlockUndo(FlowDocument flowDoc, int originalIndex, Block re
 
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at Removed at block idx: {originalIndex}"); }
+
+    }
+
+    public void PerformRedo()
+    {
 
     }
 }

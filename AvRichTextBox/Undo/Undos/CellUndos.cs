@@ -3,7 +3,7 @@ using Avalonia.Media;
 
 namespace AvRichTextBox; 
 
-internal class CellBorderThicknessChangedUndo(int tableId, int cellId, Thickness oldThickness, FlowDocument flowDoc) : IUndo
+internal class CellBorderThicknessChangedUndo(int tableId, int cellId, Thickness oldThickness, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -23,9 +23,13 @@ internal class CellBorderThicknessChangedUndo(int tableId, int cellId, Thickness
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at cellId: {cellId}"); }
         finally { flowDoc.disableUndoStack = false; }
     }
+
+    public void PerformRedo()
+    {
+    }
 }
 
-internal class CellBorderBrushChangedUndo(int tableId, int cellId, IBrush oldBrush, FlowDocument flowDoc) : IUndo
+internal class CellBorderBrushChangedUndo(int tableId, int cellId, IBrush oldBrush, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -45,9 +49,13 @@ internal class CellBorderBrushChangedUndo(int tableId, int cellId, IBrush oldBru
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at cellId: {cellId}"); }
         finally { flowDoc.disableUndoStack = false; }
     }
+
+    public void PerformRedo()
+    {
+    }
 }
 
-internal class CellBackgroundChangedUndo(int tableId, int cellId, IBrush oldBrush, FlowDocument flowDoc) : IUndo
+internal class CellBackgroundChangedUndo(int tableId, int cellId, IBrush oldBrush, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -66,9 +74,13 @@ internal class CellBackgroundChangedUndo(int tableId, int cellId, IBrush oldBrus
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at cellId: {cellId}"); }
         finally { flowDoc.disableUndoStack = false; }
     }
+
+    public void PerformRedo()
+    {
+    }
 }
 
-internal class CellVerticalAlignmentChangedUndo(int tableId, int cellId, VerticalAlignment oldVAlign, FlowDocument flowDoc) : IUndo
+internal class CellVerticalAlignmentChangedUndo(int tableId, int cellId, VerticalAlignment oldVAlign, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -87,9 +99,13 @@ internal class CellVerticalAlignmentChangedUndo(int tableId, int cellId, Vertica
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at cellId: {cellId}"); }
         finally { flowDoc.disableUndoStack = false; }
     }
+
+    public void PerformRedo()
+    {
+    }
 }
 
-internal class CellPaddingChangedUndo(int tableId, int cellId, Thickness oldPadding, FlowDocument flowDoc) : IUndo
+internal class CellPaddingChangedUndo(int tableId, int cellId, Thickness oldPadding, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -107,5 +123,9 @@ internal class CellPaddingChangedUndo(int tableId, int cellId, Thickness oldPadd
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at cellId: {cellId}"); }
         finally { flowDoc.disableUndoStack = false; }
+    }
+
+    public void PerformRedo()
+    {
     }
 }

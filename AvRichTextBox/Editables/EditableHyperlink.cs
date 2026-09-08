@@ -47,7 +47,7 @@ public class EditableHyperlink : EditableRun
         }
     }
 
-    internal string NavigateUri { get; set; } = "";
+    public string NavigateUri { get; set; } = "";
 
     public override IEditable Clone()
     {
