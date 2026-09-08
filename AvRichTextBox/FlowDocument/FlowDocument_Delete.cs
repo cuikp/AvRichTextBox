@@ -23,8 +23,11 @@ public partial class FlowDocument
         if (backspace)
         {
             MoveSelectionLeft();
-            Selection.BiasForwardStart = false;
-            Selection.BiasForwardEnd = false;
+            if (Selection.Start > 0)
+            {
+                Selection.BiasForwardStart = false;
+                Selection.BiasForwardEnd = false;
+            }
             startP = Selection.StartParagraph;
         }
         else
@@ -159,8 +162,9 @@ public partial class FlowDocument
 
         RestoreCaretTo(originalSelStart);
 
-        Selection.BiasForwardStart = false;
-        Selection.BiasForwardEnd = false;
+        Selection.BiasForwardStart = Selection.Start == 0;
+        Selection.BiasForwardEnd = Selection.Start == 0;
+        
 
     }
 

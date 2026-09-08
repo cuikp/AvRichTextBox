@@ -20,7 +20,7 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>ver 1.10.0
+	  <PackageReleaseNotes>ver 1.10.1
 **This version onward has potentially breaking changes**  
 Direct manipulation of the collections `FlowDocument.Blocks` and `Cell.CellBlocks` is now prevented in favor of public methods (`InsertBlockAt`, `RemoveBlockAt`, `RemoveBlock`, etc.), in order to ensure Undo integrity.  
 Direct setting of Child on EditableInlineUIContainer is prevented in favor of SetChild()/GetChild() (which are logged in the Undo list)
@@ -34,7 +34,7 @@ Fixed continuous typing for inline formatting change (Bold/Italic/Underline)</Pa
      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 	  <PackageOutputPath>D:\PROG\LocalNuget\AvRichTextBox</PackageOutputPath>
 	  
-	  <Version>1.10.0</Version>
+	  <Version>1.10.1</Version>
 	  <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
 	  
@@ -91,6 +91,7 @@ Fixed continuous typing for inline formatting change (Bold/Italic/Underline)</Pa
     <Reference Include="RtfDomParserAv">
       <HintPath>RtfDomParserAv.dll</HintPath>
     </Reference>
+	  <None Include="RtfDomParserAv.dll" Pack="true" PackagePath="lib\$(TargetFramework)\" />
   </ItemGroup>
 
 	
