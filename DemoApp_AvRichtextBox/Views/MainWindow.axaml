@@ -275,7 +275,7 @@
 
 					</Border>
 
-					<Button Content="Do something" Click="DoButton_Click" Focusable="False"/>
+					<Button Content="Do something" Click="DoSomethingButton_Click" Focusable="False"/>
 
 				</StackPanel>
 

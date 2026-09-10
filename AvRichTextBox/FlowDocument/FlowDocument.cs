@@ -33,6 +33,8 @@ public partial class FlowDocument : AvaloniaObject
     internal static int TableCellIdCounter { get; set => field = (value == int.MaxValue) ? 1 : value; }
 
     internal bool IsEditable { get; set; } = true;
+    internal bool IsEmpty => Blocks.Count == 1 && Blocks.FirstOrDefault() is Paragraph p && p.Inlines.Count == 1 && p.Inlines.FirstOrDefault() is EditableRun erun && erun.Text == "";
+
     internal bool disableUndoStack = true;
 
     internal static readonly DirectProperty<FlowDocument, bool> HasSelectedTextProperty = AvaloniaProperty.RegisterDirect<FlowDocument, bool>(nameof(HasSelectedText), o => o.HasSelectedText);
@@ -47,7 +49,8 @@ public partial class FlowDocument : AvaloniaObject
     internal bool disableRunTextUndo = false;
 
     public void ScrollFlowDocInDirection(int direction) { ScrollInDirection?.Invoke(direction); }
-    public void ScrollFlowDocToCaret() { ScrollToCaret?.Invoke(); }
+    
+    public void ScrollFlowDocToCaret() { Dispatcher.UIThread.Post(() => { ScrollToCaret?.Invoke(); }); }
 
     public List<Paragraph> GetSelectedParagraphs => [.. AllParagraphs.Where(p => p.StartInDoc <= Selection.Start && p.EndInDoc >= Selection.End).Select(b => (Paragraph)b)];
 
@@ -78,7 +81,7 @@ public partial class FlowDocument : AvaloniaObject
             SetAndRaise(PagePaddingProperty, ref field, value);
             
             if (!disableUndoStack)
-                Undos.Add(new FlowDocumentPagePaddingChangedUndo(oldPagePadding, value, this));
+                Undos.Add(new FlowDocumentPagePaddingChangedEditDo(oldPagePadding, value, this));
         }
     }
 

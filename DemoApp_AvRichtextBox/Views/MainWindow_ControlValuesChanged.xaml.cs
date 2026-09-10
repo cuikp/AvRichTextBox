@@ -3,6 +3,8 @@ using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Threading;
 using AvRichTextBox;
 using DynamicData;
@@ -10,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 
 namespace DemoApp_AvRichtextBox.Views;
 
@@ -272,16 +275,25 @@ public partial class MainWindow
 
     }
 
-    private void DoButton_Click(object? sender, RoutedEventArgs e)
+    private void DoSomethingButton_Click(object? sender, RoutedEventArgs e)
     {
         if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph p)
         {
             MainRTB.FlowDocument.InsertParagraphAt(120);
 
+            if (MainRTB.FlowDocument.GetBlocks.OfType<Paragraph>().FirstOrDefault(p=> p.GetInlines.OfType<EditableInlineUIContainer>().Any()) is Paragraph PP)
+            {
+                if (PP.GetInlines.OfType<EditableInlineUIContainer>().FirstOrDefault() is EditableInlineUIContainer eiuc)
+                {
+                    eiuc.SetChild( new Image() { Source = new Bitmap(AssetLoader.Open(new Uri("avares://AvRichTextBox/Assets/avalonia-logo.ico"))) });
+                    //eiuc.SetChild(new Image() { Source = null! });
+                }
+            }
+
             //ObservableCollection<Block> bcol = p.IsCellBlock ? p.GetOwningCell.GetCellBlocks : MainRTB.FlowDocument.Blocks;
-            
+
             ////Object? blocksParent = p.IsCellBlock ? p.GetOwningCell : MainRTB.FlowDocument;
-            
+
             //int insertIdx = bcol.IndexOf(p);
 
             //Paragraph newPar = new (MainRTB.FlowDocument);

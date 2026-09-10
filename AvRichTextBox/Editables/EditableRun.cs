@@ -1,7 +1,5 @@
 ﻿using Avalonia.Controls.Documents;
 using Avalonia.Media;
-using Avalonia.Media.TextFormatting;
-using System.Runtime.InteropServices;
 
 namespace AvRichTextBox;
 
@@ -25,6 +23,7 @@ public class EditableRun : Run, IEditable
 
     private void EditableRun_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
+        base.OnPropertyChanged(e);
 
         //Debug.WriteLine($"ieditablerun {e.Property.Name} set");
 

@@ -87,7 +87,9 @@ public partial class FlowDocument
             Undos.Remove(lastUndo);
             Redos.Add(lastUndo);
 
-            //Debug.WriteLine("\nundos count = " + Undos.Count + "\n" + string.Join("   ", Undos.ToList().ConvertAll(undo => undo.GetType().ToString())));
+#if DEBUG
+            //DebugPrintUndos();
+#endif
 
             UpdateSelectedParagraphs();
 
@@ -99,7 +101,15 @@ public partial class FlowDocument
             disableUndoStack = false;
         }
     }
-    
+
+    private void DebugPrintUndos()
+    {
+        ////////////////////////////////////////////
+        Debug.WriteLine("\nUndos count = " + Undos.Count + "\n" + string.Join("   ", Undos.ToList().ConvertAll(undo => undo.GetType().ToString())));
+        Debug.WriteLine("Redos count = " + Redos.Count + "\n" + string.Join("   ", Redos.ToList().ConvertAll(redo => redo.GetType().ToString())));
+        ///////////////////////////////////////////
+    }
+
     internal void Redo()
     {
         if (Redos.Count > 0)
@@ -119,7 +129,9 @@ public partial class FlowDocument
             Redos.Remove(lastRedo);
             Undos.Add(lastRedo);
 
-            //Debug.WriteLine("\nundos count = " + Undos.Count + "\n" + string.Join("   ", Undos.ToList().ConvertAll(undo => undo.GetType().ToString())));
+#if DEBUG
+            //DebugPrintUndos();
+#endif    
 
             UpdateSelectedParagraphs();
 
@@ -141,22 +153,28 @@ public partial class FlowDocument
         int updateBlocksFromIndex)
     {
         bool tablePartiallyDeleted = (blockClones[0] is Table && blockClones[^1] is not Table) || (blockClones[0] is not Table && blockClones[^1] is Table);
+        bool startsWithIUC = blockClones.FirstOrDefault() is Paragraph firstPar && firstPar.Inlines.Count == 1 && firstPar.Inlines.FirstOrDefault() is EditableInlineUIContainer;
+        bool endsWithIUC = blockClones.LastOrDefault() is Paragraph lastPar && lastPar.Inlines.Count == 1 && lastPar.Inlines.FirstOrDefault() is EditableInlineUIContainer;
 
-        if (!lastBlockWasDeleted)
+        if (startsWithIUC || endsWithIUC)
         {
-            //Blocks.RemoveAt(blockIndex);
+            //do nothing for single eIUC in paragraph
+        }
+        else if (lastBlockWasDeleted && firstBlockWasDeleted && this.IsEmpty)
+        {
+            blockCollection.RemoveAt(blockIndex);
+        }
+        else if (!lastBlockWasDeleted)
+        {
             blockCollection.RemoveAt(blockIndex);
             // Special case if table contents were partially deleted, leaving the old table
             if (!firstBlockWasDeleted && tablePartiallyDeleted)
-                //Blocks.RemoveAt(blockIndex);
                 blockCollection.RemoveAt(blockIndex);
         }
         else if (!firstBlockWasDeleted)
-            //Blocks.RemoveAt(blockIndex);
             blockCollection.RemoveAt(blockIndex);
 
         //Restore all of the previous paragraphs
-        //Blocks.AddOrInsertRange(blockClones, blockIndex);
         blockCollection.AddOrInsertRange(blockClones, blockIndex);
 
         //Debug.WriteLine("restoring blocksToInsert = " + blockClones.Count + ", " + blockClones[0].GetType().ToString());
@@ -216,14 +234,10 @@ public partial class FlowDocument
                     currentInsertIdx += 1;
                     //Blocks.Insert(currentInsertIdx, addParthat
                     if (destinationStartPar.IsCellBlock)
-                    {
                         destinationStartPar.OwningCell.CellBlocks.Insert(currentInsertIdx, addPar);
-                    }
                     else
-                    {
                         Blocks.Insert(currentInsertIdx, addPar);
-                    }
-                    
+
                     addedBlockIds.Add(addPar.Id);
                 }
                 

@@ -1,9 +1,12 @@
-﻿using Avalonia.Media;
+﻿using Avalonia.Controls.Documents;
+using Avalonia.Media;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace AvRichTextBox;
 
 public class EditableHyperlink : EditableRun
 {
+
     private static readonly ISolidColorBrush displayBrush = Brushes.Blue;
     private static readonly TextDecorationCollection displayDecoration =
        [ new() {
@@ -21,6 +24,35 @@ public class EditableHyperlink : EditableRun
 
         ForceFormatting();
 
+        this.LinkOpening += EditableHyperlink_LinkOpening;
+
+    }
+
+    private void EditableHyperlink_LinkOpening(object? sender, LinkOpeningEventArgs e)
+    {
+        //e.Handled = true;
+
+    }
+
+    public sealed class LinkOpeningEventArgs(string navigateUri) : EventArgs
+    {
+        public string NavigateUri { get; } = navigateUri;
+        public bool Handled { get; set; }
+    }
+
+    public event EventHandler<LinkOpeningEventArgs>? LinkOpening;
+
+    internal void OpenLink()
+    {
+        var args = new LinkOpeningEventArgs(NavigateUri);
+
+        LinkOpening?.Invoke(this, args);
+
+        if (args.Handled)
+            return;
+
+        var psi = new ProcessStartInfo { FileName = NavigateUri, UseShellExecute = true };
+        Process.Start(psi);
     }
 
     private void ForceFormatting()
@@ -32,19 +64,32 @@ public class EditableHyperlink : EditableRun
     internal EditableHyperlink() { ForceFormatting(); }
 
 
-    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs e)
     {
-        base.OnPropertyChanged(change);
+        base.OnPropertyChanged(e);
 
-        //Prevent user change to hyperlink formatting
-        if (change.Property == ForegroundProperty && !Equals(change.NewValue, displayBrush))
+
+        switch (e.Property)
         {
-            SetCurrentValue(ForegroundProperty, displayBrush);
+            
+            case AvaloniaProperty tp when tp == InlineUIContainer.ForegroundProperty:
+                //Prevent user change to hyperlink formatting
+                if (!Equals(e.NewValue, displayBrush))
+                {
+                    SetCurrentValue(ForegroundProperty, displayBrush);
+                }
+                break;
+
+            case AvaloniaProperty tp when tp == InlineUIContainer.TextDecorationsProperty:
+                //Prevent user change to hyperlink formatting
+                if (!Equals(e.NewValue, displayDecoration))
+                {
+                    SetCurrentValue(TextDecorationsProperty, displayDecoration);
+                }
+                break;
+
         }
-        else if (change.Property == TextDecorationsProperty && !Equals(change.NewValue, displayDecoration))
-        {
-            SetCurrentValue(TextDecorationsProperty, displayDecoration);
-        }
+
     }
 
     public string NavigateUri { get; set; } = "";

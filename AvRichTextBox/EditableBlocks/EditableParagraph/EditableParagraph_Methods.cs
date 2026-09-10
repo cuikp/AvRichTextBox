@@ -25,6 +25,13 @@ internal partial class EditableParagraph
                     }
                 }
 
+                //// Ensure IUC is not already in another paragraph
+                //else if (ied is EditableInlineUIContainer eUIC)
+                //{
+                //    if (p.MyFlowDoc.AllParagraphs.FirstOrDefault(alp => alp != p && alp.Inlines.Contains(ied)) is Paragraph contP && contP.Inlines.FirstOrDefault(ied=> ied is EditableInlineUIContainer) is EditableInlineUIContainer eiuc)
+                //        eiuc.SetChild(null!);
+                //}
+
                 returnInlines.Add((Inline)ied);
 
             }

@@ -239,7 +239,7 @@ public partial class FlowDocument
                     {
                         startInline.InlineText = startInline.InlineText.Insert(insertIdx, insertText);
 
-                        Undos.Add(new InsertCharUndo(Selection.StartParagraph.Id, startInline.Id, insertIdx, this, originalStart));
+                        Undos.Add(new InsertCharUndo(Selection.StartParagraph.Id, startInline.Id, insertText, insertIdx, this, originalStart));
                     }
                 }
                 catch (Exception ex) { Debug.WriteLine($"insert Error: startInlinetext = {startInline.InlineText}, idx = {insertIdx}\n{ex.Message}***"); }
@@ -284,17 +284,17 @@ public partial class FlowDocument
         int insertIdx = runIdx + 1;
         startPar.Inlines.Insert(insertIdx, newELB);
 
-        List<int> addedRuns = eruns.ConvertAll(erun => erun.Id);
+        List<int> addedRunIds = eruns.ConvertAll(erun => erun.Id);
 
         if (insertIdx == startPar.Inlines.Count - 1 || startPar.Inlines[insertIdx + 1].IsLineBreak)
         {
             EditableRun newErun = new("");
             startPar.Inlines.Insert(insertIdx + 1, newErun);
-            addedRuns.Add(newErun.Id);
+            addedRunIds.Add(newErun.Id);
         }
 
-        Undos.Add(new InsertLineBreakUndo(Selection.StartParagraph.Id, newELB.Id, addedRuns, runIdx, originalInlineClone, this, Selection.Start));
-
+        if (!disableUndoStack)
+            Undos.Add(new InsertLineBreakUndo(Selection.StartParagraph.Id, newELB.Id, addedRunIds, runIdx, originalInlineClone, this, Selection.Start));
 
         SelectionExtendMode = ExtendMode.ExtendModeNone;
 
@@ -309,6 +309,8 @@ public partial class FlowDocument
         Select(Selection.Start + 2, 0);
         Selection.BiasForwardStart = true;
         Selection.BiasForwardEnd = true;
+
+        Redos.Clear();
 
         ScrollInDirection?.Invoke(1);
 

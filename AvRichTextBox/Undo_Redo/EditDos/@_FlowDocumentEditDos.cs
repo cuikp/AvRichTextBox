@@ -1,7 +1,7 @@
 ﻿
 namespace AvRichTextBox; 
 
-internal class FlowDocumentPagePaddingChangedUndo(Thickness oldPagePadding, Thickness newPagePadding, FlowDocument flowDoc) : IEditDo
+internal class FlowDocumentPagePaddingChangedEditDo(Thickness oldPagePadding, Thickness newPagePadding, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;

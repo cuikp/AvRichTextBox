@@ -153,7 +153,7 @@ public partial class RichTextBox
         });
 
 
-        List<Block> originalRangeBlocks = destStartPar.IsCellBlock switch 
+        List<Block> originalRangeBlockClones = destStartPar.IsCellBlock switch 
         {
             true => FlowDoc.GetOverlappingParagraphsInRange(insertRange, false).ConvertAll(ob => ob.FullClone(true) as Block),
             _ => FlowDoc.GetOverlappingBlocksInRange(insertRange).ConvertAll(ob => ob.FullClone(true))
@@ -178,8 +178,10 @@ public partial class RichTextBox
         FlowDoc.disableUndoStack = true;
 
         // Get clipboard content
+        byte[] redoRtfBytes = [];
         if (!plainTextOnly && await clipboard.TryGetValueAsync(richTextFormat) is byte[] rtfbytes)
-        {            
+        {
+            redoRtfBytes = rtfbytes;
             pastedTextLength = FlowDoc.InsertRTF(rtfbytes, destStartPar, insertRange, insertParIndex, addedBlockIds);
             contentPasted = true;
         }
@@ -220,8 +222,9 @@ public partial class RichTextBox
             if (addUndo)
             {
                 FlowDoc.Undos.Add(new PasteUndo(
-                   originalRangeBlocks,
+                   destStartPar.Id,
                    insertParIndex,
+                   originalRangeBlockClones,
                    FlowDoc,
                    originalSelectionStart,
                    deleteRangeLength - pastedTextLength,

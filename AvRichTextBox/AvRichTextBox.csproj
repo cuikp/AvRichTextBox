@@ -20,14 +20,14 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>ver 1.10.3
-Fixed proper cell-to-cell caret movement in Table with multiple paragraphs
-EditableHyperlink.NavigateUri restored to public</PackageReleaseNotes>
+	  <PackageReleaseNotes>ver 1.10.4
+Added LinkOpening event to EditableHyperlink to allow custom handling
+Some initial Redos have been implemented (Deleting/Inserting/Pasting/PagePadding/programmed Block property Redos)</PackageReleaseNotes>
       
      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 	  <PackageOutputPath>D:\PROG\LocalNuget\AvRichTextBox</PackageOutputPath>
 	  
-	  <Version>1.10.3</Version>
+	  <Version>1.10.4</Version>
 	  <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
 	  
@@ -54,6 +54,10 @@ EditableHyperlink.NavigateUri restored to public</PackageReleaseNotes>
 
 	<ItemGroup>
 	  <AvaloniaResource Remove="Assets\PublicUndos.docx" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Remove="Undo_Redo\EditDos\UserEditDos\XXX_User_TextChangedUndo.cs" />
 	</ItemGroup>
 
   

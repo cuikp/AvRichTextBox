@@ -115,12 +115,10 @@ public partial class FlowDocument
                     if (indexOfLastInline <= startPar.Inlines.Count)
                         startPar.Inlines.Insert(indexOfLastInline, insertFirstInline);
                 }
-                    
-
+                
                 if (RangeEndsAtInlineEnd)
                     lastInline.InlineText = firstInlineText[firstInlineSplitIndex..];
             }
-
         }
         else
         {
@@ -234,7 +232,7 @@ public partial class FlowDocument
                 //if (startPar.Inlines.LastOrDefault(ied => !ied.IsLineBreak && startPar.StartInDoc + ied.TextPositionOfInlineInParagraph <= charIndex) is IEditable lastInline)
                 if (startPar.Inlines.LastOrDefault(ied => startPar.StartInDoc + ied.TextPositionOfInlineInParagraph <= charIndex) is IEditable lastInline)
                     startInline = lastInline;
-                IsAtLineBreak = startInline != startInlineReal;
+                IsAtLineBreak = startInline is EditableLineBreak;
             }
             return startInline;
 

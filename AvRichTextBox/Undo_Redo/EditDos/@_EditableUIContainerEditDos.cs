@@ -2,7 +2,7 @@
 
 namespace AvRichTextBox; 
 
-internal class EditableUIContainerChildUndo(int parId, int uicId, Control? oldChildClone, FlowDocument flowDoc) : IEditDo
+internal class EditableUIContainerChildEditDo(int parId, int uicId, Control? oldChild, Control? newChild, FlowDocument flowDoc) : IEditDo
 {
     public int UndoEditOffset => 0;
     public bool UpdateTextRanges => false;
@@ -14,7 +14,7 @@ internal class EditableUIContainerChildUndo(int parId, int uicId, Control? oldCh
             if (flowDoc.GetBlockFromId(parId) is Paragraph p && p.Inlines.FirstOrDefault(il=> il.Id == uicId) is EditableInlineUIContainer eIUC)
             {
                 flowDoc.disableUndoStack = true;
-                eIUC.SetChild(oldChildClone);
+                eIUC.SetChild(oldChild);
                 flowDoc.disableUndoStack = false;
             }
         }
@@ -24,6 +24,17 @@ internal class EditableUIContainerChildUndo(int parId, int uicId, Control? oldCh
 
     public void PerformRedo()
     {
+        try
+        {
+            if (flowDoc.GetBlockFromId(parId) is Paragraph p && p.Inlines.FirstOrDefault(il => il.Id == uicId) is EditableInlineUIContainer eIUC)
+            {
+                flowDoc.disableUndoStack = true;
+                eIUC.SetChild(newChild);
+                flowDoc.disableUndoStack = false;
+            }
+        }
+        catch { Debug.WriteLine($"Failed {this.GetType().Name} at uicId: {uicId}"); }
+        finally { flowDoc.disableUndoStack = false; }
     }
 }
 

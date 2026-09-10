@@ -24,6 +24,10 @@ public partial class FlowDocument
                 if (Selection.End == Selection.EndParagraph.StartInDoc)
                     Selection.End = GetNextPosition();
 
+                // Don't allow selection start to be at previous paragraph end
+                if (Selection.Start == Selection.StartParagraph.EndInDoc && !Selection.StartParagraph.IsEmptyInlineOrUICPar)
+                    Selection.Start +=1;
+
                 break;
 
             case ExtendMode.ExtendModeLeft:

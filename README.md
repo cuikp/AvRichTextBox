@@ -365,10 +365,15 @@ Fixed wrong caret position when setting `Margin` on a `Paragraph`
 Many previous public properties are now internal like they should be.  
 Direct setting of `Child` on `EditableInlineUIContainer` is prevented in favor of `SetChild()`/`GetChild()` (which are logged in the Undo list)  
 Fixed continuous typing for inline formatting change (Bold/Italic/Underline)  
+RtfDomParserAv.dll was missing in some previous packages
 
 **[ver 1.10.2] 2026/09/08**  
 Fixed some caret movement quirks.  
 
 **[ver 1.10.3] 2026/09/08**  
-Fixed proper cell-to-cell caret movement in Table with multiple paragraphs  
-EditableHyperlink.NavigateUri restored to public  
+Fixed proper cell-to-cell caret movement in `Table` with multiple paragraphs  
+`EditableHyperlink.NavigateUri` restored to public  
+
+**[ver 1.10.4] 2026/09/10**  
+Added `LinkOpening` event to `EditableHyperlink` to allow custom handling  
+Some initial Redos have been implemented (Deleting/Inserting/Pasting/PagePadding/programmed `Block` property Redos)  

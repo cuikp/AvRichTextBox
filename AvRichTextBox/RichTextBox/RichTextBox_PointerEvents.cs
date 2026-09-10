@@ -97,9 +97,9 @@ public partial class RichTextBox
         // Hyperlink mouse down processing
         if (HyperlinkClickable)
         {
-            EditableHyperlink thisHyperlink = currentMouseOverEdPar.CurrentOverHyperlink;
-            var psi = new ProcessStartInfo { FileName = currentMouseOverEdPar.CurrentOverHyperlink.NavigateUri, UseShellExecute = true };
-            Process.Start(psi);
+            if (currentMouseOverEdPar.CurrentOverHyperlink is EditableHyperlink thisHyperlink)
+                thisHyperlink.OpenLink();
+            
             return;
         }
 

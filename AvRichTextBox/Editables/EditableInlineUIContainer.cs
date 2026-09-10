@@ -24,7 +24,7 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
         _internalChildChange = true;
 
         if (MyFlowDoc != null && !MyFlowDoc.disableUndoStack)
-            MyFlowDoc.Undos.Add(new EditableUIContainerChildUndo(this.MyParagraphId, this.Id, GetChild(), MyFlowDoc));
+            MyFlowDoc.Undos.Add(new EditableUIContainerChildEditDo(this.MyParagraphId, this.Id, GetChild(), control, MyFlowDoc));
 
         base.Child = control!;
 
@@ -39,6 +39,8 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
 
     private void EditableInlineUIContainer_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
+        base.OnPropertyChanged(e);
+
         //Debug.WriteLine($"ieditableUICont {e.Property.Name} set");
 
         switch (e.Property)
@@ -150,10 +152,27 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
             IsTableCellInline = this.IsTableCellInline,
         };
 
+        // create new cloned Image if necessary
+        if (this.GetChild() is Image img)
+        {
+            Image newImg = new()
+            {
+                ClipToBounds = img.ClipToBounds,
+                HorizontalAlignment = img.HorizontalAlignment,
+                Focusable = img.Focusable,
+                Margin=img.Margin,
+                Tag = img.Tag,
+                Source = img.Source,
+                Width = img.Width,
+                Height = img.Height
+            };
+            eIUC.SetChild(newImg);
+        }
+
         MyFlowDoc.disableUndoStack = false;
 
         return eIUC;
-        
+
     }
 
     public IEditable CloneWithId()

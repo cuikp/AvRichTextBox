@@ -1,6 +1,5 @@
 ﻿using Avalonia.Media;
 using Avalonia.Media.TextFormatting;
-using DocumentFormat.OpenXml.Drawing.Charts;
 using DynamicData;
 using System.Collections.ObjectModel;
 

@@ -26,7 +26,7 @@ public partial class FlowDocument
                 if (Selection.GetStartPar() is Paragraph p)
                     Selection.StartParagraph = p;
 
-                Selection.BiasForwardStart = Selection.Start == Selection.StartParagraph.StartInDoc;
+                Selection.BiasForwardStart = (Selection.Start == Selection.StartParagraph.StartInDoc || Selection.StartInline is IEditable ied && ied.NextInline is EditableLineBreak);
                 Selection.BiasForwardEnd = Selection.BiasForwardStart;
 
                 break;
@@ -275,6 +275,7 @@ public partial class FlowDocument
 
         Selection.BiasForwardStart = true;
         Selection.BiasForwardEnd = true;
+        Selection.IsAtEndOfLineSpace = false;
 
         if (Selection.StartParagraph.TextLength == 0) return;
 
@@ -314,10 +315,13 @@ public partial class FlowDocument
 
         ScrollInDirection?.Invoke(1);
 
-        Selection.BiasForwardStart = false;
-        Selection.BiasForwardEnd = Selection.BiasForwardStart;
+        //InvokeSelectionChanged();
 
-        Selection.IsAtEndOfLineSpace = false;
+        //Selection.BiasForwardStart = false;
+        //Selection.BiasForwardEnd = Selection.BiasForwardStart;
+        //Selection.StartParagraph = Selection.GetStartPar()!;
+
+        //Selection.IsAtEndOfLineSpace = false;
                 
     }
 

@@ -12,6 +12,7 @@ public class Block : INotifyPropertyChanged
     internal void NotifyPropertyChanged([CallerMemberName] String propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
     internal int Id = 0;
+    public int GetID => Id;
 
     internal bool IsTableCellBlock = false;
     internal Table OwningTable = null!;
@@ -44,7 +45,7 @@ public class Block : INotifyPropertyChanged
             field = value;
 
             if (!MyFlowDoc.disableUndoStack)
-                MyFlowDoc.Undos.Add(new BlockMarginChangedUndo(this.Id, oldMargin, MyFlowDoc));
+                MyFlowDoc.Undos.Add(new BlockMarginChangedUndo(this.Id, oldMargin, value, MyFlowDoc));
 
             NotifyPropertyChanged(nameof(Margin));
 
@@ -66,7 +67,7 @@ public class Block : INotifyPropertyChanged
             if (!IsAttachedToDocument) return;
 
             if (!MyFlowDoc.disableUndoStack)
-                MyFlowDoc.Undos.Add(new BlockBorderBrushChangedUndo(this.Id, oldBrush, MyFlowDoc));
+                MyFlowDoc.Undos.Add(new BlockBorderBrushChangedUndo(this.Id, oldBrush, value, MyFlowDoc));
 
             NotifyPropertyChanged(nameof(BorderBrush));
         }
@@ -83,7 +84,7 @@ public class Block : INotifyPropertyChanged
             if (!IsAttachedToDocument) return;
 
             if (!MyFlowDoc.disableUndoStack)
-                MyFlowDoc.Undos.Add(new BlockBorderThicknessChangedUndo(this.Id, oldThickness, MyFlowDoc));
+                MyFlowDoc.Undos.Add(new BlockBorderThicknessChangedUndo(this.Id, oldThickness, value, MyFlowDoc));
 
             if (this is Table t)
                 t.UpdateColAndRowPoints();
@@ -104,7 +105,7 @@ public class Block : INotifyPropertyChanged
 
 
             if (!MyFlowDoc.disableUndoStack)
-                MyFlowDoc.Undos.Add(new BlockBackgroundChangedUndo(this.Id, oldBrush, MyFlowDoc));
+                MyFlowDoc.Undos.Add(new BlockBackgroundChangedUndo(this.Id, oldBrush, value, MyFlowDoc));
 
             NotifyPropertyChanged(nameof(Background)); 
         } 
@@ -122,7 +123,7 @@ public class Block : INotifyPropertyChanged
             if (!IsAttachedToDocument) return;
 
             if (!MyFlowDoc.disableUndoStack)
-                MyFlowDoc.Undos.Add(new BlockFontFamilyChangedUndo(this.Id, oldFontFamily, MyFlowDoc));
+                MyFlowDoc.Undos.Add(new BlockFontFamilyChangedUndo(this.Id, oldFontFamily, value, MyFlowDoc));
 
             NotifyPropertyChanged(nameof(FontFamily)); 
         } 
@@ -138,7 +139,7 @@ public class Block : INotifyPropertyChanged
             field = value;
 
             if (!MyFlowDoc.disableUndoStack)
-                MyFlowDoc.Undos.Add(new BlockFontSizeChangedUndo(this.Id, oldFontSize, MyFlowDoc));
+                MyFlowDoc.Undos.Add(new BlockFontSizeChangedUndo(this.Id, oldFontSize, value, MyFlowDoc));
 
             NotifyPropertyChanged(nameof(FontSize)); 
         } 
@@ -155,7 +156,7 @@ public class Block : INotifyPropertyChanged
             if (!IsAttachedToDocument) return;
 
             if (!MyFlowDoc.disableUndoStack)
-                MyFlowDoc.Undos.Add(new BlockFontWeightChangedUndo(this.Id, oldFontWeight, MyFlowDoc));
+                MyFlowDoc.Undos.Add(new BlockFontWeightChangedUndo(this.Id, oldFontWeight, value, MyFlowDoc));
 
             NotifyPropertyChanged(nameof(FontWeight)); 
         } 
@@ -170,7 +171,7 @@ public class Block : INotifyPropertyChanged
             field = value;
 
             if (!MyFlowDoc.disableUndoStack)
-                MyFlowDoc.Undos.Add(new BlockFontStyleChangedUndo(this.Id, oldFontStyle, MyFlowDoc));
+                MyFlowDoc.Undos.Add(new BlockFontStyleChangedUndo(this.Id, oldFontStyle, value, MyFlowDoc));
 
             NotifyPropertyChanged(nameof(FontStyle)); 
         } 

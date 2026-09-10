@@ -60,6 +60,7 @@
 						<DockPanel DockPanel.Dock="Top" Background="AliceBlue">
 							<TextBlock DockPanel.Dock="Left" Text="{Binding Inlines.Count, StringFormat='Inlines={0}'}"/>
 							<TextBlock Margin="20, 0, 0, 0" Text="{Binding StartInDoc, StringFormat='ParStartIdxInDoc={0}'}" ToolTip.Tip="{Binding ParToolTip}" />
+							<TextBlock Margin="10, 0, 0, 0" Text="{Binding GetID, StringFormat='BlockID={0}'}" />
 						</DockPanel>
 
 

@@ -18,14 +18,13 @@ internal class HyperlinkParagraphUndo : IEditDo
     private readonly int parIndex;
     private readonly FlowDocument flowDoc;
     private readonly int origSelectionStart;
-    private readonly bool firstOrLastParWasDeleted;
     private readonly bool firstParWasDeleted;
     private readonly bool lastParWasDeleted;
 
     public int UndoEditOffset { get; }
-    // UpdateTextRanges is handled inside PerformUndo via Dispatcher.UIThread.Post;
-    // returning false prevents Undo() from issuing a second, conflicting UpdateTextRanges call.
     public bool UpdateTextRanges => false;
+    
+    int lengthBefore = 0;
 
     internal HyperlinkParagraphUndo(
        List<Block> blockClones,
@@ -51,27 +50,48 @@ internal class HyperlinkParagraphUndo : IEditDo
         try
         {
             flowDoc.disableRunTextUndo = true;
+            flowDoc.disableUndoStack = true;
+            lengthBefore = flowDoc.Text.Length;
 
-            int lengthBefore = flowDoc.Text.Length;
-            flowDoc.RestoreDeletedBlocks(blockClones, parIndex, firstParWasDeleted, lastParWasDeleted, flowDoc.Blocks, parIndex); //$$$$$$$$$$$$$$$$$
-            flowDoc.disableRunTextUndo = false;
-            int lengthAfter = flowDoc.Text.Length;
-            flowDoc.UpdateTextRanges(blockClones[0].StartInDoc, lengthAfter - lengthBefore);
+            flowDoc.RestoreDeletedBlocks(blockClones, parIndex, firstParWasDeleted, lastParWasDeleted, flowDoc.Blocks, parIndex); 
 
-            Dispatcher.UIThread.Post(() =>
-            {
-                flowDoc.Selection.Start = origSelectionStart;
-                flowDoc.Selection.End = origSelectionStart;
-                flowDoc.UpdateSelection();
-            });
+            PostUpdate();
+
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at parIndex: " + parIndex); }
     }
 
     public void PerformRedo()
     {
+        try
+        {
+            flowDoc.disableRunTextUndo = true;
+            flowDoc.disableUndoStack = true;
+            lengthBefore = flowDoc.Text.Length;
+
+            //flowDoc.RestoreDeletedBlocks(blockClones, parIndex, firstParWasDeleted, lastParWasDeleted, flowDoc.Blocks, parIndex);
+
+            PostUpdate();
+
+        }
+        catch { Debug.WriteLine($"Failed {this.GetType().Name} at parIndex: " + parIndex); }
     }
 
+    private void PostUpdate()
+    {
+        flowDoc.disableRunTextUndo = false;
+        flowDoc.disableUndoStack = false;
+
+        flowDoc.UpdateTextRanges(blockClones[0].StartInDoc, flowDoc.Text.Length - lengthBefore);
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            flowDoc.Selection.Start = origSelectionStart;
+            flowDoc.Selection.End = origSelectionStart;
+            flowDoc.UpdateSelection();
+        });
+
+    }
 }
 
 

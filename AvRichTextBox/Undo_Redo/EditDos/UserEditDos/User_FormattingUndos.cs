@@ -1,23 +1,22 @@
 ﻿using Avalonia.Threading;
-using DynamicData;
-using System.Collections.ObjectModel;
 
 namespace AvRichTextBox; 
-
 
 internal class InsertNewFormattedTextUndo(int parId, EditableRun removedRunClone, (int leftId, int rightId) edgeIds, int addedRunId, int deletedRunIdx, FlowDocument flowDoc, int origSelectionStart) : IEditDo
 {
     public int UndoEditOffset => 1;
     public bool UpdateTextRanges => true;
+    int thisParLengthBefore = 0;
 
     public void PerformUndo()
     {
         try
         {
             flowDoc.disableRunTextUndo = true;
+
             if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == parId) is not Paragraph thisPar) return;
 
-            int thisParLengthBefore = thisPar.TextLength;
+            thisParLengthBefore = thisPar.TextLength;
 
             if (thisPar.Inlines.FirstOrDefault(il => il.Id == edgeIds.leftId) is EditableRun leftRun)
                 thisPar.Inlines.Remove(leftRun);
@@ -28,25 +27,51 @@ internal class InsertNewFormattedTextUndo(int parId, EditableRun removedRunClone
 
             thisPar.Inlines.Insert(deletedRunIdx, removedRunClone);
 
-            flowDoc.disableRunTextUndo = false;
 
-            int thisParLengthAfter = thisPar.TextLength;
+            PostUpdate(thisPar);
 
-            thisPar.CallRequestInlinesUpdate();
-            flowDoc.UpdateBlockAndInlineStarts(thisPar);
-            flowDoc.UpdateTextRanges(thisPar.StartInDoc, thisParLengthAfter - thisParLengthBefore);
-
-
-            flowDoc.Selection.Start = origSelectionStart;
-            flowDoc.Selection.End = flowDoc.Selection.Start;
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at delete pos: {origSelectionStart}"); }
     }
 
     public void PerformRedo()
     {
+        try
+        {
+            flowDoc.disableRunTextUndo = true;
+
+            if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == parId) is not Paragraph thisPar) return;
+
+            thisParLengthBefore = thisPar.TextLength;
+
+
+            //if (thisPar.Inlines.FirstOrDefault(il => il.Id == edgeIds.leftId) is EditableRun leftRun)
+            //    thisPar.Inlines.Remove(leftRun);
+            //if (thisPar.Inlines.FirstOrDefault(il => il.Id == edgeIds.rightId) is EditableRun rightRun)
+            //    thisPar.Inlines.Remove(rightRun);
+            //if (thisPar.Inlines.FirstOrDefault(il => il.Id == addedRunId) is EditableRun addedRun)
+            //    thisPar.Inlines.Remove(addedRun);
+
+            //thisPar.Inlines.Insert(deletedRunIdx, removedRunClone);
+
+            PostUpdate(thisPar);
+
+        }
+        catch { Debug.WriteLine($"Failed {this.GetType().Name} at delete pos: {origSelectionStart}"); }
     }
 
+    private void PostUpdate(Paragraph thisPar)
+    {
+        flowDoc.disableRunTextUndo = false;
+
+        thisPar.CallRequestInlinesUpdate();
+        flowDoc.UpdateBlockAndInlineStarts(thisPar);
+        flowDoc.UpdateTextRanges(thisPar.StartInDoc, thisPar.TextLength - thisParLengthBefore);
+
+
+        flowDoc.Selection.Start = origSelectionStart;
+        flowDoc.Selection.End = flowDoc.Selection.Start;
+    }
 }
 
 
@@ -133,6 +158,7 @@ internal class ApplyFormattingUndo(FlowDocument flowDoc, List<EditablePropertyAs
 
     public void PerformRedo()
     {
+
     }
 
 }

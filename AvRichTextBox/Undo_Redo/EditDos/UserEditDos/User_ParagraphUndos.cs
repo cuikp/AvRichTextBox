@@ -17,12 +17,15 @@ internal class InsertParagraphUndo(
 
     public int UndoEditOffset => undoEditOffset;
     public bool UpdateTextRanges => true;
+    int updateBlockIdx = 0;
 
     public void PerformUndo()
     {
         try
         {
-            int blockIdx = 0;
+            flowDoc.disableUndoStack = true;
+
+            updateBlockIdx = 0;
             if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == insertedParId) is not Paragraph insertedPar) return;
             if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == origParId) is not Paragraph origPar) return;
             origPar.Inlines.Clear();
@@ -33,37 +36,70 @@ internal class InsertParagraphUndo(
                 if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == containingTableId) is not Table containingTable) return;
                 if (containingTable.Cells.FirstOrDefault(cell => cell.Id == containingCellId) is not Cell containingCell) return;
 
-                blockIdx = flowDoc.Blocks.IndexOf(containingTable);
+                updateBlockIdx = flowDoc.Blocks.IndexOf(containingTable);
                 containingCell.CellBlocks.Remove(insertedPar);
             }
             else
             {
-                //int lengthBefore = flowDoc.Text.Length;
-                blockIdx = flowDoc.Blocks.IndexOf(origPar);
+                updateBlockIdx = flowDoc.Blocks.IndexOf(origPar);
                 flowDoc.Blocks.Remove(insertedPar);
             }
 
-            flowDoc.UpdateBlockAndInlineStarts(blockIdx);
-
-            flowDoc.UpdateTextRanges(origSelectionStart, -undoEditOffset);
-
-            Dispatcher.UIThread.Post(() =>
-            {
-                origPar.CallRequestInlinesUpdate();
-                flowDoc.Selection.Start = origSelectionStart;
-                flowDoc.Selection.End = flowDoc.Selection.Start;
-                flowDoc.InvokeSelectionChanged();
-            });
-
+            PostUpdate(origPar, -undoEditOffset);
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at Inserted par id: {insertedParId}"); }
-
+        finally { flowDoc.disableUndoStack = false; }
     }
 
     public void PerformRedo()
     {
+        try
+        {
+            flowDoc.disableUndoStack = true;
+
+            updateBlockIdx = 0;
+            //if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == insertedParId) is not Paragraph insertedPar) return;
+            //if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == origParId) is not Paragraph origPar) return;
+            //origPar.Inlines.Clear();
+            //origPar.Inlines.AddRange(keepParInlines);
+
+            if (IsCellParagraph)
+            {
+                if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == containingTableId) is not Table containingTable) return;
+                if (containingTable.Cells.FirstOrDefault(cell => cell.Id == containingCellId) is not Cell containingCell) return;
+
+                updateBlockIdx = flowDoc.Blocks.IndexOf(containingTable);
+                //containingCell.CellBlocks.Insert(insertedPar);
+            }
+            else
+            {
+            //    updateBlockIdx = flowDoc.Blocks.IndexOf(origPar);
+                //flowDoc.Blocks.Insert(insertedPar);
+            }
+
+            //PostUpdate(origPar, undoEditOffset);
+        }
+        catch { Debug.WriteLine($"Failed {this.GetType().Name} at Redo Inserted par id: {insertedParId}"); }
+        finally { flowDoc.disableUndoStack = false; }
     }
 
+    private void PostUpdate(Paragraph origPar, int offset)
+    {
+        flowDoc.disableUndoStack = false;
+
+        flowDoc.UpdateBlockAndInlineStarts(updateBlockIdx);
+
+        flowDoc.UpdateTextRanges(origSelectionStart, offset);
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            origPar.CallRequestInlinesUpdate();
+            flowDoc.Selection.Start = origSelectionStart;
+            flowDoc.Selection.End = flowDoc.Selection.Start;
+            flowDoc.InvokeSelectionChanged();
+        });
+
+    }
 }
 
 internal class AddParagraphUndo(FlowDocument flowDoc, int addedParId, int origSelectionStart, bool IsCellParagraph, int containingTableId, int containingCellId) : IEditDo
