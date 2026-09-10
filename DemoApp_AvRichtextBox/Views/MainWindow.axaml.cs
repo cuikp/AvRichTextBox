@@ -161,8 +161,8 @@ public partial class MainWindow : Window
         });
 
         //Merge cells
-        newTable.MergeCellsRight(1, 1, 1);
-        newTable.MergeCellsDown(1, 3, 1);
+        newTable.MergeCellsRight(rowNo: 1, colNo: 1, numberCellsToMerge: 1);
+        newTable.MergeCellsDown(rowNo: 1, colNo: 3, numberCellsToMerge: 1);
 
         //newTable.InsertColumns(0, 1);
 

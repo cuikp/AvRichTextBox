@@ -28,14 +28,9 @@ classDiagram
         +Paragraph
         +Table
     }
-    class Paragraph{
-        +IEditable Objects
-        +EditableParagraph
-    }
     
     class Paragraph{
         +IEditable Objects
-        +EditableParagraph
     }
     class IEditable{
         +EditableRun
@@ -79,7 +74,7 @@ classDiagram
 
 ```
 
-**A Debugging panel can be displayed in Debug mode by setting "ShowDebuggerPanelInDebugMode" to True.  The panel displays Inline debugging information - Inline starts, paragraph starts, inline texts, and indicates the inlines of the Selection start and end by background color coding.  The Debugger panel is not shown or active in Release mode**
+**A Debugging panel can be displayed in Debug mode by setting "ShowDebuggerPanelInDebugMode" to True.  The panel displays Inline debugging information - Inline starts, paragraph starts, inline texts, and indicates the inlines of the Selection start and end by background color coding.  No Debugger panel is created or shown in Release mode**
 
 The RichTextBox has the usual key functions:
 * <kbd>Ctrl</kbd>+<kbd>B</kbd> for **bold**/unbold
@@ -140,11 +135,16 @@ Programmatically, content can be added by adding Paragraph/Table objects to Flow
         }
 
         //Merge cells
-        newTable.GetCellAt(1, 0)?.ColSpan = 2;
-        newTable.RemoveCellAt(1, 1);
-        newTable.GetCellAt(2, 3)?.RowSpan = 2;
-        newTable.RemoveCellAt(3, 3);
-    
+        newTable.MergeCellsRight(rowNo: 1, colNo: 1, numberCellsToMerge: 1);
+        newTable.MergeCellsDown(rowNo: 1, colNo: 3, numberCellsToMerge: 1);
+
+
+        //Add a leftmost column
+        newTable.InsertColumns(0, 1);
+
+        //Add a row before third row 
+        newTable.InsertRows(2, 1);
+           
         AvRTB.FlowDocument.Blocks.Add(newTable);
         
         Paragraph newPar = new(AvRTB.FlowDocument);
