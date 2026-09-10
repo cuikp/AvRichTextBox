@@ -30,7 +30,7 @@ classDiagram
     }
     
     class Paragraph{
-        +IEditable Objects
+        +IEditable Inlines
     }
     class IEditable{
         +EditableRun
