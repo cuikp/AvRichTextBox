@@ -13,8 +13,7 @@ internal class DeleteCharUndo(int parId, int runId, int origRunIdx, char deleteC
         {
             if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == parId) is not Paragraph thisPar) return;
 
-            flowDoc.disableUndoStack = true;
-            flowDoc.disableRunTextUndo = true;
+            DisableUndoStack =  true;
 
             if (thisPar.Inlines.FirstOrDefault(r => r.Id == runId) is EditableRun thisRun)
                 thisRun.Text = thisRun.Text!.Insert(deletePos, $"{deleteChar}");
@@ -24,14 +23,11 @@ internal class DeleteCharUndo(int parId, int runId, int origRunIdx, char deleteC
                 thisPar.Inlines.Insert(origRunIdx, restoreRun);
             }
 
-            flowDoc.disableRunTextUndo = false;
-            flowDoc.disableUndoStack = false;
-
             PostUpdate(thisPar);
 
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at delete pos: {deletePos}"); }
-        finally { flowDoc.disableUndoStack = false;}
+        finally { DisableUndoStack =  false;}
     }
 
     public void PerformRedo()
@@ -40,8 +36,7 @@ internal class DeleteCharUndo(int parId, int runId, int origRunIdx, char deleteC
         {
             if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == parId) is not Paragraph thisPar) return;
 
-            flowDoc.disableRunTextUndo = true;
-            flowDoc.disableUndoStack = true;
+            DisableUndoStack =  true;
 
             if (thisPar.Inlines.FirstOrDefault(r => r.Id == runId) is EditableRun thisRun)
             {
@@ -50,18 +45,17 @@ internal class DeleteCharUndo(int parId, int runId, int origRunIdx, char deleteC
                     thisPar.Inlines.Remove(thisRun);
             }
 
-            flowDoc.disableRunTextUndo = false;
-            flowDoc.disableUndoStack = false;
-
             PostUpdate(thisPar);
 
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at restore pos: {deletePos}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 
     private void PostUpdate(Paragraph thisPar)
     {
+        DisableUndoStack = false;
+
         thisPar.CallRequestInlinesUpdate();
 
         flowDoc.UpdateBlockAndInlineStarts(thisPar);
@@ -85,7 +79,7 @@ internal class DeleteImageUndo(int parId, IEditable deletedIUC, int deletedInlin
     {
         try
         {
-            flowDoc.disableUndoStack = true;
+            DisableUndoStack =  true;
             if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == parId) is not Paragraph thisPar) return;
             if (emptyRunAdded)
                 thisPar.Inlines.RemoveAt(deletedInlineIdx);
@@ -93,11 +87,11 @@ internal class DeleteImageUndo(int parId, IEditable deletedIUC, int deletedInlin
 
             PostUpdate(thisPar);
 
-            flowDoc.disableUndoStack = false;
+            DisableUndoStack =  false;
 
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at delete pos: {origSelectionStart}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
 
     }
 
@@ -105,7 +99,7 @@ internal class DeleteImageUndo(int parId, IEditable deletedIUC, int deletedInlin
     {
         try
         {
-            flowDoc.disableUndoStack = true;
+            DisableUndoStack =  true;
             if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == parId) is not Paragraph thisPar) return;
 
             thisPar.Inlines.Remove(deletedIUC);
@@ -116,10 +110,10 @@ internal class DeleteImageUndo(int parId, IEditable deletedIUC, int deletedInlin
             }
 
             PostUpdate(thisPar);
-            flowDoc.disableUndoStack = false;
+            DisableUndoStack =  false;
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at restore pos: {origSelectionStart}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 
     private void PostUpdate(Paragraph thisPar)
@@ -147,7 +141,7 @@ internal class DeleteRunUndo(int parId, EditableRun removedRunClone, int deleted
     {
         try
         {
-            flowDoc.disableUndoStack = true;
+            DisableUndoStack =  true;
             if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == parId) is not Paragraph thisPar) return;
 
             int thisParLengthBefore = thisPar.TextLength;
@@ -159,17 +153,17 @@ internal class DeleteRunUndo(int parId, EditableRun removedRunClone, int deleted
 
             PostUpdate(thisPar);
 
-            flowDoc.disableUndoStack = false;
+            DisableUndoStack =  false;
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at delete pos: {origSelectionStart}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 
     public void PerformRedo()
     {
         try
         {
-            flowDoc.disableUndoStack = true;
+            DisableUndoStack =  true;
             if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == parId) is not Paragraph thisPar) return;
 
             int thisParLengthBefore = thisPar.TextLength;
@@ -181,10 +175,10 @@ internal class DeleteRunUndo(int parId, EditableRun removedRunClone, int deleted
 
             PostUpdate(thisPar);
 
-            flowDoc.disableUndoStack = false;
+            DisableUndoStack =  false;
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at delete pos: {origSelectionStart}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 
     private void PostUpdate(Paragraph thisPar)
@@ -207,14 +201,14 @@ internal class DeleteLineBreakUndo(int parId, ((Type t1, int id1), (Type t2, int
     public int UndoEditOffset => -1;
     public bool UpdateTextRanges => true;
     int textChangeLen = 0;
-
+    List<int> addedInlineIds = [];
+    
     public void PerformUndo()
     {
         if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == parId) is not Paragraph thisPar) return;
         int thisParLengthBefore = thisPar.TextLength;
 
-        flowDoc.disableRunTextUndo = true;
-        flowDoc.disableUndoStack = true;
+        DisableUndoStack =  true;
 
         IEditable addIED1 = null!;
         if (types.Item1.t1 == typeof(EditableRun))
@@ -224,7 +218,7 @@ internal class DeleteLineBreakUndo(int parId, ((Type t1, int id1), (Type t2, int
         addIED1.Id = types.Item1.id1;
 
         thisPar.Inlines.Insert(lineBreakIdx, addIED1);
-
+        addedInlineIds.Add(addIED1.Id);
 
         if (types.Item2.t2 != null)
         {
@@ -235,14 +229,14 @@ internal class DeleteLineBreakUndo(int parId, ((Type t1, int id1), (Type t2, int
                 addIED2 = new EditableLineBreak();
             addIED2.Id = types.Item2.id2;
             thisPar.Inlines.Insert(lineBreakIdx + 1, addIED2);
+            addedInlineIds.Add(addIED2.Id);
         }
 
         textChangeLen = thisPar.TextLength - thisParLengthBefore;
 
         PostUpdate(thisPar);
 
-        flowDoc.disableRunTextUndo = false;
-        flowDoc.disableUndoStack = false;
+        DisableUndoStack =  false;
     }
 
     public void PerformRedo()
@@ -251,9 +245,13 @@ internal class DeleteLineBreakUndo(int parId, ((Type t1, int id1), (Type t2, int
         if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == parId) is not Paragraph thisPar) return;
         int thisParLengthBefore = thisPar.TextLength;
 
-        flowDoc.disableRunTextUndo = true;
-        flowDoc.disableUndoStack = true;
+        DisableUndoStack =  true;
                 
+        if (thisPar.Inlines.FirstOrDefault(il=> il.Id == types.Item1.id1) is EditableLineBreak elb)
+        {
+            thisPar.Inlines.Remove(elb);
+        }
+
         if (deleteNext)
         {
             IEditable nextIEd = null!;
@@ -267,20 +265,22 @@ internal class DeleteLineBreakUndo(int parId, ((Type t1, int id1), (Type t2, int
         else if (startLineIsEmpty)
             thisPar.Inlines.RemoveAt(lineBreakIdx);
 
-        IEditable addLineBreak = new EditableLineBreak() { Id = types.Item1.id1 };
-        thisPar.Inlines.Remove(addLineBreak);
+        foreach (int addedId in addedInlineIds)
+        {
+            if (thisPar.Inlines.FirstOrDefault(il => il.Id == addedId) is IEditable ied)
+                thisPar.Inlines.Remove(ied);
+        }
 
         textChangeLen = thisPar.TextLength - thisParLengthBefore;
 
         PostUpdate(thisPar);
 
-        flowDoc.disableRunTextUndo = false;
-        flowDoc.disableUndoStack = false;
+        DisableUndoStack = false;
     }
 
     private void PostUpdate(Paragraph thisPar)
-    {
-       
+    {        
+
         thisPar.CallRequestInlinesUpdate();
         flowDoc.UpdateBlockAndInlineStarts(thisPar);
         flowDoc.UpdateTextRanges(thisPar.StartInDoc, textChangeLen);
@@ -316,8 +316,7 @@ internal class DeleteRangeUndo(
     {
         try
         {
-            flowDoc.disableRunTextUndo = true;
-            flowDoc.disableUndoStack = true;
+            DisableUndoStack =  true;
             lengthBefore = flowDoc.Text.Length;  // optimize by getting flowDoc.Blocks.Last().StartInDoc + lastPar.BlockLength instead of calculating entire flowdoc text length
 
             //Cell? containingCell = null;
@@ -339,13 +338,12 @@ internal class DeleteRangeUndo(
 
         }
         catch (Exception ex) { Debug.WriteLine($"Failed {this.GetType().Name} at Par index: {startBlockIndex}\n{ex.Message}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 
     public void PerformRedo()
     {
-        flowDoc.disableRunTextUndo = true;
-        flowDoc.disableUndoStack = true;
+        DisableUndoStack =  true;
         lengthBefore = flowDoc.Text.Length;  // optimize by getting flowDoc.Blocks.Last().StartInDoc + lastPar.BlockLength instead of calculating entire flowdoc text length
 
         keptBlockClones = keptBlockClones.ConvertAll(kpc => kpc.FullClone(true));
@@ -364,9 +362,7 @@ internal class DeleteRangeUndo(
 
     private void PostUpdate()
     {
-        flowDoc.disableRunTextUndo = false;
-        flowDoc.disableUndoStack = false;
-
+        DisableUndoStack =  false;
 
         changedTextLength = flowDoc.Text.Length - lengthBefore; // optimize by getting from lastPar.StartInDoc + lastPar.BlockLength instead of calculating entire flowdoc text length
 

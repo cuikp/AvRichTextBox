@@ -155,11 +155,11 @@ internal static partial class HtmlConversions
          {
             case EditableHyperlink elink:
                {
-                  if (!string.IsNullOrEmpty(elink.Text))
+                  if (!string.IsNullOrEmpty(elink.LinkDisplayText))
                   {
                      var aNode = hdoc.CreateElement("a");
                      aNode.SetAttributeValue("href", elink.NavigateUri);
-                     aNode.InnerHtml = WebUtility.HtmlEncode(elink.Text ?? "");
+                     aNode.InnerHtml = WebUtility.HtmlEncode(elink.LinkDisplayText ?? "");
                      aNode.SetAttributeValue("style", GetInlineStyle(elink));
                      parnode.AppendChild(aNode);
                      hasContent = true;

@@ -62,7 +62,7 @@ internal static partial class HtmlConversions
 
     private static Table GetTableFromNode(HtmlNode tableNode, FlowDocument fdoc)
     {
-        Table newTable = new(fdoc);
+        Table newTable = new();
 
         int noCols = 0;
         var colNodes = tableNode.SelectNodes("./colgroup/col");
@@ -128,7 +128,7 @@ internal static partial class HtmlConversions
                 }
 
 
-                var newCell = new Cell(newTable)
+                var newCell = new Cell()
                 {
                     RowNo = rowNo,
                     ColNo = colNo,
@@ -187,7 +187,7 @@ internal static partial class HtmlConversions
                     newCell.CellBlocks.Add(p);
                 }
                 else
-                    newCell.CellBlocks.Add(new Paragraph(fdoc));
+                    newCell.CellBlocks.Add(new Paragraph());
 
                 newTable.Cells.Add(newCell);
 
@@ -582,7 +582,7 @@ internal static partial class HtmlConversions
 
     private static Paragraph GetParagraphFromNode(HtmlNode childNode, FlowDocument fdoc)
     {
-        Paragraph par = new(fdoc);
+        Paragraph par = new();
 
         if (!IsHtmlEmptyParagraph(childNode))
         {

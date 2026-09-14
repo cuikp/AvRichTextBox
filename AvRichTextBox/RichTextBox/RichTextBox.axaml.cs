@@ -24,7 +24,7 @@ public partial class RichTextBox : UserControl
     public RichTextBox()
     {
         InitializeComponent();
-
+                
         this.PropertyChanged += RichTextBox_PropertyChanged;
         this.Loaded += RichTextBox_Loaded;
         this.Initialized += RichTextBox_Initialized;
@@ -102,7 +102,7 @@ public partial class RichTextBox : UserControl
         SelectionPath.Fill = this.SelectionBrush;
         UpdateSelectionIndicators();
 
-        FlowDoc.disableUndoStack = false;
+        DisableUndoStack =  false;
 
     }
 

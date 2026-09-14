@@ -14,8 +14,7 @@ internal class InsertCharUndo(int parId, int runId, string insertedText, int ins
             if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == parId) is not Paragraph thisPar) return;
             if (thisPar.Inlines.FirstOrDefault(r => r.Id == runId) is not EditableRun thisRun) return;
 
-            flowDoc.disableUndoStack = true;
-            flowDoc.disableRunTextUndo = true;
+            DisableUndoStack =  true;
 
             thisRun.Text = thisRun.Text!.Remove(insertPos, 1);
 
@@ -23,7 +22,7 @@ internal class InsertCharUndo(int parId, int runId, string insertedText, int ins
 
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at runId: {runId}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 
     public void PerformRedo()
@@ -33,8 +32,7 @@ internal class InsertCharUndo(int parId, int runId, string insertedText, int ins
             if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == parId) is not Paragraph thisPar) return;
             if (thisPar.Inlines.FirstOrDefault(r => r.Id == runId) is not EditableRun thisRun) return;
 
-            flowDoc.disableUndoStack = true;
-            flowDoc.disableRunTextUndo = true;
+            DisableUndoStack =  true;
 
             thisRun.Text = thisRun.Text!.Insert(insertPos, insertedText);
 
@@ -42,13 +40,12 @@ internal class InsertCharUndo(int parId, int runId, string insertedText, int ins
 
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at runId: {runId}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 
     public void PostUpdate(Paragraph thisPar, int setCaretPos)
     {
-        flowDoc.disableRunTextUndo = false;
-        flowDoc.disableUndoStack = false;
+        DisableUndoStack =  false;
 
         thisPar.CallRequestInlinesUpdate();
         flowDoc.UpdateBlockAndInlineStarts(thisPar);
@@ -76,8 +73,7 @@ internal class InsertLineBreakUndo(int insertParId, int insertedLBId, List<int> 
     {
         try
         {
-            flowDoc.disableRunTextUndo = true;
-            flowDoc.disableUndoStack = true;
+            DisableUndoStack =  true;
 
             if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == insertParId) is not Paragraph thisPar) return;
             thisParLengthBefore = thisPar.TextLength;
@@ -98,14 +94,13 @@ internal class InsertLineBreakUndo(int insertParId, int insertedLBId, List<int> 
      
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
 
     }
 
     public void PerformRedo()
     {
-        flowDoc.disableRunTextUndo = true;
-        flowDoc.disableUndoStack = true;
+        DisableUndoStack =  true;
 
         try
         {
@@ -136,14 +131,13 @@ internal class InsertLineBreakUndo(int insertParId, int insertedLBId, List<int> 
         }
 
         catch { Debug.WriteLine($"Failed {this.GetType().Name}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
 
     }
 
     public void PostUpdate(Paragraph thisPar, int restoreCaretPos)
     {
-        flowDoc.disableRunTextUndo = false;
-        flowDoc.disableUndoStack = false;
+        DisableUndoStack =  false;
 
         thisPar.CallRequestInlinesUpdate();
         flowDoc.UpdateBlockAndInlineStarts(thisPar);

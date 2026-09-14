@@ -33,6 +33,12 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 
     }
 
+    internal void InvokeStartEndChanged()
+    {
+        Start_Changed?.Invoke(this, Start);
+        End_Changed?.Invoke(this, End);
+    }
+
     internal FlowDocument myFlowDoc;
     public int Length => End - Start;
 

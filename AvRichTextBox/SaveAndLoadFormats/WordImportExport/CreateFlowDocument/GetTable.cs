@@ -13,7 +13,7 @@ internal static partial class WordConversions
     internal static Table GetTable(DocumentFormat.OpenXml.Wordprocessing.Table wordTable, FlowDocument fdoc, MainDocumentPart mainDocPart)
     {
 
-        Table newTable = new(fdoc)
+        Table newTable = new()
         {
             BorderThickness = new Thickness(1),  // initial default
             BorderBrush = Brushes.Black,
@@ -158,7 +158,7 @@ internal static partial class WordConversions
 
     private static Cell GetCell(OpenXmlElement cn, ref int colno, ref int rowno, ref List<Cell> lastVMergedHeadCells, FlowDocument fdoc, Table table, MainDocumentPart mainDocPart)
     {
-        var newCell = new Cell(table) { ColNo = colno, RowNo = rowno, ColSpan = 1, RowSpan = 1, BorderBrush = Brushes.Black, BorderThickness = new(1) };
+        var newCell = new Cell() { ColNo = colno, RowNo = rowno, ColSpan = 1, RowSpan = 1, BorderBrush = Brushes.Black, BorderThickness = new(1) };
 
         foreach (OpenXmlElement CellParNode in cn.ChildElements)
         {

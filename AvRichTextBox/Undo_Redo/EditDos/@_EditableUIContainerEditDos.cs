@@ -13,13 +13,13 @@ internal class EditableUIContainerChildEditDo(int parId, int uicId, Control? old
         {
             if (flowDoc.GetBlockFromId(parId) is Paragraph p && p.Inlines.FirstOrDefault(il=> il.Id == uicId) is EditableInlineUIContainer eIUC)
             {
-                flowDoc.disableUndoStack = true;
+                DisableUndoStack =  true;
                 eIUC.SetChild(oldChild);
-                flowDoc.disableUndoStack = false;
+                DisableUndoStack =  false;
             }
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at uicId: {uicId}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 
     public void PerformRedo()
@@ -28,13 +28,13 @@ internal class EditableUIContainerChildEditDo(int parId, int uicId, Control? old
         {
             if (flowDoc.GetBlockFromId(parId) is Paragraph p && p.Inlines.FirstOrDefault(il => il.Id == uicId) is EditableInlineUIContainer eIUC)
             {
-                flowDoc.disableUndoStack = true;
+                DisableUndoStack =  true;
                 eIUC.SetChild(newChild);
-                flowDoc.disableUndoStack = false;
+                DisableUndoStack =  false;
             }
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at uicId: {uicId}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 }
 

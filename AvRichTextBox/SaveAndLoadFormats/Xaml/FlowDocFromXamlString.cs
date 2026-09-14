@@ -134,7 +134,7 @@ internal partial class XamlConversions
 
     internal static Table GetTable(XmlNode tableNode, FlowDocument fdoc)
     {
-        Table newTable = new(fdoc);
+        Table newTable = new();
 
         foreach (XmlAttribute xmlatt in tableNode.Attributes!.OfType<XmlAttribute>())
         {
@@ -210,7 +210,7 @@ internal partial class XamlConversions
 
                         foreach (XmlNode cellNode in rowNode.ChildNodes.OfType<XmlNode>().Where(n => n.Name == "TableCell"))
                         {
-                            Cell newCell = new(newTable)
+                            Cell newCell = new()
                             {
                                 ColSpan = 1,
                                 RowSpan = 1,
@@ -291,7 +291,7 @@ internal partial class XamlConversions
 
     internal static Paragraph GetParagraph(XmlNode parNode, FlowDocument fdoc)
     {
-        Paragraph newPar = new(fdoc);
+        Paragraph newPar = new();
         //newPar.LineHeight = ;
         foreach (XmlAttribute xmlatt in parNode.Attributes!.OfType<XmlAttribute>())
         {

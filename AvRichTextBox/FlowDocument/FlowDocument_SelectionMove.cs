@@ -78,14 +78,6 @@ public partial class FlowDocument
 
     }
 
-
-    internal int GetRelativeTextPos(IEditable inline, int absTextPos)
-    {
-        //if (Blocks.FirstOrDefault(b => b.Id == inline.MyParagraphId) is not Block myBlock) return -1;
-        if (AllParagraphs.FirstOrDefault(p => p.Id == inline.MyParagraphId) is not Block myBlock) return -1;
-        return absTextPos - myBlock.StartInDoc - inline.TextPositionOfInlineInParagraph;
-    }
-
     internal void MoveRightWord()
     {
         if (Selection.Start >= Selection.StartParagraph.StartInDoc + Selection.StartParagraph.BlockLength)
@@ -194,8 +186,6 @@ public partial class FlowDocument
         ScrollInDirection?.Invoke(-1);
 
         List<Paragraph> allPars = AllParagraphs;
-        //foreach (Paragraph p in allPars)
-        //   p.ClearSelection();
 
         if (allPars[0] is Paragraph firstPar)
         {
@@ -439,7 +429,9 @@ public partial class FlowDocument
         Selection.StartParagraph.CallRequestTextLayoutInfoEnd();
         Selection.EndParagraph.CallRequestTextLayoutInfoStart();
         Selection.EndParagraph.CallRequestTextLayoutInfoEnd();
+        Selection.InvokeStartEndChanged();
         UpdateRTBCaret?.Invoke();
+        
     }
 
 

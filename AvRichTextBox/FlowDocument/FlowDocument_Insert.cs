@@ -185,19 +185,19 @@ public partial class FlowDocument
         {
             if (Selection.Length > 0)
             {
-                disableRunTextUndo = true;
+                DisableUndoStack = true;
                 DeleteRange(Selection, true, false);
                 Selection.CollapseToStart();
                 SelectionExtendMode = ExtendMode.ExtendModeNone;
                 if (startInline is EditableRun erun)
                     erun.Text = erun.Text!.Insert(0, insertText);  // after delete range, selection will always be at pos 0 of first run.
-                disableRunTextUndo = false;
+                DisableUndoStack = false;
                 return;
             }
 
             int insertIdx = 0;
             int originalStart = Selection.Start;
-            disableRunTextUndo = true;
+            DisableUndoStack = true;
 
             if (InsertRunMode)
             {
@@ -247,7 +247,7 @@ public partial class FlowDocument
                 //Debug.WriteLine("biasforward start = " + Selection.BiasForwardStart + ", end = " + Selection.BiasForwardEnd.ToString());
             }
 
-            disableRunTextUndo = false;
+            DisableUndoStack = false;
             
             Redos.Clear();
 
@@ -293,7 +293,7 @@ public partial class FlowDocument
             addedRunIds.Add(newErun.Id);
         }
 
-        if (!disableUndoStack)
+        if (!DisableUndoStack)
             Undos.Add(new InsertLineBreakUndo(Selection.StartParagraph.Id, newELB.Id, addedRunIds, runIdx, originalInlineClone, this, Selection.Start));
 
         SelectionExtendMode = ExtendMode.ExtendModeNone;
@@ -325,7 +325,10 @@ public partial class FlowDocument
     internal void InsertParagraph(bool addUndo, int insertCharIndex)
     {  //The delete range and InsertParagraph should constitute one Undo operation
 
-        disableRunTextUndo = true;
+        DisableUndoStack = true;
+
+        if (insertCharIndex > this.DocEndPoint)
+            return;
 
         if (GetContainingParagraph(insertCharIndex) is not Paragraph insertPar) return;
 
@@ -355,7 +358,7 @@ public partial class FlowDocument
 
         if (Selection.End == insertPar.EndInDoc)
         {   // only need to add insert a new paragraph at the index
-            parToInsert = new Paragraph(this);
+            parToInsert = new Paragraph();
 
             if (insertPar.IsCellBlock)
                 insertPar.OwningCell.CellBlocks.Insert(parIndex + 1, parToInsert);
@@ -395,8 +398,7 @@ public partial class FlowDocument
             parToInsert = originalPar.PropertyClone();
             parToInsert.Inlines.AddRange(RunList2);
 
-
-            //Insert paragraph in appropriate block  $$$$$$$$$$$$$$$
+            //Insert paragraph in appropriate block
             if (insertPar.IsCellBlock)
                 insertPar.OwningCell.CellBlocks.Insert(parIndex + 1, parToInsert);
             else
@@ -426,7 +428,12 @@ public partial class FlowDocument
             originalPar.CallRequestTextLayoutInfoStart();
             originalPar.CallRequestTextLayoutInfoEnd();
         }
-               
+
+
+        DisableUndoStack = true;
+
+        if (parToInsert.GetPreviousParagraph is Paragraph prevPar)
+            parToInsert.TextAlignment = prevPar.TextAlignment;
 
         UpdateTextRanges(insertCharIndex, 1);
         UpdateBlockAndInlineStarts(blockIndex);
@@ -435,7 +442,7 @@ public partial class FlowDocument
         parToInsert.CallRequestTextLayoutInfoStart();
         parToInsert.CallRequestTextLayoutInfoEnd();
 
-        disableRunTextUndo = false;
+        DisableUndoStack = false;
 
         Selection.BiasForwardStart = true;
         Selection.BiasForwardEnd = true;
@@ -447,6 +454,7 @@ public partial class FlowDocument
             ScrollInDirection?.Invoke(1);
         });
 
+        DisableUndoStack = false;
 
     }
 

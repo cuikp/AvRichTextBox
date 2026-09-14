@@ -158,30 +158,26 @@ Content can also be added directly in Xaml:
 ```xaml  
 xmlns:avrtb="using:AvRichTextBox"
 
-<avrtb:RichTextBox ShowDebuggerPanelInDebugMode="True" >
+<avrtb:RichTextBox >
 
 	<avrtb:RichTextBox.FlowDocument>
-		<avrtb:FlowDocument >
-			<avrtb:FlowDocument.Blocks>
+					<avrtb:FlowDocument >
+						<avrtb:FlowDocument.Blocks>
 
-            <avrtb:Paragraph>
-					<avrtb:Paragraph.Inlines>
-						<avrtb:EditableRun Text="This is a line of text. "/>
-                  <avrtb:EditableRun Text="With a second run."/>
-					</avrtb:Paragraph.Inlines>
-				</avrtb:Paragraph>
+							<avrtb:Paragraph>
+								<avrtb:Paragraph.GetInlines>
+									<avrtb:EditableRun Text="This is a line of text. "/>
+									<avrtb:EditableRun Text="With a second run."/>
+								</avrtb:Paragraph.GetInlines>
+							</avrtb:Paragraph>
 
-				<avrtb:Paragraph>
-					<avrtb:Paragraph.Inlines>
-						<avrtb:EditableInlineUIContainer>
-							<Image Width="100" Height="60" Source="avares://DemoApp_AvRichTextBox/Assets/avalonia-logo.ico"/>
-						</avrtb:EditableInlineUIContainer>
-					</avrtb:Paragraph.Inlines>
-				</avrtb:Paragraph>
+                     <avrtb:Table ColDefs="100, 150, 100" RowDefs="100, 100, 100" />
+					
+				         <avrtb:Paragraph/>
 
-			</avrtb:FlowDocument.Blocks>
-		</avrtb:FlowDocument>
-	</avrtb:RichTextBox.FlowDocument>
+						</avrtb:FlowDocument.Blocks>
+					</avrtb:FlowDocument>
+				</avrtb:RichTextBox.FlowDocument>
 
 </avrtb:RichTextBox>
 ```
@@ -377,3 +373,11 @@ Fixed proper cell-to-cell caret movement in `Table` with multiple paragraphs
 **[ver 1.10.4] 2026/09/10**  
 Added `LinkOpening` event to `EditableHyperlink` to allow custom handling  
 Some initial Redos have been implemented (Deleting/Inserting/Pasting/PagePadding/programmed `Block` property Redos)  
+
+**[ver 1.11.0-preview.1] 2026/09/14**  
+New parameterless constructors for `Block()` (`Paragraph` or `Table`), instead of passing the current `FlowDocument`, and for `Cell()`, instead of passing `OwningTable`.  
+The `FlowDocument` or `Table` instance for these objects is instead assigned in the appropriate `CollectionChanged` events.  
+(The lack of parameterless ctors was preventing direct Xaml creation)  
+Updated README.md and BasicUsage.md which were outdated.  
+---**Breaking change**---  
+`EditableHyperlink.Text` is now set as `EditableHyperlink.LinkDisplayText`, rather than directly.  

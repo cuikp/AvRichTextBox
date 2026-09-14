@@ -68,7 +68,7 @@ public class EditableRun : Run, IEditable
             case AvaloniaProperty tp when tp == Run.TextProperty:
 
                 
-                //if (MyFlowDoc == null || MyFlowDoc.disableRunTextUndo) return;
+                //if (MyFlowDoc == null || MyDisableRunTextUndo) return;
 
                 //if (e.Property == Run.TextProperty && e.Sender is EditableRun run)
                 //{
@@ -87,6 +87,9 @@ public class EditableRun : Run, IEditable
         }
 
     }
+
+    internal bool IsAttachedToDocument = false;
+    bool IEditable.IsAttachedToDocument { get => IsAttachedToDocument; set => IsAttachedToDocument = value; }
 
     internal int Id { get; set; }
     int IEditable.Id { get => Id; set => Id = value; }
@@ -127,10 +130,12 @@ public class EditableRun : Run, IEditable
     public IEditable? GetPreviousInline => PreviousInline;
     public IEditable? GetNextInline => NextInline;
 
+    IEditable IEditable.Clone() => Clone();
+    IEditable IEditable.CloneWithId() => CloneWithId();
 
-    public virtual IEditable Clone()
+    public virtual EditableRun Clone()
     {
-        MyFlowDoc.disableUndoStack = true;
+        DisableUndoStack =  true;
 
         EditableRun clonedRun = new (this.Text!)
         {
@@ -142,21 +147,21 @@ public class EditableRun : Run, IEditable
             Background = this.Background,
             MyParagraphId = this.MyParagraphId,
             MyFlowDoc = this.MyFlowDoc,
-            TextPositionOfInlineInParagraph = this.TextPositionOfInlineInParagraph,  //necessary because clone is produced when calculating range inline positions
+            TextPositionOfInlineInParagraph = this.TextPositionOfInlineInParagraph,  //necessary because clone is also produced when calculating range inline positions
             BaselineAlignment = this.BaselineAlignment,
             Foreground = this.Foreground,
             IsLastInlineOfParagraph = this.IsLastInlineOfParagraph,
             IsTableCellInline = this.IsTableCellInline,
         };
 
-        MyFlowDoc.disableUndoStack = false;
+        DisableUndoStack =  false;
 
         return clonedRun;
     }
 
-    public virtual IEditable CloneWithId()
+    public virtual EditableRun CloneWithId()
     {
-        IEditable IdClone = this.Clone();
+        EditableRun IdClone = this.Clone();
         IdClone.Id = this.Id;
         return IdClone;
 

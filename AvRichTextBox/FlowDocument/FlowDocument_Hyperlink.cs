@@ -1,10 +1,11 @@
+using System.Collections.ObjectModel;
+
 namespace AvRichTextBox;
 
 public partial class FlowDocument
 {
    /// <summary>
-   /// Returns the hyperlink that contains (or starts at) the current selection start,
-   /// or null if the caret/selection is not inside a hyperlink.
+   /// Returns the hyperlink that contains (or starts at) the current selection start, or null if the caret/selection is not inside a hyperlink.
    /// </summary>
    internal EditableHyperlink? GetHyperlinkAtSelection()
    {
@@ -18,152 +19,159 @@ public partial class FlowDocument
       return null;
    }
 
-   /// <summary>
-   /// Inserts a new hyperlink from the current selection, or updates the hyperlink
-   /// the caret is currently inside.
-   /// - If the caret is inside an existing hyperlink: update its text and URI in place.
-   /// - If there is a text selection: replace the selected text with a hyperlink.
-   /// - If there is no selection and no existing hyperlink: insert a new hyperlink with the given text.
-   /// </summary>
-   internal void InsertOrUpdateHyperlink(string displayText, string navigateUri)
-   {
-      if (string.IsNullOrWhiteSpace(navigateUri)) return;
 
-      // Normalize URI – add https:// scheme if none is present
-      if (!navigateUri.Contains("://") && !navigateUri.StartsWith("mailto:", StringComparison.OrdinalIgnoreCase))
-         navigateUri = "https://" + navigateUri;
+    /// <summary>
+    /// Inserts hyperlink at the specified range
+    /// If text is selected, replace selected text with the new hyperlink.
+    /// </summary>
+    public void InsertHyperlinkAt(TextRange insertAtRange, EditableHyperlink newHyperlink)
+    {
+        if (GetStartInline(insertAtRange.Start) is not IEditable startInline || insertAtRange.GetStartPar() is not Paragraph destStartPar)
+            return;
 
-      // ── Case 1: caret is inside an existing hyperlink → update in place ──────
-      if (GetHyperlinkAtSelection() is EditableHyperlink existingHyperlink)
-      {
-         Paragraph par = GetContainingParagraph(Selection.Start);
-         if (par == null) return;
+        newHyperlink.MyParagraphId = destStartPar.Id;
+        newHyperlink.MyFlowDoc = destStartPar.MyFlowDoc;
+          
+        // Snapshot the affected paragraphs before any edit for undo.
+        List<Block> affectedBlockClones = GetOverlappingBlocksInRange(insertAtRange).ConvertAll(b => b.FullClone(true));
+        int firstParIndex = AllParagraphs.IndexOf(destStartPar);
+        int origSelStart = insertAtRange.Start;
+        bool firstBlockWasDeleted = false;
+        bool lastBlockWasDeleted = false;
+        int deleteRangeLength = insertAtRange.Length;
+        int owningTableId = destStartPar.OwningTable == null ? -1 : destStartPar.OwningTable.Id;
+        int owningCellId = destStartPar.OwningCell == null ? -1 : destStartPar.OwningCell.Id;
 
-         // Snapshot before edit for undo
-         Paragraph parClone = par.FullClone(false);
-         int parIndex = AllParagraphs.IndexOf(par);
-         int updateOrigSelStart = Selection.Start;
-         int oldLength = existingHyperlink.InlineLength;
+        int insertParIndex = -1;
+        DetermineBlockCollection( destStartPar.IsCellBlock, firstParIndex, owningTableId, owningCellId, out insertParIndex);
 
-         disableRunTextUndo = true;
+        DisableUndoStack = true;
 
-         existingHyperlink.NavigateUri = navigateUri;
-         existingHyperlink.Text = displayText;
+        bool firstParEmpty = false;
 
-         par.CallRequestInlinesUpdate();
-         UpdateBlockAndInlineStarts(par);
+        if (insertAtRange.Length > 0)
+        {
+            // DeleteRange may collapse multiple paragraphs into one; track whether the first par is gone
+            firstParEmpty = destStartPar.IsEmptyInlinePar; 
+            firstBlockWasDeleted = destStartPar.StartInDoc == insertAtRange.Start && destStartPar.EndInDoc <= insertAtRange.End && !firstParEmpty;
+            DeleteRange(insertAtRange, false, false);
+            insertAtRange.CollapseToStart();
+        }
 
-         int newLength = existingHyperlink.InlineLength;
-         int lengthDelta = newLength - oldLength;
+        // Re-resolve the paragraph after possible deletion
+        destStartPar = GetContainingParagraph(insertAtRange.Start);
+        if (destStartPar == null) { DisableUndoStack = false; return; }
 
-         if (lengthDelta != 0)
+
+        if (GetStartInline(insertAtRange.Start) is not IEditable insertAfterInline)
+            { DisableUndoStack = false; return; }
+
+        IEditable leftRun;
+        int insertIdx;
+
+        if (insertAfterInline.IsLineBreak || insertAfterInline is EditableInlineUIContainer)
+        {   // Cannot split a line break or UI container — insert the hyperlink before it instead.
+            int nonSplittableIdx = destStartPar.Inlines.IndexOf(insertAfterInline);
+            if (nonSplittableIdx > 0)
+            {
+                leftRun = destStartPar.Inlines[nonSplittableIdx - 1];
+            }
+            else
+            {   // No preceding inline exists; create an empty run as a left anchor.
+                var emptyAnchor = new EditableRun("") { MyParagraphId = destStartPar.Id, MyFlowDoc = this };
+                destStartPar.Inlines.Insert(0, emptyAnchor);
+                nonSplittableIdx = 1;
+                leftRun = emptyAnchor;
+            }
+            insertIdx = nonSplittableIdx;
+        }
+        else
+        {
+            int charPosInInline = GetCharPosInInline(insertAfterInline, insertAtRange.Start);
+
+            // Split the run at the caret so we can inject the hyperlink inline
+            List<IEditable> splitRuns = SplitRunAtPos(insertAtRange.Start, insertAfterInline, charPosInInline);
+
+            leftRun = splitRuns[0];
+            insertIdx = destStartPar.Inlines.IndexOf(leftRun) + 1;
+
+            bool leftWasEmpty = leftRun.InlineText == "";
+            if (leftWasEmpty && splitRuns.Count > 1)
+                insertIdx--;
+        }
+
+
+        destStartPar.Inlines.Insert(insertIdx, newHyperlink);
+
+        
+        if (insertAfterInline is not (EditableLineBreak or EditableInlineUIContainer) &&
+            leftRun.InlineText == "" && destStartPar.Inlines.Contains(leftRun))
+            destStartPar.Inlines.Remove(leftRun);
+
+        
+        destStartPar.CallRequestInlinesUpdate();
+        UpdateBlockAndInlineStarts(destStartPar);
+
+        int hyperlinkTextLength = newHyperlink.LinkDisplayText.Length;
+        UpdateTextRanges(insertAtRange.Start, hyperlinkTextLength);
+                
+                     
+        Undos.Add(new InsertHyperlinkAtCharIdxUndo(
+            destStartPar.Id,
+            insertParIndex,
+            affectedBlockClones,
+            this,
+            origSelStart,
+            deleteRangeLength - hyperlinkTextLength,
+            firstParEmpty,
+            firstBlockWasDeleted,
+            lastBlockWasDeleted,
+            destStartPar.IsCellBlock,
+            owningTableId,
+            owningCellId
+            ));
+
+        DisableUndoStack = false;
+    }
+
+
+    public void UpdateHyperlink(EditableHyperlink existingHyperlink, string displayText, string navigateUri)
+    {
+
+        Paragraph par = GetContainingParagraph(Selection.Start);
+        if (par == null) return;
+
+        int updateOrigSelStart = Selection.Start;
+        int oldLength = existingHyperlink.InlineLength;
+
+        DisableUndoStack = true;
+
+        string oldUri = existingHyperlink.NavigateUri;
+        string oldText = existingHyperlink.LinkDisplayText;
+        existingHyperlink.NavigateUri = navigateUri;
+        existingHyperlink.LinkDisplayText = displayText;
+
+        par.CallRequestInlinesUpdate();
+        UpdateBlockAndInlineStarts(par);
+
+        int newLength = existingHyperlink.InlineLength;
+        int lengthDelta = newLength - oldLength;
+
+        if (lengthDelta != 0)
             UpdateTextRanges(par.StartInDoc + existingHyperlink.TextPositionOfInlineInParagraph, lengthDelta);
 
-         disableRunTextUndo = false;
+        Undos.Add(new HyperlinkUpdateUndo(par.Id, existingHyperlink.Id, oldUri, navigateUri, oldText, displayText, this, updateOrigSelStart, -lengthDelta));
 
-         Undos.Add(new HyperlinkParagraphUndo(parClone, parIndex, this, updateOrigSelStart, -lengthDelta));
-         return;
-      }
+        DisableUndoStack = false;
 
-      // ── Case 2: insert new hyperlink (replace selection or insert at caret) ──
-      Paragraph? startPar = Selection.GetStartPar();
-      if (startPar == null) return;
+    }
 
-      // Snapshot the affected paragraphs before any edit for undo.
-      // When there is a selection that may span multiple paragraphs we need all of them.
-      List<Block> affectedBlockClones = GetOverlappingBlocksInRange(Selection).ConvertAll(b => b.FullClone(true));
-      int firstParIndex = AllParagraphs.IndexOf(startPar);
-      int origSelStart = Selection.Start;
-      bool firstParWasDeleted = false;
-
-      disableRunTextUndo = true;
-
-      if (Selection.Length > 0)
-      {
-         // DeleteRange may collapse multiple paragraphs into one; track whether the first par is gone
-         bool firstParEmpty = startPar.Inlines.Count == 1 && startPar.Inlines[0] is EditableRun er && er.Text == "";
-         firstParWasDeleted = startPar.StartInDoc == Selection.Start && startPar.EndInDoc <= Selection.End && !firstParEmpty;
-
-         DeleteRange(Selection, false, false);
-         Selection.CollapseToStart();
-         SelectionExtendMode = ExtendMode.ExtendModeNone;
-      }
-
-      // Re-resolve the paragraph after possible deletion
-      startPar = GetContainingParagraph(Selection.Start);
-      if (startPar == null) { disableRunTextUndo = false; return; }
-
-      if (GetStartInline(Selection.Start) is not IEditable insertAfterInline)
-      { disableRunTextUndo = false; return; }
-
-      IEditable leftRun;
-      int insertIdx;
-
-      if (insertAfterInline.IsLineBreak || insertAfterInline is EditableInlineUIContainer)
-      {
-         // Cannot split a line break or UI container — insert the hyperlink before it instead.
-         int nonSplittableIdx = startPar.Inlines.IndexOf(insertAfterInline);
-         if (nonSplittableIdx > 0)
-         {
-            leftRun = startPar.Inlines[nonSplittableIdx - 1];
-         }
-         else
-         {
-            // No preceding inline exists; create an empty run as a left anchor.
-            var emptyAnchor = new EditableRun("") { MyParagraphId = startPar.Id, MyFlowDoc = this };
-            startPar.Inlines.Insert(0, emptyAnchor);
-            nonSplittableIdx = 1;
-            leftRun = emptyAnchor;
-         }
-         insertIdx = nonSplittableIdx;
-      }
-      else
-      {
-         int charPosInInline = GetCharPosInInline(insertAfterInline, Selection.Start);
-
-         // Split the run at the caret so we can inject the hyperlink inline
-         List<IEditable> splitRuns = SplitRunAtPos(Selection.Start, insertAfterInline, charPosInInline);
-
-         leftRun = splitRuns[0];
-         insertIdx = startPar.Inlines.IndexOf(leftRun) + 1;
-
-         bool leftWasEmpty = leftRun.InlineText == "";
-         if (leftWasEmpty && splitRuns.Count > 1)
-            insertIdx--;
-      }
-
-      var newHyperlink = new EditableHyperlink(displayText, navigateUri)
-      {
-         MyParagraphId = startPar.Id,
-         MyFlowDoc = this,
-      };
-
-      startPar.Inlines.Insert(insertIdx, newHyperlink);
-
-      if (insertAfterInline is not (EditableLineBreak or EditableInlineUIContainer) &&
-          leftRun.InlineText == "" && startPar.Inlines.Contains(leftRun))
-         startPar.Inlines.Remove(leftRun);
-
-      startPar.CallRequestInlinesUpdate();
-      UpdateBlockAndInlineStarts(startPar);
-      UpdateTextRanges(Selection.Start, displayText.Length);
-
-      // Move caret to end of inserted hyperlink
-      Select(origSelStart + displayText.Length, 0);
-
-      disableRunTextUndo = false;
-
-      // undoEditOffset = -(displayText.Length) so Undo moves the selection back
-      Undos.Add(new HyperlinkParagraphUndo(affectedBlockClones, firstParIndex, this, origSelStart, -displayText.Length, firstParWasDeleted));
-   }
-
-   /// <summary>
-   /// Removes the hyperlink under/at the current selection and replaces it with a
-   /// plain EditableRun preserving the display text and font properties.
-   /// </summary>
-   internal void RemoveHyperlink()
+    /// <summary>
+    /// Removes the hyperlink under/at the current selection and replaces it with a plain EditableRun preserving the display text and font properties.
+    /// </summary>
+   internal void RemoveHyperlinkAtSelection()
    {
-      if (GetHyperlinkAtSelection() is not EditableHyperlink hl) return;
+      if (GetHyperlinkAtSelection() is not EditableHyperlink eHL) return;
 
       Paragraph par = GetContainingParagraph(Selection.Start);
       if (par == null) return;
@@ -172,35 +180,41 @@ public partial class FlowDocument
       Paragraph parClone = par.FullClone(true);
       int parIndex = AllParagraphs.IndexOf(par);
       int caretPos = Selection.Start;
-      int hlLength = hl.InlineLength;
+      int hlLength = eHL.InlineLength;
 
-      disableRunTextUndo = true;
+      DisableUndoStack = true;
 
-      int hlIdx = par.Inlines.IndexOf(hl);
+      int hlIdx = par.Inlines.IndexOf(eHL);
 
       // Replace hyperlink with a plain run preserving the display text and font properties
-      var replacement = new EditableRun(hl.Text ?? "")
+      var replacementRun = new EditableRun(eHL.LinkDisplayText ?? "")
       {
-         FontFamily = hl.FontFamily,
-         FontWeight = hl.FontWeight,
-         FontStyle = hl.FontStyle,
-         FontSize = hl.FontSize,
-         Background = hl.Background,
-         BaselineAlignment = hl.BaselineAlignment,
+         FontFamily = eHL.FontFamily,
+         FontWeight = eHL.FontWeight,
+         FontStyle = eHL.FontStyle,
+         FontSize = eHL.FontSize,
+         Background = eHL.Background,
+         BaselineAlignment = eHL.BaselineAlignment,
          MyParagraphId = par.Id,
+         IsAttachedToDocument = eHL.IsAttachedToDocument,
+         IsTableCellInline = eHL.IsTableCellInline,
+         IsLastInlineOfParagraph = eHL.IsLastInlineOfParagraph,
+         TextPositionOfInlineInParagraph = eHL.TextPositionOfInlineInParagraph,
          MyFlowDoc = this,
       };
 
-      par.Inlines[hlIdx] = replacement;
+      par.Inlines[hlIdx] = replacementRun;
 
       par.CallRequestInlinesUpdate();
       UpdateBlockAndInlineStarts(par);
 
       Select(caretPos, 0);
 
-      disableRunTextUndo = false;
+      DisableUndoStack = false;
 
-      // The remove operation doesn't change the text length, so undoEditOffset = 0
-      Undos.Add(new HyperlinkParagraphUndo(parClone, parIndex, this, caretPos, 0));
+      // The remove operation doesn't change the text length
+      Undos.Add(new RemoveHyperlinkUndo(parClone.Id, eHL.CloneWithId(), replacementRun.Id, this));
+
    }
+
 }

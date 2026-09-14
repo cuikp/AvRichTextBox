@@ -1,9 +1,8 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Media.Immutable;
-using Avalonia.Platform;
 using Avalonia.Threading;
 using DynamicData;
 using System.Collections.ObjectModel;
@@ -34,9 +33,7 @@ public partial class FlowDocument : AvaloniaObject
 
     internal bool IsEditable { get; set; } = true;
     internal bool IsEmpty => Blocks.Count == 1 && Blocks.FirstOrDefault() is Paragraph p && p.Inlines.Count == 1 && p.Inlines.FirstOrDefault() is EditableRun erun && erun.Text == "";
-
-    internal bool disableUndoStack = true;
-
+        
     internal static readonly DirectProperty<FlowDocument, bool> HasSelectedTextProperty = AvaloniaProperty.RegisterDirect<FlowDocument, bool>(nameof(HasSelectedText), o => o.HasSelectedText);
     internal bool HasSelectedText => Selection.Length > 0;
 
@@ -46,8 +43,6 @@ public partial class FlowDocument : AvaloniaObject
     internal ObservableCollection<Paragraph> SelectionParagraphs { get; } = [];
     public ObservableCollection<TextRange> TextRanges = [];
 
-    internal bool disableRunTextUndo = false;
-
     public void ScrollFlowDocInDirection(int direction) { ScrollInDirection?.Invoke(direction); }
     
     public void ScrollFlowDocToCaret() { Dispatcher.UIThread.Post(() => { ScrollToCaret?.Invoke(); }); }
@@ -55,8 +50,8 @@ public partial class FlowDocument : AvaloniaObject
     public List<Paragraph> GetSelectedParagraphs => [.. AllParagraphs.Where(p => p.StartInDoc <= Selection.Start && p.EndInDoc >= Selection.End).Select(b => (Paragraph)b)];
 
     internal static readonly StyledProperty<ObservableCollection<Block>> BlocksProperty = AvaloniaProperty.Register<FlowDocument, ObservableCollection<Block>>(nameof(Blocks), defaultBindingMode: BindingMode.TwoWay);
-    //public ObservableCollection<Block> Blocks
-    internal ObservableCollection<Block> Blocks
+    public ObservableCollection<Block> Blocks
+    //internal ObservableCollection<Block> Blocks
     {
         get => GetValue(BlocksProperty);
         set { SetValue(BlocksProperty, value); }
@@ -64,10 +59,17 @@ public partial class FlowDocument : AvaloniaObject
 
     public IEnumerable<Block> GetBlocks => Blocks;
 
-    public void ClearBlocks() { Blocks.Clear(); AddDefaultParagraph(Blocks); }
-    public void InsertBlockAt(int index, Block block) { InsertBlockIntoCollectionAt(Blocks, index, block); }
-    public void RemoveBlockAt(int index) { RemoveBlockFromCollectionAt(Blocks, index); }
-    public void RemoveBlock(Block block) { RemoveBlockFromCollection(Blocks, block); }
+    public void ClearBlocks() 
+    { 
+        Blocks.Clear(); 
+        AddDefaultParagraph(Blocks);
+        Select(0, 0);
+            
+    }
+
+    public void InsertBlockAt(int index, Block block) { InsertBlockIntoCollectionAt(index, block); }
+    public void RemoveBlockAt(int index) { RemoveBlockFromCollectionAt(index); }
+    public void RemoveBlock(Block block) { RemoveBlockFromCollection(block); }
 
 
     internal static readonly DirectProperty<FlowDocument, Thickness> PagePaddingProperty = AvaloniaProperty.RegisterDirect<FlowDocument, Thickness>(nameof(PagePadding), o => o.PagePadding, (o, v) => o.PagePadding = v);
@@ -80,7 +82,7 @@ public partial class FlowDocument : AvaloniaObject
 
             SetAndRaise(PagePaddingProperty, ref field, value);
             
-            if (!disableUndoStack)
+            if (!DisableUndoStack)
                 Undos.Add(new FlowDocumentPagePaddingChangedEditDo(oldPagePadding, value, this));
         }
     }
@@ -127,22 +129,30 @@ public partial class FlowDocument : AvaloniaObject
 
     private void Blocks_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
-
         foreach (Block block in Blocks)
         {
+            block.IsAttachedToDocument = true;
             block.MyFlowDoc = this;
             if (block is Table table)
             {
                 foreach (Cell c in table.Cells)
                 {
+                    c.OwningTable = table;
+                    c.IsAttachedToDocument = table.IsAttachedToDocument;
                     foreach (Block b in c.CellBlocks)
                     {
+                        b.IsTableCellBlock = true;
+                        b.IsAttachedToDocument = c.IsAttachedToDocument;
+                        b.OwningCell = c;
+                        b.OwningTable = table;
                         b.MyFlowDoc = this;
                     }
                 }
             }
+
         }
 
+        
         int lengthOffset = 0;
         if (e.NewItems != null)
         {
@@ -200,6 +210,8 @@ public partial class FlowDocument : AvaloniaObject
         Selection.Start = Start;
         Selection.End = Start + Length;
 
+        Selection.InvokeStartEndChanged(); // trigger caret calculation in case start or end values are the same
+
         UpdateSelection();
 
     }
@@ -214,20 +226,11 @@ public partial class FlowDocument : AvaloniaObject
 
     }
 
-    internal void AddDefaultParagraph(ObservableCollection<Block> blockCollection)
-    {
-        disableUndoStack = true;
-        Paragraph newpar = new(this);
-        EditableRun newerun = new("");
-        newpar.Inlines.Add(newerun);
-        blockCollection.Add(newpar);
-        disableUndoStack = false;
-    }
 
     internal void ClearDocument()
     {
         Blocks.Clear();
-        disableUndoStack = true;
+        DisableUndoStack = true;
         BlockIdCounter = 1;
         InlineIdCounter = 1;
 
@@ -277,7 +280,7 @@ public partial class FlowDocument : AvaloniaObject
 
         UpdateAllRangeContexts();
 
-        disableUndoStack = false;
+        DisableUndoStack = false;
 
     }
 

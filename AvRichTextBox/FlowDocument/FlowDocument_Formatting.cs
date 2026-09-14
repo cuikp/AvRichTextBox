@@ -114,7 +114,7 @@ public partial class FlowDocument
 
     internal void ApplyFormattingRange(AvaloniaProperty avProperty, object value, TextRange textRange)
     {
-        disableRunTextUndo = true;
+        DisableUndoStack = true;
 
         (List<IEditable> createdInlines, (int idLeft, int idRight) edgeIds) createdInlinesResult = GetTextRangeInlines(textRange, addToDoc: true);
         List<IEditable> newInlines = createdInlinesResult.createdInlines;
@@ -127,17 +127,19 @@ public partial class FlowDocument
         List<EditablePropertyAssociation> propertyAssociations = [];
         foreach (EditableRun erun in newInlines.OfType<EditableRun>())
         {
-            EditablePropertyAssociation edPropAssoc = new(erun.MyParagraphId, erun.Id, null!, null!);
+            EditablePropertyAssociation edPropAssoc = new(erun.MyParagraphId, erun.Id, null!, null!, value);
             propertyAssociations.Add(edPropAssoc);
 
             if (formatRunsActions.TryGetValue(avProperty, out var runsAction))
                 edPropAssoc.FormatRuns = runsAction;
 
             if (erun.GetValue(avProperty) is object o)
-                edPropAssoc.PropertyValue = o;
+            {
+                edPropAssoc.OrigPropertyValue = o;
+            }
         }
 
-        this.Undos.Add(new ApplyFormattingUndo(this, propertyAssociations, edgeIds, Selection.Start, textRange));
+        this.Undos.Add(new ApplyFormattingUndo(this, propertyAssociations, edgeIds, Selection.Start, textRange, avProperty));
 
 
         if (formatRunsActions.TryGetValue(avProperty, out var applyToRunsAction))
@@ -150,7 +152,7 @@ public partial class FlowDocument
         foreach (Paragraph p in GetOverlappingParagraphsInRange(textRange, textRange.BiasForwardEnd).OfType<Paragraph>())
             p.CallRequestInlinesUpdate();
 
-        disableRunTextUndo = false;
+        DisableUndoStack = false;
 
         Selection.BiasForwardStart = true;
         Selection.BiasForwardEnd = true;
@@ -307,7 +309,7 @@ public partial class FlowDocument
 
     internal static void CopyRunPropsToHyperlinkText(EditableRun linkRun, ref EditableHyperlink elink)
     {
-        elink.Text = linkRun.Text;
+        elink.LinkDisplayText = linkRun.Text!;
         elink.FontStyle = linkRun.FontStyle;
         elink.FontWeight = linkRun.FontWeight;
         elink.TextDecorations = linkRun.TextDecorations;

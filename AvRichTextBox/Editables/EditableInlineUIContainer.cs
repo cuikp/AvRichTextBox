@@ -23,24 +23,26 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
     {
         _internalChildChange = true;
 
-        if (MyFlowDoc != null && !MyFlowDoc.disableUndoStack)
+        if (MyFlowDoc != null && !DisableUndoStack && IsAttachedToDocument)
             MyFlowDoc.Undos.Add(new EditableUIContainerChildEditDo(this.MyParagraphId, this.Id, GetChild(), control, MyFlowDoc));
 
         base.Child = control!;
 
         _internalChildChange = false;
 
+        MyFlowDoc?.InvokeSelectionChanged(); // recalculate caret position if image size changes
+
     }
 
     public Control? GetChild() => base.Child;
+
+    public Control? Content { get => GetChild(); set => SetChild(value);  }
 
     private bool _internalChildChange = false;
 
 
     private void EditableInlineUIContainer_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        base.OnPropertyChanged(e);
-
         //Debug.WriteLine($"ieditableUICont {e.Property.Name} set");
 
         switch (e.Property)
@@ -95,7 +97,9 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
 
     public EditableInlineUIContainer(Control c) : this() { SetChild(c); }
 
-        
+    internal bool IsAttachedToDocument = false;
+    bool IEditable.IsAttachedToDocument { get => IsAttachedToDocument; set => IsAttachedToDocument = value; }
+
     internal int Id { get; set; }
     int IEditable.Id { get => Id; set => Id = value; }
 
@@ -142,7 +146,7 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
 
     public IEditable Clone()
     {
-        MyFlowDoc.disableUndoStack = true;
+        DisableUndoStack =  true;
 
         EditableInlineUIContainer eIUC = new(base.Child)
         {
@@ -169,7 +173,7 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
             eIUC.SetChild(newImg);
         }
 
-        MyFlowDoc.disableUndoStack = false;
+        DisableUndoStack =  false;
 
         return eIUC;
 

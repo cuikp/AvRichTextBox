@@ -222,7 +222,7 @@
 						</DockPanel>
 					</Border>
 					
-					<Border x:Name="TablePanel" BorderBrush="Black" BorderThickness="3" Padding="2" Width="255" >
+					<Border x:Name="TablePanel" BorderBrush="Black" BorderThickness="3" Padding="2" Width="355" >
 						<DockPanel LastChildFill="False" >
 							<TextBlock Text="Table" DockPanel.Dock="Top" TextAlignment="Center"/>
 							<DockPanel DockPanel.Dock="Top" Margin="0, 5">
@@ -235,24 +235,43 @@
 
 								<DockPanel Margin="4" DockPanel.Dock="Left" >
 									<TextBlock Text="Border color:" DockPanel.Dock="Top" Width="50" TextAlignment="Left" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="3,0" VerticalAlignment="Top"/>
-									<ColorPicker Color="Black" HorizontalAlignment="Left" x:Name="TableBorderCP" ColorChanged="TableBorder_ColorChanged" DockPanel.Dock="Right" Width="70"  Height="25" Background="White"
-										Focusable="False" />
+									<ColorPicker Color="Black" HorizontalAlignment="Left" x:Name="TableBorderCP" ColorChanged="TableBorder_ColorChanged" DockPanel.Dock="Right" Width="70"  Height="25" Background="White" Focusable="False" />
 									
 								</DockPanel>
 
 								<DockPanel Margin="4" DockPanel.Dock="Left" >
-									<Button Content="Insert cols" DockPanel.Dock="Top" Focusable="False" Width="75" Padding="0" Click="AddColsButton_Click" HorizontalAlignment="Left" Margin="3,0" VerticalAlignment="Top"/>
+									<Button Content="Insert cols" DockPanel.Dock="Top" Focusable="False" Width="75" Padding="0" Click="AddColsButton_Click" HorizontalAlignment="Left" Margin="3,0" VerticalAlignment="Top" />
 									<Button Content="Insert rows" DockPanel.Dock="Top" Focusable="False" Width="75" Padding="0" Click="AddRowsButton_Click" HorizontalAlignment="Left" Margin="3,0" VerticalAlignment="Top"/>
 									<cc:NumericSpinner x:Name="InsertNumberNS" HorizontalAlignment="Center" Margin="0" Value="1" MaxValue="10" MinValue="1" DockPanel.Dock="Right" Width="43" Height="25" Background="White" Focusable="False" />
 								</DockPanel>
+
+								<DockPanel DockPanel.Dock="Left">
+									<TextBlock DockPanel.Dock="Top" Text="Just." VerticalAlignment="Center" />
+											<ComboBox x:Name="TableJustificationCB" DropDownClosed="TableJustificationComboBox_DropDownClosed" Margin="3" Width="95" MinHeight="15" Height="27"  DockPanel.Dock="Right" FontSize="12" Focusable="False">
+												<ComboBox.Styles>
+													<Style Selector="ComboBoxItem">
+														<Setter Property="Padding" Value="5, 0"/>
+														<Setter Property="Height" Value="20"/>
+														<Setter Property="MinHeight" Value="12"/>
+														<Setter Property="Foreground" Value="Black"/>
+													</Style>
+												</ComboBox.Styles>
+												<ComboBoxItem Content="Left"/>
+												<ComboBoxItem Content="Center"/>
+												<ComboBoxItem Content="Right"/>
+											</ComboBox>
+											
+										</DockPanel>
 							</DockPanel>
 							
 						<Separator Height="2" Width="{Binding $parent[Border].Bounds.Width}" DockPanel.Dock="Top"/>	
 
-							<TextBlock Text="Cell" DockPanel.Dock="Top"/>
-							
 							<DockPanel>
+														
+							<DockPanel DockPanel.Dock="Left" Background="Brown">
 								
+								<TextBlock Text="Cell" DockPanel.Dock="Top" TextAlignment="Center" HorizontalAlignment="Center"/>
+
 								<DockPanel Margin="2" DockPanel.Dock="Left"  Background="LightGray">
 									<TextBlock Text="Backgr:" DockPanel.Dock="Top" Width="50" TextWrapping="Wrap" Margin="3,0" />
 									<ColorPicker Color="Black" x:Name="CellBackgroundCP" ColorChanged="CellBackground_ColorChanged" DockPanel.Dock="Right" Width="70"  Height="25" Background="White"
@@ -260,12 +279,27 @@
 								</DockPanel>
 								<DockPanel Background="LightGray">
 									<TextBlock Text="V. Align" DockPanel.Dock="Top"/>
-									<ComboBox x:Name="CellAlignmentCB" SelectedIndex="0" Padding="5, 0, 0, 0" Width="85" DropDownClosed="CellAlignmentCB_DropDownClosed" Background="LightGray" >
+									<ComboBox x:Name="CellAlignmentCB" SelectedIndex="0" Focusable="False" Padding="5, 0, 0, 0" Width="85" DropDownClosed="CellAlignmentCB_DropDownClosed" Background="LightGray" >
 											<ComboBoxItem Content="Top"/>
 											<ComboBoxItem Content="Center"/>
 											<ComboBoxItem Content="Bottom"/>
 										</ComboBox>
 								</DockPanel>
+								</DockPanel>
+
+								<DockPanel Background="Beige">
+									<DockPanel DockPanel.Dock="Top" >
+									<Button Content="MergeRight" Click="MergeRightButton_Click" Focusable="false" Padding="3, 0" />
+									<Button Content="MergeDown" Click="MergeDownButton_Click" Focusable="false" Padding="3, 0" />
+							  </DockPanel>
+									<DockPanel>
+									
+										<DockPanel>
+										<TextBlock Text="Count" DockPanel.Dock="Top" HorizontalAlignment="Center"/>
+										<cc:NumericSpinner x:Name="MergeCountNS" HorizontalAlignment="Center" Margin="0" Value="0" MaxValue="10" MinValue="0" Width="43" Height="25" Background="White" Focusable="False" />
+											</DockPanel>
+									</DockPanel>
+									</DockPanel>
 							</DockPanel>
 
 							
@@ -286,67 +320,72 @@
 
 		<Grid >
 	
-		<avrtb:RichTextBox Grid.Row="0" x:Name="MainRTB" Zoom="1" IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="True"  DisableUserCopy="False" 
-					 CaretBrush="DarkBlue" CtrlKeyOpensHyperlink="True" PointerReleased="MainRTB_PointerReleased" KeyUp="MainRTB_KeyUp" />
+			<avrtb:RichTextBox Grid.Row="0" x:Name="MainRTB" Zoom="1" IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="False"  DisableUserCopy="False"
+									 CaretBrush="DarkBlue" CtrlKeyOpensHyperlink="True" PointerReleased="MainRTB_PointerReleased" KeyUp="MainRTB_KeyUp">
 
+
+				<!--<avrtb:RichTextBox.FlowDocument>
+					<avrtb:FlowDocument >
+						<avrtb:FlowDocument.Blocks>
+
+							<avrtb:Paragraph>
+								<avrtb:Paragraph.GetInlines>
+									<avrtb:EditableRun Text="This is a line of text. "/>
+									<avrtb:EditableRun Text="With a second run."/>
+								</avrtb:Paragraph.GetInlines>
+							</avrtb:Paragraph>
+
+							<avrtb:Paragraph>
+									<avrtb:Paragraph.GetInlines>
+										<avrtb:EditableInlineUIContainer>
+											<avrtb:EditableInlineUIContainer.Content>
+												<Image Width="100" Height="60" Source="avares://DemoApp_AvRichTextBox/Assets/avalonia-logo.ico"/>	
+											</avrtb:EditableInlineUIContainer.Content>
+										</avrtb:EditableInlineUIContainer>
+									</avrtb:Paragraph.GetInlines>
+							</avrtb:Paragraph>
+
+							<avrtb:Table ColDefs="100, 150, 100" RowDefs="100, 100, 100" >
+
+								<avrtb:Table.GetCells>
+									<avrtb:Cell RowNo="0" ColNo="0" BorderBrush="Red" BorderThickness="1" >
+										<avrtb:Cell.GetCellBlocks>
+											<avrtb:Paragraph>
+												<avrtb:Paragraph.GetInlines>
+													<avrtb:EditableRun Text="Some cell text"/>
+												</avrtb:Paragraph.GetInlines>
+											</avrtb:Paragraph>
+										</avrtb:Cell.GetCellBlocks>
+										</avrtb:Cell>
+									<avrtb:Cell RowNo="0" ColNo="1" BorderBrush="Red" BorderThickness="3"/>
+									<avrtb:Cell RowNo="0" ColNo="2" BorderBrush="Blue" BorderThickness="3"/>
+									<avrtb:Cell RowNo="1" ColNo="0" BorderBrush="Green" BorderThickness="2"/>
+									<avrtb:Cell RowNo="1" ColNo="1" BorderBrush="Black" BorderThickness="2"/>
+									<avrtb:Cell RowNo="1" ColNo="2" BorderThickness="2"/>
+									<avrtb:Cell RowNo="2" ColNo="0" BorderThickness="2"/>
+									<avrtb:Cell RowNo="2" ColNo="1" BorderThickness="2"/>
+									<avrtb:Cell RowNo="2" ColNo="2" BorderThickness="2"/>
+								</avrtb:Table.GetCells>				
+				
+								</avrtb:Table>
+					
+							<avrtb:Paragraph/>
+
+						</avrtb:FlowDocument.Blocks>
+					</avrtb:FlowDocument>
+			
+				</avrtb:RichTextBox.FlowDocument>-->
+
+
+			</avrtb:RichTextBox>
+
+			
 			<!-- Test a second RTB in tandem-->
 			<!--<avrtb:RichTextBox Grid.Row="1" x:Name="MainRTB2"  IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="True"  DisableUserCopy="False" SelectionBrush="LightGreen" />-->
 			
 		</Grid>
-		<!--RTB with direct content -->
-		<!--<avrtb:RichTextBox x:Name="MainRTB"  IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="True" DisableUserCopy="False"  >
-			
-			<avrtb:RichTextBox.FlowDocument>
-				<avrtb:FlowDocument >
-					<avrtb:FlowDocument.Blocks>
-						<avrtb:Paragraph>
-							<avrtb:Paragraph.Inlines>
-								<avrtb:EditableRun Text="Test line 1"/>
-								<avrtb:EditableLineBreak/>
-							</avrtb:Paragraph.Inlines>
-						</avrtb:Paragraph>
 	
-						<avrtb:Paragraph>
-							<avrtb:Paragraph.Inlines>
-								<avrtb:EditableInlineUIContainer>
-									<Image Width="100" Height="60" Source="avares://DemoApp_AvRichTextBox/Assets/avalonia-logo.ico"/>
-								</avrtb:EditableInlineUIContainer>
-							</avrtb:Paragraph.Inlines>
-						</avrtb:Paragraph>
-	
-						<avrtb:Paragraph>
-							<avrtb:Paragraph.Inlines>
-								<avrtb:EditableRun Text="Test line 2"/>
-							</avrtb:Paragraph.Inlines>
-						</avrtb:Paragraph>
-
-						<avrtb:Paragraph/>
-
-					--><!--	<avrtb:Table ColDefs="100, 150, 100, 100" Height="300" RowDefs="100, 100, 100" BorderThickness="3"/>--><!--
-
-					--><!--	<avrtb:Table BorderThickness="7" ColDefs="100, 150, 100, 100" RowDefs="100, 100, 100" >
-							<avrtb:Table.Cells>
-								<avrtb:Cell RowNo="0" ColNo="0" BorderBrush="Red" BorderThickness="1" >
-									<avrtb:Cell.CellContent>
-										<avrtb:Paragraph>
-											<avrtb:Paragraph.Inlines>
-												<avrtb:EditableRun Text="Cell text"/>
-											</avrtb:Paragraph.Inlines>
-										</avrtb:Paragraph>
-									</avrtb:Cell.CellContent>
-									</avrtb:Cell>
-								<avrtb:Cell RowNo="0" ColNo="2" BorderBrush="Red" BorderThickness="5"/>
-								<avrtb:Cell RowNo="2" ColNo="1" BorderBrush="Green" BorderThickness="2"/>
-								<avrtb:Cell RowNo="2" ColNo="3" BorderBrush="Red" BorderThickness="2"/>
-							</avrtb:Table.Cells>
-						</avrtb:Table>
-						--> <!--
-
-					</avrtb:FlowDocument.Blocks>
-				</avrtb:FlowDocument>
-			</avrtb:RichTextBox.FlowDocument>
-
-		</avrtb:RichTextBox>-->
+		
 
 	</DockPanel>
 

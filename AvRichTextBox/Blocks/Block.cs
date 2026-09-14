@@ -6,7 +6,7 @@ using System.Text;
 
 namespace AvRichTextBox;
 
-public class Block : INotifyPropertyChanged
+public class Block : AvaloniaObject, INotifyPropertyChanged
 {
     public event PropertyChangedEventHandler? PropertyChanged;
     internal void NotifyPropertyChanged([CallerMemberName] String propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
@@ -41,10 +41,13 @@ public class Block : INotifyPropertyChanged
         get; 
         set 
         {
+            
             Thickness oldMargin = field;
             field = value;
 
-            if (!MyFlowDoc.disableUndoStack)
+            if (!IsAttachedToDocument) return;
+
+            if (!DisableUndoStack)
                 MyFlowDoc.Undos.Add(new BlockMarginChangedUndo(this.Id, oldMargin, value, MyFlowDoc));
 
             NotifyPropertyChanged(nameof(Margin));
@@ -66,7 +69,7 @@ public class Block : INotifyPropertyChanged
 
             if (!IsAttachedToDocument) return;
 
-            if (!MyFlowDoc.disableUndoStack)
+            if (!DisableUndoStack)
                 MyFlowDoc.Undos.Add(new BlockBorderBrushChangedUndo(this.Id, oldBrush, value, MyFlowDoc));
 
             NotifyPropertyChanged(nameof(BorderBrush));
@@ -83,13 +86,15 @@ public class Block : INotifyPropertyChanged
             
             if (!IsAttachedToDocument) return;
 
-            if (!MyFlowDoc.disableUndoStack)
+            if (!DisableUndoStack)
                 MyFlowDoc.Undos.Add(new BlockBorderThicknessChangedUndo(this.Id, oldThickness, value, MyFlowDoc));
 
             if (this is Table t)
                 t.UpdateColAndRowPoints();
 
             NotifyPropertyChanged(nameof(BorderThickness));
+            
+            MyFlowDoc?.UpdateCaret();
         }
     } = new(0);
 
@@ -104,7 +109,7 @@ public class Block : INotifyPropertyChanged
             if (!IsAttachedToDocument) return;
 
 
-            if (!MyFlowDoc.disableUndoStack)
+            if (!DisableUndoStack)
                 MyFlowDoc.Undos.Add(new BlockBackgroundChangedUndo(this.Id, oldBrush, value, MyFlowDoc));
 
             NotifyPropertyChanged(nameof(Background)); 
@@ -122,7 +127,7 @@ public class Block : INotifyPropertyChanged
 
             if (!IsAttachedToDocument) return;
 
-            if (!MyFlowDoc.disableUndoStack)
+            if (!DisableUndoStack)
                 MyFlowDoc.Undos.Add(new BlockFontFamilyChangedUndo(this.Id, oldFontFamily, value, MyFlowDoc));
 
             NotifyPropertyChanged(nameof(FontFamily)); 
@@ -137,8 +142,10 @@ public class Block : INotifyPropertyChanged
         {
             double oldFontSize = field;
             field = value;
+            
+            if (!IsAttachedToDocument) return;
 
-            if (!MyFlowDoc.disableUndoStack)
+            if (!DisableUndoStack)
                 MyFlowDoc.Undos.Add(new BlockFontSizeChangedUndo(this.Id, oldFontSize, value, MyFlowDoc));
 
             NotifyPropertyChanged(nameof(FontSize)); 
@@ -155,7 +162,7 @@ public class Block : INotifyPropertyChanged
 
             if (!IsAttachedToDocument) return;
 
-            if (!MyFlowDoc.disableUndoStack)
+            if (!DisableUndoStack)
                 MyFlowDoc.Undos.Add(new BlockFontWeightChangedUndo(this.Id, oldFontWeight, value, MyFlowDoc));
 
             NotifyPropertyChanged(nameof(FontWeight)); 
@@ -170,7 +177,9 @@ public class Block : INotifyPropertyChanged
             FontStyle oldFontStyle = field;
             field = value;
 
-            if (!MyFlowDoc.disableUndoStack)
+            if (!IsAttachedToDocument) return;
+
+            if (!DisableUndoStack)
                 MyFlowDoc.Undos.Add(new BlockFontStyleChangedUndo(this.Id, oldFontStyle, value, MyFlowDoc));
 
             NotifyPropertyChanged(nameof(FontStyle)); 
@@ -322,7 +331,7 @@ public class Block : INotifyPropertyChanged
 
     internal virtual Block PropertyClone()
     {
-        MyFlowDoc.disableUndoStack = true;
+        DisableUndoStack =  true;
         
         Block newBlock = new () 
         { 
@@ -332,20 +341,20 @@ public class Block : INotifyPropertyChanged
             //OwningTable & OwningCell are assigned in CellBlocks.CollectionChanged
         };
 
-        MyFlowDoc.disableUndoStack = false;
+        DisableUndoStack =  false;
 
         return newBlock;
     }
     
     internal virtual Block FullClone(bool keepId)
     {
-        MyFlowDoc.disableUndoStack = true;
+        DisableUndoStack =  true;
 
         Block newBlock = PropertyClone();
         if (keepId)
             newBlock.Id = this.Id;
 
-        MyFlowDoc.disableUndoStack = false;
+        DisableUndoStack =  false;
 
         return newBlock;
     }

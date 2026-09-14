@@ -1,6 +1,7 @@
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using static AvRichTextBox.FlowDocument;
 
 namespace AvRichTextBox;
 
@@ -26,7 +27,7 @@ public partial class RichTextBox
       bool isEdit = existing != null;
 
       HyperlinkTextBox.Text = isEdit
-         ? existing!.Text ?? ""
+         ? existing!.LinkDisplayText ?? ""
          : FlowDoc.Selection.GetText();
 
       HyperlinkUrlBox.Text = existing?.NavigateUri ?? "";
@@ -68,7 +69,7 @@ public partial class RichTextBox
    internal void HyperlinkDeleteButton_Click(object? sender, RoutedEventArgs e)
    {
       CloseHyperlinkPopup();
-      FlowDoc.RemoveHyperlink();
+      FlowDoc.RemoveHyperlinkAtSelection();
       this.Focus();
    }
 
@@ -92,7 +93,7 @@ public partial class RichTextBox
 
    internal void RemoveHyperlinkMenuItem_Click(object? sender, RoutedEventArgs e)
    {
-      FlowDoc.RemoveHyperlink();
+      FlowDoc.RemoveHyperlinkAtSelection();
       this.Focus();
    }
 
@@ -115,7 +116,28 @@ public partial class RichTextBox
       if (string.IsNullOrEmpty(text))
          text = url;
 
-      FlowDoc.InsertOrUpdateHyperlink(text, url);
+        // Normalize URI – add https:// scheme if none is present
+        if (!url.Contains("://") && !url.StartsWith("mailto:", StringComparison.OrdinalIgnoreCase))
+            url = $"https://{url}";
+
+        // Case 1: caret is inside an existing hyperlink → update in place ──────
+        if (FlowDoc.GetHyperlinkAtSelection() is EditableHyperlink existingHyperlink)
+        {
+            FlowDoc.UpdateHyperlink(existingHyperlink, text, url);
+        }
+        else
+        {   // Insert new hyperlink from the current selection
+            if (FlowDoc.Selection.GetStartPar() is Paragraph startPar)
+            {
+                var newHyperlink = new EditableHyperlink(text, url);
+                FlowDoc.InsertHyperlinkAt(FlowDoc.Selection, newHyperlink);
+
+                // Move caret to end of inserted hyperlink
+                //FlowDoc.Select(FlowDoc.Selection.Start + text.Length, 0);
+                FlowDoc.SelectionExtendMode = ExtendMode.ExtendModeNone;
+            }
+        }
+                
       this.Focus();
    }
 

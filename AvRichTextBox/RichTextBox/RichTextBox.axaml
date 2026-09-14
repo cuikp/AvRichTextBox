@@ -94,19 +94,19 @@
 
 					<ItemsControl.ItemTemplate>
 
-						<DataTemplate>
+						<DataTemplate >
 
 							<ContentControl Content="{Binding}" HorizontalAlignment="Stretch" ClipToBounds="False" >
 
 								<ContentControl.DataTemplates>
 								
 									<!-- Template for EditableParagraph -->
-									<DataTemplate DataType="local:Paragraph">
+									<DataTemplate DataType="local:Paragraph"  >
 									
 										<Border BorderThickness="{Binding BorderThickness}" BorderBrush="{Binding BorderBrush}" CornerRadius="3" Margin="{Binding Margin}"
 											  VerticalAlignment="Top" HorizontalAlignment="Stretch" Padding="0" Background="{Binding Background}">
 
-											<local:EditableParagraph Classes="paragraphBindings" xml:space="preserve" Background="Transparent"	
+											<local:EditableParagraph Classes="paragraphBindings" xml:space="preserve" Background="Transparent" 
 													MouseMove="EditableParagraph_MouseMove" 
 													MouseLeave="EditableParagraph_MouseLeave" 
 													LostFocus="EditableParagraph_LostFocus" 
@@ -140,8 +140,7 @@
 												<ItemsControl.ItemTemplate>
 													<DataTemplate x:DataType="{x:Type local:Cell}">
 														<Grid>
-															<local:EditableCell Padding="{Binding Padding}" Background="{Binding CellBackground}" 
-																					  MouseMove="EditableCell_MouseMove" MouseLeave="EditableCell_MouseLeave">
+															<local:EditableCell Padding="{Binding Padding}" Background="{Binding CellBackground}"  MouseMove="EditableCell_MouseMove" MouseLeave="EditableCell_MouseLeave">
 
 																<!-- Cell interior paragraph stack -->
 																<ItemsControl ItemsSource="{Binding CellBlocks}" Margin="0" VerticalAlignment="{Binding CellVerticalAlignment}">

@@ -9,30 +9,111 @@ using static AvRichTextBox.FlowDocument;
 
 namespace AvRichTextBox;
 
-public class Cell : INotifyPropertyChanged
+public class Cell : AvaloniaObject, INotifyPropertyChanged
 {
-    public event PropertyChangedEventHandler? PropertyChanged;
+    public new event PropertyChangedEventHandler? PropertyChanged;
     private void NotifyPropertyChanged([CallerMemberName] string propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
+    
     internal ObservableCollection<Block> CellBlocks { get; } = [];
     public IEnumerable<Block> GetCellBlocks => CellBlocks;
     
-    public void InsertBlockAt(int index, Block block) { OwningTable.MyFlowDoc.InsertBlockIntoCollectionAt(CellBlocks, index, block); }
-    public void RemoveBlockAt(int index) { OwningTable.MyFlowDoc.RemoveBlockFromCollectionAt(CellBlocks, index); }
-    public void RemoveBlock(Block block) { OwningTable.MyFlowDoc.RemoveBlockFromCollection(CellBlocks, block); }
+    public void InsertBlockAt(int index, Block block) { InsertCellBlockIntoCollectionAt(index, block); }
+    public void RemoveBlockAt(int index) { RemoveCellBlockFromCollectionAt(CellBlocks, index); }
+    public void RemoveBlock(Block block) { RemoveCellBlockFromCollection(CellBlocks, block); }
 
+    internal void InsertCellBlockIntoCollectionAt(int insertIdx, Block blockToInsert)
+    {
+        if (insertIdx < 0 || insertIdx > CellBlocks.Count)
+            throw new Exception("Block index is out of bounds of the block collection.");
+
+        DisableUndoStack = true;
+
+        CellBlocks.Insert(insertIdx, blockToInsert);
+        blockToInsert.IsAttachedToDocument = this.IsAttachedToDocument;
+        blockToInsert.OwningCell = this;
+        
+        if (OwningTable != null && OwningTable.MyFlowDoc != null)
+        {
+            int tableId = OwningTable.Id;
+            int cellId = blockToInsert.OwningCell.Id;
+
+            int updateIdx = OwningTable.MyFlowDoc.Blocks.IndexOf(OwningTable);
+            bool addUndo = OwningTable.IsAttachedToDocument;
+            if (addUndo)
+                OwningTable.MyFlowDoc.Undos.Add(new InsertBlockUndo(OwningTable.MyFlowDoc, blockToInsert.Id, blockToInsert.BlockLength, true, tableId, cellId));
+        }
+
+        DisableUndoStack = false;
+    }
+
+
+    internal void RemoveCellBlockFromCollectionAt(ObservableCollection<Block> blockCollection, int removeAtIndex)
+    {
+        if (removeAtIndex < 0 || removeAtIndex >= blockCollection.Count)
+            throw new Exception("Block index is out of bounds of the block collection.");
+
+        if (blockCollection.Count == 1 && blockCollection[0].Text == "")
+            throw new Exception("Cannot remove default empty paragraph in the collection.");
+
+        Block blockToRemove = blockCollection[removeAtIndex];
+        RemoveCellBlockFromCollection(blockCollection, blockToRemove);
+
+        if (blockCollection.Count == 0)
+            AddDefaultParagraph(blockCollection);
+    }
+
+    internal void RemoveCellBlockFromCollection(ObservableCollection<Block> blockCollection, Block? blockToRemove)
+    {
+        if (blockToRemove == null)
+            throw new Exception("Block to remove must not be null.");
+        if (!blockCollection.Contains(blockToRemove)) return;
+
+        DisableUndoStack = true;
+        
+        blockCollection.Remove(blockToRemove);
+
+        if (OwningTable != null && OwningTable.MyFlowDoc != null)
+        {
+            Block removedBlockClone = blockToRemove.FullClone(true);
+
+            int tableId = blockToRemove.OwningTable.Id;
+            int cellId = blockToRemove.OwningCell.Id;
+            int removeAtIdx = blockCollection.IndexOf(blockToRemove);
+
+            bool addUndo = !blockToRemove.IsCellBlock || blockToRemove.OwningTable.IsAttachedToDocument;
+
+            if (addUndo)
+                OwningTable.MyFlowDoc.Undos.Add(new RemoveBlockUndo(OwningTable.MyFlowDoc, removeAtIdx, removedBlockClone, blockToRemove.BlockLength, blockToRemove.IsCellBlock, tableId, cellId));
+        }
+
+        DisableUndoStack = false;
+
+    }
+
+
+    public Table OwningTable = null!;
+    [JsonIgnore]
+    public Table GetOwningTable => OwningTable;
+
+
+    public Cell()
+    {
+        CellBlocks.CollectionChanged += CellBlocks_CollectionChanged;
+        Id = ++FlowDocument.TableCellIdCounter;
+    }
+
+    /// <summary>
+    /// Retained for backwards compatibility. Prefer <see cref="Cell()"/>.
+    /// </summary>
+    [Obsolete("Use the parameterless Cell() constructor instead.")]
+
+    public Cell(Table owningTable) : this() { } 
 
     internal int Id = 0;
 
     internal bool IsAttachedToDocument = false;
-
-    public Cell(Table owningTable) 
-    { 
-        OwningTable = owningTable;
-        CellBlocks.CollectionChanged += CellBlocks_CollectionChanged;
-        Id = ++FlowDocument.TableCellIdCounter;
-
-    }
+        
 
     internal void ResizeCellBlocks()
     {
@@ -42,17 +123,17 @@ public class Cell : INotifyPropertyChanged
 
     private void CellBlocks_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
+        if (!this.IsAttachedToDocument) return;
+
         if (e.NewItems != null)
         {
-            foreach (var item in e.NewItems)
+            foreach (Block b in e.NewItems.OfType<Block>())
             {
-                if (item is Block b)
-                {
-                    b.IsTableCellBlock = true;
-                    b.OwningTable = OwningTable;
-                    b.OwningCell = this;
-                    b.MyFlowDoc = OwningTable.MyFlowDoc;
-                }
+                b.IsTableCellBlock = true;
+                b.OwningTable = OwningTable;
+                b.OwningCell = this;
+                b.MyFlowDoc = OwningTable.MyFlowDoc;
+                b.IsAttachedToDocument = this.IsAttachedToDocument;
             }
         }
 
@@ -80,14 +161,8 @@ public class Cell : INotifyPropertyChanged
             OwningTable.MyFlowDoc.UpdateTextRanges(CellBlocks[e.NewStartingIndex].StartInDoc, lengthOffset);
         }
 
-
-
+        OwningTable.UpdateCellParagraphSizes();
     }
-
-
-    internal Table OwningTable = null!;
-    [JsonIgnore]
-    public Table GetOwningTable => OwningTable;
 
     public Thickness BorderThickness 
     { 
@@ -99,8 +174,8 @@ public class Cell : INotifyPropertyChanged
 
             if (!IsAttachedToDocument) return;
 
-            if (!OwningTable.MyFlowDoc.disableUndoStack)
-                OwningTable.MyFlowDoc.Undos.Add(new CellBorderThicknessChangedUndo(OwningTable.Id, this.Id, oldThickness, OwningTable.MyFlowDoc));
+            if (!DisableUndoStack)
+                OwningTable.MyFlowDoc.Undos.Add(new CellBorderThicknessChangedUndo(OwningTable.Id, this.Id, oldThickness, field, OwningTable.MyFlowDoc));
 
             NotifyPropertyChanged(nameof(BorderThickness)); 
         } 
@@ -116,8 +191,8 @@ public class Cell : INotifyPropertyChanged
 
             if (!IsAttachedToDocument) return;
 
-            if (!OwningTable.MyFlowDoc.disableUndoStack)
-                OwningTable.MyFlowDoc.Undos.Add(new CellBorderBrushChangedUndo(OwningTable.Id, this.Id, oldBrush, OwningTable.MyFlowDoc));
+            if (!DisableUndoStack)
+                OwningTable.MyFlowDoc.Undos.Add(new CellBorderBrushChangedUndo(OwningTable.Id, this.Id, oldBrush, field, OwningTable.MyFlowDoc));
 
             NotifyPropertyChanged(nameof(BorderBrush)); 
         } 
@@ -133,8 +208,8 @@ public class Cell : INotifyPropertyChanged
 
             if (!IsAttachedToDocument) return;
 
-            if (!OwningTable.MyFlowDoc.disableUndoStack)
-                OwningTable.MyFlowDoc.Undos.Add(new CellBackgroundChangedUndo(OwningTable.Id, this.Id, oldBrush, OwningTable.MyFlowDoc));
+            if (!DisableUndoStack)
+                OwningTable.MyFlowDoc.Undos.Add(new CellBackgroundChangedUndo(OwningTable.Id, this.Id, oldBrush, field, OwningTable.MyFlowDoc));
 
             NotifyPropertyChanged(nameof(CellBackground)); 
         } 
@@ -150,10 +225,13 @@ public class Cell : INotifyPropertyChanged
 
             if (!IsAttachedToDocument) return;
 
-            if (!OwningTable.MyFlowDoc.disableUndoStack)
-                OwningTable.MyFlowDoc.Undos.Add(new CellVerticalAlignmentChangedUndo(OwningTable.Id, this.Id, oldVAlign, OwningTable.MyFlowDoc));
+            if (!DisableUndoStack)
+                OwningTable.MyFlowDoc.Undos.Add(new CellVerticalAlignmentChangedUndo(OwningTable.Id, this.Id, oldVAlign, field, OwningTable.MyFlowDoc));
 
-            NotifyPropertyChanged(nameof(CellVerticalAlignment)); 
+            NotifyPropertyChanged(nameof(CellVerticalAlignment));
+
+            OwningTable?.MyFlowDoc?.UpdateCaret();
+
         } 
     } = VerticalAlignment.Top;
 
@@ -167,21 +245,21 @@ public class Cell : INotifyPropertyChanged
 
             if (!IsAttachedToDocument) return;
 
-            if (!OwningTable.MyFlowDoc.disableUndoStack)
-                OwningTable.MyFlowDoc.Undos.Add(new CellPaddingChangedUndo(OwningTable.Id, this.Id, oldPadding, OwningTable.MyFlowDoc));
+            if (!DisableUndoStack)
+                OwningTable.MyFlowDoc.Undos.Add(new CellPaddingChangedUndo(OwningTable.Id, this.Id, oldPadding, field, OwningTable.MyFlowDoc));
 
             NotifyPropertyChanged(nameof(Padding)); 
         } 
     } = new(5);
     
-    internal int ColNo { get; set { field = value; NotifyPropertyChanged(nameof(ColNo)); } }
-    internal int RowNo { get; set { field = value; NotifyPropertyChanged(nameof(RowNo)); } }
-    internal int ColSpan { get; set { field = value; NotifyPropertyChanged(nameof(ColSpan)); } } = 1;
-    internal int RowSpan { get; set { field = value; NotifyPropertyChanged(nameof(RowSpan)); } } = 1;
+    public int ColNo { get; set { field = value; NotifyPropertyChanged(nameof(ColNo)); } }
+    public int RowNo { get; set { field = value; NotifyPropertyChanged(nameof(RowNo)); } }
+    public int ColSpan { get; set { field = value; NotifyPropertyChanged(nameof(ColSpan)); } } = 1;
+    public int RowSpan { get; set { field = value; NotifyPropertyChanged(nameof(RowSpan)); } } = 1;
 
     public bool Selected { get; set { field = value; NotifyPropertyChanged(nameof(Selected)); } } = false;
 
-    internal IBrush SelectionBrush => OwningTable.SelectionBrush;
+    internal IBrush SelectionBrush => OwningTable?.SelectionBrush ?? Brushes.Transparent;
 
     internal double Height { get; set; } = 60;  // arbitrary default
     internal bool vmerged = false;
@@ -201,9 +279,9 @@ public class Cell : INotifyPropertyChanged
 
     internal Cell PropertyClone(Table owningTable)
     {
-        OwningTable.MyFlowDoc.disableUndoStack = true;
+        DisableUndoStack =  true;
 
-        Cell newCell = new(owningTable)
+        Cell newCell = new()
         {
             RowNo = this.RowNo,
             ColNo = this.ColNo,
@@ -217,12 +295,13 @@ public class Cell : INotifyPropertyChanged
             Padding = this.Padding,
             CellVerticalAlignment = this.CellVerticalAlignment,
             IsClonedCell = true,
+            OwningTable = owningTable
         };
 
         // OwningTable and OwningCell set in CellBlocks_CollectionChanged event
         //newCell.CellBlocks.AddRange(this.CellBlocks.Select(cb => cb.FullClone()));
         
-        OwningTable.MyFlowDoc.disableUndoStack = false;
+        DisableUndoStack =  false;
 
         return newCell;
     }
@@ -230,9 +309,9 @@ public class Cell : INotifyPropertyChanged
 
     internal Cell FullClone(Table owningTable, bool keepId)
     {
-        OwningTable.MyFlowDoc.disableUndoStack = true;
+        DisableUndoStack =  true;
 
-        Cell newCell = new(owningTable)
+        Cell newCell = new()
         {
             RowNo = this.RowNo,
             ColNo = this.ColNo,
@@ -245,7 +324,8 @@ public class Cell : INotifyPropertyChanged
             CellBackground = CloneBrush(this.CellBackground) ?? null!,
             Padding = this.Padding,
             CellVerticalAlignment = this.CellVerticalAlignment,
-            IsClonedCell = true
+            IsClonedCell = true,
+            OwningTable = owningTable
         };
 
         if (keepId)
@@ -254,7 +334,7 @@ public class Cell : INotifyPropertyChanged
         // OwningTable and OwningCell set in CellBlocks_CollectionChanged event
         newCell.CellBlocks.AddRange(this.CellBlocks.Select(cb => cb.FullClone(keepId)));
 
-        OwningTable.MyFlowDoc.disableUndoStack = false;
+        DisableUndoStack =  false;
 
         return newCell;
     }

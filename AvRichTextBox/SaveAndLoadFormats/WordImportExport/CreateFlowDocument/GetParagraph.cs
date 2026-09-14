@@ -15,7 +15,7 @@ internal static partial class WordConversions
 
    internal static Paragraph GetParagraph(OpenXmlElement section, FlowDocument fdoc, MainDocumentPart mainDocPart)
    {
-      Paragraph para = new(fdoc);
+      Paragraph para = new();
 
       foreach (OpenXmlElement psection in section.Elements())
       {

@@ -9,6 +9,9 @@ public class EditableLineBreak : LineBreak, IEditable
     internal FlowDocument MyFlowDoc { get; set; } = null!;
     FlowDocument IEditable.MyFlowDoc { get => MyFlowDoc; set => MyFlowDoc = value; }
 
+    internal bool IsAttachedToDocument = false;
+    bool IEditable.IsAttachedToDocument { get => IsAttachedToDocument; set => IsAttachedToDocument = value; }
+
     internal int Id { get; set; }
     int IEditable.Id { get => Id; set => Id = value; }
 
@@ -45,7 +48,7 @@ public class EditableLineBreak : LineBreak, IEditable
 
     public IEditable Clone()
     {
-        MyFlowDoc.disableUndoStack = true;
+        DisableUndoStack =  true;
 
         EditableLineBreak eLB = new()
         {
@@ -56,7 +59,7 @@ public class EditableLineBreak : LineBreak, IEditable
             IsTableCellInline = this.IsTableCellInline,
         };
 
-        MyFlowDoc.disableUndoStack = false;
+        DisableUndoStack =  false;
 
         return eLB;
 

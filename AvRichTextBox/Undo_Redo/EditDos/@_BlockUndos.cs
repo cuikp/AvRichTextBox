@@ -1,6 +1,7 @@
 ﻿
 using Avalonia.Media;
 using Avalonia.Threading;
+using static AvRichTextBox.FlowDocument;
 
 namespace AvRichTextBox;
 
@@ -16,13 +17,13 @@ internal class BlockMarginChangedUndo(int blockId, Thickness oldMargin, Thicknes
         {
             if (flowDoc.GetBlockFromId(blockId) is Block b)
             {
-                flowDoc.disableUndoStack = true;
+                DisableUndoStack =  true;
                 b.Margin = oldMargin;
-                flowDoc.disableUndoStack = false;
+                DisableUndoStack =  false;
             }
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 
     public void PerformRedo()
@@ -31,13 +32,13 @@ internal class BlockMarginChangedUndo(int blockId, Thickness oldMargin, Thicknes
         {
             if (flowDoc.GetBlockFromId(blockId) is Block b)
             {
-                flowDoc.disableUndoStack = true;
+                DisableUndoStack =  true;
                 b.Margin = newMargin;
-                flowDoc.disableUndoStack = false;
+                DisableUndoStack =  false;
             }
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 
 }
@@ -53,13 +54,13 @@ internal class BlockBackgroundChangedUndo(int blockId, IBrush oldBrush, IBrush n
         {
             if (flowDoc.GetBlockFromId(blockId) is Block b)
             {
-                flowDoc.disableUndoStack = true;
+                DisableUndoStack =  true;
                 b.Background = oldBrush;
-                flowDoc.disableUndoStack = false;
+                DisableUndoStack =  false;
             }
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
     
     public void PerformRedo()
@@ -68,13 +69,13 @@ internal class BlockBackgroundChangedUndo(int blockId, IBrush oldBrush, IBrush n
         {
             if (flowDoc.GetBlockFromId(blockId) is Block b)
             {
-                flowDoc.disableUndoStack = true;
+                DisableUndoStack =  true;
                 b.Background = newBrush;
-                flowDoc.disableUndoStack = false;
+                DisableUndoStack =  false;
             }
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 }
 
@@ -89,13 +90,13 @@ internal class BlockBorderBrushChangedUndo(int blockId, IBrush oldBrush, IBrush 
         {
             if (flowDoc.GetBlockFromId(blockId) is Block b)
             {
-                flowDoc.disableUndoStack = true;
+                DisableUndoStack =  true;
                 b.BorderBrush = oldBrush;
-                flowDoc.disableUndoStack = false;
+                DisableUndoStack =  false;
             }
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 
     public void PerformRedo()
@@ -104,13 +105,13 @@ internal class BlockBorderBrushChangedUndo(int blockId, IBrush oldBrush, IBrush 
         {
             if (flowDoc.GetBlockFromId(blockId) is Block b)
             {
-                flowDoc.disableUndoStack = true;
+                DisableUndoStack =  true;
                 b.BorderBrush = newBrush;
-                flowDoc.disableUndoStack = false;
+                DisableUndoStack =  false;
             }
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 }
 
@@ -125,13 +126,13 @@ internal class BlockBorderThicknessChangedUndo(int blockId, Thickness oldThickne
         {
             if (flowDoc.GetBlockFromId(blockId) is Block b)
             {
-                flowDoc.disableUndoStack = true;
+                DisableUndoStack =  true;
                 b.BorderThickness = oldThickness;
-                flowDoc.disableUndoStack = false;
+                DisableUndoStack =  false;
             }
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 
     public void PerformRedo()
@@ -140,13 +141,13 @@ internal class BlockBorderThicknessChangedUndo(int blockId, Thickness oldThickne
         {
             if (flowDoc.GetBlockFromId(blockId) is Block b)
             {
-                flowDoc.disableUndoStack = true;
+                DisableUndoStack =  true;
                 b.BorderThickness = newThickness;
-                flowDoc.disableUndoStack = false;
+                DisableUndoStack =  false;
             }
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 }
 
@@ -161,13 +162,13 @@ internal class BlockFontFamilyChangedUndo(int blockId, FontFamily oldFontFamily,
         {
             if (flowDoc.GetBlockFromId(blockId) is Block b)
             {
-                flowDoc.disableUndoStack = true;
+                DisableUndoStack =  true;
                 b.FontFamily = oldFontFamily;
-                flowDoc.disableUndoStack = false;
+                DisableUndoStack =  false;
             }
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 
     public void PerformRedo()
@@ -176,13 +177,13 @@ internal class BlockFontFamilyChangedUndo(int blockId, FontFamily oldFontFamily,
         {
             if (flowDoc.GetBlockFromId(blockId) is Block b)
             {
-                flowDoc.disableUndoStack = true;
+                DisableUndoStack =  true;
                 b.FontFamily = newFontFamily;
-                flowDoc.disableUndoStack = false;
+                DisableUndoStack =  false;
             }
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 }
 
@@ -197,13 +198,13 @@ internal class BlockFontSizeChangedUndo(int blockId, double oldFontSize, double 
         {
             if (flowDoc.GetBlockFromId(blockId) is Block b)
             {
-                flowDoc.disableUndoStack = true;
+                DisableUndoStack =  true;
                 b.FontSize = oldFontSize;
-                flowDoc.disableUndoStack = false;
+                DisableUndoStack =  false;
             }
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 
     public void PerformRedo()
@@ -212,13 +213,13 @@ internal class BlockFontSizeChangedUndo(int blockId, double oldFontSize, double 
         {
             if (flowDoc.GetBlockFromId(blockId) is Block b)
             {
-                flowDoc.disableUndoStack = true;
+                DisableUndoStack =  true;
                 b.FontSize = newFontSize;
-                flowDoc.disableUndoStack = false;
+                DisableUndoStack =  false;
             }
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 }
 
@@ -233,13 +234,13 @@ internal class BlockFontWeightChangedUndo(int blockId, FontWeight oldFontWeight,
         {
             if (flowDoc.GetBlockFromId(blockId) is Block b)
             {
-                flowDoc.disableUndoStack = true;
+                DisableUndoStack =  true;
                 b.FontWeight = oldFontWeight;
-                flowDoc.disableUndoStack = false;
+                DisableUndoStack =  false;
             }
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 
     public void PerformRedo()
@@ -248,13 +249,13 @@ internal class BlockFontWeightChangedUndo(int blockId, FontWeight oldFontWeight,
         {
             if (flowDoc.GetBlockFromId(blockId) is Block b)
             {
-                flowDoc.disableUndoStack = true;
+                DisableUndoStack =  true;
                 b.FontWeight = newFontWeight;
-                flowDoc.disableUndoStack = false;
+                DisableUndoStack =  false;
             }
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 }
 
@@ -269,13 +270,13 @@ internal class BlockFontStyleChangedUndo(int blockId, FontStyle oldFontStyle, Fo
         {
             if (flowDoc.GetBlockFromId(blockId) is Block b)
             {
-                flowDoc.disableUndoStack = true;
+                DisableUndoStack =  true;
                 b.FontStyle = oldFontStyle;
-                flowDoc.disableUndoStack = false;
+                DisableUndoStack =  false;
             }
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 
     public void PerformRedo()
@@ -284,18 +285,18 @@ internal class BlockFontStyleChangedUndo(int blockId, FontStyle oldFontStyle, Fo
         {
             if (flowDoc.GetBlockFromId(blockId) is Block b)
             {
-                flowDoc.disableUndoStack = true;
+                DisableUndoStack =  true;
                 b.FontStyle = newFontStyle;
-                flowDoc.disableUndoStack = false;
+                DisableUndoStack =  false;
             }
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at blockId: {blockId}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 }
 
 internal class InsertBlockUndo( FlowDocument flowDoc, int insertedBlockId, int undoEditOffset, bool IsCellParagraph, int containingTableId, int containingCellId) : IEditDo
-{  
+{
     public int UndoEditOffset => undoEditOffset;
     public bool UpdateTextRanges => true;
     int insertBlockIdx = -1;
@@ -306,7 +307,7 @@ internal class InsertBlockUndo( FlowDocument flowDoc, int insertedBlockId, int u
     {
         try
         {
-            flowDoc.disableUndoStack = true;
+            DisableUndoStack =  true;
 
             if (flowDoc.GetBlockFromId(insertedBlockId) is not Block insertedBlock) return;
 
@@ -335,14 +336,14 @@ internal class InsertBlockUndo( FlowDocument flowDoc, int insertedBlockId, int u
 
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at Inserted block id: {insertedBlockId}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 
     public void PerformRedo()
     {
         try
         {
-            flowDoc.disableUndoStack = true;
+            DisableUndoStack =  true;
             
             int blockIdx = 0;
 
@@ -363,21 +364,19 @@ internal class InsertBlockUndo( FlowDocument flowDoc, int insertedBlockId, int u
 
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at Inserted block id: {insertedBlockId}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
 
     }
 
     private void PostUpdate(int blockIdx, int startCharIdx)
     {
-        flowDoc.disableUndoStack = false;
-        flowDoc.UpdateBlockAndInlineStarts(blockIdx);
-        flowDoc.UpdateTextRanges(startCharIdx, -undoEditOffset);
+        undoEditOffset = -undoEditOffset;
 
-        Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            flowDoc.Selection.Start = Math.Min(flowDoc.Selection.Start, flowDoc.DocEndPoint);
-            flowDoc.Selection.CollapseToStart();
-        });
+        DisableUndoStack =  false;
+              
+        flowDoc.Selection.Start = Math.Min(flowDoc.Selection.Start, flowDoc.DocEndPoint);
+        flowDoc.Selection.CollapseToStart();
+      
     }
 }
 
@@ -391,7 +390,7 @@ internal class RemoveBlockUndo(FlowDocument flowDoc, int originalIndex, Block re
     {
         try
         {
-            flowDoc.disableUndoStack = true;
+            DisableUndoStack =  true;
             startCharIdx = removedBlockClone.StartInDoc;
 
             if (IsCellParagraph)
@@ -399,6 +398,7 @@ internal class RemoveBlockUndo(FlowDocument flowDoc, int originalIndex, Block re
                 if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == containingTableId) is not Table containingTable) return;
                 if (containingTable.Cells.FirstOrDefault(cell => cell.Id == containingCellId) is not Cell containingCell) return;
                 containingCell.CellBlocks.Insert(originalIndex, removedBlockClone);
+                containingTable.UpdateCellParagraphSizes();
             }
             else
             {
@@ -409,14 +409,14 @@ internal class RemoveBlockUndo(FlowDocument flowDoc, int originalIndex, Block re
             
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at Removed at block idx: {originalIndex}"); }
-        finally {flowDoc.disableUndoStack = false;}
+        finally {DisableUndoStack =  false;}
     }
 
     public void PerformRedo()
     {
         try
         {
-            flowDoc.disableUndoStack = true;
+            DisableUndoStack =  true;
             
             if (IsCellParagraph)
             {
@@ -424,6 +424,7 @@ internal class RemoveBlockUndo(FlowDocument flowDoc, int originalIndex, Block re
                 if (containingTable.Cells.FirstOrDefault(cell => cell.Id == containingCellId) is not Cell containingCell) return;
                 
                 containingCell.CellBlocks.Remove(removedBlockClone);
+                containingTable.UpdateCellParagraphSizes();
             }
             else
             {
@@ -434,12 +435,12 @@ internal class RemoveBlockUndo(FlowDocument flowDoc, int originalIndex, Block re
 
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at Removed at block idx: {originalIndex}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 
     private void PostUpdate()
     {
-        flowDoc.disableUndoStack = false;
+        DisableUndoStack =  false;
         flowDoc.UpdateTextRanges(startCharIdx, undoEditOffset);
         flowDoc.InvokeSelectionChanged();
     }

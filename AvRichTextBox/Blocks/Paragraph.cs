@@ -13,15 +13,19 @@ public class Paragraph : Block
     internal ObservableCollection<IEditable> Inlines { get; } = [];
     public IEnumerable<IEditable> GetInlines => Inlines;
 
-    public Paragraph(FlowDocument owningFlowDoc)
+    public Paragraph()
     {
         //this.PropertyChanged += Paragraph_PropertyChanged;
-        MyFlowDoc = owningFlowDoc;
-
         Inlines.CollectionChanged += Inlines_CollectionChanged;
         Id = ++FlowDocument.BlockIdCounter;
-
     }
+
+    /// <summary>
+    /// Retained for backwards compatibility. Prefer <see cref="Paragraph()"/>.
+    /// </summary>
+    [Obsolete("Use the parameterless Paragraph() constructor instead.")]
+    public Paragraph(FlowDocument owningFlowDoc) : this() { }
+
 
     private void Paragraph_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
@@ -41,6 +45,7 @@ public class Paragraph : Block
             ied.IsLastInlineOfParagraph = ilineno == Inlines.Count - 1;
             ied.PreviousInline = ilineno == 0 ? null! : Inlines[ilineno - 1];
             ied.NextInline = ilineno == Inlines.Count - 1 ? null! : Inlines[ilineno + 1];
+            ied.IsAttachedToDocument = true;
         }
 
         this.CallRequestInlinesUpdate();
@@ -57,10 +62,13 @@ public class Paragraph : Block
 
             if (!IsAttachedToDocument) return;
 
-            if (!MyFlowDoc.disableUndoStack)
-                MyFlowDoc.Undos.Add(new ParagraphTextAlignmentChangeUndo(this.Id, oldTextAlign, MyFlowDoc));
+            if (!DisableUndoStack)
+                MyFlowDoc.Undos.Add(new ParagraphTextAlignmentChangeUndo(this.Id, oldTextAlign, field, MyFlowDoc));
 
-            NotifyPropertyChanged(nameof(TextAlignment)); 
+            NotifyPropertyChanged(nameof(TextAlignment));
+            
+            MyFlowDoc?.UpdateCaret();
+
         } 
     } = TextAlignment.Left;
 
@@ -74,8 +82,8 @@ public class Paragraph : Block
 
             if (!IsAttachedToDocument) return;
 
-            if (!MyFlowDoc.disableUndoStack)
-                MyFlowDoc.Undos.Add(new ParagraphLineHeightChangeUndo(this.Id, oldLineHeight, MyFlowDoc));
+            if (!DisableUndoStack)
+                MyFlowDoc.Undos.Add(new ParagraphLineHeightChangeUndo(this.Id, oldLineHeight, field, MyFlowDoc));
 
             NotifyPropertyChanged(nameof(LineHeight));
 
@@ -132,6 +140,9 @@ public class Paragraph : Block
     internal void CallRequestTextLayoutInfoEnd() { RequestTextLayoutInfoEnd = true; RequestTextLayoutInfoEnd = false; }
     internal void CallRequestSizeChanged() { RequestSizeChanged = true; RequestSizeChanged = false; }
 
+    internal Paragraph? GetPreviousParagraph => MyFlowDoc?.AllParagraphs?.FirstOrDefault(p => MyFlowDoc?.AllParagraphs.IndexOf(p) == MyFlowDoc?.AllParagraphs.IndexOf(this) - 1);
+    internal Paragraph? GetNextParagraph => MyFlowDoc?.AllParagraphs?.FirstOrDefault(p => MyFlowDoc?.AllParagraphs.IndexOf(p) == MyFlowDoc?.AllParagraphs.IndexOf(this) + 1);
+
     internal void EnsureProperEnd()
     {
         if (SelectionEndInBlock < SelectionStartInBlock)
@@ -159,7 +170,7 @@ public class Paragraph : Block
 
     }
 
-    public void InsertInlinesAt(int index, IEnumerable<IEditable> inlinesToAdd)
+    public void InsertInlinesAt(int inlineIndex, IEnumerable<IEditable> inlinesToAdd)
     {
         if (!inlinesToAdd.Any()) return;
 
@@ -167,25 +178,25 @@ public class Paragraph : Block
             throw new Exception("The passed inlinesToAdd collection contains a null IEditable");
 
         for (int inlineno = inlinesToAdd.Count() - 1; inlineno >= 0; inlineno --)
-            this.Inlines.Insert(index, inlinesToAdd.ElementAt(inlineno));
+            this.Inlines.Insert(inlineIndex, inlinesToAdd.ElementAt(inlineno));
 
-        bool addUndo = !MyFlowDoc.disableUndoStack && this.IsAttachedToDocument;
+        bool addUndo = !DisableUndoStack && this.IsAttachedToDocument;
         
         if (addUndo)
             MyFlowDoc.Undos.Add(new InsertInlinesAtUndo(this.Id, [.. inlinesToAdd.Select(il=> il.Id)], MyFlowDoc));
 
     }
 
-    public void InsertInlineAt(int index, IEditable inlineToAdd)
+    public void InsertInlineAt(int inlineIndex, IEditable inlineToAdd)
     {
         if (inlineToAdd == null) return;
 
-        if (index < 0 || index > this.Inlines.Count)
+        if (inlineIndex < 0 || inlineIndex > this.Inlines.Count)
             throw new Exception("IEditable index is out of bounds of paragraph Inlines");
 
-        this.Inlines.Insert(index, inlineToAdd);
+        this.Inlines.Insert(inlineIndex, inlineToAdd);
 
-        bool addUndo = !MyFlowDoc.disableUndoStack && this.IsAttachedToDocument;
+        bool addUndo = !DisableUndoStack && this.IsAttachedToDocument;
 
         if (addUndo)
             MyFlowDoc.Undos.Add(new InsertInlineAtUndo(this.Id, inlineToAdd.Id, MyFlowDoc));
@@ -205,7 +216,7 @@ public class Paragraph : Block
 
         if (this.Inlines[index] is IEditable inlineToRemove)
         {
-            bool addUndo = !MyFlowDoc.disableUndoStack && this.IsAttachedToDocument;
+            bool addUndo = !DisableUndoStack && this.IsAttachedToDocument;
 
             if (addUndo)
                 MyFlowDoc.Undos.Add(new RemoveInlineUndo(this.Id, index, inlineToRemove.CloneWithId(), MyFlowDoc));
@@ -219,9 +230,9 @@ public class Paragraph : Block
 
     internal void AddDefaultRun()
     {
-        MyFlowDoc.disableUndoStack = true;
+        DisableUndoStack =  true;
         this.Inlines.Add(new EditableRun(""));
-        MyFlowDoc.disableUndoStack = false;
+        DisableUndoStack =  false;
     }
 
     public void RemoveInline(IEditable inlineToRemove)
@@ -233,9 +244,9 @@ public class Paragraph : Block
 
     internal override Paragraph PropertyClone()
     {
-        MyFlowDoc.disableUndoStack = true;
+        DisableUndoStack =  true;
 
-        Paragraph newPar = new(MyFlowDoc)
+        Paragraph newPar = new()
         {
             TextAlignment = this.TextAlignment,
             //LineSpacing = this.LineSpacing,
@@ -251,20 +262,20 @@ public class Paragraph : Block
             IsTableCellBlock = this.IsTableCellBlock,
             OwningTable = this.OwningTable,
             OwningCell = this.OwningCell,
-            StartInDoc = this.StartInDoc
-
+            StartInDoc = this.StartInDoc,
+            MyFlowDoc = this.MyFlowDoc
         };
 
-        MyFlowDoc.disableUndoStack = false;
+        DisableUndoStack =  false;
 
         return newPar;
     }
 
     internal override Paragraph FullClone(bool keepId)
     {
-        MyFlowDoc.disableUndoStack = true;
+        DisableUndoStack =  true;
 
-        Paragraph newPar = new(MyFlowDoc)
+        Paragraph newPar = new()
         {
             TextAlignment = this.TextAlignment,
             //LineSpacing = this.LineSpacing,
@@ -280,8 +291,8 @@ public class Paragraph : Block
             IsTableCellBlock = this.IsTableCellBlock,
             OwningTable = this.OwningTable,
             OwningCell = this.OwningCell,
-            StartInDoc = this.StartInDoc
-
+            StartInDoc = this.StartInDoc,
+            MyFlowDoc = this.MyFlowDoc
         };
 
         if (keepId)
@@ -289,14 +300,14 @@ public class Paragraph : Block
 
         newPar.Inlines.AddRange(this.Inlines.Select(il => il.CloneWithId()));
 
-        MyFlowDoc.disableUndoStack = false;
+        DisableUndoStack =  false;
 
         return newPar;
     }
 
     internal void CopyPropertiesFromParagraph(Paragraph sourceP)
     {
-        MyFlowDoc.disableUndoStack = true;
+        DisableUndoStack =  true;
 
         this.TextAlignment = sourceP.TextAlignment;
         //this.LineSpacing = sourceP.LineSpacing;
@@ -312,8 +323,9 @@ public class Paragraph : Block
         this.IsTableCellBlock = sourceP.IsTableCellBlock;
         //this.OwningTable = sourceP.OwningTable;
         //this.OwningCell = sourceP.OwningCell;
+        this.MyFlowDoc = sourceP.MyFlowDoc;
 
-        MyFlowDoc.disableUndoStack = false;
+        DisableUndoStack =  false;
     }
 
     internal void EnsureEmptyRuns()

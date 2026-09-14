@@ -52,7 +52,7 @@ internal static partial class RtfConversions
 
     internal static Table GetTableFromRtfDom(RTFDomTable rtftable, FlowDocument fdoc, RTFColorTable cTable)
     {
-        Table newtable = new(fdoc);
+        Table newtable = new();
         for (int colno = 0; colno < rtftable.Columns.Count; colno++)
         {
             RTFDomElement thisCol = rtftable.Columns[colno];
@@ -89,7 +89,7 @@ internal static partial class RtfConversions
             foreach (RTFDomTableCell celm in row.Elements.OfType<RTFDomTableCell>())
             {
 
-                Cell newCell = new(newtable) { RowNo = rowno, ColNo = colno, ColSpan = celm.ColSpan, RowSpan = celm.RowSpan };
+                Cell newCell = new() { RowNo = rowno, ColNo = colno, ColSpan = celm.ColSpan, RowSpan = celm.RowSpan };
 
                 double cellBorderLeft = 1;
                 double cellBorderTop = 1;
@@ -229,7 +229,7 @@ internal static partial class RtfConversions
 
     internal static Paragraph GetParagraphFromRtfDom(RTFDomParagraph rtfpar, FlowDocument fdoc)
     {
-        Paragraph newpar = new(fdoc);
+        Paragraph newpar = new();
 
         switch (rtfpar.Format.Align)
         {

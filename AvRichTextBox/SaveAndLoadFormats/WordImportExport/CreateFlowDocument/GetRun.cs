@@ -413,7 +413,7 @@ internal static partial class WordConversions
             if (mainDocPart.HyperlinkRelationships.FirstOrDefault(hrel => hrel.Id == relationId) is HyperlinkRelationship hrel)
                newEHL.NavigateUri = hrel.Uri.ToString();
 
-            newEHL.Text = erun.Text;
+            newEHL.LinkDisplayText = erun.Text!;
             FlowDocument.CopyRunPropsToHyperlinkText(erun, ref newEHL);
          }
       }

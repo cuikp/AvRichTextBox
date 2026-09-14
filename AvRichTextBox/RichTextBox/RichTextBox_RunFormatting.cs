@@ -92,7 +92,7 @@ public partial class RichTextBox
                         break;
 
                     case EditableInlineUIContainer edUIC:
-                        Paragraph attachPar = new(FlowDoc);
+                        Paragraph attachPar = new() { MyFlowDoc = FlowDoc };
                         attachPar.Inlines.Add(new EditableRun(""));
                         rangePars.Add(attachPar);
                         break;
@@ -174,8 +174,7 @@ public partial class RichTextBox
         bool addUndo = true;
         bool contentPasted = false;
 
-        FlowDoc.disableRunTextUndo = true;
-        FlowDoc.disableUndoStack = true;
+        DisableUndoStack =  true;
 
         // Get clipboard content
         byte[] redoRtfBytes = [];
@@ -189,9 +188,9 @@ public partial class RichTextBox
         {
             Image pasteImage = new() { Source = pasteBitmap };
             EditableInlineUIContainer newEIUC = new(pasteImage);
-            Paragraph newPar = new(FlowDoc);
+            Paragraph newPar = new();
             newPar.Inlines.Add(newEIUC);
-            Paragraph extraPar = new(FlowDoc);
+            Paragraph extraPar = new();
             // force pasted image into a new paragraph
             FlowDoc.Blocks.Insert(insertParIndex + 1, newPar);
             FlowDoc.Blocks.Insert(insertParIndex + 2, extraPar);
@@ -202,19 +201,16 @@ public partial class RichTextBox
         }
         else if (await clipboard.TryGetTextAsync() is string pasteText)
         {
-            FlowDoc.disableRunTextUndo = true;
             pastedTextLength = pasteText.Length;
             if (plainTextOnly)
                 FlowDoc.SetRangeToText(insertRange, pasteText, copyFormatting: false);
             else
                 FlowDoc.Selection.Text = pasteText;
-            FlowDoc.disableRunTextUndo = false;
             contentPasted = true;
             addUndo = true;
         }
 
-        FlowDoc.disableRunTextUndo = false;
-        FlowDoc.disableUndoStack = false;
+        DisableUndoStack =  false;
 
         //Update based on pasted content
         if (contentPasted)

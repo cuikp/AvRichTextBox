@@ -31,8 +31,7 @@ internal class PasteUndo(
     {
         try
         {            
-            flowDoc.disableRunTextUndo = true;
-            flowDoc.disableUndoStack = true;
+            DisableUndoStack =  true;
             lengthBefore = flowDoc.Text.Length;
             int updateBlocksFromIndex = -1;
 
@@ -69,15 +68,14 @@ internal class PasteUndo(
 
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at OrigSelectionStart: {origSelectionStart}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 
     public void PerformRedo()
     {
         try
         {
-            flowDoc.disableRunTextUndo = true;
-            flowDoc.disableUndoStack = true;
+            DisableUndoStack =  true;
 
             lengthBefore = flowDoc.Text.Length;
 
@@ -85,7 +83,7 @@ internal class PasteUndo(
             if (DetermineBlockCollection(out updateBlocksFromIndex) is not ObservableCollection<Block> blockCollection || updateBlocksFromIndex == -1)
                 return;
 
-            //if (firstParEmpty)  // not necessary
+            //if (!firstParEmpty)  // ?????????????
             flowDoc.Blocks.RemoveAt(insertBlockIndex);
 
             keptOrigBlockClones = keptOrigBlockClones.ConvertAll(kbc => kbc.FullClone(true));
@@ -96,7 +94,7 @@ internal class PasteUndo(
 
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at OrigSelectionStart: {origSelectionStart}"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 
     private ObservableCollection<Block> DetermineBlockCollection(out int updateBlocksFromIndex)
@@ -120,8 +118,7 @@ internal class PasteUndo(
 
     private void PostUpdate()
     {
-        flowDoc.disableRunTextUndo = false;
-        flowDoc.disableUndoStack = false;
+        DisableUndoStack =  false;
 
         foreach (Table t in keptOrigBlockClones.OfType<Table>())
             t.UpdateColAndRowPoints();

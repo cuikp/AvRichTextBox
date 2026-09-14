@@ -55,7 +55,7 @@ public partial class RichTextBox
 
         if (!PointerDownOverRTB)
             currentMouseOverEdPar = edPar;
-                
+
     }
 
     internal void EditableParagraph_MouseLeave(EditableParagraph edPar)
@@ -63,7 +63,7 @@ public partial class RichTextBox
         currentMouseOverEdPar = null!;
     }
 
-    private void EditableParagraph_LostFocus(object? sender, FocusChangedEventArgs e)
+    public void EditableParagraph_LostFocus(object? sender, FocusChangedEventArgs e)
     {
         this.Focus();
     }

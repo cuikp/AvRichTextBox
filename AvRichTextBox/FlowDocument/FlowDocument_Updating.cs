@@ -8,21 +8,23 @@ public partial class FlowDocument
 {
     internal void UpdateSelection()
     {
+        UpdateBlockAndInlineStarts(Selection.StartParagraph);
+                
         Selection.StartParagraph.CallRequestInlinesUpdate();
         Selection.StartParagraph.CallRequestTextLayoutInfoStart();
         Selection.EndParagraph.CallRequestInlinesUpdate();
         Selection.EndParagraph.CallRequestTextLayoutInfoEnd();
         Selection.StartParagraph.CallRequestTextBoxFocus();
 
-        UpdateBlockAndInlineStarts(Selection.StartParagraph);
+        
     }
 
     internal void UpdateBlockAndInlineStarts(int fromBlockIndex)
     {
-        //if (fromBlockIndex >= Blocks.Count || fromBlockIndex < 0) return;
-        if (fromBlockIndex >= Blocks.Count) return;
 
-        int blockSum = fromBlockIndex == 0 ? 0 : Blocks[fromBlockIndex - 1].StartInDoc + Blocks[fromBlockIndex - 1].BlockLength;
+        if (fromBlockIndex >= Blocks.Count || fromBlockIndex < 0) return;
+
+        int blockSum = fromBlockIndex == 0  ? 0 : Blocks[fromBlockIndex - 1].StartInDoc + Blocks[fromBlockIndex - 1].BlockLength;
 
         for (int blockIndex = fromBlockIndex; blockIndex < Blocks.Count; blockIndex++)
         {
@@ -98,18 +100,22 @@ public partial class FlowDocument
         List<TextRange> toRemoveRanges = [];
 
         int editCharIndexEnd = offset == 1 ? fromAbsCharIndex : fromAbsCharIndex - offset;
+                
 
         foreach (TextRange trange in TextRanges)
         {
+            //int editCharIndexEnd = fromAbsCharIndex + trange.Length;
+
             //if (trange.Equals(this.Selection)) continue;  //Don't update the selection range
 
             if (trange.Start >= fromAbsCharIndex && trange.End <= editCharIndexEnd)
-            { toRemoveRanges.Add(trange); continue; }
+                { toRemoveRanges.Add(trange); continue; }
+
 
             if (trange.Start >= fromAbsCharIndex)
             {
                 if (trange.Start >= editCharIndexEnd)
-                    trange.Start += offset;
+                     trange.Start += offset;
                 else
                     trange.Start = fromAbsCharIndex;
             }
@@ -117,13 +123,12 @@ public partial class FlowDocument
             if (trange.End >= fromAbsCharIndex)
             {
                 if (trange.End >= editCharIndexEnd)
-                    trange.End += offset;
+                 trange.End += offset;
                 else
                     trange.End = fromAbsCharIndex;
             }
-
-            if (trange.Start > trange.End)
-                trange.End = trange.Start;
+             
+            trange.End = Math.Max(trange.Start, trange.End);
 
         }
 

@@ -26,6 +26,7 @@ internal partial class EditableParagraph : TextBlock
         
         this.Loaded += EditableParagraph_Loaded;
         this.PropertyChanged += EditableParagraph_PropertyChanged;
+
         this.MouseMove += EditableParagraph_MouseMove;
 
         this.SizeChanged += EditableParagraph_SizeChanged;
@@ -37,11 +38,14 @@ internal partial class EditableParagraph : TextBlock
         LineSpacing = 0;
 
     }
-        
+
+    //private void EditableParagraph_LostFocus(object? sender, FocusChangedEventArgs e) { throw new NotImplementedException(); } 
+    //private void EditableParagraph_MouseLeave(EditableParagraph sender) { throw new NotImplementedException(); }
+
     internal bool IsOverHyperlink = false;
     internal EditableHyperlink CurrentOverHyperlink = null!;
 
-    private void EditableParagraph_MouseMove(EditableParagraph sender, int charIndex)
+    internal void EditableParagraph_MouseMove(EditableParagraph sender, int charIndex)
     {
 
         if (ThisPar?.Inlines.FirstOrDefault(il => il.TextPositionOfInlineInParagraph <= charIndex && il.TextPositionOfInlineInParagraph + il.InlineLength >= charIndex) is EditableHyperlink currentHyperlink)
@@ -236,7 +240,7 @@ internal partial class EditableParagraph : TextBlock
         if (this.Parent is not ContentPresenter contPres || contPres.Parent is not ItemsControl itemsControl) return;
         //Debug.WriteLine("\nnew size height = " + e.NewSize);
 
-        double maxCellContentHeight = 0;
+        double minCellContentHeight = thisTable.RowDefs[thisCell.RowNo].MinHeight;
 
         if (itemsControl.FindAncestorOfType<ItemsControl>() is ItemsControl tableIC)
         {
@@ -247,11 +251,11 @@ internal partial class EditableParagraph : TextBlock
                     List<EditableCell> rowECs = [.. bgrid.GetVisualDescendants().OfType<EditableCell>().Where(ec => ec.DataContext is Cell c && c.RowNo == thisCell.RowNo)];
                     if (rowECs.Count > 0)
                     {
-                        maxCellContentHeight = rowECs.Max(GetWantedCellHeight);
+                        minCellContentHeight = Math.Max(minCellContentHeight, rowECs.Max(GetWantedCellHeight));
                         itemsControl.Measure(new Size(itemsControl.Bounds.Width, double.PositiveInfinity));
-                        var wantedHeight = Math.Ceiling(itemsControl.DesiredSize.Height + thisPar.OwningCell.Padding.Top + thisPar.OwningCell.Padding.Bottom);
-
-                        thisTable.RowDefs[thisPar.OwningCell.RowNo].Height = new GridLength(Math.Max(maxCellContentHeight, wantedHeight));
+                        var wantedHeight = Math.Ceiling(itemsControl.DesiredSize.Height + thisCell.Padding.Top + thisCell.Padding.Bottom);
+                        
+                        thisTable.RowDefs[thisCell.RowNo].Height = new GridLength(Math.Max(minCellContentHeight, wantedHeight));
                     }
                 }
             }

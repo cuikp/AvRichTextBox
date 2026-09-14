@@ -10,24 +10,24 @@ internal class FlowDocumentPagePaddingChangedEditDo(Thickness oldPagePadding, Th
     {
         try
         {
-            flowDoc.disableUndoStack = true;
+            DisableUndoStack =  true;
             flowDoc.PagePadding = oldPagePadding;
-            flowDoc.disableUndoStack = false;
+            DisableUndoStack =  false;
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} for PagePadding: { oldPagePadding }"); }
-        finally { flowDoc.disableUndoStack = false; }
+        finally { DisableUndoStack =  false; }
     }
 
     public void PerformRedo()
     {
         try
         {
-            flowDoc.disableUndoStack = true;
+            DisableUndoStack =  true;
             flowDoc.PagePadding = newPagePadding;
-            flowDoc.disableUndoStack = false;
+            DisableUndoStack =  false;
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} for PagePadding: {oldPagePadding}"); }
-        finally { { flowDoc.disableUndoStack = false; } }
+        finally { { DisableUndoStack =  false; } }
     }
 }
 

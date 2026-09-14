@@ -27,6 +27,7 @@ public interface IEditable
    internal IEditable? PreviousInline { get; set; }
    internal IEditable? NextInline { get; set;}
 
+   internal bool IsAttachedToDocument { get; set; }
 
 #if DEBUG
    // FOR DEBUGGER PANEL

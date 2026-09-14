@@ -9,7 +9,12 @@ public partial class FlowDocument
         if (AllParagraphs.FirstOrDefault(p => p.Id == inline.MyParagraphId) is not Paragraph inlinePar) return -1;
         return absPos - inlinePar.StartInDoc - inline.TextPositionOfInlineInParagraph;
     }
-
+     
+    internal int GetAbsPositionOfInlineInDoc (IEditable inline)
+    {
+        if (AllParagraphs.FirstOrDefault(p => p.Id == inline.MyParagraphId) is not Paragraph inlinePar) return -1;
+        return inlinePar.StartInDoc + inline.TextPositionOfInlineInParagraph;
+    }
 
     internal (List<IEditable> createdInlines, (int idLeft, int idRight) edgeIds) GetTextRangeInlines(TextRange trange, bool addToDoc)
     {
@@ -183,7 +188,7 @@ public partial class FlowDocument
 
         if (inlines.Count == 1 && charIdxInDoc == containingPar.StartInDoc + inlines[0].InlineLength) return [inlines[0]];
 
-        disableRunTextUndo = true;
+        DisableUndoStack = true;
 
         int runIdx = inlines.IndexOf(inlineToSplit);
 
@@ -194,7 +199,7 @@ public partial class FlowDocument
         insertInline.InlineText = part2Text;
         inlines.Insert(runIdx + 1, insertInline);
 
-        disableRunTextUndo = false;
+        DisableUndoStack = false;
 
         return [inlineToSplit, insertInline];
     }

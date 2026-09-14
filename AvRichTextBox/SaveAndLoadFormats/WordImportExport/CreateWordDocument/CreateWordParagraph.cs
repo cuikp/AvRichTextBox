@@ -72,7 +72,7 @@ internal static partial class WordConversions
                            new DOW.Color { Val = "0563C1" },
                            new DOW.Underline { Val = DOW.UnderlineValues.Single } 
                         ),
-                        new DOW.Text(hlink.Text ?? hlink.NavigateUri)
+                        new DOW.Text(hlink.LinkDisplayText ?? hlink.NavigateUri)
                         )
                      )
                      { Id = relationship.Id };

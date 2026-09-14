@@ -24,6 +24,10 @@ public partial class FlowDocument
 
         if (backspace)
         {
+            // don't delete previous table par
+            if (!startP.IsTableCellBlock && Selection.Start == startP.StartInDoc && startP.GetPreviousParagraph is Paragraph prevPar && prevPar.IsTableCellBlock)
+                return;
+
             MoveSelectionLeft();
 
             if (Selection.Start > 0 && Selection.Start != Selection.StartParagraph.StartInDoc && nextInline is not EditableLineBreak)
@@ -34,6 +38,10 @@ public partial class FlowDocument
         }
         else
         {
+            // don't delete next table par
+            if (Selection.Start == startP.EndInDoc && startP.GetNextParagraph is Paragraph nextPar && nextPar.IsTableCellBlock)
+                return;
+
             //Change bias to be forward for delete
             Selection.BiasForwardStart = true;
             Selection.BiasForwardEnd = true;
@@ -62,7 +70,7 @@ public partial class FlowDocument
         else
         {  //Delete one unit
 
-            disableRunTextUndo = true;
+            DisableUndoStack = true;
 
             int startInlineIdx = startP.Inlines.IndexOf(startInline);
             //int selectionStartInInline = 0;
@@ -152,7 +160,7 @@ public partial class FlowDocument
                 }
             }
 
-            disableRunTextUndo = false;
+            DisableUndoStack = false;
 
             UpdateSelection();
             UpdateTextRanges(Selection.Start, -1);
@@ -201,8 +209,7 @@ public partial class FlowDocument
         int firstBlockId = rangeBlocks.First().Id;
         int firstBlockIndex = Blocks.IndexOf(rangeBlocks.First());
 
-        disableUndoStack = true;
-        disableRunTextUndo = true;
+        DisableUndoStack = true;
 
         List<Block> blocksFullyInRange = GetFullBlocksInRange(trange);
         bool firstBlockDeleted = blocksFullyInRange.Count > 0 && blocksFullyInRange.First().StartInDoc == originalRangeStart;
@@ -298,8 +305,7 @@ public partial class FlowDocument
         if (Blocks.Count == 1 && Blocks[0] is Paragraph onlyPar && onlyPar.Inlines.Count == 0)
             onlyPar.Inlines.Add(new EditableRun(""));
 
-        disableRunTextUndo = false;
-        disableUndoStack = false;
+        DisableUndoStack = false;
 
         UpdateTextRanges(originalRangeStart, -originalTRangeLength);
 
@@ -350,13 +356,9 @@ public partial class FlowDocument
         }
 
         if (thisPar.IsCellBlock)
-        {
             thisPar.OwningCell.CellBlocks.Remove(nextPar);
-        }
         else
-        {
             Blocks.Remove(nextPar);
-        }
         
         Selection.BiasForwardStart = true;
         Selection.BiasForwardEnd = true;
@@ -374,63 +376,7 @@ public partial class FlowDocument
 
     }
 
-    //internal void MergeParagraphForwardOLD(int mergeCharIndex, bool addUndo, int originalSelectionStart)
-    //{
-    //    if (GetContainingParagraph(mergeCharIndex) is not Paragraph thisPar) return;
-
-    //    int thisParIndex = Blocks.IndexOf(thisPar);
-        
-    //    if (thisParIndex == Blocks.Count - 1) return; //is last Paragraph, can't merge forward
-    //    int origMergedParInlinesCount = thisPar.Inlines.Count;
-
-    //    if (Blocks[thisParIndex + 1] is not Paragraph nextPar) return;
-
-    //    bool IsNextParagraphEmpty = nextPar.Inlines.Count == 1 && nextPar.Inlines[0].IsEmpty;
-    //    bool IsThisParagraphEmpty = thisPar.Inlines.Count == 1 && thisPar.Inlines[0].IsEmpty;
-
-    //    if (IsThisParagraphEmpty)
-    //    {
-    //        thisPar.Inlines.Clear();
-    //        origMergedParInlinesCount = 0;
-    //    }
-
-    //    if (addUndo)
-    //        Undos.Add(new MergeParagraphUndo(origMergedParInlinesCount, thisPar.Id, nextPar.FullClone(), this, originalSelectionStart)); // cloned with Id and inlines
-
-    //    //bool runAdded = false;
-    //    if (IsNextParagraphEmpty)
-    //    {
-    //        if (IsThisParagraphEmpty)
-    //        {
-    //            thisPar.Inlines.Add(new EditableRun(""));
-    //            //runAdded = true;
-    //        }
-    //    }
-    //    else
-    //    {
-    //        List<IEditable> inlinesToMove = [.. nextPar.Inlines];
-    //        nextPar.Inlines.Clear();
-    //        nextPar.CallRequestInlinesUpdate(); // ensure image containers are updated
-    //        thisPar.Inlines.AddRange(inlinesToMove);
-    //    }
-
-    //    Blocks.Remove(nextPar);
-
-    //    Selection.BiasForwardStart = true;
-    //    Selection.BiasForwardEnd = true;
-
-    //    thisPar.CallRequestInlinesUpdate();
-
-    //    UpdateBlockAndInlineStarts(thisParIndex);
-    //    UpdateTextRanges(mergeCharIndex, -1);
-
-    //    thisPar.CallRequestTextBoxFocus();
-
-    //    UpdateSelectedParagraphs();
-
-
-    //}
-
+   
     internal void DeleteWord(bool backspace)
 {
         if (backspace)

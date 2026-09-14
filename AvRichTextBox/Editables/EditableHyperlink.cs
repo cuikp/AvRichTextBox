@@ -1,6 +1,5 @@
 ﻿using Avalonia.Controls.Documents;
 using Avalonia.Media;
-using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace AvRichTextBox;
 
@@ -19,7 +18,7 @@ public class EditableHyperlink : EditableRun
     public EditableHyperlink(string displayText, string navigateUri)
     {
         Id = ++FlowDocument.InlineIdCounter;
-        Text = displayText;
+        LinkDisplayText = displayText;
         NavigateUri = navigateUri;
 
         ForceFormatting();
@@ -92,13 +91,47 @@ public class EditableHyperlink : EditableRun
 
     }
 
-    public string NavigateUri { get; set; } = "";
-
-    public override IEditable Clone()
+    [Obsolete("get/set LinkDisplayText instead.", true)]
+    public new string? Text
     {
-        MyFlowDoc.disableUndoStack = true;
+        get => base.Text;
+        set { base.Text = value ?? null!; }
+    }
 
-        EditableHyperlink newEHL = new(this.Text!, this.NavigateUri)
+    public string LinkDisplayText
+    {
+        get => base.Text!;
+        set
+        {
+            string oldText = base.Text!;
+            base.Text = value;
+            if (MyFlowDoc != null && !DisableUndoStack && IsAttachedToDocument)
+            {
+                MyFlowDoc.Undos.Add(new HyperlinkDisplayTextChangedUndo(this.MyParagraphId, this.Id, oldText, value, MyFlowDoc));
+            }
+        }
+    }
+
+    public string NavigateUri 
+    { 
+        get;
+        set
+        {
+            string oldUri = base.Text!;
+            field = value;
+            if (MyFlowDoc != null && !DisableUndoStack && IsAttachedToDocument)
+            {
+                MyFlowDoc.Undos.Add(new HyperlinkNavigateUriChangedUndo(this.MyParagraphId, this.Id, oldUri, value, MyFlowDoc));
+            }
+        }
+    } = "";
+
+
+    public override EditableHyperlink Clone()
+    {
+        DisableUndoStack =  true;
+
+        EditableHyperlink newEHL = new(this.LinkDisplayText!, this.NavigateUri)
         {
             FontStyle = this.FontStyle,
             FontWeight = this.FontWeight,
@@ -115,14 +148,14 @@ public class EditableHyperlink : EditableRun
             Foreground = this.Foreground,
         };
 
-        MyFlowDoc.disableUndoStack = false;
+        DisableUndoStack =  false;
 
         return newEHL;
     }
 
-    public override IEditable CloneWithId()
+    public override EditableHyperlink CloneWithId()
     {
-        IEditable IdClone = this.Clone();
+        EditableHyperlink IdClone = this.Clone();
         IdClone.Id = this.Id;
         return IdClone;
     }
@@ -130,7 +163,7 @@ public class EditableHyperlink : EditableRun
 
 #if DEBUG
     // FOR DEBUGGER PANEL
-    public override string DisplayInlineText => "{>HYPERLINK<}" + $" \"{Text}\"";
+    public override string DisplayInlineText => "{>HYPERLINK<}" + $" \"{LinkDisplayText}\"";
 #endif
 
 }

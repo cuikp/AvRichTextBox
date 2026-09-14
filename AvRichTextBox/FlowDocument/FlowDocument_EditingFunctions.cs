@@ -2,6 +2,7 @@
 using DynamicData;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
+using Avalonia.Threading;
 
 namespace AvRichTextBox;
 
@@ -70,43 +71,46 @@ public partial class FlowDocument
     {
         if (Undos.Count > 0)
         {
-            disableRunTextUndo = true;
-            disableUndoStack = true;
+            DisableUndoStack = true;
 
             IEditDo lastUndo = Undos.Last();
 
             lastUndo.PerformUndo();
 
-            UpdateSelection();
-            UpdateCaret();
-
-            if (lastUndo.UpdateTextRanges)
-                UpdateTextRanges(Selection.Start, lastUndo.UndoEditOffset);
-
-            
             Undos.Remove(lastUndo);
             Redos.Add(lastUndo);
 
+
 #if DEBUG
-            //DebugPrintUndos();
+            DebugPrintUndos();
 #endif
 
-            UpdateSelectedParagraphs();
+            DisableUndoStack = false;
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (lastUndo.UpdateTextRanges)
+                    //UpdateTextRanges(((InsertRowsUndo)lastUndo).UndoEditOffsetFrom, lastUndo.UndoEditOffset);
+                    UpdateTextRanges(Selection.Start, lastUndo.UndoEditOffset);
 
 
-            ScrollInDirection?.Invoke(1);
-            ScrollInDirection?.Invoke(-1);
+                UpdateSelection();  // includes UpdateBlockAndInlineStarts()
+                UpdateCaret();
 
-            disableRunTextUndo = false;
-            disableUndoStack = false;
+                UpdateSelectedParagraphs();
+
+                ScrollInDirection?.Invoke(1);
+                ScrollInDirection?.Invoke(-1);
+
+            });
         }
     }
 
     private void DebugPrintUndos()
     {
         ////////////////////////////////////////////
-        Debug.WriteLine("\nUndos count = " + Undos.Count + "\n" + string.Join("   ", Undos.ToList().ConvertAll(undo => undo.GetType().ToString())));
-        Debug.WriteLine("Redos count = " + Redos.Count + "\n" + string.Join("   ", Redos.ToList().ConvertAll(redo => redo.GetType().ToString())));
+        //Debug.WriteLine("\nUndos count = " + Undos.Count + "\n" + string.Join("   ", Undos.ToList().ConvertAll(undo => undo.GetType().ToString())));
+        //Debug.WriteLine("Redos count = " + Redos.Count + "\n" + string.Join("   ", Redos.ToList().ConvertAll(redo => redo.GetType().ToString())));
         ///////////////////////////////////////////
     }
 
@@ -114,8 +118,7 @@ public partial class FlowDocument
     {
         if (Redos.Count > 0)
         {
-            disableRunTextUndo = true;
-            disableUndoStack = true;
+            DisableUndoStack = true;
 
             IEditDo lastRedo = Redos.Last();
             lastRedo.PerformRedo();
@@ -130,17 +133,15 @@ public partial class FlowDocument
             Undos.Add(lastRedo);
 
 #if DEBUG
-            //DebugPrintUndos();
+          DebugPrintUndos();
 #endif    
 
             UpdateSelectedParagraphs();
 
-
             ScrollInDirection?.Invoke(1);
             ScrollInDirection?.Invoke(-1);
 
-            disableRunTextUndo = false;
-            disableUndoStack = false;
+            DisableUndoStack = false;
         }
     }
 
@@ -265,65 +266,87 @@ public partial class FlowDocument
         return pastedTextLength;
     }
 
-    internal void InsertBlockIntoCollectionAt(ObservableCollection<Block> blockCollection, int insertIdx, Block blockToInsert)
+    internal void InsertBlockIntoCollectionAt(int insertIdx, Block blockToInsert)
     {
-        if (insertIdx < 0 || insertIdx > blockCollection.Count)
+        if (insertIdx < 0 || insertIdx > Blocks.Count)
             throw new Exception("Block index is out of bounds of the block collection.");
 
-        this.disableUndoStack = true;
+        DisableUndoStack = true;
 
-        blockCollection.Insert(insertIdx, blockToInsert);
+        Blocks.Insert(insertIdx, blockToInsert);
         blockToInsert.IsAttachedToDocument = true;
 
-        int tableId = blockToInsert.IsCellBlock ? blockToInsert.OwningTable.Id : -1;
-        int cellId = blockToInsert.IsCellBlock ? blockToInsert.OwningCell.Id : -1;
-        int updateIdx = blockToInsert.IsCellBlock ? Blocks.IndexOf(blockToInsert.OwningTable) : Blocks.IndexOf(blockToInsert);
+        int tableId =  -1;
+        int cellId =  -1;
+        int updateIdx =  Blocks.IndexOf(blockToInsert);
 
-        bool addUndo = !blockToInsert.IsCellBlock || blockToInsert.OwningTable.IsAttachedToDocument;
+        bool addUndo = true;
 
         if (addUndo)
-            Undos.Add(new InsertBlockUndo(this, blockToInsert.Id, blockToInsert.BlockLength, blockToInsert.IsCellBlock, tableId, cellId));
-        
-        this.disableUndoStack = false;
+            Undos.Add(new InsertBlockUndo(this, blockToInsert.Id, blockToInsert.BlockLength, false, tableId, cellId));
+             
+        //if (blockToInsert is Table t)
+        //    t.EnsureCellCollectionInitialized();
+
+        DisableUndoStack = false;
     }
     
-    internal void RemoveBlockFromCollectionAt(ObservableCollection<Block> blockCollection, int removeAtIndex)
+    internal void RemoveBlockFromCollectionAt(int removeAtIndex)
     {
-        if (removeAtIndex < 0 || removeAtIndex >= blockCollection.Count)
+        if (removeAtIndex < 0 || removeAtIndex >= Blocks.Count)
             throw new Exception("Block index is out of bounds of the block collection.");
         
-        if (blockCollection.Count == 1 && blockCollection[0].Text == "")
+        if (Blocks.Count == 1 && Blocks[0].Text == "")
             throw new Exception("Cannot remove default empty paragraph in the collection.");
 
-        Block blockToRemove = blockCollection[removeAtIndex];
-        RemoveBlockFromCollection(blockCollection, blockToRemove);
+        Block blockToRemove = Blocks[removeAtIndex];
+        RemoveBlockFromCollection(blockToRemove);
 
-        if (blockCollection.Count == 0)
-            AddDefaultParagraph(blockCollection);
+        if (Blocks.Count == 0)
+            AddDefaultParagraph(Blocks);
     }
 
-    internal void RemoveBlockFromCollection(ObservableCollection<Block> blockCollection, Block? blockToRemove)
+    internal void RemoveBlockFromCollection(Block? blockToRemove)
     {
         if (blockToRemove == null) 
             throw new Exception("Block to remove must not be null.");
-        if (!blockCollection.Contains(blockToRemove)) return;
+        if (!Blocks.Contains(blockToRemove)) return;
 
-        this.disableUndoStack = true;
+        DisableUndoStack = true;
 
-        int tableId = blockToRemove.IsCellBlock ? blockToRemove.OwningTable.Id : -1;
-        int cellId = blockToRemove.IsCellBlock ? blockToRemove.OwningCell.Id : -1;
-        int removeAtIdx = blockCollection.IndexOf(blockToRemove);
+        int tableId = -1;
+        int cellId =  -1;
+        int removeAtIdx = Blocks.IndexOf(blockToRemove);
         Block removedBlockClone = blockToRemove.FullClone(true);
 
-        blockCollection.Remove(blockToRemove);
+        Blocks.Remove(blockToRemove);
         
         bool addUndo = !blockToRemove.IsCellBlock || blockToRemove.OwningTable.IsAttachedToDocument;
         
         if (addUndo)
             Undos.Add(new RemoveBlockUndo(this, removeAtIdx, removedBlockClone, blockToRemove.BlockLength, blockToRemove.IsCellBlock, tableId, cellId));
 
-        this.disableUndoStack = false;
+        DisableUndoStack = false;
 
+    }
+
+    internal ObservableCollection<Block> DetermineBlockCollection(bool inCellBlock, int insertBlockIndex, int containingTableId, int containingCellId, out int updateBlocksFromIndex)
+    {
+        ObservableCollection<Block> returnBlockCollection = Blocks;
+
+        Cell? containingCell = null;
+        updateBlocksFromIndex = insertBlockIndex;
+
+        if (inCellBlock)
+        {
+            if (Blocks.FirstOrDefault(bl => bl.Id == containingTableId) is not Table containingTable) return null!;
+            if (containingTable.Cells.FirstOrDefault(cell => cell.Id == containingCellId) is not Cell cell) return null!;
+            containingCell = cell;
+            updateBlocksFromIndex = Blocks.IndexOf(containingTable);
+            returnBlockCollection = containingCell.CellBlocks;
+        }
+
+        return returnBlockCollection;
     }
 
 

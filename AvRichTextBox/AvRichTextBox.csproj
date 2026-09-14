@@ -20,14 +20,17 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>ver 1.10.4
-Added LinkOpening event to EditableHyperlink to allow custom handling
-Some initial Redos have been implemented (Deleting/Inserting/Pasting/PagePadding/programmed Block property Redos)</PackageReleaseNotes>
+	  <PackageReleaseNotes>ver 1.11.0-preview.1
+New parameterless constructors for `Block()` (`Paragraph` or `Table`), instead of passing the current `FlowDocument`, and for `Cell()`, instead of passing `OwningTable`.
+The `FlowDocument` or `Table` instance for these objects is instead assigned in the appropriate `CollectionChanged` events.
+(The lack of parameterless ctors was preventing direct Xaml creation)
+---**Breaking change**---
+`EditableHyperlink.Text` is now set as `EditableHyperlink.LinkDisplayText`, rather than directly</PackageReleaseNotes>
       
      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 	  <PackageOutputPath>D:\PROG\LocalNuget\AvRichTextBox</PackageOutputPath>
 	  
-	  <Version>1.10.4</Version>
+	  <Version>1.11.0-preview.1</Version>
 	  <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
 	  
@@ -132,6 +135,9 @@ Some initial Redos have been implemented (Deleting/Inserting/Pasting/PagePadding
   <ItemGroup>
     <Using Include="Avalonia" />
     <Using Include="Avalonia.Input" />
+    <Using Include="AvRichTextBox.StaticProperties">
+      <Static>True</Static>
+    </Using>
     <Using Include="System.Diagnostics" />
   </ItemGroup>
 

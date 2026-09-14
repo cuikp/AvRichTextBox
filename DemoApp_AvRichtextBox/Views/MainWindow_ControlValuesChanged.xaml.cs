@@ -6,6 +6,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using AvRichTextBox;
 using DynamicData;
 using System;
@@ -275,33 +276,69 @@ public partial class MainWindow
 
     }
 
+    private void TableJustificationComboBox_DropDownClosed(object? sender, System.EventArgs e)
+    {
+        if (sender is ComboBox cbox && cbox.SelectedItem is ComboBoxItem cbitem)
+        {
+            if (cbitem.Content is string selJust && MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock && thisPar.GetOwningCell is Cell c && c.GetOwningTable is Table t)
+            {
+                t.TableAlignment = selJust switch
+                {
+                    "Left" => Avalonia.Layout.HorizontalAlignment.Left,
+                    "Center" => Avalonia.Layout.HorizontalAlignment.Center,
+                    "Right" => Avalonia.Layout.HorizontalAlignment.Right,
+                    _ => Avalonia.Layout.HorizontalAlignment.Left
+                };
+            }
+        }
+
+
+    }
+
+    private void MergeRightButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock && thisPar.GetOwningCell is Cell c && c.GetOwningTable is Table t) 
+        {
+            int row = c.RowNo;
+            int col = c.ColNo;
+            int count = Math.Max(1, (int)MergeCountNS.Value);
+            count = Math.Min(count, t.ColDefs.Count - 1 - col);
+            if (count > 0)
+                t.MergeCellsRight(row, col, count);
+
+        }
+    }
+
+    private void MergeDownButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock && thisPar.GetOwningCell is Cell c && c.GetOwningTable is Table t)
+        {
+            int row = c.RowNo;
+            int col = c.ColNo;
+            int count = Math.Max(1, (int)MergeCountNS.Value);
+            count = Math.Min(count, t.RowDefs.Count - 1 - row);
+            if (count > 0)
+                t.MergeCellsDown(row, col, count);
+
+        }
+    }
+
     private void DoSomethingButton_Click(object? sender, RoutedEventArgs e)
     {
         if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph p)
         {
-            MainRTB.FlowDocument.InsertParagraphAt(120);
+            //MainRTB.FlowDocument.InsertParagraphAt(68);
 
-            if (MainRTB.FlowDocument.GetBlocks.OfType<Paragraph>().FirstOrDefault(p=> p.GetInlines.OfType<EditableInlineUIContainer>().Any()) is Paragraph PP)
+            if (MainRTB.FlowDocument.GetBlocks.OfType<Paragraph>().FirstOrDefault(p => p.GetInlines.OfType<EditableInlineUIContainer>().Any()) is Paragraph PP)
             {
                 if (PP.GetInlines.OfType<EditableInlineUIContainer>().FirstOrDefault() is EditableInlineUIContainer eiuc)
                 {
-                    eiuc.SetChild( new Image() { Source = new Bitmap(AssetLoader.Open(new Uri("avares://AvRichTextBox/Assets/avalonia-logo.ico"))) });
-                    //eiuc.SetChild(new Image() { Source = null! });
+                    eiuc.SetChild(new Image() { Source = new Bitmap(AssetLoader.Open(new Uri("avares://DemoApp_AvRichTextBox/Assets/avalonia-logo2.ico"))), Width = 150, Height = 150 });
                 }
             }
 
-            //ObservableCollection<Block> bcol = p.IsCellBlock ? p.GetOwningCell.GetCellBlocks : MainRTB.FlowDocument.Blocks;
-
-            ////Object? blocksParent = p.IsCellBlock ? p.GetOwningCell : MainRTB.FlowDocument;
-
-            //int insertIdx = bcol.IndexOf(p);
-
-            //Paragraph newPar = new (MainRTB.FlowDocument);
-            //newPar.Inlines.Add(new EditableRun("This is my new run."));
-
-            //MainRTB.FlowDocument.InsertBlockIntoCollectionAt(bcol, insertIdx, newPar);
         }
-                
+
     }
 
     

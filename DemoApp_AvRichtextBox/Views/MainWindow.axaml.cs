@@ -1,18 +1,19 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Layout;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
 using AvRichTextBox;
+using DynamicData;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using DynamicData;
 
 namespace DemoApp_AvRichtextBox.Views;
 
@@ -43,7 +44,7 @@ public partial class MainWindow : Window
         TextBlock debugTB = new() { Text = "DebugPanel", VerticalAlignment = VerticalAlignment.Center };
         CheckBox debugCB = new() { Focusable = false };
         debugCB.IsCheckedChanged += DebugPanelCB_CheckedUnchecked;
-        debugCB.IsChecked = true;
+        debugCB.IsChecked = false;
         debugCBPanel.Children.Add(debugCB);
         debugCBPanel.Children.Add(debugTB);
         TopPanel.Children.Add(debugCBPanel);
@@ -79,10 +80,12 @@ public partial class MainWindow : Window
     }
 
     internal void CreateTestDocumentWithTable()
-    {
+    {        
+
         MainRTB.FlowDocument.ClearBlocks();
 
-        Paragraph newPar = new(MainRTB.FlowDocument);
+               
+        Paragraph newPar = new();
 
         newPar.InsertInlinesAt(0, [
             new EditableRun("A "),
@@ -99,7 +102,7 @@ public partial class MainWindow : Window
 
         MainRTB.FlowDocument.InsertBlockAt(MainRTB.FlowDocument.GetBlocks.Count(), newPar);
 
-        Paragraph secondPar = new(MainRTB.FlowDocument);
+        Paragraph secondPar = new();
         secondPar.InsertInlineAt(0, new EditableRun("A second paragraph just before the table."));
         MainRTB.FlowDocument.InsertBlockAt(MainRTB.FlowDocument.GetBlocks.Count(), secondPar);
 
@@ -129,30 +132,29 @@ public partial class MainWindow : Window
                 if (newTable.GetCells.ElementAt(cellno) is Cell c)
                 {
                     c.CellVerticalAlignment = VerticalAlignment.Center;
-                    Paragraph p = new(MainRTB.FlowDocument) { TextAlignment = TextAlignment.Center };
+                    Paragraph p = new() { TextAlignment = TextAlignment.Center };
                     p.AddInline(new EditableRun("col:" + colno));
                     p.AddInline(new EditableLineBreak());
                     p.AddInline(new EditableRun("row:" + rowno));
 
                     c.InsertBlockAt(0, p);
                     c.RemoveBlockAt(c.GetCellBlocks.Count() - 1);
-
                 }
             }
         }
 
-
         MainRTB.FlowDocument.InsertBlockAt(MainRTB.FlowDocument.GetBlocks.Count(), newTable);
 
-        Paragraph newnewPar = new(MainRTB.FlowDocument);
-        newnewPar.AddInline(new EditableRun("Added text in the cell"));
-        newTable.GetCells.ElementAt(0).InsertBlockAt(0, newnewPar);
+        //Paragraph newnewPar = new();
+        //newnewPar.AddInline(new EditableRun("Added text in the cell"));
+        //newTable.GetCells.ElementAt(0).InsertBlockAt(0, newnewPar);
 
 
-        Paragraph newPar2 = new(MainRTB.FlowDocument);
+        Paragraph newPar2 = new();
         newPar2.AddInline(new EditableRun("Some extra text after the table."));
         MainRTB.FlowDocument.InsertBlockAt(MainRTB.FlowDocument.GetBlocks.Count(), newPar2);
 
+        MainRTB.FlowDocument.RemoveBlockAt(0); //Remove the default paragraph that remains at start
 
         Dispatcher.UIThread.Post(() =>
         {
@@ -166,15 +168,12 @@ public partial class MainWindow : Window
 
         //newTable.InsertColumns(0, 1);
 
-        MainRTB.FlowDocument.RemoveBlockAt(0); //Remove the default paragraph that remains at start
 
-        EditableRun erun = new("sdf");
-        EditableHyperlink ehyp = new("sdf", "");
-        EditableInlineUIContainer econt = new();
-        EditableLineBreak elb = new();
-                
-        
+
+
     }
+
+ 
 
     private void CreateNewDocumentMenuItem_Click(object? sender, RoutedEventArgs e)
     {
@@ -235,9 +234,10 @@ public partial class MainWindow : Window
         int endOfTable = currentStart + noCols * noRows;
         MainRTB.FlowDocument.Select(endOfTable, 0);
 
+     
     }
 
-
+    
     private async void PerformFind()
     {
         FindTB.Background = Brushes.White;
@@ -261,6 +261,8 @@ public partial class MainWindow : Window
             FindBut.Focus();
         }
 
+
+        
 
     }
 

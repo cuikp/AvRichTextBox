@@ -4,6 +4,7 @@ using Avalonia.Media;
 using Avalonia.Threading;
 using DynamicData;
 using System.Collections.ObjectModel;
+using System.Data;
 using static AvRichTextBox.FlowDocument;
 
 namespace AvRichTextBox;
@@ -21,10 +22,12 @@ public partial class Table : Block
 
             if (!IsAttachedToDocument) return;
 
-            if (!MyFlowDoc.disableUndoStack)
-                MyFlowDoc.Undos.Add(new TableAlignmentChangeUndo(this.Id, oldHAlign, MyFlowDoc));
+            if (!DisableUndoStack)
+                MyFlowDoc.Undos.Add(new TableAlignmentChangeUndo(this.Id, oldHAlign, field, MyFlowDoc));
 
-            NotifyPropertyChanged(nameof(TableAlignment)); 
+            NotifyPropertyChanged(nameof(TableAlignment));
+
+            MyFlowDoc?.UpdateCaret();
         } 
     } = HorizontalAlignment.Left;
 
@@ -39,31 +42,82 @@ public partial class Table : Block
     internal ObservableCollection<Cell> Cells { get; } = [];
     public IEnumerable<Cell> GetCells => Cells;
 
-    internal ColumnDefinitions ColDefs { get; set; } = [];
-    internal RowDefinitions RowDefs { get; set; } = [];
+    public ColumnDefinitions ColDefs 
+    { 
+        get; 
+        set 
+        { 
+            field?.CollectionChanged -= ColDefs_CollectionChanged; 
+            field = value; 
+            field.CollectionChanged += ColDefs_CollectionChanged; 
+            foreach (ColumnDefinition cdef in field) AddDefaultCellToNewColDef(ColDefs.IndexOf(cdef)); 
+        } 
+    } = [];
     
+    public RowDefinitions RowDefs 
+    { 
+        get; 
+        set 
+        { 
+            field?.CollectionChanged -= RowDefs_CollectionChanged; 
+            field = value; 
+            field.CollectionChanged += RowDefs_CollectionChanged; 
+            foreach (RowDefinition rdef in field) AddDefaultCellToNewRowDef(RowDefs.IndexOf(rdef)); 
+        } 
+    } = [];
+
+
     internal double Height { get; set { field = value; NotifyPropertyChanged(nameof(Height)); } } = 50;
     internal double Width { get; set { field = value; NotifyPropertyChanged(nameof(Width)); } } = 500;
     
-    internal IBrush SelectionBrush = Brushes.LightSteelBlue;
+    internal IBrush SelectionBrush  = Brushes.LightSteelBlue;
 
-    public Table() { }
-
-    public Table(FlowDocument flowDoc) 
+    public Table() 
     {
-        flowDoc.disableUndoStack = true;
+        Id = ++FlowDocument.BlockIdCounter;
 
-        MyFlowDoc = flowDoc; 
-        Id = ++FlowDocument.BlockIdCounter; 
-        SelectionBrush = flowDoc.SelectionBrush;
+        Cells.CollectionChanged += Cells_CollectionChanged;
 
         ColDefs.CollectionChanged += ColDefs_CollectionChanged;
         RowDefs.CollectionChanged += RowDefs_CollectionChanged;
-        Cells.CollectionChanged += Cells_CollectionChanged;
+    }
 
-        //flowDoc.disableUndoStack = false;
+    /// <summary>
+    /// Retained for backwards compatibility. Prefer <see cref="Table()"/>.
+    /// </summary>
+    [Obsolete("Use the parameterless Table() constructor instead.")]
+    public Table(FlowDocument flowDoc) : this(){ }
+
+
+    public Table(int noCols, int noRows, FlowDocument flowDoc) : this()
+    {
+        MyFlowDoc = flowDoc;
+        if (noCols <= 0)
+            throw new ArgumentOutOfRangeException(nameof(noCols), noCols, "Number of columns must be greater than zero.");
+        if (noRows <= 0)
+            throw new ArgumentOutOfRangeException(nameof(noRows), noRows, "Number of rows must be greater than zero.");
+
+        DisableUndoStack = true;
+
+        double eqWidth = Math.Truncate(Width / noCols);
+        double eqHeight = Math.Truncate(Height / noRows);
+
+        // Col/Row definitions must be set anew to trigger addition of default cells (because Table is not yet attached to document)
+        string colDefString = string.Join(',', Enumerable.Repeat(eqWidth, noCols));
+        ColDefs = new(colDefString);
+
+        string rowDefString = string.Join(',', Enumerable.Repeat(eqHeight, noRows));
+        RowDefs = new(rowDefString);
+
+     
+        Debug.WriteLine("total cells : " + Cells.Count);
+
+        DisableUndoStack = false;
+
+        this.CallRequestInvalidateVisual();
 
     }
+
 
     internal void UpdateColAndRowPoints()
     {
@@ -88,88 +142,194 @@ public partial class Table : Block
         });
     }
 
-    private void ColDefs_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    private void AddDefaultCellToNewRowDef(int rowDefIndex)
     {
-        ColDefsChanged?.Invoke(this);
-        this.UpdateColAndRowPoints();
-    }
+        DisableUndoStack = true;
 
-    private void RowDefs_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-    {
-        RowDefsChanged?.Invoke(this);
-    }
-
-    public Table(int cols, int rows, FlowDocument flowDoc) : this(flowDoc)
-    {
-        if (cols <= 0)
-            throw new ArgumentOutOfRangeException(nameof(cols), cols, "Number of columns must be greater than zero.");
-        if (rows <= 0)
-            throw new ArgumentOutOfRangeException(nameof(rows), rows, "Number of rows must be greater than zero.");
-
-        flowDoc.disableUndoStack = true;
-       
-        double eqWidth = Math.Truncate(Width / cols);
-        double eqHeight = Math.Truncate(Height / rows);
-
-        for (int colno = 0; colno < cols; colno++)
-            ColDefs.Add(new ColumnDefinition(eqWidth, GridUnitType.Pixel));
-
-        int cellno = 0;
-
-        for (int rowno = 0; rowno < rows; rowno++)
+        // Insert default cells
+        for (int colno = 0; colno < ColDefs.Count; colno++)
         {
-            RowDefs.Add(new RowDefinition(eqHeight, GridUnitType.Pixel));
+            int insertNo = rowDefIndex * ColDefs.Count + colno;
 
-            for (int colno = 0; colno < cols; colno++)
+            Cell newCell = new()
             {
-                Paragraph newPar = new(flowDoc);
-                                
-                Cell newCell = new(this)
-                {
-                    ColNo = colno,
-                    RowNo = rowno,
-                    BorderThickness = new(1),
-                    BorderBrush = Brushes.Black,
-                    Padding = new(5)
-                };
+                ColNo = colno,
+                RowNo =  rowDefIndex,
+                BorderThickness = new(1),
+                BorderBrush = Brushes.Black,
+                Padding = new(5),
+                OwningTable = this
+            };
 
-                Cells.Add(newCell);
+            Paragraph newPar = new() { IsTableCellBlock = true, OwningTable = this, OwningCell = newCell, TextAlignment = TextAlignment.Center };
+            newPar.Inlines.Add(new EditableRun(""));
+                        
+            newCell.CellBlocks.Add(newPar);
 
-                newPar.IsTableCellBlock = true;
-                newPar.OwningTable = this;
-                newPar.Inlines.Add(new EditableRun(""));  
-                newPar.TextAlignment = TextAlignment.Center;
-                newCell.CellBlocks.Add(newPar);
-                                
-                cellno++;
-            }
+            Cells.Insert(insertNo, newCell);
+
+            newCell.IsAttachedToDocument = this.IsAttachedToDocument;
+            newCell.ResizeCellBlocks();
+
         }
 
-        Debug.WriteLine("total cells : " + Cells.Count);
-
-        flowDoc.disableUndoStack = false;
-
-        this.CallRequestInvalidateVisual();
+        this.UpdateColAndRowPoints();
+        MyFlowDoc?.UpdateBlockAndInlineStarts(MyFlowDoc.Blocks.IndexOf(this));
+        
+        DisableUndoStack = false;
 
     }
 
+    private void AddDefaultCellToNewColDef(int cdefIndex)
+    {
+        DisableUndoStack = true;
+
+        for (int rowno = 0; rowno < this.RowDefs.Count; rowno++)
+        {
+            int insertNo = rowno * ColDefs.Count + cdefIndex;
+
+            Cell newCell = new()
+            {
+                ColNo = cdefIndex,
+                RowNo = rowno,
+                BorderThickness = new(1),
+                BorderBrush = Brushes.Black,
+                Padding = new(5),
+                OwningTable = this,
+            };
+
+            Paragraph newPar = new() { IsTableCellBlock = true, OwningTable = this, OwningCell = newCell, TextAlignment = TextAlignment.Center };
+            newPar.Inlines.Add(new EditableRun(""));
+
+            newCell.CellBlocks.Add(newPar);
+            
+            Cells.Insert(insertNo, newCell);
+
+            newCell.IsAttachedToDocument = this.IsAttachedToDocument;
+            newCell.ResizeCellBlocks();
+        }
+
+        MyFlowDoc?.UpdateBlockAndInlineStarts(MyFlowDoc.Blocks.IndexOf(this));
+        this.UpdateColAndRowPoints();
+
+        DisableUndoStack = false;
+    }
+
+    // revise this to remove Cells from Table.Cells, when ColDefs become removable! $$$$$$$$$$$$$$$$$
+    private void ColDefs_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        if (!this.IsAttachedToDocument || DisableUndoStack) return;
+
+        if (e.NewItems != null)
+        {
+            int numAdded = e.NewItems.Count;
+
+            foreach (ColumnDefinition cdef in e.NewItems)
+            {
+                int colIndex = ColDefs.IndexOf(cdef);
+
+                for (int rowno = RowDefs.Count - 1; rowno >= 0; rowno--)
+                {
+                    // shift all cells right one column from insertion point, *before* adding new cell at insertion point
+                    for (int colno = ColDefs.Count - numAdded; colno >= colIndex; colno--)
+                    {
+                        if (GetCellAt(rowno, colno) is Cell lowerCell)
+                            lowerCell.ColNo += 1;
+                    }
+                }
+
+                AddDefaultCellToNewColDef(colIndex);
+
+            }
+
+            this.CallRequestInvalidateVisual();
+        }
+
+        ColDefsChanged?.Invoke(this);
+
+    }
+
+    // revise this to remove Cells from Table.Cells, when RowDefs become removable! $$$$$$$$$$$$$$$$$
+    private void RowDefs_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        if (!this.IsAttachedToDocument || DisableUndoStack) return;
+
+        if (e.NewItems != null)
+        {
+            int numAdded = e.NewItems.Count;
+            foreach (RowDefinition rdef in e.NewItems)
+            {
+                int rowIndex = RowDefs.IndexOf(rdef);
+
+                for (int rowno = RowDefs.Count - numAdded; rowno >= rowIndex; rowno--)
+                {
+                    // shift all cells down one row from insertion point, *before* adding new cell at insertion point
+                    for (int colno = ColDefs.Count - 1; colno >= 0; colno--)
+                    {
+                        if (GetCellAt(rowno, colno) is Cell lowerCell)
+                            lowerCell.RowNo += 1;
+                    }
+                }
+                     
+                AddDefaultCellToNewRowDef(rowIndex);
+
+            }
+
+            this.CallRequestInvalidateVisual();
+
+        }
+
+        RowDefsChanged?.Invoke(this);
+
+    }
+
+    bool _internalChange = false;
+
     private void Cells_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-    {        
+    {
+        if (_internalChange) return;
+        
+
         if (Cells.FirstOrDefault() is Cell c)
         {
             if (c.CellBlocks.FirstOrDefault() is Paragraph p)
-                MyFlowDoc.UpdateBlockAndInlineStarts(p);
+                MyFlowDoc?.UpdateBlockAndInlineStarts(p);
         }
 
-        MyFlowDoc.AllParagraphs = [.. MyFlowDoc.GetAllParagraphs];
+        MyFlowDoc?.AllParagraphs = [.. MyFlowDoc.GetAllParagraphs];
 
+        if (e.NewItems != null)
+        {
+            foreach (Cell cell in e.NewItems)
+            {
+                // Allow re-defining of Cells in Xaml - which will already exist when <Table/> is defined
+                if (Cells.FirstOrDefault(c=> c.RowNo == cell.RowNo && c.ColNo == cell.ColNo && c != cell) is Cell existingCell)
+                {
+                    _internalChange = true;
+                    try
+                    {
+                        int removeCellIndex = Cells.IndexOf(existingCell);
+                        int currentCellIndex = Cells.IndexOf(cell);
+                        Cells.Move(currentCellIndex, removeCellIndex);
+                        Cells.Remove(existingCell);
+                        if (cell.CellBlocks.Count == 0)
+                            AddDefaultParagraph(cell.CellBlocks);
+                    }
+                    finally { _internalChange = false; }
+                }
+
+                cell.OwningTable = this;
+                cell.IsAttachedToDocument = this.IsAttachedToDocument;
+            }
+        }
+                
     }
 
     internal override Table PropertyClone()
     {
-        MyFlowDoc.disableUndoStack = true;
+        DisableUndoStack =  true;
 
-        Table newTable = new(this.MyFlowDoc)
+        Table newTable = new()
         {
             ColDefs = CloneColDefs(this.ColDefs),   // copied RowDefs and ColDefs must be cloned to be free of previously bound BindableGrid 
             RowDefs = CloneRowDefs(this.RowDefs),
@@ -183,13 +343,14 @@ public partial class Table : Block
             Background = this.Background,
             Margin = this.Margin,
             OwningTable = this.OwningTable,
-            OwningCell = this.OwningCell
+            OwningCell = this.OwningCell,
+            MyFlowDoc = this.MyFlowDoc
         };
 
         //OwningTable & OwningCell of Paragraphs are assigned in CellBlocks.CollectionChanged
         newTable.Cells.AddRange(this.Cells.Select(c => c.PropertyClone(newTable)));
 
-        MyFlowDoc.disableUndoStack = false;
+        DisableUndoStack =  false;
 
         return newTable;
     }
@@ -197,9 +358,9 @@ public partial class Table : Block
   
     internal override Table FullClone(bool keepId)
     {
-        MyFlowDoc.disableUndoStack = true;
+        DisableUndoStack =  true;
 
-        Table newTable = new(this.MyFlowDoc)
+        Table newTable = new()
         {
             ColDefs = CloneColDefs(this.ColDefs),   // copied RowDefs and ColDefs must be cloned to be free of previously bound BindableGrid 
             RowDefs = CloneRowDefs(this.RowDefs),
@@ -213,7 +374,8 @@ public partial class Table : Block
             Background = this.Background,
             Margin = this.Margin,
             OwningTable = this.OwningTable,
-            OwningCell = this.OwningCell
+            OwningCell = this.OwningCell,
+            MyFlowDoc = this.MyFlowDoc
         };
 
         if (keepId)
@@ -222,7 +384,7 @@ public partial class Table : Block
         //OwningTable & OwningCell of Paragraphs are assigned in CellBlocks.CollectionChanged
         newTable.Cells.AddRange(this.Cells.Select(c => c.FullClone(newTable, keepId)));
 
-        MyFlowDoc.disableUndoStack = false;
+        DisableUndoStack =  false;
 
         return newTable;
 
@@ -255,6 +417,8 @@ public partial class Table : Block
 
         if (insertColumnIndex > ColDefs.Count) return;
 
+        int afterSelStart = origSelectionStart;
+
         for (int insertCol = 0; insertCol < count;  insertCol++)
         {            
             double newWidth = ColDefs[insertColumnIndex].Width.Value;
@@ -263,48 +427,27 @@ public partial class Table : Block
 
             ColDefs.Insert(insertColumnIndex, new ColumnDefinition(newWidth, GridUnitType.Pixel));
 
-            for (int rowno = RowDefs.Count - 1; rowno > -1; rowno--)
+            for (int rowno = 0; rowno < RowDefs.Count; rowno++)
             {
-                if (GetCellAt(rowno, insertColumnIndex) is Cell insertBeforeCell)
+                if (GetCellAt(rowno, insertColumnIndex) is Cell addedCell)
                 {
-                    int insertCellIndex = Cells.IndexOf(insertBeforeCell);
-
-                    // shift all cells right one column from insertion point, *before* adding new cell at insertion point
-                    for (int colno = ColDefs.Count - 1; colno >= insertColumnIndex; colno--)
+                    addedCellIds.Add(addedCell.Id);
+                    
+                    if (afterSelStart >= addedCell.CellBlocks.First().StartInDoc)
                     {
-                        if (GetCellAt(rowno, colno) is Cell rightCell)
-                            rightCell.ColNo += 1;
+                        MyFlowDoc.UpdateTextRanges(afterSelStart, 2);
+                        afterSelStart += 2;
                     }
-
-                    //Create and insert new cell
-                    Cell newCell = new(this)
-                    {
-                        OwningTable = this,
-                        ColNo = insertColumnIndex,
-                        RowNo = rowno,
-                        BorderBrush = Cells[0].BorderBrush,
-                    };
-
-                    Cells.Insert(insertCellIndex, newCell);
-                    newCell.IsAttachedToDocument = true;
-
-                    addedCellIds.Add(newCell.Id);
-
-                    Paragraph newPar = new(MyFlowDoc) { TextAlignment = TextAlignment.Center };
-                    newPar.Inlines.Add(new EditableRun(""));
-                    newCell.CellBlocks.Add(newPar);
-                                        
-                    Dispatcher.UIThread.Post(() =>
-                    {
-                        newPar.CallRequestTextLayoutInfoStart();
-                        newPar.CallRequestTextLayoutInfoEnd();
-                    });
                 }
             }
         }
 
-        MyFlowDoc.Undos.Add(new InsertColumnsUndo(this.Id, addedCellIds, insertColumnIndex, count, MyFlowDoc, origSelectionStart));
+        MyFlowDoc.UpdateBlockAndInlineStarts(MyFlowDoc.Blocks.IndexOf(this));
+
+        
+        MyFlowDoc.Undos.Add(new InsertColumnsUndo(this.Id, addedCellIds, insertColumnIndex, count, MyFlowDoc, origSelectionStart, afterSelStart));
         this.CallRequestInvalidateVisual();
+
 
     }
 
@@ -319,55 +462,19 @@ public partial class Table : Block
         {
             double newHeight = RowDefs[insertRowIndex].Height.Value;
 
-            RowDefs.Insert(insertRowIndex, new RowDefinition(newHeight, GridUnitType.Pixel));
+            RowDefinition newRowDef = new (newHeight, GridUnitType.Pixel);
+            RowDefs.Insert(insertRowIndex, newRowDef);
 
-            if (GetCellAt(insertRowIndex, 0) is Cell insertBeforeCell)
-            {
-                int insertCellIndex = Cells.IndexOf(insertBeforeCell);
-
-                for (int rowno = RowDefs.Count - 1; rowno >= insertRowIndex; rowno--)
-                {
-                    // shift all cells down one column from insertion point, *before* adding new cell at insertion point
-                    for (int colno = ColDefs.Count - 1; colno >= 0; colno--)
-                    {
-                        if (GetCellAt(rowno, colno) is Cell lowerCell)
-                            lowerCell.RowNo += 1;
-                    }
-                }
-                
-                for (int colno = ColDefs.Count - 1; colno >= 0; colno--)
-                {
-                    //Create and insert new cell
-                    Cell newCell = new(this)
-                    {
-                        OwningTable = this,
-                        ColNo = colno,
-                        RowNo = insertRowIndex,
-                        BorderBrush = Cells[0].BorderBrush,
-                    };
-
-                    Cells.Insert(insertCellIndex, newCell);
-                    newCell.IsAttachedToDocument = true;
-
-                    addedCellIds.Add(newCell.Id);
-
-                    Paragraph newPar = new(MyFlowDoc) { TextAlignment = TextAlignment.Center };
-                    newPar.Inlines.Add(new EditableRun(""));
-                    newCell.CellBlocks.Add(newPar);
-
-                    Dispatcher.UIThread.Post(() =>
-                    {
-                        newPar.CallRequestTextLayoutInfoStart();
-                        newPar.CallRequestTextLayoutInfoEnd();
-                    });
-
-                }
-            }
+            for (int colno = 0; colno < ColDefs.Count; colno++)
+                if (GetCellAt(insertRowIndex, colno) is Cell addedCell)
+                    addedCellIds.Add(addedCell.Id);
         }
-        MyFlowDoc.Undos.Add(new InsertRowsUndo(this.Id, addedCellIds, insertRowIndex, count, MyFlowDoc, origSelectionStart));
+
+        MyFlowDoc.Undos.Add(new InsertRowsUndo(this.Id,  addedCellIds, insertRowIndex, count, MyFlowDoc, origSelectionStart));
         this.CallRequestInvalidateVisual();
-        
-        //UpdateFlowDoc();
+
+        MyFlowDoc.UpdateBlockAndInlineStarts(MyFlowDoc.Blocks.IndexOf(this));
+        MyFlowDoc.UpdateTextRanges(this.StartInDoc, count * ColDefs.Count * 2);
 
     }
 
@@ -390,8 +497,10 @@ public partial class Table : Block
                 Cells.Remove(cellToMerge);
             }
         }
-        MyFlowDoc.Undos.Add(new MergeCellsUndo(this.Id, firstCell, origMergedCellClones, origMergedCellCloneIndexes, MyFlowDoc));
-                
+        MyFlowDoc.Undos.Add(new MergeCellsUndo(this.Id, firstCell.Id, origMergedCellClones, origMergedCellCloneIndexes, MyFlowDoc));
+
+        this.UpdateColAndRowPoints();
+
     }
 
     public void MergeCellsDown(int rowNo, int colNo, int numberCellsToMerge = 1)
@@ -404,7 +513,7 @@ public partial class Table : Block
 
         for (int i = 1; i <= numberCellsToMerge; i++)
         {
-            if (GetCellAt(rowNo + 1, colNo) is Cell cellToMerge)
+            if (GetCellAt(rowNo + i, colNo) is Cell cellToMerge)
             {
                 firstCell.RowSpan += cellToMerge.RowSpan;
                 firstCell.CellBlocks.AddRange(cellToMerge.CellBlocks);
@@ -413,8 +522,9 @@ public partial class Table : Block
             }
         }
 
-        MyFlowDoc.Undos.Add(new MergeCellsUndo(this.Id, firstCell, origMergedCellClones, origMergedCellCloneIndexes, MyFlowDoc));
-        
+        MyFlowDoc.Undos.Add(new MergeCellsUndo(this.Id, firstCell.Id, origMergedCellClones, origMergedCellCloneIndexes, MyFlowDoc));
+
+        this.UpdateColAndRowPoints();
         
     }
 
@@ -425,6 +535,8 @@ public partial class Table : Block
             parCount += c.CellBlocks.Count;
         return parCount;
     }
+
+   
 
 }
 
