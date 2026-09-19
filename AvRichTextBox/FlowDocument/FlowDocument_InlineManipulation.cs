@@ -188,6 +188,7 @@ public partial class FlowDocument
 
         if (inlines.Count == 1 && charIdxInDoc == containingPar.StartInDoc + inlines[0].InlineLength) return [inlines[0]];
 
+        bool keepDisableUndoStack = DisableUndoStack;
         DisableUndoStack = true;
 
         int runIdx = inlines.IndexOf(inlineToSplit);
@@ -199,7 +200,7 @@ public partial class FlowDocument
         insertInline.InlineText = part2Text;
         inlines.Insert(runIdx + 1, insertInline);
 
-        DisableUndoStack = false;
+        DisableUndoStack = keepDisableUndoStack;
 
         return [inlineToSplit, insertInline];
     }

@@ -129,6 +129,7 @@ public class EditableHyperlink : EditableRun
 
     public override EditableHyperlink Clone()
     {
+        bool keepDisableUndoStack = DisableUndoStack;
         DisableUndoStack =  true;
 
         EditableHyperlink newEHL = new(this.LinkDisplayText!, this.NavigateUri)
@@ -148,7 +149,7 @@ public class EditableHyperlink : EditableRun
             Foreground = this.Foreground,
         };
 
-        DisableUndoStack =  false;
+        DisableUndoStack = keepDisableUndoStack;
 
         return newEHL;
     }

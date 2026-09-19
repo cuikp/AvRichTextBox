@@ -5,8 +5,10 @@ namespace AvRichTextBox;
 
 internal class ParagraphTextAlignmentChangeUndo(int parId, TextAlignment oldTextAlign, TextAlignment newTextAlign, FlowDocument flowDoc) : IEditDo
 {
-    public int UndoEditOffset => 0;
+    public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => false;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
 
     public void PerformUndo()
     {
@@ -38,8 +40,10 @@ internal class ParagraphTextAlignmentChangeUndo(int parId, TextAlignment oldText
 
 internal class ParagraphLineHeightChangeUndo(int parId, double oldLineHeight, double newLineHeight, FlowDocument flowDoc) : IEditDo
 {
-    public int UndoEditOffset => 0;
+    public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => false;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
 
     public void PerformUndo()
     {
@@ -70,8 +74,10 @@ internal class ParagraphLineHeightChangeUndo(int parId, double oldLineHeight, do
 
 internal class InsertInlineAtUndo(int parId, int inlineId, FlowDocument flowDoc) : IEditDo
 {
-    public int UndoEditOffset => 0;
+    public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => false;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
 
     int origInlineIndex = -1;
     IEditable origInline = null!;
@@ -116,8 +122,10 @@ internal class InsertInlineAtUndo(int parId, int inlineId, FlowDocument flowDoc)
 
 internal class InsertInlinesAtUndo(int parId, List<int> inlineIds, FlowDocument flowDoc) : IEditDo
 {
-    public int UndoEditOffset => 0;
+    public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => false;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
 
     int origInlineIndex = -1;
     List<IEditable> origInlines = [];
@@ -170,8 +178,11 @@ internal class InsertInlinesAtUndo(int parId, List<int> inlineIds, FlowDocument 
 
 internal class RemoveInlineUndo(int parId, int origInlineIndex, IEditable removedInlineClone, FlowDocument flowDoc) : IEditDo
 {
-    public int UndoEditOffset => 0;
+    public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => false;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
+
     int removedInlineId = -1;
 
     public void PerformUndo()

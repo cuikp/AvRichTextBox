@@ -146,6 +146,7 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
 
     public IEditable Clone()
     {
+        bool keepDisableUndoStack = DisableUndoStack;
         DisableUndoStack =  true;
 
         EditableInlineUIContainer eIUC = new(base.Child)
@@ -168,12 +169,12 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
                 Tag = img.Tag,
                 Source = img.Source,
                 Width = img.Width,
-                Height = img.Height
+                Height = img.Height,
             };
             eIUC.SetChild(newImg);
         }
 
-        DisableUndoStack =  false;
+        DisableUndoStack = keepDisableUndoStack;
 
         return eIUC;
 

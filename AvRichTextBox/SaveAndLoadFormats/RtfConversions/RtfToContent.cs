@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls.Documents;
+﻿using Avalonia.Controls;
+using Avalonia.Controls.Documents;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
@@ -63,7 +64,8 @@ internal static partial class RtfConversions
         int rowno = 0;
         foreach (RTFDomTableRow row in rtftable.Elements.OfType<RTFDomTableRow>())
         {
-            newtable.RowDefs.Add(new());
+            RowDefinition newRowDef = new();
+            newtable.RowDefs.Add(newRowDef);
 
 
             foreach (RTFAttribute att in row.Attributes)
@@ -78,6 +80,10 @@ internal static partial class RtfConversions
                         break;
                     case "trqr":
                         newtable.TableAlignment = HorizontalAlignment.Right;
+                        break;
+
+                    case "trrh":
+                        newRowDef.MinHeight = Math.Round(TwipToPix(att.Value));
                         break;
                 }
             }

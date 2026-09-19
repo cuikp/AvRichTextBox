@@ -1,15 +1,13 @@
-﻿
-using Avalonia.Media;
-using Avalonia.Threading;
-using static AvRichTextBox.FlowDocument;
+﻿using Avalonia.Media;
 
 namespace AvRichTextBox;
 
 internal class BlockMarginChangedUndo(int blockId, Thickness oldMargin, Thickness newMargin, FlowDocument flowDoc) : IEditDo
 {
-
-    public int UndoEditOffset => 0;
+    public int EditOffset { get; set; } = 0;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
     public bool UpdateTextRanges => false;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
 
     public void PerformUndo()
     {
@@ -45,8 +43,10 @@ internal class BlockMarginChangedUndo(int blockId, Thickness oldMargin, Thicknes
 
 internal class BlockBackgroundChangedUndo(int blockId, IBrush oldBrush, IBrush newBrush, FlowDocument flowDoc) : IEditDo
 {
-    public int UndoEditOffset => 0;
+    public int EditOffset { get; set; } = 0;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
     public bool UpdateTextRanges => false;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
 
     public void PerformUndo()
     {
@@ -81,8 +81,10 @@ internal class BlockBackgroundChangedUndo(int blockId, IBrush oldBrush, IBrush n
 
 internal class BlockBorderBrushChangedUndo(int blockId, IBrush oldBrush, IBrush newBrush, FlowDocument flowDoc) : IEditDo
 {
-    public int UndoEditOffset => 0;
+    public int EditOffset { get; set; } = 0;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
     public bool UpdateTextRanges => false;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
 
     public void PerformUndo()
     {
@@ -117,8 +119,10 @@ internal class BlockBorderBrushChangedUndo(int blockId, IBrush oldBrush, IBrush 
 
 internal class BlockBorderThicknessChangedUndo(int blockId, Thickness oldThickness, Thickness newThickness, FlowDocument flowDoc) : IEditDo
 {
-    public int UndoEditOffset => 0;
+    public int EditOffset { get; set; } = 0;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
     public bool UpdateTextRanges => false;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
 
     public void PerformUndo()
     {
@@ -153,8 +157,10 @@ internal class BlockBorderThicknessChangedUndo(int blockId, Thickness oldThickne
 
 internal class BlockFontFamilyChangedUndo(int blockId, FontFamily oldFontFamily, FontFamily newFontFamily, FlowDocument flowDoc) : IEditDo
 {
-    public int UndoEditOffset => 0;
+    public int EditOffset { get; set; } =  0;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
     public bool UpdateTextRanges => false;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
 
     public void PerformUndo()
     {
@@ -189,8 +195,10 @@ internal class BlockFontFamilyChangedUndo(int blockId, FontFamily oldFontFamily,
 
 internal class BlockFontSizeChangedUndo(int blockId, double oldFontSize, double newFontSize, FlowDocument flowDoc) : IEditDo
 {
-    public int UndoEditOffset => 0;
+    public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => false;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
 
     public void PerformUndo()
     {
@@ -225,8 +233,10 @@ internal class BlockFontSizeChangedUndo(int blockId, double oldFontSize, double 
 
 internal class BlockFontWeightChangedUndo(int blockId, FontWeight oldFontWeight, FontWeight newFontWeight, FlowDocument flowDoc) : IEditDo
 {
-    public int UndoEditOffset => 0;
+    public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => false;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
 
     public void PerformUndo()
     {
@@ -261,8 +271,10 @@ internal class BlockFontWeightChangedUndo(int blockId, FontWeight oldFontWeight,
 
 internal class BlockFontStyleChangedUndo(int blockId, FontStyle oldFontStyle, FontStyle newFontStyle, FlowDocument flowDoc) : IEditDo
 {
-    public int UndoEditOffset => 0;
+    public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => false;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
 
     public void PerformUndo()
     {
@@ -297,8 +309,11 @@ internal class BlockFontStyleChangedUndo(int blockId, FontStyle oldFontStyle, Fo
 
 internal class InsertBlockUndo( FlowDocument flowDoc, int insertedBlockId, int undoEditOffset, bool IsCellParagraph, int containingTableId, int containingCellId) : IEditDo
 {
-    public int UndoEditOffset => undoEditOffset;
+    public int EditOffset { get; set; } = 0;
     public bool UpdateTextRanges => true;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
+
     int insertBlockIdx = -1;
     Block insertBlock = null!;
     int startCharIdx = 0;
@@ -308,7 +323,7 @@ internal class InsertBlockUndo( FlowDocument flowDoc, int insertedBlockId, int u
         try
         {
             DisableUndoStack =  true;
-
+                        
             if (flowDoc.GetBlockFromId(insertedBlockId) is not Block insertedBlock) return;
 
             insertBlock = insertedBlock.FullClone(true);
@@ -344,7 +359,7 @@ internal class InsertBlockUndo( FlowDocument flowDoc, int insertedBlockId, int u
         try
         {
             DisableUndoStack =  true;
-            
+                    
             int blockIdx = 0;
 
             if (IsCellParagraph)
@@ -372,6 +387,8 @@ internal class InsertBlockUndo( FlowDocument flowDoc, int insertedBlockId, int u
     {
         undoEditOffset = -undoEditOffset;
 
+        EditOffset = undoEditOffset;
+
         DisableUndoStack =  false;
               
         flowDoc.Selection.Start = Math.Min(flowDoc.Selection.Start, flowDoc.DocEndPoint);
@@ -382,8 +399,11 @@ internal class InsertBlockUndo( FlowDocument flowDoc, int insertedBlockId, int u
 
 internal class RemoveBlockUndo(FlowDocument flowDoc, int originalIndex, Block removedBlockClone, int undoEditOffset, bool IsCellParagraph, int containingTableId, int containingCellId) : IEditDo
 {  
-    public int UndoEditOffset => undoEditOffset;
+    public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => true;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
+
     int startCharIdx = 0;
 
     public void PerformUndo()
@@ -441,6 +461,8 @@ internal class RemoveBlockUndo(FlowDocument flowDoc, int originalIndex, Block re
     private void PostUpdate()
     {
         DisableUndoStack =  false;
+        EditOffset = undoEditOffset;
+
         flowDoc.UpdateTextRanges(startCharIdx, undoEditOffset);
         flowDoc.InvokeSelectionChanged();
     }

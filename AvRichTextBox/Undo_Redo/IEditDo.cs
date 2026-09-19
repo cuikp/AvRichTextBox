@@ -2,10 +2,13 @@
 
 internal interface IEditDo
 {
-    public void PerformUndo();
-    public void PerformRedo();
-    public int UndoEditOffset { get; }
-    public bool UpdateTextRanges { get; }
+    internal void PerformUndo();
+    internal void PerformRedo();
+    internal int EditOffset { get; set;  }
+    internal int UpdateTextRangesFromCharIdx { get; set; }
+    internal bool UpdateTextRanges { get; }
+    internal bool DoNextUndo { get; }
+    internal bool DoNextRedo { get; }
 }
 
 internal class EditablePropertyAssociation

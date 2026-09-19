@@ -8,6 +8,9 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 {
     public event PropertyChangedEventHandler? PropertyChanged;
     private void InvokeProperty(PropertyChangedEventArgs pceArgs) { PropertyChanged?.Invoke(this, pceArgs); }
+
+    private static readonly PropertyChangedEventArgs RangeStringChangedArgs = new(nameof(RangeString));
+
     private static readonly PropertyChangedEventArgs StartChangedArgs = new(nameof(Start));
     private static readonly PropertyChangedEventArgs EndChangedArgs = new(nameof(End));
 
@@ -19,9 +22,9 @@ public class TextRange : INotifyPropertyChanged, IDisposable
     internal delegate void End_ChangedHandler(TextRange sender, int newEnd);
     internal event End_ChangedHandler? End_Changed;
 
-    public override string ToString() => $"{Start} → {End}";
+    public string RangeString => $"{Start} → {End}";
 
-    public TextRange(FlowDocument flowdoc, int start, int end)
+    public TextRange(FlowDocument flowdoc, int start, int end, bool addToFlowDocTextRanges = true)
     {
         //if (end < start) throw new AvaloniaInternalException("TextRange not valid (start must be less than end)");
         myFlowDoc = flowdoc;
@@ -29,8 +32,14 @@ public class TextRange : INotifyPropertyChanged, IDisposable
         this.Start = Math.Max(0, start);
         this.End = Math.Min(Math.Max(start, end), flowdoc.Text.Length);
 
-        myFlowDoc.TextRanges.Add(this);
+        if (addToFlowDocTextRanges)
+            myFlowDoc.TextRanges.Add(this);
 
+    }
+
+    public void Delete()
+    {
+        myFlowDoc.TextRanges.Remove(this);
     }
 
     internal void InvokeStartEndChanged()
@@ -53,6 +62,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
                 UpdateContextStart();
                 Start_Changed?.Invoke(this, value);
                 InvokeProperty(StartChangedArgs);
+                InvokeProperty(RangeStringChangedArgs);
             }
         }
     }
@@ -68,6 +78,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
                 UpdateContextEnd();
                 End_Changed?.Invoke(this, value);
                 InvokeProperty(EndChangedArgs);
+                InvokeProperty(RangeStringChangedArgs);
             }
         }
     }
@@ -246,7 +257,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 
     public void Load(Stream stream, ContentDataFormat dataFormat)
     {
-        (int idLeft, int idRight) edgeIds = myFlowDoc.DeleteRange(this, false, false);
+        (int idLeft, int idRight) edgeIds = myFlowDoc.DeleteRange(this, false, false, false);
 
         byte[] streamBytes = new byte[stream.Length];
         stream.ReadExactly(streamBytes);

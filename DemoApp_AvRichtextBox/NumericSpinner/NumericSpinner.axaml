@@ -32,21 +32,21 @@
 		
 		<DockPanel ClipToBounds="True"  >
 
-			<DockPanel DockPanel.Dock="Right" Width="15" HorizontalAlignment="Right">
-				<Grid >
+			<DockPanel DockPanel.Dock="Right" Width="15" HorizontalAlignment="Right" Focusable="False">
+				<Grid  Focusable="False">
 					<Grid.RowDefinitions>
 						<RowDefinition />
 						<RowDefinition />
 					</Grid.RowDefinitions>
 					
-					<Button x:Name="CmdUp" DockPanel.Dock="Top" Margin="0, -1, -1, 0" Grid.Row="0" Padding="0" BorderBrush="Gray"
-							Click="CmdUp_Click" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Focusable="False" Background="DarkGray">
-						<Path HorizontalAlignment="Center" VerticalAlignment="Center" Fill="Black" Data="M4,0 L0,4 L8,4 z"/>
+					<Button x:Name="CmdUp" DockPanel.Dock="Top" Margin="0, -1, -1, 0" Grid.Row="0" Padding="0" BorderBrush="Gray" Focusable="False"
+							Click="CmdUp_Click" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Background="DarkGray">
+						<Path HorizontalAlignment="Center" VerticalAlignment="Center" Focusable="False" Fill="Black" Data="M4,0 L0,4 L8,4 z"/>
 						
 					</Button>
-					<Button x:Name="CmdDown" Grid.Row="1" Margin="0, 0, -1, -1"  Padding="0" BorderBrush="Gray"
-						Click="CmdDown_Click"	Focusable="False" Background="DarkGray" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-						<Path HorizontalAlignment="Center" VerticalAlignment="Center" Fill="Black" Data="M0,0 L8,0 L4,4 z"/>
+					<Button x:Name="CmdDown" Grid.Row="1" Margin="0, 0, -1, -1"  Padding="0" BorderBrush="Gray" Focusable="False"
+						Click="CmdDown_Click" Background="DarkGray" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+						<Path HorizontalAlignment="Center" VerticalAlignment="Center" Focusable="False" Fill="Black" Data="M0,0 L8,0 L4,4 z"/>
 					</Button>
 				</Grid>
 			</DockPanel>

@@ -120,6 +120,8 @@ public partial class EditableTable : ItemsControl
 
     }
 
+    bool borderResized = false;
+
     protected override void OnPointerMoved(PointerEventArgs e)
     {
         base.OnPointerMoved(e);
@@ -134,6 +136,8 @@ public partial class EditableTable : ItemsControl
         {
             ResizeTable(table, position);
 
+            borderResized = true;
+            
             e.Handled = true;
 
             table.UpdateColAndRowPoints();
@@ -175,6 +179,7 @@ public partial class EditableTable : ItemsControl
         if (!IsEditable || DataContext is not Table table)
             return;
 
+        borderResized = false;
         tableWidthChange = 0;
         DisableUndoStack = true;
         
@@ -222,25 +227,22 @@ public partial class EditableTable : ItemsControl
         base.OnPointerReleased(e);
 
         DisableUndoStack = false;
-
-      
-        if (!IsEditable || DataContext is not Table table)
+              
+        if (!IsEditable || DataContext is not Table table || _resizeMode == ResizeMode.None)
             return;
 
-        if (_resizeMode == ResizeMode.None)
-            return;
-
-        if (!DisableUndoStack)
+        if (borderResized && !DisableUndoStack)
         {
             table.MyFlowDoc.Undos.Add(_resizeMode switch
             {
                 ResizeMode.Column => new AdjustTableColumnSizeUndo(table.Id, _resizeIndex, _resizeStartPrimarySize, _resizePrimarySize, shiftWasOnAtPress, _resizeStartSecondarySize, _resizeSecondarySize, table.MyFlowDoc),
                 _ => new AdjustTableRowSizeUndo(table.Id, _resizeIndex, _resizeStartPrimarySize, _resizePrimarySize, shiftWasOnAtPress, _resizeStartSecondarySize, _resizeSecondarySize, table.MyFlowDoc)
             });
+
+            //Resize table if necessary
+            table.Width += tableWidthChange;
         }
 
-        //Resize table if necessary
-        table.Width += tableWidthChange;
 
         if (shiftWasOnAtPress)
         {

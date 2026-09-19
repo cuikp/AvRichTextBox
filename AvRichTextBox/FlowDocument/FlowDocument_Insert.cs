@@ -11,7 +11,7 @@ public partial class FlowDocument
     internal int InsertRTF(byte[] rtfbytes, Paragraph startPar, TextRange insertRange, int insertParIndex, List<int> addedBlockIds)
     {  // delete + insert = single undo operation
 
-        (int leftId, int rightId) edgeIds = DeleteRange(insertRange, false, false);
+        (int leftId, int rightId) edgeIds = DeleteRange(insertRange, false, false, true);
         int insertIdx = GetInsertIndexAfterDelete(startPar, edgeIds.leftId, insertRange);
 
         List<IEditable> rightSplitRuns = startPar.Inlines.ToList()[insertIdx..];
@@ -112,7 +112,7 @@ public partial class FlowDocument
 
     internal int InsertXaml(byte[] xamlbytes, Paragraph startPar, Paragraph endPar, TextRange insertRange, int insertParIndex, List<int> addedBlockIds)
     {
-        (int leftId, int rightId) edgeIds = DeleteRange(insertRange, false, false);
+        (int leftId, int rightId) edgeIds = DeleteRange(insertRange, false, false, true);
         int insertIdx = GetInsertIndexAfterDelete(startPar, edgeIds.leftId, insertRange);
 
         List<IEditable> rightSplitRuns = endPar.Inlines.ToList()[insertIdx..];
@@ -159,8 +159,7 @@ public partial class FlowDocument
         
 
         if (startInline is EditableHyperlink && Selection.GetIsStartAtStartOfStartInline)
-        {
-            // Caret is at the start of a hyperlink.
+        {   // Caret is at the start of a hyperlink.
             // If there is a non-hyperlink inline immediately before it, append text there instead.
             // If the hyperlink is the first inline in the paragraph, insert a new plain run before it so the user can type text preceding the hyperlink.
             int hyperlinkIdx = Selection.StartParagraph.Inlines.IndexOf(startInline);
@@ -180,25 +179,24 @@ public partial class FlowDocument
             else
                 return;
         }
-
+   
         if (insertText != null)
         {
+            int origSelLen = Selection.Length;
+            bool doNextUndo = false;
             if (Selection.Length > 0)
             {
-                DisableUndoStack = true;
-                DeleteRange(Selection, true, false);
+                doNextUndo = true;
+                DeleteRange(Selection, true, false, true);
                 Selection.CollapseToStart();
                 SelectionExtendMode = ExtendMode.ExtendModeNone;
-                if (startInline is EditableRun erun)
-                    erun.Text = erun.Text!.Insert(0, insertText);  // after delete range, selection will always be at pos 0 of first run.
-                DisableUndoStack = false;
-                return;
             }
+
+            DisableUndoStack = true;
 
             int insertIdx = 0;
             int originalStart = Selection.Start;
-            DisableUndoStack = true;
-
+            
             if (InsertRunMode)
             {
                 if (startInline.CloneWithId() is not EditableRun startInlineRunClone) return;
@@ -239,7 +237,8 @@ public partial class FlowDocument
                     {
                         startInline.InlineText = startInline.InlineText.Insert(insertIdx, insertText);
 
-                        Undos.Add(new InsertCharUndo(Selection.StartParagraph.Id, startInline.Id, insertText, insertIdx, this, originalStart));
+                        //Undos.Add(new InsertCharUndo(Selection.StartParagraph.Id, startInline.Id, insertText, insertIdx, this, originalStart, origSelLen, doNextUndo));
+                        Undos.Add(new InsertCharUndo(Selection.StartParagraph.Id, startInline.Id, insertText, insertIdx, this, originalStart, doNextUndo));
                     }
                 }
                 catch (Exception ex) { Debug.WriteLine($"insert Error: startInlinetext = {startInline.InlineText}, idx = {insertIdx}\n{ex.Message}***"); }
@@ -254,6 +253,7 @@ public partial class FlowDocument
             Selection.StartParagraph.CallRequestInlinesUpdate();
 
             UpdateBlockAndInlineStarts(Selection.StartParagraph);
+            //UpdateTextRanges(Selection.Start, -origSelLen + insertText.Length);
             UpdateTextRanges(Selection.Start, insertText.Length);
 
             for (int i = 0; i < insertText.Length; i++)
@@ -276,6 +276,18 @@ public partial class FlowDocument
         int runIdx = startPar.Inlines.IndexOf(startInline);
         IEditable originalInlineClone = startInline.CloneWithId();
 
+        int origSelLen = Selection.Start;
+        bool doNextUndo = false;
+        if (Selection.Length > 0)
+        {
+            doNextUndo = true;
+            DeleteRange(Selection, true, false, true);
+            Selection.CollapseToStart();
+            SelectionExtendMode = ExtendMode.ExtendModeNone;
+        }
+
+        DisableUndoStack = true;
+
         List<IEditable> eruns = SplitRunAtPos(Selection.Start, startInline, GetCharPosInInline(startInline, Selection.Start)); // creates an empty inline
 
         //Debug.WriteLine("split runs\n" + string.Join("\n", eruns.OfType<EditableRun>().ToList().ConvertAll(er => er.Text)));
@@ -293,8 +305,8 @@ public partial class FlowDocument
             addedRunIds.Add(newErun.Id);
         }
 
-        if (!DisableUndoStack)
-            Undos.Add(new InsertLineBreakUndo(Selection.StartParagraph.Id, newELB.Id, addedRunIds, runIdx, originalInlineClone, this, Selection.Start));
+        //Undos.Add(new InsertLineBreakUndo(Selection.StartParagraph.Id, newELB.Id, addedRunIds, runIdx, originalInlineClone, this, Selection.Start, origSelLen, doNextUndo));
+        Undos.Add(new InsertLineBreakUndo(Selection.StartParagraph.Id, newELB.Id, addedRunIds, runIdx, originalInlineClone, this, Selection.Start, doNextUndo));
 
         SelectionExtendMode = ExtendMode.ExtendModeNone;
 
@@ -304,7 +316,9 @@ public partial class FlowDocument
         startPar.CallRequestTextLayoutInfoEnd();
 
         UpdateBlockAndInlineStarts(startPar);
-        UpdateTextRanges(Selection.Start, 1);
+        UpdateTextRanges(Selection.Start, 2);
+
+        DisableUndoStack = false;
 
         Select(Selection.Start + 2, 0);
         Selection.BiasForwardStart = true;
@@ -323,10 +337,7 @@ public partial class FlowDocument
     }
 
     internal void InsertParagraph(bool addUndo, int insertCharIndex)
-    {  //The delete range and InsertParagraph should constitute one Undo operation
-
-        DisableUndoStack = true;
-
+    {      
         if (insertCharIndex > this.DocEndPoint)
             return;
 
@@ -340,36 +351,40 @@ public partial class FlowDocument
         int originalSelStart = insertCharIndex;
 
         int selectionLength = 0;
+        bool doNextUndo = false;
 
         if (addUndo)
         {
             selectionLength = Selection.Length;
             if (Selection.Length > 0)
             {
-                DeleteRange(Selection, false, false);
+                doNextUndo = true;
+                DeleteRange(Selection, false, false, true);
                 Selection.CollapseToStart();
                 SelectionExtendMode = ExtendMode.ExtendModeNone;
             }
         }
-                
+
+        DisableUndoStack = true;
+
         Paragraph parToInsert = null!;
-        int blockIndex = insertPar.IsCellBlock ? Blocks.IndexOf(insertPar.OwningTable): Blocks.IndexOf(insertPar);
-        int parIndex = insertPar.IsCellBlock ? insertPar.OwningCell.CellBlocks.IndexOf(insertPar) : blockIndex;
+        int blockIndex = insertPar.IsCellBlock ? Blocks.IndexOf(insertPar.OwningTable!): Blocks.IndexOf(insertPar);
+        int parIndex = insertPar.IsCellBlock ? insertPar.OwningCell!.CellBlocks.IndexOf(insertPar) : blockIndex;
 
         if (Selection.End == insertPar.EndInDoc)
         {   // only need to add insert a new paragraph at the index
             parToInsert = new Paragraph();
 
             if (insertPar.IsCellBlock)
-                insertPar.OwningCell.CellBlocks.Insert(parIndex + 1, parToInsert);
+                insertPar.OwningCell?.CellBlocks.Insert(parIndex + 1, parToInsert);
             else
                 Blocks.Insert(parIndex + 1, parToInsert);
 
             if (addUndo)
             {
-                int tableId = insertPar.IsCellBlock ? insertPar.OwningTable.Id : -1;
-                int cellId = insertPar.IsCellBlock ? insertPar.OwningCell.Id : -1;
-                Undos.Add(new AddParagraphUndo(this, parToInsert.Id, originalSelStart, insertPar.IsCellBlock, tableId, cellId));
+                int tableId = insertPar.IsCellBlock ? insertPar.OwningTable!.Id : -1;
+                int cellId = insertPar.IsCellBlock ? insertPar.OwningCell!.Id : -1;
+                Undos.Add(new AddParagraphUndo(this, parToInsert.Id, originalSelStart, insertPar.IsCellBlock, tableId, cellId, -1, selectionLength, doNextUndo));
             }
                 
         }
@@ -400,7 +415,7 @@ public partial class FlowDocument
 
             //Insert paragraph in appropriate block
             if (insertPar.IsCellBlock)
-                insertPar.OwningCell.CellBlocks.Insert(parIndex + 1, parToInsert);
+                insertPar.OwningCell?.CellBlocks.Insert(parIndex + 1, parToInsert);
             else
                 Blocks.Insert(parIndex + 1, parToInsert);
 
@@ -419,9 +434,9 @@ public partial class FlowDocument
 
             if (addUndo)
             {
-                int tableId = insertPar.IsCellBlock ? insertPar.OwningTable.Id : -1;
-                int cellId = insertPar.IsCellBlock ? insertPar.OwningCell.Id : -1;
-                Undos.Add(new InsertParagraphUndo(this, originalPar.Id, parToInsert.Id, keepParInlineClones, originalSelStart, selectionLength - 1, insertPar.IsCellBlock, tableId, cellId));
+                int tableId = insertPar.IsCellBlock ? insertPar.OwningTable!.Id : -1;
+                int cellId = insertPar.IsCellBlock ? insertPar.OwningCell!.Id : -1;
+                Undos.Add(new InsertParagraphUndo(this, originalPar.Id, parToInsert.Id, keepParInlineClones, originalSelStart, selectionLength, -1, insertPar.IsCellBlock, tableId, cellId, doNextUndo));
             }
                         
             originalPar.CallRequestInlinesUpdate();
@@ -430,12 +445,10 @@ public partial class FlowDocument
         }
 
 
-        DisableUndoStack = true;
-
         if (parToInsert.GetPreviousParagraph is Paragraph prevPar)
             parToInsert.TextAlignment = prevPar.TextAlignment;
 
-        UpdateTextRanges(insertCharIndex, 1);
+        UpdateTextRanges(insertCharIndex, 1 - selectionLength);
         UpdateBlockAndInlineStarts(blockIndex);
 
         parToInsert.CallRequestInlinesUpdate();

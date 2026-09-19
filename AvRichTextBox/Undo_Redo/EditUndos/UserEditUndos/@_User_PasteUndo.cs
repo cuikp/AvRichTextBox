@@ -10,7 +10,8 @@ internal class PasteUndo(
    List<Block> keptOrigBlockClones,
    FlowDocument flowDoc,
    int origSelectionStart,
-   int undoEditOffset,
+   int deletedRangeLen,
+   int pastedTextLength,
    bool firstParEmpty,
    List<int> addedBlockIds,
    bool firstParWasDeleted,
@@ -21,18 +22,18 @@ internal class PasteUndo(
    ) : IEditDo
 
 {
-    public int UndoEditOffset => undoEditOffset;
+    public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => true;
-    List<Block> keptPastedBlockClones = [];
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
 
-    int lengthBefore = flowDoc.Text.Length;
+    List<Block> keptPastedBlockClones = [];
 
     public void PerformUndo()
     {
         try
         {            
             DisableUndoStack =  true;
-            lengthBefore = flowDoc.Text.Length;
             int updateBlocksFromIndex = -1;
 
             keptPastedBlockClones = [];
@@ -64,7 +65,12 @@ internal class PasteUndo(
                     run.Text = ""; 
             }
 
-            PostUpdate();
+
+
+            EditOffset = deletedRangeLen - pastedTextLength;
+            UpdateTextRangesFromCharIdx = origSelectionStart;
+
+            PostUpdate(origSelectionStart);
 
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at OrigSelectionStart: {origSelectionStart}"); }
@@ -77,8 +83,6 @@ internal class PasteUndo(
         {
             DisableUndoStack =  true;
 
-            lengthBefore = flowDoc.Text.Length;
-
             int updateBlocksFromIndex = -1;
             if (DetermineBlockCollection(out updateBlocksFromIndex) is not ObservableCollection<Block> blockCollection || updateBlocksFromIndex == -1)
                 return;
@@ -89,8 +93,11 @@ internal class PasteUndo(
             keptOrigBlockClones = keptOrigBlockClones.ConvertAll(kbc => kbc.FullClone(true));
 
             flowDoc.Blocks.AddOrInsertRange(keptPastedBlockClones, insertBlockIndex);
-                    
-            PostUpdate();         
+
+            EditOffset = pastedTextLength - deletedRangeLen;
+
+
+            PostUpdate(origSelectionStart + pastedTextLength);         
 
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at OrigSelectionStart: {origSelectionStart}"); }
@@ -116,21 +123,17 @@ internal class PasteUndo(
         return returnBlockCollection;
     }
 
-    private void PostUpdate()
+    private void PostUpdate(int selStart)
     {
         DisableUndoStack =  false;
 
         foreach (Table t in keptOrigBlockClones.OfType<Table>())
             t.UpdateColAndRowPoints();
-
         
-        int lengthAfter = flowDoc.Text.Length;
-        flowDoc.UpdateTextRanges(origSelectionStart, lengthAfter - lengthBefore);
-
         Dispatcher.UIThread.Post(() =>
         {
             flowDoc.UpdateSelection();
-            flowDoc.Selection.Start = origSelectionStart;
+            flowDoc.Selection.Start = selStart;
             flowDoc.Selection.End = flowDoc.Selection.Start;
             flowDoc.ScrollFlowDocToCaret();
         });

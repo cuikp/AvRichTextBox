@@ -4,8 +4,11 @@ namespace AvRichTextBox;
 
 internal class InsertNewFormattedTextUndo(int parId, EditableRun removedRunClone, (int leftId, int rightId) edgeIds, int addedRunId, int deletedRunIdx, FlowDocument flowDoc, int origSelectionStart) : IEditDo
 {
-    public int UndoEditOffset => 1;
+    public int EditOffset { get; set; } =  1;
     public bool UpdateTextRanges => true;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
+
     int thisParLengthBefore = 0;
     List<(int, IEditable)> removedInlines = [];
 
@@ -86,8 +89,11 @@ internal class InsertNewFormattedTextUndo(int parId, EditableRun removedRunClone
 
 internal class ApplyFormattingUndo(FlowDocument flowDoc, List<EditablePropertyAssociation> propertyAssociations, (int LeftId, int RightId) addedEdgeIds, int originalSelection, TextRange tRange, AvaloniaProperty avProperty) : IEditDo
 {
-    public int UndoEditOffset => 0;
+    public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => false;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
+
     readonly List<(int, int, IEditable, int, string)> removedInlinesInfo = [];
     int trangeStart = 0;
     int trangeEnd = 0;

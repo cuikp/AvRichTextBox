@@ -135,6 +135,7 @@ public class EditableRun : Run, IEditable
 
     public virtual EditableRun Clone()
     {
+        bool keepDisableUndoStack = DisableUndoStack;
         DisableUndoStack =  true;
 
         EditableRun clonedRun = new (this.Text!)
@@ -154,7 +155,7 @@ public class EditableRun : Run, IEditable
             IsTableCellInline = this.IsTableCellInline,
         };
 
-        DisableUndoStack =  false;
+        DisableUndoStack = keepDisableUndoStack;
 
         return clonedRun;
     }

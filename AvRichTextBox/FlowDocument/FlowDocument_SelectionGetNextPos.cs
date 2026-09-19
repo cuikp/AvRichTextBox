@@ -87,13 +87,15 @@ public partial class FlowDocument
 
         Paragraph relPar = (SelectionExtendMode == ExtendMode.ExtendModeLeft) ? Selection.StartParagraph : Selection.EndParagraph;
         bool atParBottom = (SelectionExtendMode == ExtendMode.ExtendModeLeft) ? relPar.IsStartAtLastLine : relPar.IsEndAtLastLine;
-        bool atCellBottom = atParBottom && relPar.IsCellBlock && relPar.OwningCell.CellBlocks.IndexOf(relPar) == relPar.OwningCell.CellBlocks.Count - 1;
+        Cell currentCell = relPar.OwningCell;
+        //Debug.WriteLine("index of : " + currentCell.CellBlocks.IndexOf(relPar));
+        bool atCellBottom = atParBottom && relPar.IsCellBlock && currentCell.CellBlocks.IndexOf(relPar) == currentCell.CellBlocks.Count - 1;
 
         if (atCellBottom)
         {
-            int rowno = relPar.OwningCell.RowNo;
-            int colno = relPar.OwningCell.ColNo;
-            int colspan = relPar.OwningCell.ColSpan;
+            int rowno = currentCell.RowNo;
+            int colno = currentCell.ColNo;
+            int colspan = currentCell.ColSpan;
 
             Table thisTable = relPar.OwningTable;
             if (rowno == relPar.OwningTable.RowDefs.Count - 1)

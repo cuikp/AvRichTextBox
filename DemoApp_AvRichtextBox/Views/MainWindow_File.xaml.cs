@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using AvRichTextBox;
 using DemoApp_AvRichtextBox.ViewModels;
 using System;
 using System.Collections.Generic;

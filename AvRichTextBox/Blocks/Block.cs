@@ -15,13 +15,14 @@ public class Block : AvaloniaObject, INotifyPropertyChanged
     public int GetID => Id;
 
     internal bool IsTableCellBlock = false;
-    internal Table OwningTable = null!;
-    internal Cell OwningCell = null!;
+    internal Table? OwningTable => MyFlowDoc?.GetBlockFromId(OwningTableId) as Table;
+    public Cell? OwningCell => OwningTable?.Cells.FirstOrDefault(c => c.Id == OwningCellId);
+    internal int OwningTableId = -1;
+    internal int OwningCellId = -1;
     internal bool IsAttachedToDocument = false;
 
     public bool IsCellBlock => IsTableCellBlock;
-    public Cell GetOwningCell => OwningCell;
-
+    
     internal FlowDocument MyFlowDoc
     {
         get;
@@ -200,7 +201,7 @@ public class Block : AvaloniaObject, INotifyPropertyChanged
                     foreach (var i in p.Inlines)
                        sb.Append(i.InlineText);
 
-                    bool endOfTableCell = (p.IsTableCellBlock && p == p.OwningCell.CellBlocks.Last());
+                    bool endOfTableCell = (p.IsTableCellBlock && p == p.OwningCell?.CellBlocks.Last());
                     //sb.Append(endOfTableCell ? (char)7 : Environment.NewLine);  //  Environment.NewLine adds "\r\n" (Non-Unix) or "\n" (Unix) to end of paragraph text
                     sb.Append(endOfTableCell ? (char)7 : "\r");
 

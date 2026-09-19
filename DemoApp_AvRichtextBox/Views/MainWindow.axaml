@@ -51,6 +51,16 @@
 					</TextBox>
 				</DockPanel>
 
+				<Border BorderBrush="Brown" BorderThickness="1" DockPanel.Dock="Right" Background="Tan" Margin="5" Padding="5, 2" Focusable="False">
+					<DockPanel>
+						<TextBlock Text="TextRanges: "  VerticalAlignment="Center" DockPanel.Dock="Left" Focusable="False"/>
+						<Button Content="Delete"  VerticalAlignment="Center" DockPanel.Dock="Right" Click="DeleteTRButton_Click" Focusable="False"/>
+						<Button Content="Add new TR at selection" DockPanel.Dock="Right" Margin="2" Click="AddNewTRButton_Click" Focusable="False"/>
+						<ComboBox x:Name="TRCombo"  VerticalAlignment="Center" Width="200" DropDownClosed="TextRangesComboBox_DropDownClosed" ItemsSource="{Binding #MainRTB.FlowDocument.TextRanges}" DisplayMemberBinding="{Binding RangeString}" Focusable="False"/>
+
+					</DockPanel>
+				</Border>
+
 			</DockPanel>
 
 		
@@ -224,7 +234,29 @@
 					
 					<Border x:Name="TablePanel" BorderBrush="Black" BorderThickness="3" Padding="2" Width="355" >
 						<DockPanel LastChildFill="False" >
-							<TextBlock Text="Table" DockPanel.Dock="Top" TextAlignment="Center"/>
+							<DockPanel DockPanel.Dock="Top">
+
+																<DockPanel DockPanel.Dock="Right">
+									<TextBlock DockPanel.Dock="Left" Text="Just." VerticalAlignment="Center" />
+									<ComboBox x:Name="TableJustificationCB" DropDownClosed="TableJustificationComboBox_DropDownClosed" Margin="3" Width="95" MinHeight="15" Height="27"  DockPanel.Dock="Right" FontSize="12" Focusable="False">
+										<ComboBox.Styles>
+											<Style Selector="ComboBoxItem">
+												<Setter Property="Padding" Value="5, 0"/>
+												<Setter Property="Height" Value="20"/>
+												<Setter Property="MinHeight" Value="12"/>
+												<Setter Property="Foreground" Value="Black"/>
+											</Style>
+										</ComboBox.Styles>
+										<ComboBoxItem Content="Left"/>
+										<ComboBoxItem Content="Center"/>
+										<ComboBoxItem Content="Right"/>
+									</ComboBox>
+
+								</DockPanel>
+
+							<TextBlock Text="Table" DockPanel.Dock="Left" TextAlignment="Center"/>
+								
+							</DockPanel>
 							<DockPanel DockPanel.Dock="Top" Margin="0, 5">
 							
 								<DockPanel DockPanel.Dock="Left">
@@ -240,28 +272,17 @@
 								</DockPanel>
 
 								<DockPanel Margin="4" DockPanel.Dock="Left" >
-									<Button Content="Insert cols" DockPanel.Dock="Top" Focusable="False" Width="75" Padding="0" Click="AddColsButton_Click" HorizontalAlignment="Left" Margin="3,0" VerticalAlignment="Top" />
-									<Button Content="Insert rows" DockPanel.Dock="Top" Focusable="False" Width="75" Padding="0" Click="AddRowsButton_Click" HorizontalAlignment="Left" Margin="3,0" VerticalAlignment="Top"/>
+									<Grid DockPanel.Dock="Top" ColumnDefinitions="*, *" RowDefinitions="*,*" Width="180">
+									<Button Content="Insert cols" Focusable="False" Width="75" Padding="0" Click="InsertColsButton_Click" HorizontalAlignment="Left" Margin="0" VerticalAlignment="Top" />
+									<Button Content="Insert rows" Grid.Row="1" Focusable="False" Padding="0" Click="InsertRowsButton_Click" HorizontalAlignment="Left" Margin="0" VerticalAlignment="Top"/>
+									<Button Content="Remove cols" Grid.Column="1" Focusable="False" Padding="0" Click="RemoveColsButton_Click" HorizontalAlignment="Left" Margin="0" VerticalAlignment="Top" />
+									<Button Content="Remove rows" Grid.Row="1" Grid.Column="1" Focusable="False" Padding="0" Click="RemoveRowsButton_Click" HorizontalAlignment="Left" Margin="0" VerticalAlignment="Top"/>
+									</Grid>
 									<cc:NumericSpinner x:Name="InsertNumberNS" HorizontalAlignment="Center" Margin="0" Value="1" MaxValue="10" MinValue="1" DockPanel.Dock="Right" Width="43" Height="25" Background="White" Focusable="False" />
 								</DockPanel>
 
-								<DockPanel DockPanel.Dock="Left">
-									<TextBlock DockPanel.Dock="Top" Text="Just." VerticalAlignment="Center" />
-											<ComboBox x:Name="TableJustificationCB" DropDownClosed="TableJustificationComboBox_DropDownClosed" Margin="3" Width="95" MinHeight="15" Height="27"  DockPanel.Dock="Right" FontSize="12" Focusable="False">
-												<ComboBox.Styles>
-													<Style Selector="ComboBoxItem">
-														<Setter Property="Padding" Value="5, 0"/>
-														<Setter Property="Height" Value="20"/>
-														<Setter Property="MinHeight" Value="12"/>
-														<Setter Property="Foreground" Value="Black"/>
-													</Style>
-												</ComboBox.Styles>
-												<ComboBoxItem Content="Left"/>
-												<ComboBoxItem Content="Center"/>
-												<ComboBoxItem Content="Right"/>
-											</ComboBox>
-											
-										</DockPanel>
+							
+							
 							</DockPanel>
 							
 						<Separator Height="2" Width="{Binding $parent[Border].Bounds.Width}" DockPanel.Dock="Top"/>	
@@ -320,7 +341,7 @@
 
 		<Grid >
 	
-			<avrtb:RichTextBox Grid.Row="0" x:Name="MainRTB" Zoom="1" IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="False"  DisableUserCopy="False"
+			<avrtb:RichTextBox Grid.Row="0" x:Name="MainRTB" Zoom="1" IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="True"  DisableUserCopy="False"
 									 CaretBrush="DarkBlue" CtrlKeyOpensHyperlink="True" PointerReleased="MainRTB_PointerReleased" KeyUp="MainRTB_KeyUp">
 
 
@@ -337,9 +358,9 @@
 
 							<avrtb:Paragraph>
 									<avrtb:Paragraph.GetInlines>
-										<avrtb:EditableInlineUIContainer>
+										<avrtb:EditableInlineUIContainer >
 											<avrtb:EditableInlineUIContainer.Content>
-												<Image Width="100" Height="60" Source="avares://DemoApp_AvRichTextBox/Assets/avalonia-logo.ico"/>	
+												<Image Width="100" Height="50" Stretch="Uniform" Source="avares://DemoApp_AvRichTextBox/Assets/avalonia-logo.ico"/>	
 											</avrtb:EditableInlineUIContainer.Content>
 										</avrtb:EditableInlineUIContainer>
 									</avrtb:Paragraph.GetInlines>

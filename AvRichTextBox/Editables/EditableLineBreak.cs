@@ -48,6 +48,7 @@ public class EditableLineBreak : LineBreak, IEditable
 
     public IEditable Clone()
     {
+        bool keepDisableUndoStack = DisableUndoStack;
         DisableUndoStack =  true;
 
         EditableLineBreak eLB = new()
@@ -59,7 +60,7 @@ public class EditableLineBreak : LineBreak, IEditable
             IsTableCellInline = this.IsTableCellInline,
         };
 
-        DisableUndoStack =  false;
+        DisableUndoStack = keepDisableUndoStack;
 
         return eLB;
 

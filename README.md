@@ -185,8 +185,7 @@ xmlns:avrtb="using:AvRichTextBox"
 
 ## Various future to-do improvements include:
 * Word/Html/RTF export and import can be fleshed out (to support more attributes)
-* Allow setting of Undo limit, create a Redo stack
-* Undo sequence currently logs only end user interaction, not programmatic changes 
+* Allow setting of Undo limit
 
 `RtfDomParser` used for reading/parsing of rtf files can be found at https://github.com/SourceCodeBackup/RtfDomParser, but for this project I had to manually modify it to use `Avalonia.Media` instead of `System.Drawing`.  That modified library is included in this project as `RtfDomParserAv.dll`.  Generation of .rtf for saving is my own concoction with the bare minimum necessary to produce a readable .rtf file/dataobject.
 
@@ -374,10 +373,12 @@ Fixed proper cell-to-cell caret movement in `Table` with multiple paragraphs
 Added `LinkOpening` event to `EditableHyperlink` to allow custom handling  
 Some initial Redos have been implemented (Deleting/Inserting/Pasting/PagePadding/programmed `Block` property Redos)  
 
-**[ver 1.11.0-preview.1] 2026/09/14**  
+**[ver 1.11.0] 2026/09/19**  
 New parameterless constructors for `Block()` (`Paragraph` or `Table`), instead of passing the current `FlowDocument`, and for `Cell()`, instead of passing `OwningTable`.  
 The `FlowDocument` or `Table` instance for these objects is instead assigned in the appropriate `CollectionChanged` events.  
 (The lack of parameterless ctors was preventing direct Xaml creation)  
 Updated README.md and BasicUsage.md which were outdated.  
 ---**Breaking change**---  
 `EditableHyperlink.Text` is now set as `EditableHyperlink.LinkDisplayText`, rather than directly.  
+Updated to Avalonia 12.1.2  
+`TextRange`s update more properly with Undo/Redo actions  

@@ -1,7 +1,6 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using DocumentFormat.OpenXml.Math;
 using System.Text;
 using static AvRichTextBox.HelperMethods;
 
@@ -79,6 +78,9 @@ internal static partial class RtfConversions
                     break;
             }
 
+            double minRowHeight = (int)PixToTwip(table.RowDefs[rowno].MinHeight); // 0 minheight means size to content in rtf as well
+            tableRtf.Append($@"\trrh{minRowHeight}");
+                
             StringBuilder cellDefs = new();
             StringBuilder cellContents = new();
 
@@ -117,24 +119,35 @@ internal static partial class RtfConversions
 
                     if (thisCell.BorderBrush is ISolidColorBrush borderBrush && colorMap.TryGetValue(borderBrush.Color, out int colorIndexBorderF))
                         nextVMergeStartswColSpans[colno].cellBorderColorIdx = colorIndexBorderF;
+                    else
+                        nextVMergeStartswColSpans[colno].cellBorderColorIdx = 0;
 
                     if (thisCell.CellBackground is ISolidColorBrush backgroundBrush && colorMap.TryGetValue(backgroundBrush.Color, out int colorIndexBackF))
                         nextVMergeStartswColSpans[colno].cellBackColorIdx = colorIndexBackF;
+                    else
+                        nextVMergeStartswColSpans[colno].cellBackColorIdx = 0;
+
+                    int bordWL = (int)PixToTwip(thisCell.BorderThickness.Left);
+                    int bordWT = (int)PixToTwip(thisCell.BorderThickness.Top);
+                    int bordWR = (int)PixToTwip(thisCell.BorderThickness.Right);
+                    int bordWB = (int)PixToTwip(thisCell.BorderThickness.Bottom);
 
                     int borderColorIdx = nextVMergeStartswColSpans[colno].cellBorderColorIdx;
                     if (borderColorIdx != 0)
                         cellDefs.Append(
-                            $@"\clbrdrt\brdrs\brdrw20\brdrcf{borderColorIdx}" +
-                            $@"\clbrdrl\brdrs\brdrw20\brdrcf{borderColorIdx}" +
-                            $@"\clbrdrb\brdrs\brdrw20\brdrcf{borderColorIdx}" +
-                            $@"\clbrdrr\brdrs\brdrw20\brdrcf{borderColorIdx}");
+                            $@"\clbrdrt\brdrs\brdrw{bordWT}\brdrcf{borderColorIdx}" +
+                            $@"\clbrdrl\brdrs\brdrw{bordWL}\brdrcf{borderColorIdx}" +
+                            $@"\clbrdrb\brdrs\brdrw{bordWB}\brdrcf{borderColorIdx}" +
+                            $@"\clbrdrr\brdrs\brdrw{bordWR}\brdrcf{borderColorIdx}");
 
                     int backColorIdx = nextVMergeStartswColSpans[colno].cellBackColorIdx;
+                    
                     if (backColorIdx != 0)
                         cellDefs.Append($@"\clcbpat{backColorIdx}");
 
                     //cell padding
-                    Thickness cellPad = nextVMergeStartswColSpans[colno].cellPadding;
+                    //Thickness cellPad = nextVMergeStartswColSpans[colno].cellPadding;
+                    Thickness cellPad = thisCell.Padding;
                     int padL = (int)PixToTwip(cellPad.Left);
                     int padT = (int)PixToTwip(cellPad.Top);
                     int padR = (int)PixToTwip(cellPad.Right);
@@ -160,7 +173,7 @@ internal static partial class RtfConversions
 
                             if (thisCell.CellBlocks.FirstOrDefault() != p)
                             {
-                                appendParString += "\\par ";
+                                appendParString += @"\par ";
                             }
 
                             //cellContents.Append(appendParString);
@@ -175,7 +188,6 @@ internal static partial class RtfConversions
                     nextVMergeStartswColSpans[colno].VMergeStart = rowno + thisCell.RowSpan;
                     nextVMergeStartswColSpans[colno].colspan = thisCell.ColSpan;
                     nextVMergeStartswColSpans[colno].cellPadding = thisCell.Padding;
-                                    
 
                     cellContents.Append(appendParString);
                     cellContents.Append(@"\cell ");
@@ -199,12 +211,8 @@ internal static partial class RtfConversions
                                 $@"\clbrdrl\brdrs\brdrw20\brdrcf{borderColorIdx}" +
                                 $@"\clbrdrr\brdrs\brdrw20\brdrcf{borderColorIdx}");
 
-                            if (rowno ==
-                                nextVMergeStartswColSpans[colno].VMergeStart - 1)
-                            {
-                                cellDefs.Append(
-                                    $@"\clbrdrb\brdrs\brdrw20\brdrcf{borderColorIdx}");
-                            }
+                            if (rowno == nextVMergeStartswColSpans[colno].VMergeStart - 1)
+                                cellDefs.Append($@"\clbrdrb\brdrs\brdrw20\brdrcf{borderColorIdx}");
                         }
 
                         cellDefs.Append($@"\cellx{colRights[colno]} ");
@@ -366,8 +374,19 @@ internal static partial class RtfConversions
                 {
                     int picw = imgbitmap.PixelSize.Width;
                     int pich = imgbitmap.PixelSize.Height;
-                    int picwgoal = (int)PixToTwip(thisImg.Width);
-                    int pichgoal = (int)PixToTwip(thisImg.Height);
+
+                    double displayW = thisImg.Width;
+                    double displayH = thisImg.Height;
+
+                    if (thisImg.Stretch is Stretch.Uniform)
+                    {  // preserve aspect ratio
+                        double scale = Math.Min(displayW / picw, displayH / pich);
+                        displayW = picw * scale;
+                        displayH = pich * scale;
+                    }
+
+                    int picwgoal = (int)PixToTwip(displayW);
+                    int pichgoal = (int)PixToTwip(displayH);
 
                     using MemoryStream memoryStream = new();
 
@@ -459,44 +478,33 @@ internal static partial class RtfConversions
 
     }
 
-    internal static string GetRangeRtf(List<Paragraph> rangeParagraphs)
+    internal static string GetRangeRtf(List<Block> rangeBlocks)
     {
         var sb = new StringBuilder();
 
-        int rangeStart = rangeParagraphs[0].StartInDoc;
-        int rangeEnd = rangeParagraphs[^1].EndInDoc;
+        //int rangeEnd = rangeParagraphs[^1].EndInDoc;
+        int rangeEnd = rangeBlocks[^1].EndInDoc;
 
         //Build font map
         var fontMap = new Dictionary<string, int>();
         var colorMap = new Dictionary<Color, int>();
 
-        sb.Append(RtfConversions.GetFontAndColorTables(rangeParagraphs, ref fontMap, ref colorMap));
+        sb.Append(RtfConversions.GetFontAndColorTables(rangeBlocks, ref fontMap, ref colorMap));
 
-        for (int parno = 0; parno < rangeParagraphs.Count; parno++)
+        for (int blockno = 0; blockno < rangeBlocks.Count; blockno++)
         {
-            Paragraph thisRangePar = rangeParagraphs[parno];
+            Block thisRangeBlock = rangeBlocks[blockno];
 
-            //Debug.WriteLine("ranparText = " + thisRangePar.Text);
-
-            // check if full table is included in range:
-            if (thisRangePar.IsCellBlock && 
-                thisRangePar.OwningTable.Cells.FirstOrDefault() is Cell firstCell && 
-                firstCell.CellBlocks.FirstOrDefault() is Paragraph firstPar && 
-                firstPar.StartInDoc == thisRangePar.StartInDoc)
+            switch (thisRangeBlock)
             {
-                if (thisRangePar.OwningTable.Cells.LastOrDefault() is Cell lastCell && 
-                    lastCell.CellBlocks.LastOrDefault() is Paragraph lastPar && 
-                    lastPar.EndInDoc <= rangeEnd)
-                { // full table found in range, so add its rtf
-                    sb.Append(RtfConversions.GetTableRtf(thisRangePar.OwningTable, fontMap, colorMap));
-                    parno += thisRangePar.OwningTable.GetParagraphCount() - 1;
-                }
-            }
-            else
-            {
-                sb.Append(RtfConversions.GetParagraphRtf(thisRangePar, fontMap, colorMap, false));
-            }
+                case Table table:
+                    sb.Append(RtfConversions.GetTableRtf(table, fontMap, colorMap));
+                    break;
 
+                case Paragraph p:
+                    sb.Append(RtfConversions.GetParagraphRtf(p, fontMap, colorMap, false));
+                    break;
+            }
         }
 
         sb.Append('}');

@@ -113,7 +113,7 @@
 
 													TextLayoutInfoStartRequested="{Binding RequestTextLayoutInfoStart}"
 													TextLayoutInfoEndRequested="{Binding RequestTextLayoutInfoEnd}"
-													local:RequestExtensions.TextBoxFocusRequested="{Binding RequestTextBoxFocus}"
+													local:RequestExtensions.TextBlockFocusRequested="{Binding RequestTextBlockFocus}"
 													local:RequestExtensions.IsInlineUpdateRequested="{Binding RequestInlinesUpdate}"
 													local:RequestExtensions.InvalidateVisualRequested="{Binding RequestInvalidateVisual}"
 													/>
@@ -159,7 +159,7 @@
 																
 																				TextLayoutInfoStartRequested="{Binding RequestTextLayoutInfoStart}"
 																				TextLayoutInfoEndRequested="{Binding RequestTextLayoutInfoEnd}"
-																				local:RequestExtensions.TextBoxFocusRequested="{Binding RequestTextBoxFocus}"
+																				local:RequestExtensions.TextBlockFocusRequested="{Binding RequestTextBlockFocus}"
 																				local:RequestExtensions.IsInlineUpdateRequested="{Binding RequestInlinesUpdate}"
 																				local:RequestExtensions.InvalidateVisualRequested="{Binding RequestInvalidateVisual}"
 																				local:RequestExtensions.SizeChangedRequested="{Binding RequestSizeChanged}"

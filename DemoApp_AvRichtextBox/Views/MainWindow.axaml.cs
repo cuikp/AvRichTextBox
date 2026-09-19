@@ -9,7 +9,6 @@ using AvRichTextBox;
 using DynamicData;
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -49,14 +48,13 @@ public partial class MainWindow : Window
         debugCBPanel.Children.Add(debugTB);
         TopPanel.Children.Add(debugCBPanel);
 
+        //CreateTestDocumentWithTable();
+        //OpenTestDocument();
+
 #endif
 
         progChange = false;
-        
-                
-        //DEBUG
-        //CreateTestDocumentWithTable();
-        //OpenTestDocument();
+                        
 
     }
 
@@ -123,6 +121,7 @@ public partial class MainWindow : Window
         int noCols = 5;
         int noRows = 4;
         Table newTable = new(noCols, noRows, MainRTB.FlowDocument) { BorderThickness = new(1), BorderBrush = Brushes.ForestGreen, TableAlignment = HorizontalAlignment.Center };
+               
 
         for (int rowno = 0; rowno < noRows; rowno++)
         {
@@ -142,6 +141,7 @@ public partial class MainWindow : Window
                 }
             }
         }
+                
 
         MainRTB.FlowDocument.InsertBlockAt(MainRTB.FlowDocument.GetBlocks.Count(), newTable);
 
@@ -261,11 +261,32 @@ public partial class MainWindow : Window
             FindBut.Focus();
         }
 
+    }
 
-        
+    private void AddNewTRButton_Click(object? sender, RoutedEventArgs e)
+    {
+        TextRange newTR = new(MainRTB.FlowDocument, MainRTB.FlowDocument.Selection.Start, MainRTB.FlowDocument.Selection.End);
+        //MainRTB.FlowDocument.TextRanges.Add(newTR);
 
     }
 
-    
+    private void DeleteTRButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (TRCombo.SelectedItem is not TextRange trange) return;
+
+        MainRTB.FlowDocument.TextRanges.Remove(trange);
+
+        MainRTB.FlowDocument.Selection.CollapseToStart();
+    }
+
+    private void TextRangesComboBox_DropDownClosed(object? sender, EventArgs e)
+    {
+        if (sender is not ComboBox thisCB) return;
+        if (thisCB.SelectedItem is not TextRange trange) return;
+
+        MainRTB.FlowDocument.Select(trange.Start, trange.Length);
+
+    }
+
 
 }

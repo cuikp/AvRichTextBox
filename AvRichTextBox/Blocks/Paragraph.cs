@@ -130,10 +130,10 @@ public class Paragraph : Block
     internal bool RequestInvalidateVisual { get; set { field = value; NotifyPropertyChanged(nameof(RequestInvalidateVisual)); } } = false;
     internal bool RequestTextLayoutInfoStart { get; set { field = value; NotifyPropertyChanged(nameof(RequestTextLayoutInfoStart)); } } = false;
     internal bool RequestTextLayoutInfoEnd { get; set { field = value; NotifyPropertyChanged(nameof(RequestTextLayoutInfoEnd)); } } = false;
-    internal bool RequestTextBoxFocus { get; set { field = value; NotifyPropertyChanged(nameof(RequestTextBoxFocus)); } } = false;
+    internal bool RequestTextBlockFocus { get; set { field = value; NotifyPropertyChanged(nameof(RequestTextBlockFocus)); } } = false;
     internal bool RequestSizeChanged { get; set { field = value; NotifyPropertyChanged(nameof(RequestSizeChanged)); } } = false;
 
-    internal void CallRequestTextBoxFocus() { RequestTextBoxFocus = true; RequestTextBoxFocus = false; }
+    internal void CallRequestTextBlockFocus() { RequestTextBlockFocus = true; RequestTextBlockFocus = false; }
     internal void CallRequestInvalidateVisual() { RequestInvalidateVisual = true; RequestInvalidateVisual = false; }
     internal void CallRequestInlinesUpdate() { RequestInlinesUpdate = true; RequestInlinesUpdate = false; }
     internal void CallRequestTextLayoutInfoStart() { RequestTextLayoutInfoStart = true; RequestTextLayoutInfoStart = false; }
@@ -244,6 +244,7 @@ public class Paragraph : Block
 
     internal override Paragraph PropertyClone()
     {
+        bool keepDisableUndoStack = DisableUndoStack;
         DisableUndoStack =  true;
 
         Paragraph newPar = new()
@@ -260,19 +261,20 @@ public class Paragraph : Block
             FontStyle = this.FontStyle,
             FontWeight = this.FontWeight,
             IsTableCellBlock = this.IsTableCellBlock,
-            OwningTable = this.OwningTable,
-            OwningCell = this.OwningCell,
+            OwningTableId = this.OwningTableId,
+            OwningCellId = this.OwningCellId,
             StartInDoc = this.StartInDoc,
             MyFlowDoc = this.MyFlowDoc
         };
 
-        DisableUndoStack =  false;
+        DisableUndoStack = keepDisableUndoStack;
 
         return newPar;
     }
 
     internal override Paragraph FullClone(bool keepId)
     {
+        bool keepDisableUndoStack = DisableUndoStack;
         DisableUndoStack =  true;
 
         Paragraph newPar = new()
@@ -289,8 +291,8 @@ public class Paragraph : Block
             FontStyle = this.FontStyle,
             FontWeight = this.FontWeight,
             IsTableCellBlock = this.IsTableCellBlock,
-            OwningTable = this.OwningTable,
-            OwningCell = this.OwningCell,
+            OwningTableId = this.OwningTableId,
+            OwningCellId = this.OwningCellId,
             StartInDoc = this.StartInDoc,
             MyFlowDoc = this.MyFlowDoc
         };
@@ -300,7 +302,7 @@ public class Paragraph : Block
 
         newPar.Inlines.AddRange(this.Inlines.Select(il => il.CloneWithId()));
 
-        DisableUndoStack =  false;
+        DisableUndoStack = keepDisableUndoStack;
 
         return newPar;
     }

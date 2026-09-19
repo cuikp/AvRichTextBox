@@ -8,14 +8,20 @@ internal class InsertParagraphUndo(
     int insertedParId, 
     List<IEditable> keepParInlineClones, 
     int origSelectionStart, 
+    int origSelectionLen,
     int undoEditOffset, 
     bool IsCellParagraph, 
     int containingTableId, 
-    int containingCellId) : IEditDo
+    int containingCellId,
+    bool doNextUndo) : IEditDo
 {  //all original inlines preserved, so no need to worry about split inlines
 
-    public int UndoEditOffset => undoEditOffset;
+    public int EditOffset { get; set; } = 0;
     public bool UpdateTextRanges => true;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => doNextUndo;
+    public bool DoNextRedo => false;
+
     int updateBlockIdx = 0;
     Paragraph splitPar1Clone = null!;
     Paragraph splitPar2Clone = null!;
@@ -25,6 +31,7 @@ internal class InsertParagraphUndo(
         try
         {
             DisableUndoStack =  true;
+            UpdateTextRangesFromCharIdx = origSelectionStart;
 
             updateBlockIdx = 0;
             if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == insertedParId) is not Paragraph insertedPar) return;
@@ -49,7 +56,8 @@ internal class InsertParagraphUndo(
                 flowDoc.Blocks.Remove(insertedPar);
             }
 
-            PostUpdate(origPar, null!, -undoEditOffset, origSelectionStart);
+            EditOffset = origSelectionLen + undoEditOffset;
+            PostUpdate(origPar, null!, origSelectionStart);
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at Inserted par id: {insertedParId}"); }
         finally { DisableUndoStack =  false; }
@@ -83,19 +91,18 @@ internal class InsertParagraphUndo(
                 flowDoc.Blocks.Insert(insertIdx, splitPar2Clone);
             }
 
-            PostUpdate(splitPar1Clone, splitPar2Clone, undoEditOffset, origSelectionStart + 1);
+            EditOffset = -undoEditOffset - origSelectionLen;
+            PostUpdate(splitPar1Clone, splitPar2Clone, origSelectionStart + 1);
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at Redo Inserted par id: {insertedParId}"); }
         finally { DisableUndoStack =  false; }
     }
 
-    private void PostUpdate(Paragraph updatePar1, Paragraph updatePar2, int offset, int restoreSelectionTo)
+    private void PostUpdate(Paragraph updatePar1, Paragraph updatePar2, int restoreSelectionTo)
     {
         DisableUndoStack =  false;
 
         flowDoc.UpdateBlockAndInlineStarts(updateBlockIdx);
-
-        flowDoc.UpdateTextRanges(restoreSelectionTo, offset);
 
         Dispatcher.UIThread.Post(() =>
         {
@@ -109,10 +116,23 @@ internal class InsertParagraphUndo(
     }
 }
 
-internal class AddParagraphUndo(FlowDocument flowDoc, int addedParId, int origSelectionStart, bool IsCellParagraph, int containingTableId, int containingCellId) : IEditDo
+internal class AddParagraphUndo(
+    FlowDocument flowDoc, 
+    int addedParId, 
+    int origSelectionStart, 
+    bool IsCellParagraph, 
+    int containingTableId, 
+    int containingCellId, 
+    int editOffset, 
+    int origSelLen, 
+    bool doNextUndo) : IEditDo
+
 {  
-    public int UndoEditOffset => 1;
+    public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => true;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => doNextUndo;
+    public bool DoNextRedo => false;
 
     Paragraph addedParagraph = null!;
     int addedParagraphIndex = -1;
@@ -121,7 +141,8 @@ internal class AddParagraphUndo(FlowDocument flowDoc, int addedParId, int origSe
     {
         try
         {
-           
+            UpdateTextRangesFromCharIdx = origSelectionStart;
+
             if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == addedParId) is not Paragraph insertedPar) return;
             //addedParagraphClone = insertedPar.FullClone(true);
             addedParagraph = insertedPar;
@@ -140,6 +161,7 @@ internal class AddParagraphUndo(FlowDocument flowDoc, int addedParId, int origSe
                 flowDoc.Blocks.Remove(insertedPar);
             }
 
+            EditOffset = origSelLen + editOffset;
             PostUpdate(addedParagraphIndex, origSelectionStart);
 
         }
@@ -164,6 +186,7 @@ internal class AddParagraphUndo(FlowDocument flowDoc, int addedParId, int origSe
                 flowDoc.Blocks.Insert(addedParagraphIndex, addedParagraph);
             }
 
+            EditOffset = -editOffset - origSelLen;
             PostUpdate(blockIdx, origSelectionStart + 1);
 
         }
@@ -174,8 +197,7 @@ internal class AddParagraphUndo(FlowDocument flowDoc, int addedParId, int origSe
     private void PostUpdate(int updateFromBlockIndex, int newSelStart)
     {
         flowDoc.UpdateBlockAndInlineStarts(updateFromBlockIndex);
-        flowDoc.UpdateTextRanges(newSelStart, -1); // offset will always be -1
-
+        
         Dispatcher.UIThread.Post(() =>
         {
             flowDoc.Selection.Start = newSelStart;
@@ -187,10 +209,13 @@ internal class AddParagraphUndo(FlowDocument flowDoc, int addedParId, int origSe
 
 internal class MergeParagraphUndo(int origMergedParInlinesCount, int mergedParId, Paragraph removedParClone, FlowDocument flowDoc, int originalSelectionStart) : IEditDo
 { 
-    public int UndoEditOffset => 1;
+    public int EditOffset { get; set; } =  -1;
     public bool UpdateTextRanges => false;
-    int lengthBefore = 0;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
 
+    int lengthBefore = 0;
+    
     Paragraph keepMergedPar = null!;
     int keepMergedParIndex = -1;
     bool addedEmptyRun = false;
@@ -272,7 +297,7 @@ internal class MergeParagraphUndo(int origMergedParInlinesCount, int mergedParId
             keepMergedPar.CallRequestInlinesUpdate();
             keepMergedPar.UpdateEditableRunPositions();
 
-
+            
             PostUpdate(keepMergedParIndex);
 
         }
@@ -282,6 +307,9 @@ internal class MergeParagraphUndo(int origMergedParInlinesCount, int mergedParId
 
     private void PostUpdate(int updateFromBlockIdx)
     {
+
+        EditOffset = -EditOffset;
+
         flowDoc.UpdateBlockAndInlineStarts(updateFromBlockIdx);
         flowDoc.UpdateTextRanges(originalSelectionStart, flowDoc.Text.Length - lengthBefore);
 

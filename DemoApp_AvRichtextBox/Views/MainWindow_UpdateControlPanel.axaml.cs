@@ -31,7 +31,7 @@ public partial class MainWindow
 
     private void MainRTB_KeyUp(object? sender, KeyEventArgs e)
     {
-        //UpdatePanelValues();
+        UpdatePanelValues();
     }
 
     private void UpdatePanelValues()
@@ -45,7 +45,7 @@ public partial class MainWindow
                 case true:
                     TablePanel.Background = Brushes.LightGreen;
                     TablePanel.IsEnabled = true;
-                    if (thisPar.GetOwningCell is Cell c)
+                    if (thisPar.OwningCell is Cell c)
                     {
                         //CellBackgroundCP.Color = (Color)((c.CellBackground is not SolidColorBrush scb || c.CellBackground == null) ? Colors.Transparent : scb.Color!);
                         CellBackgroundCP.Color = (Color)((c.CellBackground is not SolidColorBrush scb || c.CellBackground == null) ? Colors.Transparent : scb.Color!);
@@ -133,7 +133,7 @@ public partial class MainWindow
 
     }
 
-    internal static Avalonia.Media.Color? GetPrimaryColor(IBrush? brush)
+    internal static Color? GetPrimaryColor(IBrush? brush)
     {
         return brush switch
         {

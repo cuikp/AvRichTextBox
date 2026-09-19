@@ -5,8 +5,10 @@ namespace AvRichTextBox;
 
 internal class CellBorderThicknessChangedUndo(int tableId, int cellId, Thickness oldThickness, Thickness newThickness, FlowDocument flowDoc) : IEditDo
 {
-    public int UndoEditOffset => 0;
+    public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => false;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
 
     public void PerformUndo()
     {
@@ -37,8 +39,10 @@ internal class CellBorderThicknessChangedUndo(int tableId, int cellId, Thickness
 
 internal class CellBorderBrushChangedUndo(int tableId, int cellId, IBrush oldBrush, IBrush newBrush, FlowDocument flowDoc) : IEditDo
 {
-    public int UndoEditOffset => 0;
+    public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => false;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
 
     public void PerformUndo()
     {
@@ -69,8 +73,10 @@ internal class CellBorderBrushChangedUndo(int tableId, int cellId, IBrush oldBru
 
 internal class CellBackgroundChangedUndo(int tableId, int cellId, IBrush oldBrush, IBrush newBrush, FlowDocument flowDoc) : IEditDo
 {
-    public int UndoEditOffset => 0;
+    public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => false;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
 
     public void PerformUndo()
     {
@@ -100,8 +106,10 @@ internal class CellBackgroundChangedUndo(int tableId, int cellId, IBrush oldBrus
 
 internal class CellVerticalAlignmentChangedUndo(int tableId, int cellId, VerticalAlignment oldVAlign, VerticalAlignment newVAlign, FlowDocument flowDoc) : IEditDo
 {
-    public int UndoEditOffset => 0;
+    public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => false;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
 
     public void PerformUndo()
     {
@@ -131,8 +139,10 @@ internal class CellVerticalAlignmentChangedUndo(int tableId, int cellId, Vertica
 
 internal class CellPaddingChangedUndo(int tableId, int cellId, Thickness oldPadding, Thickness newPadding, FlowDocument flowDoc) : IEditDo
 {
-    public int UndoEditOffset => 0;
+    public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => false;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
 
     public void PerformUndo()
     {

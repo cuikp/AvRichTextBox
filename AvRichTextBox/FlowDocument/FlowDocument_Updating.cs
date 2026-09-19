@@ -14,7 +14,7 @@ public partial class FlowDocument
         Selection.StartParagraph.CallRequestTextLayoutInfoStart();
         Selection.EndParagraph.CallRequestInlinesUpdate();
         Selection.EndParagraph.CallRequestTextLayoutInfoEnd();
-        Selection.StartParagraph.CallRequestTextBoxFocus();
+        Selection.StartParagraph.CallRequestTextBlockFocus();
 
         
     }
@@ -100,13 +100,14 @@ public partial class FlowDocument
         List<TextRange> toRemoveRanges = [];
 
         int editCharIndexEnd = offset == 1 ? fromAbsCharIndex : fromAbsCharIndex - offset;
+        //int editCharIndexEnd = fromAbsCharIndex - offset;
                 
 
         foreach (TextRange trange in TextRanges)
         {
             //int editCharIndexEnd = fromAbsCharIndex + trange.Length;
 
-            //if (trange.Equals(this.Selection)) continue;  //Don't update the selection range
+            if (trange.Equals(this.Selection)) continue;  //Don't update the selection range
 
             if (trange.Start >= fromAbsCharIndex && trange.End <= editCharIndexEnd)
                 { toRemoveRanges.Add(trange); continue; }

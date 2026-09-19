@@ -63,7 +63,8 @@ public partial class FlowDocument
                 MoveSelectionRight();
             return;
         }
-                
+
+        int offset = 0;
 
         if (startP.SelectionStartInBlock == startP.BlockLength - 1)
             MergeParagraphForward(Selection.Start, true, originalSelectionStart);
@@ -84,6 +85,7 @@ public partial class FlowDocument
                     emptyRunAdded = true;
                 }
 
+                offset = 1;
                 Undos.Add(new DeleteImageUndo(startP.Id, eIUC, startInlineIdx, this, originalSelectionStart, emptyRunAdded));
 
                 startP.Inlines.Remove(eIUC);
@@ -121,6 +123,7 @@ public partial class FlowDocument
                     }
                     startP.Inlines.Remove(lbreak);
 
+                    offset = 2;
                     Undos.Add(new DeleteLineBreakUndo(startP.Id, types, lbIndex, this, originalSelectionStart, removeNext, startLineEmpty));
 
                 }
@@ -133,7 +136,7 @@ public partial class FlowDocument
                        (prevIsLineBreak && startInline.IsLastInlineOfParagraph) ||
                        (nextIsLineBreak && startInline.IsFirstInlineOfParagraph);
 
-
+                    offset = 1;
 
                     if (startInline.InlineLength == 1 && !leaveEmptyRun)  // keep empty run on linebreak
                     {  // just one char in the inline, so remove it entirely, unless 
@@ -163,7 +166,7 @@ public partial class FlowDocument
             DisableUndoStack = false;
 
             UpdateSelection();
-            UpdateTextRanges(Selection.Start, -1);
+            UpdateTextRanges(Selection.Start, -offset);
         }
 
         Redos.Clear();
@@ -180,7 +183,7 @@ public partial class FlowDocument
         int lengthBefore = Text.Length;
         int originalSelStart = Selection.Start;
 
-        DeleteRange(Selection, true, true);
+        DeleteRange(Selection, true, true, false);
 
         SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeNone;
 
@@ -197,18 +200,19 @@ public partial class FlowDocument
 
     }
 
-    internal (int idLeft, int idRight) DeleteRange(TextRange trange, bool addUndo, bool adjustCaret)
+    internal (int idLeft, int idRight) DeleteRange(TextRange trange, bool addUndo, bool adjustCaret, bool doNextRedo)
     {
         bool docContainsOneBlock = Blocks.Count == 1;
         int originalRangeStart = trange.Start;
         int originalTRangeLength = trange.Length;
         int originalRangeEnd = trange.End; // trange.Start + trange.Length;
 
-        List<Block> rangeBlocks = GetOverlappingBlocksInRange(trange);
+        List<Block> rangeBlocks = GetOverlappingBlocksInRange(trange, Selection.BiasForwardEnd);
                 
         int firstBlockId = rangeBlocks.First().Id;
         int firstBlockIndex = Blocks.IndexOf(rangeBlocks.First());
 
+        bool keepDisableUndoStack = DisableUndoStack;
         DisableUndoStack = true;
 
         List<Block> blocksFullyInRange = GetFullBlocksInRange(trange);
@@ -224,7 +228,16 @@ public partial class FlowDocument
         }
 
         if (addUndo)
-            Undos.Add(new DeleteRangeUndo(rangeBlocks.ConvertAll(rblock => rblock.FullClone(true)), firstBlockIndex, this, originalRangeStart, originalRangeEnd, originalTRangeLength, firstBlockDeleted, lastBlockDeleted));
+            Undos.Add(new DeleteRangeUndo(
+                rangeBlocks.ConvertAll(rblock => rblock.FullClone(true)), 
+                firstBlockIndex, 
+                this, 
+                originalRangeStart, 
+                originalRangeEnd, 
+                originalTRangeLength, 
+                firstBlockDeleted, 
+                lastBlockDeleted,
+                doNextRedo));
             
 
         //get the inlines in this range and split if necessary, adding newly created inlines to doc
@@ -301,14 +314,15 @@ public partial class FlowDocument
         // re-add the first par if no blocks are left
         if (Blocks.Count == 0)
             Blocks.Add(rangeBlocks[0]);
+        
         //Special case with one remaining block with no inlines
         if (Blocks.Count == 1 && Blocks[0] is Paragraph onlyPar && onlyPar.Inlines.Count == 0)
             onlyPar.Inlines.Add(new EditableRun(""));
 
-        DisableUndoStack = false;
+        DisableUndoStack = keepDisableUndoStack;
 
-        UpdateTextRanges(originalRangeStart, -originalTRangeLength);
-
+        if (addUndo && !DisableUndoStack)
+            UpdateTextRanges(originalRangeStart, -originalTRangeLength);
 
 
         return edgeIds;
@@ -369,7 +383,7 @@ public partial class FlowDocument
         UpdateBlockAndInlineStarts(blockIndex);
         UpdateTextRanges(mergeCharIndex, -1);
 
-        thisPar.CallRequestTextBoxFocus();
+        thisPar.CallRequestTextBlockFocus();
 
         UpdateSelectedParagraphs();
 
@@ -416,7 +430,7 @@ public partial class FlowDocument
             }
 
             TextRange deleteTextRange = new(this, Selection.Start, NextWordEndPoint);
-            DeleteRange(deleteTextRange, true, true);  // updates all text ranges, block/inline starts, and adds undo
+            DeleteRange(deleteTextRange, true, true, false);  // updates all text ranges, block/inline starts, and adds undo
 
         }
 

@@ -33,7 +33,7 @@ public partial class FlowDocument
         newHyperlink.MyFlowDoc = destStartPar.MyFlowDoc;
           
         // Snapshot the affected paragraphs before any edit for undo.
-        List<Block> affectedBlockClones = GetOverlappingBlocksInRange(insertAtRange).ConvertAll(b => b.FullClone(true));
+        List<Block> affectedBlockClones = GetOverlappingBlocksInRange(insertAtRange, Selection.BiasForwardEnd).ConvertAll(b => b.FullClone(true));
         int firstParIndex = AllParagraphs.IndexOf(destStartPar);
         int origSelStart = insertAtRange.Start;
         bool firstBlockWasDeleted = false;
@@ -54,7 +54,7 @@ public partial class FlowDocument
             // DeleteRange may collapse multiple paragraphs into one; track whether the first par is gone
             firstParEmpty = destStartPar.IsEmptyInlinePar; 
             firstBlockWasDeleted = destStartPar.StartInDoc == insertAtRange.Start && destStartPar.EndInDoc <= insertAtRange.End && !firstParEmpty;
-            DeleteRange(insertAtRange, false, false);
+            DeleteRange(insertAtRange, false, false, true);
             insertAtRange.CollapseToStart();
         }
 

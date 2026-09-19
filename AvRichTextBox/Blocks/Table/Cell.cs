@@ -14,6 +14,7 @@ public class Cell : AvaloniaObject, INotifyPropertyChanged
     public new event PropertyChangedEventHandler? PropertyChanged;
     private void NotifyPropertyChanged([CallerMemberName] string propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
+    public int StartInDoc => this.CellBlocks?.FirstOrDefault()?.StartInDoc ?? 10000000; // $$$$$$$$$temp
     
     internal ObservableCollection<Block> CellBlocks { get; } = [];
     public IEnumerable<Block> GetCellBlocks => CellBlocks;
@@ -31,12 +32,12 @@ public class Cell : AvaloniaObject, INotifyPropertyChanged
 
         CellBlocks.Insert(insertIdx, blockToInsert);
         blockToInsert.IsAttachedToDocument = this.IsAttachedToDocument;
-        blockToInsert.OwningCell = this;
+        blockToInsert.OwningCellId = this.Id;
         
         if (OwningTable != null && OwningTable.MyFlowDoc != null)
         {
             int tableId = OwningTable.Id;
-            int cellId = blockToInsert.OwningCell.Id;
+            int cellId = this.Id;
 
             int updateIdx = OwningTable.MyFlowDoc.Blocks.IndexOf(OwningTable);
             bool addUndo = OwningTable.IsAttachedToDocument;
@@ -92,7 +93,8 @@ public class Cell : AvaloniaObject, INotifyPropertyChanged
     }
 
 
-    public Table OwningTable = null!;
+    //internal int OwningTableId = -1;
+    public Table OwningTable;
     [JsonIgnore]
     public Table GetOwningTable => OwningTable;
 
@@ -130,8 +132,8 @@ public class Cell : AvaloniaObject, INotifyPropertyChanged
             foreach (Block b in e.NewItems.OfType<Block>())
             {
                 b.IsTableCellBlock = true;
-                b.OwningTable = OwningTable;
-                b.OwningCell = this;
+                b.OwningTableId = OwningTable.Id;
+                b.OwningCellId = this.Id;
                 b.MyFlowDoc = OwningTable.MyFlowDoc;
                 b.IsAttachedToDocument = this.IsAttachedToDocument;
             }
@@ -279,6 +281,7 @@ public class Cell : AvaloniaObject, INotifyPropertyChanged
 
     internal Cell PropertyClone(Table owningTable)
     {
+        bool keepDisableUndoStack = DisableUndoStack;
         DisableUndoStack =  true;
 
         Cell newCell = new()
@@ -300,8 +303,8 @@ public class Cell : AvaloniaObject, INotifyPropertyChanged
 
         // OwningTable and OwningCell set in CellBlocks_CollectionChanged event
         //newCell.CellBlocks.AddRange(this.CellBlocks.Select(cb => cb.FullClone()));
-        
-        DisableUndoStack =  false;
+
+        DisableUndoStack = keepDisableUndoStack;
 
         return newCell;
     }
@@ -309,6 +312,7 @@ public class Cell : AvaloniaObject, INotifyPropertyChanged
 
     internal Cell FullClone(Table owningTable, bool keepId)
     {
+        bool keepDisableUndoStack = DisableUndoStack;
         DisableUndoStack =  true;
 
         Cell newCell = new()
@@ -334,7 +338,7 @@ public class Cell : AvaloniaObject, INotifyPropertyChanged
         // OwningTable and OwningCell set in CellBlocks_CollectionChanged event
         newCell.CellBlocks.AddRange(this.CellBlocks.Select(cb => cb.FullClone(keepId)));
 
-        DisableUndoStack =  false;
+        DisableUndoStack =  keepDisableUndoStack;
 
         return newCell;
     }

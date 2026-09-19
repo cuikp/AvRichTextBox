@@ -8,9 +8,9 @@ namespace AvRichTextBox;
 internal static class RequestExtensions
 {
 
-    internal static readonly AttachedProperty<bool> TextBoxFocusRequestedProperty = AvaloniaProperty.RegisterAttached<EditableParagraph, bool>("TextBoxFocusRequested", typeof(RequestExtensions));
-    public static void SetTextBoxFocusRequested(AvaloniaObject element, bool value) => element.SetValue(TextBoxFocusRequestedProperty, value);
-    public static bool GetTextBoxFocusRequested(AvaloniaObject element) => (bool)element.GetValue(TextBoxFocusRequestedProperty);
+    internal static readonly AttachedProperty<bool> TextBlockFocusRequestedProperty = AvaloniaProperty.RegisterAttached<EditableParagraph, bool>("TextBlockFocusRequested", typeof(RequestExtensions));
+    public static void SetTextBlockFocusRequested(AvaloniaObject element, bool value) => element.SetValue(TextBlockFocusRequestedProperty, value);
+    public static bool GetTextBlockFocusRequested(AvaloniaObject element) => (bool)element.GetValue(TextBlockFocusRequestedProperty);
 
     internal static readonly AttachedProperty<bool> IsInlineUpdateRequestedProperty = AvaloniaProperty.RegisterAttached<EditableParagraph, bool>("IsInlineUpdateRequested", typeof(RequestExtensions));
     public static void SetIsInlineUpdateRequested(AvaloniaObject element, bool value) => element.SetValue(IsInlineUpdateRequestedProperty, value);
@@ -26,12 +26,12 @@ internal static class RequestExtensions
 
     static RequestExtensions()
     {
-        TextBoxFocusRequestedProperty.Changed.Subscribe(args =>
+        TextBlockFocusRequestedProperty.Changed.Subscribe(args =>
         {
             if (args.Sender is EditableParagraph edPar && (bool)args.NewValue.Value)
             {
                 edPar.Focus();
-                edPar.SetValue(TextBoxFocusRequestedProperty, false);
+                edPar.SetValue(TextBlockFocusRequestedProperty, false);
             }
         });
 

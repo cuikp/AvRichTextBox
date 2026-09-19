@@ -4,8 +4,10 @@ namespace AvRichTextBox;
 
 internal class EditableUIContainerChildEditDo(int parId, int uicId, Control? oldChild, Control? newChild, FlowDocument flowDoc) : IEditDo
 {
-    public int UndoEditOffset => 0;
+    public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => false;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
 
     public void PerformUndo()
     {

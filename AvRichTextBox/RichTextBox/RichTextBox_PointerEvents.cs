@@ -71,22 +71,22 @@ public partial class RichTextBox
 
     internal int SelectionOrigin = 0;
     bool PointerDownOverRTB = false;
-    Point downPoint = new Point();
+    Point downPoint = new ();
 
     private void FlowDocSV_PointerPressed(object? sender, PointerPressedEventArgs e)
     {
         downPoint = e.GetPosition(this);
 
-        if (MouseOverCellEmptyArea)
+        if (MouseOverCellEmptyArea && currentMouseOverEdCell?.DataContext is Cell overCell && overCell.CellBlocks.FirstOrDefault() is Paragraph firstPar)
         {
-            if (currentMouseOverEdCell?.DataContext is Cell overCell)
+            Dispatcher.UIThread.Post(() =>
             {
-                if (overCell.CellBlocks.FirstOrDefault() is Paragraph firstPar)
-                {
-                    FlowDoc.Selection.Start = firstPar.StartInDoc;
-                    FlowDoc.Selection.CollapseToStart(); // FlowDoc.Selection.End = FlowDoc.Selection.Start;
-                }
-            }
+                FlowDoc.Select(firstPar.StartInDoc, 0);
+                FlowDoc.Selection.BiasForwardStart = true;
+                FlowDoc.Selection.BiasForwardEnd = true;
+                FlowDoc.UpdateCaret();
+            });
+            return;
         }
 
         if (currentMouseOverEdPar == null) 

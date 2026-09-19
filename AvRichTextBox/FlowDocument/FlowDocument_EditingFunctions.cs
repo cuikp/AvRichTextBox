@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.Drawing.Charts;
-using DynamicData;
+﻿using DynamicData;
 using System.Collections.ObjectModel;
 using System.Runtime.CompilerServices;
 using Avalonia.Threading;
@@ -22,7 +21,7 @@ public partial class FlowDocument
         //Delete any selected text first
         if (tRange.Length > 0)
         {
-            DeleteRange(tRange, false, false);  // no undo, handled by PasteUndo
+            DeleteRange(tRange, false, false, true);  // no undo, handled by PasteUndo
             tRange.CollapseToStart();
             SelectionExtendMode = ExtendMode.ExtendModeNone;
         }
@@ -90,8 +89,7 @@ public partial class FlowDocument
             Dispatcher.UIThread.Post(() =>
             {
                 if (lastUndo.UpdateTextRanges)
-                    //UpdateTextRanges(((InsertRowsUndo)lastUndo).UndoEditOffsetFrom, lastUndo.UndoEditOffset);
-                    UpdateTextRanges(Selection.Start, lastUndo.UndoEditOffset);
+                    UpdateTextRanges(lastUndo.UpdateTextRangesFromCharIdx, lastUndo.EditOffset);
 
 
                 UpdateSelection();  // includes UpdateBlockAndInlineStarts()
@@ -103,6 +101,10 @@ public partial class FlowDocument
                 ScrollInDirection?.Invoke(-1);
 
             });
+
+            if (lastUndo.DoNextUndo && Undos.Count > 0)
+                this.Undo();
+
         }
     }
 
@@ -127,21 +129,26 @@ public partial class FlowDocument
             UpdateCaret();
 
             if (lastRedo.UpdateTextRanges)
-                UpdateTextRanges(Selection.Start, lastRedo.UndoEditOffset);
+                if (lastRedo.UpdateTextRanges)
+                    UpdateTextRanges(lastRedo.UpdateTextRangesFromCharIdx, lastRedo.EditOffset);
 
             Redos.Remove(lastRedo);
             Undos.Add(lastRedo);
 
 #if DEBUG
           DebugPrintUndos();
-#endif    
+#endif
+
+            DisableUndoStack = false;
 
             UpdateSelectedParagraphs();
 
             ScrollInDirection?.Invoke(1);
             ScrollInDirection?.Invoke(-1);
 
-            DisableUndoStack = false;
+            if (lastRedo.DoNextRedo && Redos.Count > 0)
+                this.Redo();
+
         }
     }
 

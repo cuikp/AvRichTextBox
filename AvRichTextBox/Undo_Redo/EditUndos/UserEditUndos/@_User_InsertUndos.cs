@@ -2,10 +2,15 @@
 
 namespace AvRichTextBox; 
 
-internal class InsertCharUndo(int parId, int runId, string insertedText, int insertPos, FlowDocument flowDoc, int origSelectionStart) : IEditDo
+internal class InsertCharUndo(int parId, int runId, string insertedText, int insertPos, FlowDocument flowDoc, int origSelectionStart, bool doNextUndo) : IEditDo
 {
-    public int UndoEditOffset => -1;
+    public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => true;
+    public int UpdateTextRangesFromCharIdx { get; set; }
+    public bool DoNextUndo => doNextUndo;
+    public bool DoNextRedo => false;
+
+    int insertedTextLen = insertedText.Length;
 
     public void PerformUndo()
     {
@@ -14,10 +19,13 @@ internal class InsertCharUndo(int parId, int runId, string insertedText, int ins
             if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == parId) is not Paragraph thisPar) return;
             if (thisPar.Inlines.FirstOrDefault(r => r.Id == runId) is not EditableRun thisRun) return;
 
+            UpdateTextRangesFromCharIdx = origSelectionStart;
+            
             DisableUndoStack =  true;
 
             thisRun.Text = thisRun.Text!.Remove(insertPos, 1);
 
+            EditOffset = -insertedTextLen;
             PostUpdate(thisPar, origSelectionStart);
 
         }
@@ -31,11 +39,12 @@ internal class InsertCharUndo(int parId, int runId, string insertedText, int ins
         {
             if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == parId) is not Paragraph thisPar) return;
             if (thisPar.Inlines.FirstOrDefault(r => r.Id == runId) is not EditableRun thisRun) return;
-
+            
             DisableUndoStack =  true;
 
             thisRun.Text = thisRun.Text!.Insert(insertPos, insertedText);
 
+            EditOffset = insertedTextLen;
             PostUpdate(thisPar, origSelectionStart + 1);
 
         }
@@ -46,7 +55,9 @@ internal class InsertCharUndo(int parId, int runId, string insertedText, int ins
     public void PostUpdate(Paragraph thisPar, int setCaretPos)
     {
         DisableUndoStack =  false;
+        UpdateTextRangesFromCharIdx = origSelectionStart - 1;
 
+        
         thisPar.CallRequestInlinesUpdate();
         flowDoc.UpdateBlockAndInlineStarts(thisPar);
 
@@ -56,17 +67,19 @@ internal class InsertCharUndo(int parId, int runId, string insertedText, int ins
             flowDoc.Selection.BiasForwardEnd = flowDoc.Selection.BiasForwardStart;
             flowDoc.Selection.Start = setCaretPos;
             flowDoc.Selection.End = flowDoc.Selection.Start;
-
         });
     }
 
 }
 
-
-internal class InsertLineBreakUndo(int insertParId, int insertedLBId, List<int> addedInlineIds, int insertIdx, IEditable origInlineClone, FlowDocument flowDoc, int origSelectionStart) : IEditDo
+internal class InsertLineBreakUndo(int insertParId, int insertedLBId, List<int> addedInlineIds, int insertIdx, IEditable origInlineClone, FlowDocument flowDoc, int origSelectionStart, bool doNextUndo) : IEditDo
 {
-    public int UndoEditOffset => -1;
+    public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => true;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => doNextUndo;
+    public bool DoNextRedo => false;
+
     int thisParLengthBefore = 0;
 
     public void PerformUndo()
@@ -74,6 +87,8 @@ internal class InsertLineBreakUndo(int insertParId, int insertedLBId, List<int> 
         try
         {
             DisableUndoStack =  true;
+
+            UpdateTextRangesFromCharIdx = origSelectionStart;
 
             if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == insertParId) is not Paragraph thisPar) return;
             thisParLengthBefore = thisPar.TextLength;
@@ -89,7 +104,7 @@ internal class InsertLineBreakUndo(int insertParId, int insertedLBId, List<int> 
             thisPar.Inlines.Remove(thisELB);
             thisPar.Inlines.Insert(insertIdx, origInlineClone);
 
-           
+            EditOffset = 2;
             PostUpdate(thisPar, origSelectionStart);
      
         }
@@ -126,7 +141,8 @@ internal class InsertLineBreakUndo(int insertParId, int insertedLBId, List<int> 
             }
 
             insertIdx -= 1;
-
+            //EditOffset = origSelLen - 2;
+            EditOffset = -2;
             PostUpdate(thisPar, origSelectionStart + 2);
         }
 
@@ -135,21 +151,18 @@ internal class InsertLineBreakUndo(int insertParId, int insertedLBId, List<int> 
 
     }
 
-    public void PostUpdate(Paragraph thisPar, int restoreCaretPos)
+    public void PostUpdate(Paragraph thisPar, int selStart)
     {
         DisableUndoStack =  false;
+        EditOffset = thisPar.TextLength - thisParLengthBefore;
+
+        UpdateTextRangesFromCharIdx = origSelectionStart - Math.Abs(EditOffset);
 
         thisPar.CallRequestInlinesUpdate();
         flowDoc.UpdateBlockAndInlineStarts(thisPar);
-        flowDoc.UpdateTextRanges(thisPar.StartInDoc, thisPar.TextLength - thisParLengthBefore);
 
-        //flowDoc.Selection.BiasForwardStart = true;
-        //flowDoc.Selection.BiasForwardEnd = true;
-
-        flowDoc.Selection.Start = restoreCaretPos;
+        flowDoc.Selection.Start = selStart;
         flowDoc.Selection.End = flowDoc.Selection.Start;
-        
-        
     }
 }
 

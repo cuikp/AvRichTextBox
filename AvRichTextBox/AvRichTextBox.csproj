@@ -20,17 +20,19 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>ver 1.11.0-preview.1
+	  <PackageReleaseNotes>ver 1.11.0
 New parameterless constructors for `Block()` (`Paragraph` or `Table`), instead of passing the current `FlowDocument`, and for `Cell()`, instead of passing `OwningTable`.
 The `FlowDocument` or `Table` instance for these objects is instead assigned in the appropriate `CollectionChanged` events.
 (The lack of parameterless ctors was preventing direct Xaml creation)
 ---**Breaking change**---
-`EditableHyperlink.Text` is now set as `EditableHyperlink.LinkDisplayText`, rather than directly</PackageReleaseNotes>
+`EditableHyperlink.Text` is now set as `EditableHyperlink.LinkDisplayText`, rather than directly
+Updated to Avalonia 12.1.2
+`TextRange`s update more properly with Undo/Redo actions  </PackageReleaseNotes>
       
      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 	  <PackageOutputPath>D:\PROG\LocalNuget\AvRichTextBox</PackageOutputPath>
 	  
-	  <Version>1.11.0-preview.1</Version>
+	  <Version>1.11.0</Version>
 	  <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
 	  
@@ -60,7 +62,7 @@ The `FlowDocument` or `Table` instance for these objects is instead assigned in 
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Remove="Undo_Redo\EditDos\UserEditDos\XXX_User_TextChangedUndo.cs" />
+	  <Compile Remove="Undo_Redo\EditUndos\UserEditUndos\XXX_User_TextChangedUndo.cs" />
 	</ItemGroup>
 
   
@@ -76,15 +78,15 @@ The `FlowDocument` or `Table` instance for these objects is instead assigned in 
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="12.0.4" />
+    <PackageReference Include="Avalonia" Version="12.1.2" />
     <PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="12.0.0" />
-    <PackageReference Include="Avalonia.Desktop" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.2" />
     <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.8" />
-    <PackageReference Include="Avalonia.Skia" Version="12.0.4" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Skia" Version="12.1.2" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.2" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Include="DocumentFormat.OpenXml" Version="3.5.1" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.12.0" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.13.0" />
   </ItemGroup>
 
   <ItemGroup>

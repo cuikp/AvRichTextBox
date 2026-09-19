@@ -41,7 +41,8 @@ public partial class FlowDocument : AvaloniaObject
     internal List<IEditDo> Redos = [];
 
     internal ObservableCollection<Paragraph> SelectionParagraphs { get; } = [];
-    public ObservableCollection<TextRange> TextRanges = [];
+
+    public ObservableCollection<TextRange> TextRanges { get; set; } = [];
 
     public void ScrollFlowDocInDirection(int direction) { ScrollInDirection?.Invoke(direction); }
     
@@ -97,7 +98,7 @@ public partial class FlowDocument : AvaloniaObject
     public FlowDocument()
     {
         Blocks = [];
-        Selection = new TextRange(this, 0, 0);
+        Selection = new TextRange(this, 0, 0, false);
         Selection.Start_Changed += SelectionStart_Changed;
         Selection.End_Changed += SelectionEnd_Changed;
 
@@ -143,8 +144,8 @@ public partial class FlowDocument : AvaloniaObject
                     {
                         b.IsTableCellBlock = true;
                         b.IsAttachedToDocument = c.IsAttachedToDocument;
-                        b.OwningCell = c;
-                        b.OwningTable = table;
+                        b.OwningCellId = c.Id;
+                        b.OwningTableId = table.Id;
                         b.MyFlowDoc = this;
                     }
                 }
@@ -170,7 +171,8 @@ public partial class FlowDocument : AvaloniaObject
 
         //Auto update blocks and ranges when collection changed
         UpdateBlockAndInlineStarts(Math.Max(0, e.NewStartingIndex));
-        if (Blocks.Count > 0 && e.NewStartingIndex > -1)
+        
+        if (Blocks.Count > 0 && e.NewStartingIndex > -1 && !DisableUndoStack)
             UpdateTextRanges(Blocks[e.NewStartingIndex].StartInDoc, lengthOffset);
 
 
@@ -268,7 +270,7 @@ public partial class FlowDocument : AvaloniaObject
         {
             if (AllParagraphs.FirstOrDefault() is Paragraph firstPar)
             {  //Required for initial caret display
-                firstPar.CallRequestTextBoxFocus();
+                firstPar.CallRequestTextBlockFocus();
                 firstPar.CallRequestTextLayoutInfoStart();
                 firstPar.CallRequestTextLayoutInfoEnd();
             }
@@ -319,9 +321,9 @@ public partial class FlowDocument : AvaloniaObject
             (b is Paragraph p && (p.Inlines.Count == 1 && p.Inlines[0] is EditableInlineUIContainer) ?  (b.StartInDoc + b.BlockLength - 1 < end) : (b.StartInDoc + b.BlockLength - 1 <= end))
         )];
 
-    internal List<Block> GetOverlappingBlocksInRange(int start, int end) => 
+    internal List<Block> GetOverlappingBlocksInRange(int start, int end, bool rangeEndBiasForward) => 
         [.. Blocks.Where(b =>
-            (b is Paragraph p && (p.Inlines.Count == 1 && p.Inlines[0] is EditableInlineUIContainer) ?  (b.StartInDoc < end) : b.StartInDoc <= end) &&
+            (b is Paragraph p && (p.Inlines.Count == 1 && p.Inlines[0] is EditableInlineUIContainer) ?  (b.StartInDoc < end) : (rangeEndBiasForward ? b.StartInDoc <= end : b.StartInDoc < end)) &&
             b.StartInDoc + b.BlockLength - 1 >= start
         )];
 
@@ -333,7 +335,7 @@ public partial class FlowDocument : AvaloniaObject
         ).Cast<Table>()];
 
     internal List<Block> GetFullBlocksInRange(TextRange trange) => GetFullBlocksInRange(trange.Start, trange.End);
-    internal List<Block> GetOverlappingBlocksInRange(TextRange trange) => GetOverlappingBlocksInRange(trange.Start, trange.End);
+    internal List<Block> GetOverlappingBlocksInRange(TextRange trange, bool rangeEndBiasForward) => GetOverlappingBlocksInRange(trange.Start, trange.End, rangeEndBiasForward);
     internal List<Paragraph> GetFullParagraphsInRange(TextRange trange) => GetFullParagraphsInRange(trange.Start, trange.End);
     internal List<Paragraph> GetOverlappingParagraphsInRange(TextRange trange, bool rangeEndBiasForward) => GetOverlappingParagraphsInRange(trange.Start, trange.End, rangeEndBiasForward);
     internal List<Table> GetFullTablesInRange(TextRange trange) => GetFullTablesInRange(trange.Start, trange.End);

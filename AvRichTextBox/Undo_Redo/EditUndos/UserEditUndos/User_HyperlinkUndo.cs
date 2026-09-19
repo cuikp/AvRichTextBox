@@ -19,8 +19,11 @@ internal class InsertHyperlinkAtCharIdxUndo(
        int owningCellId = -1
     ) : IEditDo
 {
-    public int UndoEditOffset { get; }
+    public int EditOffset { get; set;  }
     public bool UpdateTextRanges => false;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
+
     Paragraph keepRedoParagraph = null!;
     
     public void PerformUndo()
@@ -89,8 +92,10 @@ internal class InsertHyperlinkAtCharIdxUndo(
 
 internal class HyperlinkUpdateUndo (int parId, int hyperlinkId, string oldNavUri, string newNavUri, string oldText, string newText, FlowDocument flowDoc, int selStart, int textChangeLen): IEditDo
 {
-    public int UndoEditOffset { get; }
+    public int EditOffset { get; set; }
     public bool UpdateTextRanges => false;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
 
     string previousText = "";
 
@@ -132,8 +137,10 @@ internal class HyperlinkUpdateUndo (int parId, int hyperlinkId, string oldNavUri
 
 internal class HyperlinkDisplayTextChangedUndo(int parId, int hyperlinkId, string oldText, string newText, FlowDocument flowDoc) : IEditDo
 {
-    public int UndoEditOffset { get; }
+    public int EditOffset { get; set; }
     public bool UpdateTextRanges => false;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
 
     string previousText = "";
 
@@ -167,8 +174,10 @@ internal class HyperlinkDisplayTextChangedUndo(int parId, int hyperlinkId, strin
 
 internal class HyperlinkNavigateUriChangedUndo(int parId, int hyperlinkId, string oldUri, string newUri, FlowDocument flowDoc) : IEditDo
 {
-    public int UndoEditOffset { get; }
+    public int EditOffset { get; set; }
     public bool UpdateTextRanges => false;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
 
     public void PerformUndo() { DoChange(oldUri); } 
     public void PerformRedo() { DoChange(newUri);  }
@@ -196,8 +205,11 @@ internal class HyperlinkNavigateUriChangedUndo(int parId, int hyperlinkId, strin
 
 internal class RemoveHyperlinkUndo( int parId, EditableHyperlink removedHyperlinkClone, int addedRunId, FlowDocument flowDoc ) : IEditDo
 {
-    public int UndoEditOffset { get; }
+    public int EditOffset { get; set; }
     public bool UpdateTextRanges => false;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
+
     EditableRun addedRunClone = null!;
 
     public void PerformUndo()

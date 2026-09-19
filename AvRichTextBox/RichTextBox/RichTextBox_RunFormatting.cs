@@ -65,17 +65,25 @@ public partial class RichTextBox
     {
         var sb = new StringBuilder();
 
-        List<Paragraph> rangePars = FlowDoc.GetOverlappingParagraphsInRange(range, range.BiasForwardEnd);
+        List<Block> rangeBlocks = FlowDoc.GetOverlappingBlocksInRange(range, range.BiasForwardEnd);
 
-        rangePars = rangePars.ConvertAll(b=> 
+        rangeBlocks = rangeBlocks.ConvertAll(b=> 
         { 
-            Paragraph clonedPar = b.FullClone(false);
-            clonedPar.OwningCell = b.OwningCell;
-            clonedPar.OwningTable = b.OwningTable;
-            return clonedPar;
+            Block clonedBlock = b.FullClone(false);
+            clonedBlock.OwningCellId = b.OwningCellId;
+            clonedBlock.OwningTableId = b.OwningTableId;
+            return clonedBlock;
         });
 
-        if (rangePars[0] is Paragraph firstPar && rangePars[^1] is Paragraph lastPar)
+        //Trim first and last paragraphs as necessary
+
+        if (rangeBlocks[^1] is Table lastTable)
+        {
+            rangeBlocks.Remove(lastTable);
+            rangeBlocks.AddRange(lastTable.Cells.SelectMany(c=> c.CellBlocks.Where(cb=> cb.StartInDoc <= range.End)));
+        }
+
+        if (rangeBlocks[^1] is Paragraph lastPar)
         {
             lastPar.Inlines.RemoveMany(lastPar.Inlines.Where(il => lastPar.StartInDoc + il.TextPositionOfInlineInParagraph >= range.End));
             if (lastPar.Inlines.Count > 0)
@@ -94,14 +102,22 @@ public partial class RichTextBox
                     case EditableInlineUIContainer edUIC:
                         Paragraph attachPar = new() { MyFlowDoc = FlowDoc };
                         attachPar.Inlines.Add(new EditableRun(""));
-                        rangePars.Add(attachPar);
+                        rangeBlocks.Add(attachPar);
                         break;
                 }
             }
-            
+        }
 
+        if (rangeBlocks[0] is Table firstTable)
+        {
+            rangeBlocks.Remove(firstTable);
+            rangeBlocks.AddOrInsertRange(firstTable.Cells.SelectMany(c => c.CellBlocks.Where(cb => cb.EndInDoc >= range.Start)), 0);
+        }
+
+        if (rangeBlocks[0] is Paragraph firstPar) 
+        {
             firstPar.Inlines.RemoveMany(firstPar.Inlines.Where(il => firstPar.StartInDoc + il.TextPositionOfInlineInParagraph + il.InlineLength < range.Start));
-            if (lastPar.Inlines.Count > 0)
+            if (firstPar.Inlines.Count > 0)
             {
                 switch (firstPar.Inlines[0])
                 {
@@ -118,7 +134,7 @@ public partial class RichTextBox
             } 
         }
 
-        return RtfConversions.GetRangeRtf(rangePars);
+        return RtfConversions.GetRangeRtf(rangeBlocks);
         
     }
 
@@ -156,12 +172,12 @@ public partial class RichTextBox
         List<Block> originalRangeBlockClones = destStartPar.IsCellBlock switch 
         {
             true => FlowDoc.GetOverlappingParagraphsInRange(insertRange, false).ConvertAll(ob => ob.FullClone(true) as Block),
-            _ => FlowDoc.GetOverlappingBlocksInRange(insertRange).ConvertAll(ob => ob.FullClone(true))
+            _ => FlowDoc.GetOverlappingBlocksInRange(insertRange, FlowDoc.Selection.BiasForwardEnd).ConvertAll(ob => ob.FullClone(true))
         };
 
         int insertParIndex = -1;
-        if (destStartPar.IsCellBlock)
-            insertParIndex = destStartPar.OwningCell.CellBlocks.IndexOf(destStartPar);
+        if (destStartPar.IsCellBlock && destStartPar.OwningCell is Cell owningCell)
+            insertParIndex = owningCell.CellBlocks.IndexOf(destStartPar);
         else
             insertParIndex = FlowDoc.Blocks.IndexOf(destStartPar);
 
@@ -223,7 +239,8 @@ public partial class RichTextBox
                    originalRangeBlockClones,
                    FlowDoc,
                    originalSelectionStart,
-                   deleteRangeLength - pastedTextLength,
+                   deleteRangeLength,
+                   pastedTextLength,
                    firstParEmpty,
                    addedBlockIds,
                    firstBlockWasDeleted,

@@ -6,12 +6,8 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
-using Avalonia.VisualTree;
 using AvRichTextBox;
-using DynamicData;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 
@@ -218,7 +214,7 @@ public partial class MainWindow
         {
             if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock)
             {
-               thisPar.GetOwningCell.CellVerticalAlignment = cbi.Content?.ToString() switch
+               thisPar.OwningCell?.CellVerticalAlignment = cbi.Content?.ToString() switch
                 {
                     "Top" => Avalonia.Layout.VerticalAlignment.Top,
                     "Center" => Avalonia.Layout.VerticalAlignment.Center,
@@ -235,7 +231,7 @@ public partial class MainWindow
         SolidColorBrush hBrush = new(e.NewColor);
         if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock)
         {
-            thisPar.GetOwningCell.CellBackground = hBrush;
+            thisPar.OwningCell?.CellBackground = hBrush;
         }
     }
     
@@ -245,32 +241,50 @@ public partial class MainWindow
         SolidColorBrush hBrush = new(e.NewColor);
         if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock)
         {
-            thisPar.GetOwningCell.GetOwningTable.BorderBrush = hBrush;
+            thisPar.OwningCell?.GetOwningTable.BorderBrush = hBrush;
         }
     }
 
     internal void TableBorderNS_UserValueChanged(double value)
     {
-        if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock && thisPar.GetOwningCell is Cell c && c.GetOwningTable is Table t)
+        if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock && thisPar.OwningCell is Cell c && c.GetOwningTable is Table t)
         {
             t.BorderThickness = new Thickness(value);
         }
             
     }
 
-    private void AddColsButton_Click(object? sender, RoutedEventArgs e)
+    private void InsertColsButton_Click(object? sender, RoutedEventArgs e)
     {
-        if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock && thisPar.GetOwningCell is Cell c && c.GetOwningTable is Table t)
+        if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock && thisPar.OwningCell is Cell c && c.GetOwningTable is Table t)
         {
-            t.InsertColumns(0, (int)InsertNumberNS.Value);
+            t.InsertColumns(c.ColNo, (int)InsertNumberNS.Value);
         }
     }
     
-    private void AddRowsButton_Click(object? sender, RoutedEventArgs e)
+    private void InsertRowsButton_Click(object? sender, RoutedEventArgs e)
     {
-        if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock && thisPar.GetOwningCell is Cell c && c.GetOwningTable is Table t)
+        if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock && thisPar.OwningCell is Cell c && c.GetOwningTable is Table t)
         {
-            t.InsertRows(0, (int)InsertNumberNS.Value);
+            t.InsertRows(c.RowNo, (int)InsertNumberNS.Value);
+        }
+
+
+    }
+
+    private void RemoveColsButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock && thisPar.OwningCell is Cell c && c.GetOwningTable is Table t)
+        {
+            t.RemoveColumns(c.ColNo, (int)InsertNumberNS.Value);
+        }
+    }
+    
+    private void RemoveRowsButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock && thisPar.OwningCell is Cell c && c.GetOwningTable is Table t)
+        {
+            t.RemoveRows(c.RowNo, (int)InsertNumberNS.Value);
         }
 
 
@@ -280,7 +294,7 @@ public partial class MainWindow
     {
         if (sender is ComboBox cbox && cbox.SelectedItem is ComboBoxItem cbitem)
         {
-            if (cbitem.Content is string selJust && MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock && thisPar.GetOwningCell is Cell c && c.GetOwningTable is Table t)
+            if (cbitem.Content is string selJust && MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock && thisPar.OwningCell is Cell c && c.GetOwningTable is Table t)
             {
                 t.TableAlignment = selJust switch
                 {
@@ -297,7 +311,7 @@ public partial class MainWindow
 
     private void MergeRightButton_Click(object? sender, RoutedEventArgs e)
     {
-        if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock && thisPar.GetOwningCell is Cell c && c.GetOwningTable is Table t) 
+        if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock && thisPar.OwningCell is Cell c && c.GetOwningTable is Table t) 
         {
             int row = c.RowNo;
             int col = c.ColNo;
@@ -305,13 +319,12 @@ public partial class MainWindow
             count = Math.Min(count, t.ColDefs.Count - 1 - col);
             if (count > 0)
                 t.MergeCellsRight(row, col, count);
-
         }
     }
 
     private void MergeDownButton_Click(object? sender, RoutedEventArgs e)
     {
-        if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock && thisPar.GetOwningCell is Cell c && c.GetOwningTable is Table t)
+        if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock && thisPar.OwningCell is Cell c && c.GetOwningTable is Table t)
         {
             int row = c.RowNo;
             int col = c.ColNo;
@@ -325,21 +338,31 @@ public partial class MainWindow
 
     private void DoSomethingButton_Click(object? sender, RoutedEventArgs e)
     {
+        //remove a row
         if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph p)
         {
-            //MainRTB.FlowDocument.InsertParagraphAt(68);
-
-            if (MainRTB.FlowDocument.GetBlocks.OfType<Paragraph>().FirstOrDefault(p => p.GetInlines.OfType<EditableInlineUIContainer>().Any()) is Paragraph PP)
+            if (p.IsCellBlock && p.OwningCell is Cell thisCell && thisCell.GetOwningTable is Table t)
             {
-                if (PP.GetInlines.OfType<EditableInlineUIContainer>().FirstOrDefault() is EditableInlineUIContainer eiuc)
-                {
-                    eiuc.SetChild(new Image() { Source = new Bitmap(AssetLoader.Open(new Uri("avares://DemoApp_AvRichTextBox/Assets/avalonia-logo2.ico"))), Width = 150, Height = 150 });
-                }
+                t.RemoveRows(0, 1);
             }
-
         }
+
+        //change image
+        //if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph p)
+        //{
+        //    //MainRTB.FlowDocument.InsertParagraphAt(68);
+
+        //    if (MainRTB.FlowDocument.GetBlocks.OfType<Paragraph>().FirstOrDefault(p => p.GetInlines.OfType<EditableInlineUIContainer>().Any()) is Paragraph PP)
+        //    {
+        //        if (PP.GetInlines.OfType<EditableInlineUIContainer>().FirstOrDefault() is EditableInlineUIContainer eiuc)
+        //        {
+        //            eiuc.SetChild(new Image() { Source = new Bitmap(AssetLoader.Open(new Uri("avares://DemoApp_AvRichTextBox/Assets/avalonia-logo2.ico"))), Width = 150, Height = 150 });
+        //        }
+        //    }
+
+        //}
 
     }
 
-    
+
 }
