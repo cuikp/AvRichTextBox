@@ -1,4 +1,5 @@
 ﻿using Avalonia.Threading;
+using DocumentFormat.OpenXml.Office2010.CustomUI;
 using DynamicData;
 
 namespace AvRichTextBox;
@@ -15,8 +16,8 @@ public partial class FlowDocument
         if (startP.IsTableCellBlock)
         {
             bool keepInCell =
-               (backspace && startP == startP.OwningCell.CellBlocks.FirstOrDefault() && startP.SelectionEndInBlock == 0) ||
-               (!backspace && startP == startP.OwningCell.CellBlocks.LastOrDefault() && startP.SelectionStartInBlock >= startP.BlockLength - 1);
+               (backspace && startP == startP.OwningCell?.CellBlocks.FirstOrDefault() && startP.SelectionEndInBlock == 0) ||
+               (!backspace && startP == startP.OwningCell?.CellBlocks.LastOrDefault() && startP.SelectionStartInBlock >= startP.BlockLength - 1);
             if (keepInCell) return;
         }
 
@@ -335,7 +336,7 @@ public partial class FlowDocument
 
         int thisParIndex = AllParagraphs.IndexOf(thisPar);
         
-        if (thisParIndex == AllParagraphs.Count - 1 || (thisPar.IsCellBlock && thisPar == thisPar.OwningCell.CellBlocks.LastOrDefault())) return; //is last Paragraph, can't merge forward
+        if (thisParIndex == AllParagraphs.Count - 1 || (thisPar.IsCellBlock && thisPar == thisPar.OwningCell?.CellBlocks.LastOrDefault())) return; //is last Paragraph, can't merge forward
         int origMergedParInlinesCount = thisPar.Inlines.Count;
 
         if (AllParagraphs[thisParIndex + 1] is not Paragraph nextPar) return;
@@ -370,7 +371,7 @@ public partial class FlowDocument
         }
 
         if (thisPar.IsCellBlock)
-            thisPar.OwningCell.CellBlocks.Remove(nextPar);
+            thisPar.OwningCell?.CellBlocks.Remove(nextPar);
         else
             Blocks.Remove(nextPar);
         
@@ -379,7 +380,7 @@ public partial class FlowDocument
 
         thisPar.CallRequestInlinesUpdate();
 
-        int blockIndex = thisPar.IsCellBlock ? Blocks.IndexOf(thisPar.OwningTable) : thisParIndex;
+        int blockIndex = thisPar.IsCellBlock ? Blocks.IndexOf(thisPar.OwningTable!) : thisParIndex;
         UpdateBlockAndInlineStarts(blockIndex);
         UpdateTextRanges(mergeCharIndex, -1);
 

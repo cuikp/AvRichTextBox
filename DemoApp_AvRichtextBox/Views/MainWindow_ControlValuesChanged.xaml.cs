@@ -100,6 +100,7 @@ public partial class MainWindow
 
     private void FontCP_ColorChanged(object? sender, ColorChangedEventArgs e)
     {
+        if (progChange) return;
         SolidColorBrush hBrush = new(e.NewColor);
         MainRTB.FlowDocument.Selection.ApplyFormatting(ForegroundProperty, hBrush);
 
@@ -107,6 +108,7 @@ public partial class MainWindow
 
     private void HighlightCP_ColorChanged(object? sender, ColorChangedEventArgs e)
     {
+        if (progChange) return;
         SolidColorBrush hBrush = new(e.NewColor);
         MainRTB.FlowDocument.Selection.ApplyFormatting(BackgroundProperty, hBrush);
 

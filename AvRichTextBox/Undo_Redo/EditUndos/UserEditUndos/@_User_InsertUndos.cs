@@ -10,7 +10,7 @@ internal class InsertCharUndo(int parId, int runId, string insertedText, int ins
     public bool DoNextUndo => doNextUndo;
     public bool DoNextRedo => false;
 
-    int insertedTextLen = insertedText.Length;
+    readonly int insertedTextLen = insertedText.Length;
 
     public void PerformUndo()
     {

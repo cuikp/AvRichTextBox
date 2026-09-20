@@ -9,7 +9,7 @@ internal class DeleteCharUndo(int parId, int runId, int origRunIdx, char deleteC
     public int UpdateTextRangesFromCharIdx { get; set; } = 0;
     public bool DoNextUndo => false;public bool DoNextRedo => false;
 
-    int redoSelectionStart => origSelectionStart - 1;
+    int RedoSelectionStart => origSelectionStart - 1;
 
     public void PerformUndo()
     {
@@ -52,7 +52,7 @@ internal class DeleteCharUndo(int parId, int runId, int origRunIdx, char deleteC
             }
 
             EditOffset = -1;
-            PostUpdate(thisPar, redoSelectionStart + 1);
+            PostUpdate(thisPar, RedoSelectionStart + 1);
             
 
         }
@@ -81,7 +81,7 @@ internal class DeleteCharUndo(int parId, int runId, int origRunIdx, char deleteC
 
 internal class DeleteImageUndo(int parId, IEditable deletedIUC, int deletedInlineIdx, FlowDocument flowDoc, int origSelectionStart, bool emptyRunAdded) : IEditDo
 {
-    public int EditOffset { get; set; } =  1;
+    public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => true;
     public int UpdateTextRangesFromCharIdx { get; set; } = 0;
     public bool DoNextUndo => false;public bool DoNextRedo => false;
@@ -96,6 +96,8 @@ internal class DeleteImageUndo(int parId, IEditable deletedIUC, int deletedInlin
                 thisPar.Inlines.RemoveAt(deletedInlineIdx);
             thisPar.Inlines.Insert(deletedInlineIdx, deletedIUC);
 
+            EditOffset = 1;
+     
             PostUpdate(thisPar);
 
             DisableUndoStack =  false;
@@ -120,6 +122,9 @@ internal class DeleteImageUndo(int parId, IEditable deletedIUC, int deletedInlin
                 emptyRunAdded = true;
             }
 
+            EditOffset = -1;
+            
+
             PostUpdate(thisPar);
             DisableUndoStack =  false;
         }
@@ -129,10 +134,10 @@ internal class DeleteImageUndo(int parId, IEditable deletedIUC, int deletedInlin
 
     private void PostUpdate(Paragraph thisPar)
     {
+        UpdateTextRangesFromCharIdx = origSelectionStart;
         thisPar.CallRequestInlinesUpdate();
         flowDoc.UpdateBlockAndInlineStarts(thisPar);
-        flowDoc.UpdateTextRanges(thisPar.StartInDoc, 1);
-
+        
         Dispatcher.UIThread.Post(() =>
         {
             flowDoc.Selection.Start = origSelectionStart;
@@ -143,12 +148,10 @@ internal class DeleteImageUndo(int parId, IEditable deletedIUC, int deletedInlin
 
 internal class DeleteRunUndo(int parId, EditableRun removedRunClone, int deletedRunIdx, FlowDocument flowDoc, int origSelectionStart) : IEditDo
 {
-    public int EditOffset { get; set; } =  1;
+    public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => true;
     public int UpdateTextRangesFromCharIdx { get; set; } = 0;
     public bool DoNextUndo => false;public bool DoNextRedo => false;
-
-    int textChangeLen = 0;
 
     public void PerformUndo()
     {
@@ -157,13 +160,9 @@ internal class DeleteRunUndo(int parId, EditableRun removedRunClone, int deleted
             DisableUndoStack =  true;
             if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == parId) is not Paragraph thisPar) return;
 
-            int thisParLengthBefore = thisPar.TextLength;
-
             thisPar.Inlines.Insert(deletedRunIdx, removedRunClone);
-
-            int thisParLengthAfter = thisPar.TextLength;
-            textChangeLen = thisParLengthAfter - thisParLengthBefore;
-
+                        
+            EditOffset = 1;
             PostUpdate(thisPar);
 
             DisableUndoStack =  false;
@@ -179,13 +178,9 @@ internal class DeleteRunUndo(int parId, EditableRun removedRunClone, int deleted
             DisableUndoStack =  true;
             if (flowDoc.AllParagraphs.FirstOrDefault(bl => bl.Id == parId) is not Paragraph thisPar) return;
 
-            int thisParLengthBefore = thisPar.TextLength;
-
             thisPar.Inlines.Remove(removedRunClone);
 
-            int thisParLengthAfter = thisPar.TextLength;
-            textChangeLen = thisParLengthAfter - thisParLengthBefore;
-
+            EditOffset = -1;
             PostUpdate(thisPar);
 
             DisableUndoStack =  false;
@@ -196,9 +191,10 @@ internal class DeleteRunUndo(int parId, EditableRun removedRunClone, int deleted
 
     private void PostUpdate(Paragraph thisPar)
     {
+        UpdateTextRangesFromCharIdx = origSelectionStart;
+
         thisPar.CallRequestInlinesUpdate();
         flowDoc.UpdateBlockAndInlineStarts(thisPar);
-        flowDoc.UpdateTextRanges(thisPar.StartInDoc, textChangeLen);
 
         Dispatcher.UIThread.Post(() =>
         {
@@ -216,7 +212,7 @@ internal class DeleteLineBreakUndo(int parId, ((Type t1, int id1), (Type t2, int
     public int UpdateTextRangesFromCharIdx { get; set; } = 0;
     public bool DoNextUndo => false;public bool DoNextRedo => false;
 
-    List<int> addedInlineIds = [];
+    readonly List<int> addedInlineIds = [];
     
     public void PerformUndo()
     {
@@ -332,15 +328,11 @@ internal class DeleteRangeUndo(
     public bool DoNextUndo => false;
     public bool DoNextRedo => doNextRedo;
 
-    private int changedTextLength = 0;
-    int lengthBefore = 0;
-
     public void PerformUndo()
     {
         try
         {
             DisableUndoStack =  true;
-            lengthBefore = flowDoc.Text.Length;  // optimize by getting flowDoc.Blocks.Last().StartInDoc + lastPar.BlockLength instead of calculating entire flowdoc text length
 
             //Cell? containingCell = null;
             //int updateBlocksFromIndex = startBlockIndex;
@@ -368,7 +360,6 @@ internal class DeleteRangeUndo(
     public void PerformRedo()
     {
         DisableUndoStack =  true;
-        lengthBefore = flowDoc.Text.Length;  // optimize by getting flowDoc.Blocks.Last().StartInDoc + lastPar.BlockLength instead of calculating entire flowdoc text length
 
         keptBlockClones = keptBlockClones.ConvertAll(kpc => kpc.FullClone(true));
 

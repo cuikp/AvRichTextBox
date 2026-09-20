@@ -128,7 +128,7 @@ internal class InsertInlinesAtUndo(int parId, List<int> inlineIds, FlowDocument 
     public bool DoNextUndo => false;public bool DoNextRedo => false;
 
     int origInlineIndex = -1;
-    List<IEditable> origInlines = [];
+    readonly List<IEditable> origInlines = [];
 
     public void PerformUndo()
     {

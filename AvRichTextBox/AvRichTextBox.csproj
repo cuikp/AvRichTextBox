@@ -20,19 +20,16 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>ver 1.11.0
-New parameterless constructors for `Block()` (`Paragraph` or `Table`), instead of passing the current `FlowDocument`, and for `Cell()`, instead of passing `OwningTable`.
-The `FlowDocument` or `Table` instance for these objects is instead assigned in the appropriate `CollectionChanged` events.
-(The lack of parameterless ctors was preventing direct Xaml creation)
----**Breaking change**---
-`EditableHyperlink.Text` is now set as `EditableHyperlink.LinkDisplayText`, rather than directly
-Updated to Avalonia 12.1.2
-`TextRange`s update more properly with Undo/Redo actions  </PackageReleaseNotes>
+	  <PackageReleaseNotes>ver 1.11.1
+Combined DeleteRange+Insert Paragraph operation fix
+TextRange adjust when deleting Run fixed
+Col/Row add/remove bugs fixed
+Fixed Redo paste in Table bug</PackageReleaseNotes>
       
      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 	  <PackageOutputPath>D:\PROG\LocalNuget\AvRichTextBox</PackageOutputPath>
 	  
-	  <Version>1.11.0</Version>
+	  <Version>1.11.1</Version>
 	  <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
 	  

@@ -1,4 +1,8 @@
-﻿using System.ComponentModel;
+﻿using Avalonia.Media.TextFormatting;
+using DocumentFormat.OpenXml.Office2010.CustomUI;
+using DocumentFormat.OpenXml.Spreadsheet;
+using DynamicData;
+using System.ComponentModel;
 using System.Text;
 using static AvRichTextBox.XamlConversions;
 
@@ -8,8 +12,6 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 {
     public event PropertyChangedEventHandler? PropertyChanged;
     private void InvokeProperty(PropertyChangedEventArgs pceArgs) { PropertyChanged?.Invoke(this, pceArgs); }
-
-    private static readonly PropertyChangedEventArgs RangeStringChangedArgs = new(nameof(RangeString));
 
     private static readonly PropertyChangedEventArgs StartChangedArgs = new(nameof(Start));
     private static readonly PropertyChangedEventArgs EndChangedArgs = new(nameof(End));
@@ -22,7 +24,11 @@ public class TextRange : INotifyPropertyChanged, IDisposable
     internal delegate void End_ChangedHandler(TextRange sender, int newEnd);
     internal event End_ChangedHandler? End_Changed;
 
-    public string RangeString => $"{Start} → {End}";
+    public string RangeString => $"{Start} → {End}  {Text[..Math.Min(Text.Length, 15)]}";
+
+#if DEBUG
+    private static readonly PropertyChangedEventArgs RangeStringChangedArgs = new(nameof(RangeString));
+#endif
 
     public TextRange(FlowDocument flowdoc, int start, int end, bool addToFlowDocTextRanges = true)
     {
@@ -33,7 +39,23 @@ public class TextRange : INotifyPropertyChanged, IDisposable
         this.End = Math.Min(Math.Max(start, end), flowdoc.Text.Length);
 
         if (addToFlowDocTextRanges)
-            myFlowDoc.TextRanges.Add(this);
+        {
+            //insert in order of Start/End
+            int insertIdx = myFlowDoc.TextRanges.Count;
+            for (int i = 0; i < myFlowDoc.TextRanges.Count; i++)
+            {
+                var tr = myFlowDoc.TextRanges[i];
+                if (tr.Start > this.Start || (tr.Start == this.Start && tr.End >= this.End))
+                {
+                    insertIdx = i;
+                    break;
+                }
+            }
+
+            myFlowDoc.TextRanges.Insert(insertIdx, this);
+
+        }
+
 
     }
 
@@ -62,7 +84,9 @@ public class TextRange : INotifyPropertyChanged, IDisposable
                 UpdateContextStart();
                 Start_Changed?.Invoke(this, value);
                 InvokeProperty(StartChangedArgs);
+#if DEBUG
                 InvokeProperty(RangeStringChangedArgs);
+#endif
             }
         }
     }
@@ -78,7 +102,9 @@ public class TextRange : INotifyPropertyChanged, IDisposable
                 UpdateContextEnd();
                 End_Changed?.Invoke(this, value);
                 InvokeProperty(EndChangedArgs);
+#if DEBUG
                 InvokeProperty(RangeStringChangedArgs);
+#endif
             }
         }
     }
@@ -89,6 +115,24 @@ public class TextRange : INotifyPropertyChanged, IDisposable
     internal Rect PrevCharRect;
     internal Rect StartRect { get; set; }
     internal Rect EndRect { get; set; }
+    
+    public Rect GetStartRect 
+    {
+        get
+        {
+            Rect startRect = new();
+            try
+            {
+                Paragraph startPar = myFlowDoc.GetContainingParagraph(this.Start);
+                startRect = startPar.TextLayout.HitTestTextPosition(this.Start - startPar.StartInDoc);
+                startRect = startRect.WithY(startRect.Y + startPar.DocICRelativeTop);
+            }
+            catch { Debug.WriteLine("error getting textrange start rectangle");  }
+            //Debug.WriteLine("startrect: " + startRect.ToString());
+
+            return startRect;
+        }
+    }
 
     //Context awareness flags   //////////////
     internal Paragraph StartParagraph = null!;
@@ -162,6 +206,9 @@ public class TextRange : INotifyPropertyChanged, IDisposable
     internal bool GetIsEndAtStartOfEndInline => End == EndParagraph.StartInDoc + EndInline?.TextPositionOfInlineInParagraph;
     internal bool GetIsStartAtStartOfStartInline => Start == StartParagraph.StartInDoc + StartInline?.TextPositionOfInlineInParagraph;
 
+    internal bool GetIsAtCellEnd => StartParagraph == StartParagraph.OwningCell?.CellBlocks.LastOrDefault() && StartParagraph.SelectionStartInBlock >= StartParagraph.BlockLength - 1;
+    internal bool GetIsAtCellStart => StartParagraph == StartParagraph.OwningCell?.CellBlocks.FirstOrDefault() && StartParagraph.SelectionStartInBlock == 0;
+
     public object? GetFormatting(AvaloniaProperty avProp)
     {
         object? formatting = null;
@@ -221,7 +268,6 @@ public class TextRange : INotifyPropertyChanged, IDisposable
         set => myFlowDoc.SetRangeToText(this, value);
     }
 
-
     public void Save(Stream stream, ContentDataFormat dataFormat)
     {
         switch (dataFormat)
@@ -257,7 +303,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 
     public void Load(Stream stream, ContentDataFormat dataFormat)
     {
-        (int idLeft, int idRight) edgeIds = myFlowDoc.DeleteRange(this, false, false, false);
+        myFlowDoc.DeleteRange(this, false, false, false);
 
         byte[] streamBytes = new byte[stream.Length];
         stream.ReadExactly(streamBytes);

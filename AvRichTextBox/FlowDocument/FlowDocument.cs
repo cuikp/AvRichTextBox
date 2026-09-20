@@ -354,10 +354,9 @@ public partial class FlowDocument : AvaloniaObject
                     return [p];
 
                 if (b is Table t)
-                    //return t.Cells.Select(c => c.CellBlocks) ?? Enumerable.Empty<Paragraph>();
-                    return t.Cells.SelectMany(c => c.CellBlocks.OfType<Paragraph>()) ?? Enumerable.Empty<Paragraph>();
+                    return t.Cells.SelectMany(c => c.CellBlocks.OfType<Paragraph>()) ?? [];  // eventually make this recursive (for nested tables in cellblocks)
 
-                return Enumerable.Empty<Paragraph>();
+                return [];
 
             }).Cast<Paragraph>();
         }
@@ -399,7 +398,7 @@ public partial class FlowDocument : AvaloniaObject
 
     internal Block? GetBlockFromId(int blockId) => GetBlockFromId(blockId, this.Blocks);
     
-    internal Block? GetBlockFromId(int blockId, ObservableCollection<Block> blocks)
+    internal static Block? GetBlockFromId(int blockId, ObservableCollection<Block> blocks)
     {
         Block? returnBlock = null!;
 

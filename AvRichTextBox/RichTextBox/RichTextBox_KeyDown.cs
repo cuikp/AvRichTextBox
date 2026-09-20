@@ -128,11 +128,15 @@ public partial class RichTextBox
     {
         TryHandleKeyAction(e);
 
-        if (_CaretRect.Classes.Contains("blinking"))
-        {
-            _CaretRect.Classes.Remove("blinking");
+
+        if (_CaretRect.Classes.Remove("blinking"))
             _CaretRect.Opacity = 1.0;
-        }
+
+        //if (_CaretRect.Classes.Contains("blinking"))
+        //{
+        //    _CaretRect.Classes.Remove("blinking");
+        //    _CaretRect.Opacity = 1.0;
+        //}
 
         RtbVm.CaretVisible = (RtbVm.FlowDoc.Selection.Length == 0);
 

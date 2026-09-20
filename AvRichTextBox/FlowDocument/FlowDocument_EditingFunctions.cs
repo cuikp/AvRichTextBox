@@ -242,7 +242,7 @@ public partial class FlowDocument
                     currentInsertIdx += 1;
                     //Blocks.Insert(currentInsertIdx, addParthat
                     if (destinationStartPar.IsCellBlock)
-                        destinationStartPar.OwningCell.CellBlocks.Insert(currentInsertIdx, addPar);
+                        destinationStartPar.OwningCell?.CellBlocks.Insert(currentInsertIdx, addPar);
                     else
                         Blocks.Insert(currentInsertIdx, addPar);
 
@@ -328,7 +328,7 @@ public partial class FlowDocument
 
         Blocks.Remove(blockToRemove);
         
-        bool addUndo = !blockToRemove.IsCellBlock || blockToRemove.OwningTable.IsAttachedToDocument;
+        bool addUndo = !blockToRemove.IsCellBlock || blockToRemove.OwningTable!.IsAttachedToDocument;
         
         if (addUndo)
             Undos.Add(new RemoveBlockUndo(this, removeAtIdx, removedBlockClone, blockToRemove.BlockLength, blockToRemove.IsCellBlock, tableId, cellId));

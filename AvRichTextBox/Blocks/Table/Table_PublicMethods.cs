@@ -50,14 +50,16 @@ public partial class Table
 
         MyFlowDoc.Undos.Add(new InsertColumnsUndo(this.Id, addedCellIds, insertColumnIndex, count, MyFlowDoc, origSelectionStart));
         this.CallRequestInvalidateVisual();
-
-        MyFlowDoc.UpdateTextRanges(origSelectionStart, selectionOffset);
+                
         MyFlowDoc.Select(origSelectionStart + selectionOffset, 0);
 
+        MyFlowDoc.Redos.Clear();
     }
 
     public void RemoveColumns(int removeColumnIndex, int count)
     {
+        count = Math.Min(count, ColDefs.Count - removeColumnIndex);
+
         if (removeColumnIndex > ColDefs.Count - 1 || removeColumnIndex < 0) return;
 
         int origSelectionStart = MyFlowDoc.Selection.Start;
@@ -80,17 +82,19 @@ public partial class Table
 
         for (int i = 0; i < count; i++)
         {
-            removedColDefWidths.Add(ColDefs[removeColumnIndex + i].Width);
+            removedColDefWidths.Add(ColDefs[removeColumnIndex].Width);
             ColDefs.RemoveAt(removeColumnIndex);
         }
 
-        MyFlowDoc.Undos.Add(new RemoveColumnsUndo(this.Id, removedCellClones, removedColDefWidths, removeColumnIndex, count, MyFlowDoc, origSelectionStart, removedTextChange));
+        MyFlowDoc.Undos.Add(new RemoveColumnsUndo(this.Id, removedCellClones, removedColDefWidths, removeColumnIndex, count, MyFlowDoc, origSelectionStart));
 
         MyFlowDoc.UpdateBlockAndInlineStarts(MyFlowDoc.Blocks.IndexOf(this));
         MyFlowDoc.UpdateTextRanges(origSelectionStart, -removedTextChange);
         MyFlowDoc.UpdateCaret();
 
+        this.UpdateColAndRowPoints();
 
+        MyFlowDoc.Redos.Clear();
     }
 
 
@@ -111,9 +115,12 @@ public partial class Table
             for (int colno = 0; colno < ColDefs.Count; colno++)
                 if (GetCellAt(insertRowIndex, colno) is Cell addedCell)
                     addedCellIds.Add(addedCell.Id);
+
         }
 
         MyFlowDoc.Undos.Add(new InsertRowsUndo(this.Id,  addedCellIds, insertRowIndex, count, MyFlowDoc, origSelectionStart));
+        MyFlowDoc.Redos.Clear();
+
         this.CallRequestInvalidateVisual();
 
         this.UpdateCellParagraphSizes();
@@ -125,15 +132,18 @@ public partial class Table
         MyFlowDoc.UpdateTextRanges(origSelectionStart, offset);
 
         MyFlowDoc.Select(origSelectionStart + offset, 0);
+                
     }
 
     public void RemoveRows(int removeRowIndex, int count)
     {
+        count = Math.Min(count, RowDefs.Count - removeRowIndex);
+
         if (removeRowIndex > RowDefs.Count - 1 || removeRowIndex < 0) return;
 
         int origSelectionStart = MyFlowDoc.Selection.Start;
         List<(Cell, int)> removedCellClones = [];
-        List<GridLength> removedRowDefHeights = [];
+        List<double> removedRowDefMinHeights = [];
         int removedTextChange = 0;
 
 
@@ -149,18 +159,19 @@ public partial class Table
                 }
             }
 
-            removedRowDefHeights.Add(RowDefs[removeRowNo].Height);
+            removedRowDefMinHeights.Add(RowDefs[removeRowNo].MinHeight);
             RowDefs.RemoveAt(removeRowNo);
         }
 
-        MyFlowDoc.Undos.Add(new RemoveRowsUndo(this.Id, removedCellClones, removedRowDefHeights, removeRowIndex, count, MyFlowDoc, origSelectionStart, removedTextChange));
+        MyFlowDoc.Undos.Add(new RemoveRowsUndo(this.Id, removedCellClones, removedRowDefMinHeights, removeRowIndex, count, MyFlowDoc, origSelectionStart));
+        MyFlowDoc.Redos.Clear();
 
         MyFlowDoc.UpdateBlockAndInlineStarts(MyFlowDoc.Blocks.IndexOf(this));
         MyFlowDoc.UpdateTextRanges(origSelectionStart, -removedTextChange);
         MyFlowDoc.UpdateCaret();
 
+        
     }
-
 
 
     public void MergeCellsRight(int rowNo, int colNo, int numberCellsToMerge = 1)
@@ -183,6 +194,10 @@ public partial class Table
             }
         }
         MyFlowDoc.Undos.Add(new MergeCellsUndo(this.Id, firstCell.Id, origMergedCellClones, origMergedCellCloneIndexes, MyFlowDoc));
+
+        //MyFlowDoc.UpdateBlockAndInlineStarts(MyFlowDoc.Blocks.IndexOf(this));
+        //MyFlowDoc.UpdateTextRanges(firstCell.StartInDoc, 0);
+        //MyFlowDoc.UpdateCaret();
 
         this.UpdateColAndRowPoints();
 

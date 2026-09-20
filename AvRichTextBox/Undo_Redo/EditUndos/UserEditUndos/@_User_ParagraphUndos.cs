@@ -8,7 +8,6 @@ internal class InsertParagraphUndo(
     int insertedParId, 
     List<IEditable> keepParInlineClones, 
     int origSelectionStart, 
-    int origSelectionLen,
     int undoEditOffset, 
     bool IsCellParagraph, 
     int containingTableId, 
@@ -56,7 +55,7 @@ internal class InsertParagraphUndo(
                 flowDoc.Blocks.Remove(insertedPar);
             }
 
-            EditOffset = origSelectionLen + undoEditOffset;
+            EditOffset = undoEditOffset;
             PostUpdate(origPar, null!, origSelectionStart);
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at Inserted par id: {insertedParId}"); }
@@ -91,7 +90,7 @@ internal class InsertParagraphUndo(
                 flowDoc.Blocks.Insert(insertIdx, splitPar2Clone);
             }
 
-            EditOffset = -undoEditOffset - origSelectionLen;
+            EditOffset = -undoEditOffset;
             PostUpdate(splitPar1Clone, splitPar2Clone, origSelectionStart + 1);
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at Redo Inserted par id: {insertedParId}"); }
@@ -124,7 +123,6 @@ internal class AddParagraphUndo(
     int containingTableId, 
     int containingCellId, 
     int editOffset, 
-    int origSelLen, 
     bool doNextUndo) : IEditDo
 
 {  
@@ -161,7 +159,7 @@ internal class AddParagraphUndo(
                 flowDoc.Blocks.Remove(insertedPar);
             }
 
-            EditOffset = origSelLen + editOffset;
+            EditOffset = editOffset;
             PostUpdate(addedParagraphIndex, origSelectionStart);
 
         }
@@ -186,7 +184,7 @@ internal class AddParagraphUndo(
                 flowDoc.Blocks.Insert(addedParagraphIndex, addedParagraph);
             }
 
-            EditOffset = -editOffset - origSelLen;
+            EditOffset = -editOffset;
             PostUpdate(blockIdx, origSelectionStart + 1);
 
         }
@@ -219,7 +217,7 @@ internal class MergeParagraphUndo(int origMergedParInlinesCount, int mergedParId
     Paragraph keepMergedPar = null!;
     int keepMergedParIndex = -1;
     bool addedEmptyRun = false;
-    List<IEditable> keepRemovedInlines = [];
+    readonly List<IEditable> keepRemovedInlines = [];
 
     public void PerformUndo()
     {
@@ -235,8 +233,8 @@ internal class MergeParagraphUndo(int origMergedParInlinesCount, int mergedParId
 
             if (removedParClone.IsCellBlock)
             {
-                if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == removedParClone.OwningTable.Id) is not Table containingTable) return;
-                if (containingTable.Cells.FirstOrDefault(cell => cell.Id == removedParClone.OwningCell.Id) is not Cell containingCell) return;
+                if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == removedParClone.OwningTable?.Id) is not Table containingTable) return;
+                if (containingTable.Cells.FirstOrDefault(cell => cell.Id == removedParClone.OwningCell?.Id) is not Cell containingCell) return;
                 keepMergedParIndex = containingCell.CellBlocks.IndexOf(mergedPar);
                 ContainingCell = containingCell;
             }
@@ -287,8 +285,8 @@ internal class MergeParagraphUndo(int origMergedParInlinesCount, int mergedParId
 
             if (removedParClone.IsCellBlock)
             {
-                if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == removedParClone.OwningTable.Id) is not Table containingTable) return;
-                if (containingTable.Cells.FirstOrDefault(cell => cell.Id == removedParClone.OwningCell.Id) is not Cell containingCell) return;
+                if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == removedParClone.OwningTable?.Id) is not Table containingTable) return;
+                if (containingTable.Cells.FirstOrDefault(cell => cell.Id == removedParClone.OwningCell?.Id) is not Cell containingCell) return;
                 containingCell.CellBlocks.RemoveAt(keepMergedParIndex + 1);
             }
             else

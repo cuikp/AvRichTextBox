@@ -164,7 +164,7 @@ public partial class Table : Block
                 OwningTable = this
             };
 
-            Paragraph newPar = new() { IsTableCellBlock = true, OwningTableId = this.Id, OwningCellId = newCell.Id, TextAlignment = TextAlignment.Center };
+            Paragraph newPar = new() { MyFlowDoc = this.MyFlowDoc, IsTableCellBlock = true, OwningTableId = this.Id, OwningCellId = newCell.Id, TextAlignment = TextAlignment.Center };
             newPar.Inlines.Add(new EditableRun(""));
                         
             newCell.CellBlocks.Add(newPar);
@@ -201,7 +201,7 @@ public partial class Table : Block
                 OwningTable = this,
             };
 
-            Paragraph newPar = new() { IsTableCellBlock = true, OwningTableId = this.Id, OwningCellId = newCell.Id, TextAlignment = TextAlignment.Center };
+            Paragraph newPar = new() { MyFlowDoc = this.MyFlowDoc, IsTableCellBlock = true, OwningTableId = this.Id, OwningCellId = newCell.Id, TextAlignment = TextAlignment.Center };
             newPar.Inlines.Add(new EditableRun(""));
 
             newCell.CellBlocks.Add(newPar);
@@ -218,7 +218,6 @@ public partial class Table : Block
         DisableUndoStack = false;
     }
 
-    // revise this to remove Cells from Table.Cells, when ColDefs become removable $$$$$$$$$$$$$$$$$
     private void ColDefs_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         if (!this.IsAttachedToDocument || DisableUndoStack) return;
@@ -283,7 +282,6 @@ public partial class Table : Block
 
     }
 
-    // revise this to remove Cells from Table.Cells, when RowDefs become removable $$$$$$$$$$$$$$$$$
     private void RowDefs_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
         if (!this.IsAttachedToDocument || DisableUndoStack) return;

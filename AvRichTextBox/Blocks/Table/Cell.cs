@@ -2,6 +2,7 @@
 using Avalonia.Media;
 using DynamicData;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
@@ -78,11 +79,11 @@ public class Cell : AvaloniaObject, INotifyPropertyChanged
         {
             Block removedBlockClone = blockToRemove.FullClone(true);
 
-            int tableId = blockToRemove.OwningTable.Id;
-            int cellId = blockToRemove.OwningCell.Id;
+            int tableId = blockToRemove.OwningTableId;
+            int cellId = blockToRemove.OwningCellId;
             int removeAtIdx = blockCollection.IndexOf(blockToRemove);
 
-            bool addUndo = !blockToRemove.IsCellBlock || blockToRemove.OwningTable.IsAttachedToDocument;
+            bool addUndo = !blockToRemove.IsCellBlock || blockToRemove.OwningTable!.IsAttachedToDocument;
 
             if (addUndo)
                 OwningTable.MyFlowDoc.Undos.Add(new RemoveBlockUndo(OwningTable.MyFlowDoc, removeAtIdx, removedBlockClone, blockToRemove.BlockLength, blockToRemove.IsCellBlock, tableId, cellId));
@@ -94,7 +95,7 @@ public class Cell : AvaloniaObject, INotifyPropertyChanged
 
 
     //internal int OwningTableId = -1;
-    public Table OwningTable;
+    public Table OwningTable = null!;
     [JsonIgnore]
     public Table GetOwningTable => OwningTable;
 
@@ -145,26 +146,33 @@ public class Cell : AvaloniaObject, INotifyPropertyChanged
         OwningTable.MyFlowDoc.AllParagraphs = [.. OwningTable.MyFlowDoc.GetAllParagraphs];  //update collection of all paragraphs
         OwningTable.MyFlowDoc.UpdateBlockAndInlineStarts(Math.Max(0, OwningTable.MyFlowDoc.Blocks.IndexOf(OwningTable)));
 
-        if (CellBlocks.Count > 0 && e.NewStartingIndex > -1)
-        {
-            int lengthOffset = 0;
-            if (e.NewItems != null)
-            {
-                foreach (Block b in e.NewItems)
-                    lengthOffset += b.BlockLength;
-            }
+        ////if (CellBlocks.Count > 0 && e.NewStartingIndex > -1)
+        //int lengthOffset = 0;
+        //if (e.NewStartingIndex > -1 && e.NewItems != null)
+        //{
+        //    foreach (Block b in e.NewItems)
+        //        lengthOffset += b.BlockLength;
 
-            if (e.OldItems != null)
-            {
-                foreach (Block b in e.OldItems)
-                    lengthOffset -= b.BlockLength;
-            }
-
-            OwningTable.MyFlowDoc.UpdateTextRanges(CellBlocks[e.NewStartingIndex].StartInDoc, lengthOffset);
-        }
+        //    OwningTable.MyFlowDoc.UpdateTextRanges(CellBlocks[e.NewStartingIndex].StartInDoc, lengthOffset);
+        //}
+        //if (e.OldStartingIndex > -1 && e.OldItems != null)
+        //{
+        //    foreach (Block b in e.OldItems)
+        //        lengthOffset -= b.BlockLength;
+        //    if (e.OldStartingIndex < CellBlocks.Count)
+        //        OwningTable.MyFlowDoc.UpdateTextRanges(CellBlocks[e.OldStartingIndex].StartInDoc, lengthOffset);
+        //}
+        //if (e.Action == NotifyCollectionChangedAction.Reset)
+        //{
+        //    if (oldCellBlocks.Count > 0)
+        //        OwningTable.MyFlowDoc.UpdateTextRanges(oldCellBlocks[0].StartInDoc, oldCellBlocks.Sum(cb=> cb.BlockLength));
+        //}
+        //oldCellBlocks = [.. CellBlocks];
 
         OwningTable.UpdateCellParagraphSizes();
     }
+
+    //private List<Block> oldCellBlocks = [];
 
     public Thickness BorderThickness 
     { 

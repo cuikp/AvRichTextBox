@@ -72,7 +72,7 @@ public partial class FlowDocument
 
         // if the StartParagraph is in a table, update from its owning table
         if (updateStartParagraph.IsTableCellBlock) 
-            fromBlockIndex = Blocks.IndexOf(updateStartParagraph.OwningTable);
+            fromBlockIndex = Blocks.IndexOf(updateStartParagraph.OwningTable!);
         else
             fromBlockIndex = Blocks.IndexOf(updateStartParagraph);
 

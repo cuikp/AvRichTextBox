@@ -26,13 +26,13 @@ public partial class FlowDocument
             rtfBlocksToInsert.Remove(lastBlock);
         int pastedTextLength = ProcessInsertBlocks(rtfBlocksToInsert, startPar, insertIdx, insertParIndex, addedBlockIds, rightSplitRuns);
 
-        this.UpdateTextLayouts(rtfBlocksToInsert);
+        UpdateTextLayouts(rtfBlocksToInsert);
 
         return pastedTextLength;
 
     }
 
-    internal void UpdateTextLayouts(IEnumerable<Block> blocksToUpdate)
+    internal static void UpdateTextLayouts(IEnumerable<Block> blocksToUpdate)
     {
         foreach (Block b in blocksToUpdate)
         {
@@ -51,7 +51,7 @@ public partial class FlowDocument
         }
     }
 
-    private int GetInsertIndexAfterDelete(Paragraph startPar, int leftId, TextRange insertRange)
+    private static int GetInsertIndexAfterDelete(Paragraph startPar, int leftId, TextRange insertRange)
     {
         if (insertRange.Start == startPar.StartInDoc)
             return 0;
@@ -113,6 +113,7 @@ public partial class FlowDocument
     internal int InsertXaml(byte[] xamlbytes, Paragraph startPar, Paragraph endPar, TextRange insertRange, int insertParIndex, List<int> addedBlockIds)
     {
         (int leftId, int rightId) edgeIds = DeleteRange(insertRange, false, false, true);
+        
         int insertIdx = GetInsertIndexAfterDelete(startPar, edgeIds.leftId, insertRange);
 
         List<IEditable> rightSplitRuns = endPar.Inlines.ToList()[insertIdx..];
@@ -355,15 +356,16 @@ public partial class FlowDocument
 
         if (addUndo)
         {
-            selectionLength = Selection.Length;
             if (Selection.Length > 0)
             {
+                selectionLength = Selection.Length;
                 doNextUndo = true;
-                DeleteRange(Selection, false, false, true);
+                DeleteRange(Selection, true, false, true);
                 Selection.CollapseToStart();
                 SelectionExtendMode = ExtendMode.ExtendModeNone;
             }
         }
+
 
         DisableUndoStack = true;
 
@@ -384,7 +386,7 @@ public partial class FlowDocument
             {
                 int tableId = insertPar.IsCellBlock ? insertPar.OwningTable!.Id : -1;
                 int cellId = insertPar.IsCellBlock ? insertPar.OwningCell!.Id : -1;
-                Undos.Add(new AddParagraphUndo(this, parToInsert.Id, originalSelStart, insertPar.IsCellBlock, tableId, cellId, -1, selectionLength, doNextUndo));
+                Undos.Add(new AddParagraphUndo(this, parToInsert.Id, originalSelStart, insertPar.IsCellBlock, tableId, cellId, -1, doNextUndo));
             }
                 
         }
@@ -436,7 +438,7 @@ public partial class FlowDocument
             {
                 int tableId = insertPar.IsCellBlock ? insertPar.OwningTable!.Id : -1;
                 int cellId = insertPar.IsCellBlock ? insertPar.OwningCell!.Id : -1;
-                Undos.Add(new InsertParagraphUndo(this, originalPar.Id, parToInsert.Id, keepParInlineClones, originalSelStart, selectionLength, -1, insertPar.IsCellBlock, tableId, cellId, doNextUndo));
+                Undos.Add(new InsertParagraphUndo(this, originalPar.Id, parToInsert.Id, keepParInlineClones, originalSelStart, -1, insertPar.IsCellBlock, tableId, cellId, doNextUndo));
             }
                         
             originalPar.CallRequestInlinesUpdate();
@@ -448,7 +450,7 @@ public partial class FlowDocument
         if (parToInsert.GetPreviousParagraph is Paragraph prevPar)
             parToInsert.TextAlignment = prevPar.TextAlignment;
 
-        UpdateTextRanges(insertCharIndex, 1 - selectionLength);
+        UpdateTextRanges(insertCharIndex, 1);
         UpdateBlockAndInlineStarts(blockIndex);
 
         parToInsert.CallRequestInlinesUpdate();
@@ -456,6 +458,8 @@ public partial class FlowDocument
         parToInsert.CallRequestTextLayoutInfoEnd();
 
         DisableUndoStack = false;
+
+        Redos.Clear();
 
         Selection.BiasForwardStart = true;
         Selection.BiasForwardEnd = true;

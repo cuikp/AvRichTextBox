@@ -382,3 +382,9 @@ Updated README.md and BasicUsage.md which were outdated.
 `EditableHyperlink.Text` is now set as `EditableHyperlink.LinkDisplayText`, rather than directly.  
 Updated to Avalonia 12.1.2  
 `TextRange`s update more properly with Undo/Redo actions  
+
+**[ver 1.11.1] 2026/09/21**  
+`DeleteRange` + `InsertParagraph` combined operation fix  
+Fixed `TextRange` adjust when deleting `EditableRun`  
+Col/Row add/remove bugs fixed  
+Fixed Redo paste in Table bug  

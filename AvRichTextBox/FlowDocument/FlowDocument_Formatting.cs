@@ -139,7 +139,8 @@ public partial class FlowDocument
             }
         }
 
-        this.Undos.Add(new ApplyFormattingUndo(this, propertyAssociations, edgeIds, Selection.Start, textRange, avProperty));
+        //this.Undos.Add(new ApplyFormattingUndo(this, propertyAssociations, edgeIds, Selection.Start, textRange, avProperty));
+        this.Undos.Add(new ApplyFormattingUndo(this, propertyAssociations, edgeIds, Selection.Start, textRange));
 
 
         if (formatRunsActions.TryGetValue(avProperty, out var applyToRunsAction))

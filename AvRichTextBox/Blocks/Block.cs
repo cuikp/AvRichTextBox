@@ -8,7 +8,7 @@ namespace AvRichTextBox;
 
 public class Block : AvaloniaObject, INotifyPropertyChanged
 {
-    public event PropertyChangedEventHandler? PropertyChanged;
+    public new event PropertyChangedEventHandler? PropertyChanged;
     internal void NotifyPropertyChanged([CallerMemberName] String propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
     internal int Id = 0;

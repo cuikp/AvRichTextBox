@@ -43,123 +43,6 @@ internal class TableAlignmentChangeUndo(int tableId, HorizontalAlignment oldHAli
     }
 }
 
-internal class InsertColumnsUndo(int thisTableId, List<int> insertedCellIds, int insertedColumnIdx, int insertedColCount, FlowDocument flowDoc, int undoSelStart) : IEditDo
-{
-    public int EditOffset { get; set; } = 0;
-    public bool UpdateTextRanges => false;   // must update text ranges selectively while iterating
-    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
-    int redoSelStart = 0;
-    readonly List<(Cell, int)> insertedCells = [];
-    readonly List<ColumnDefinition> insertedColDefs = [];
-    public bool DoNextUndo => false;public bool DoNextRedo => false;
-
-    public void PerformUndo()
-    {             
-        try
-        {
-            DisableUndoStack = true;
-
-            if (flowDoc.Blocks.FirstOrDefault(b => b.Id == thisTableId) is Table table)
-            {
-                insertedCells.Clear();
-                
-                redoSelStart = undoSelStart;
-
-                foreach (int cellId in insertedCellIds)
-                {
-                    if (table.Cells.FirstOrDefault(c => c.Id == cellId) is Cell cellToRemove)
-                    {
-                        int startThisCell = cellToRemove.CellBlocks.First().StartInDoc;
-                        insertedCells.Add(new(cellToRemove.FullClone(table, true), table.Cells.IndexOf(cellToRemove)));
-
-                        flowDoc.UpdateTextRanges(startThisCell, -1);
-
-                        if (undoSelStart >= startThisCell)
-                            redoSelStart += 1;
-
-                        table.Cells.Remove(cellToRemove);
-                    }
-                }
-
-                insertedColDefs.Clear();
-                for (int i = 0; i < insertedColCount; i++)
-                {
-                    ColumnDefinition removedCDef = table.ColDefs[insertedColumnIdx];
-                    insertedColDefs.Add(removedCDef);
-                    table.ColDefs.Remove(removedCDef);
-                }
-                    
-
-                for (int rowno = 0; rowno < table.RowDefs.Count; rowno++)
-                {
-                    for (int colno = insertedColumnIdx + insertedColCount; colno < table.ColDefs.Count + insertedColCount; colno++)
-                    {
-                        if (table.GetCellAt(rowno, colno) is Cell shiftCell)
-                            shiftCell.ColNo -= insertedColCount;
-                    }
-                }
-
-                table.Width = table.ColDefs.Sum(cd => cd.Width.Value);
-
-                PostUpdate(undoSelStart);
-                
-            }
-        }
-        catch (Exception ex) { Debug.WriteLine($"Failed {this.GetType().Name} at Col index: {insertedColumnIdx}\n{ex.Message}"); }
-        finally { DisableUndoStack =  false; }
-    }
-
-    public void PerformRedo()
-    {
-        if (flowDoc.Blocks.FirstOrDefault(b => b.Id == thisTableId) is Table table)
-        {
-            DisableUndoStack = true;
-
-            try
-            {
-                for (int rowno = 0; rowno < table.RowDefs.Count; rowno++)
-                {
-                    for (int colno = table.ColDefs.Count - 1; colno >= insertedColumnIdx; colno--)
-                    {
-                        if (table.GetCellAt(rowno, colno) is Cell shiftCell)
-                            shiftCell.ColNo += insertedColCount;
-                    }
-                }
-
-                for (int i = 0; i < insertedColDefs.Count; i++)
-                    table.ColDefs.Insert(insertedColumnIdx, insertedColDefs[i]);
-
-
-                Debug.WriteLine("cells: " + string.Join('\n', table.Cells.ToList().ConvertAll(c => c.RowNo + ":" + c.ColNo)));
-
-                for (int clonedCellNo = insertedCells.Count - 1; clonedCellNo >= 0; clonedCellNo--)
-                {
-                    Cell insertCell = insertedCells[clonedCellNo].Item1;
-                    int insertIdx = insertedCells[clonedCellNo].Item2;
-                    table.Cells.Insert(insertIdx, insertCell);
-
-                }
-
-                table.Width = table.ColDefs.Sum(cd => cd.Width.Value);
-
-
-                PostUpdate(redoSelStart);
-                
-            }
-            catch (Exception ex) { Debug.WriteLine($"Failed {this.GetType().Name} at Col index: {insertedColumnIdx}\n{ex.Message}"); }
-            finally { DisableUndoStack = false; }
-        }
-    }
-    
-
-    private void PostUpdate(int selStart)
-    {
-        // no textrange update so no editoffset 
-
-        flowDoc.Select(selStart, 0);
-        DisableUndoStack = false;
-    }
-}
 
 internal class InsertRowsUndo(int thisTableId, List<int> insertedCellIds, int insertedRowIdx, int insertedRowCount, FlowDocument flowDoc, int origSelectionStart) : IEditDo
 {
@@ -271,20 +154,14 @@ internal class InsertRowsUndo(int thisTableId, List<int> insertedCellIds, int in
     }
 }
 
-internal class RemoveRowsUndo(
-    int thisTableId, 
-    List<(Cell, int)> removedCellClones, 
-    List<GridLength> removedRowDefHeights, 
-    int removedRowIdx, 
-    int removedRowCount, 
-    FlowDocument flowDoc, 
-    int origSelectionStart, 
-    int removedTextChange) : IEditDo
+internal class RemoveRowsUndo( int thisTableId, List<(Cell, int)> removedCellClones, List<double> removedRowDefHeights, int removedRowIdx, int removedRowCount, FlowDocument flowDoc, int origSelectionStart) : IEditDo
 {
     public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => true;
     public int UpdateTextRangesFromCharIdx { get; set; } = 0;
     public bool DoNextUndo => false;public bool DoNextRedo => false;
+
+    private int removedTextLength = 0;
 
     public void PerformUndo()
     {
@@ -293,7 +170,8 @@ internal class RemoveRowsUndo(
             if (flowDoc.Blocks.FirstOrDefault(b => b.Id == thisTableId) is Table table)
             {
                 DisableUndoStack = true;
-                                
+                removedTextLength = 0;
+
                 for (int rowno = table.RowDefs.Count - 1; rowno >= removedRowIdx; rowno--)
                 {
                     for (int colno = 0; colno < table.ColDefs.Count; colno++)
@@ -304,18 +182,19 @@ internal class RemoveRowsUndo(
                 }
 
                 for (int i = 0; i < removedRowCount; i++)
-                    table.RowDefs.Insert(removedRowIdx, new RowDefinition(removedRowDefHeights[i]));
+                    table.RowDefs.Insert(removedRowIdx, new RowDefinition() { MinHeight = removedRowDefHeights[i] });
 
                 for (int clonedCellNo = 0; clonedCellNo < removedCellClones.Count; clonedCellNo++)
                 {
                     Cell insertCell = removedCellClones[clonedCellNo].Item1;
                     int insertIdx = removedCellClones[clonedCellNo].Item2;
                     table.Cells.Insert(insertIdx, insertCell);
+                    removedTextLength += insertCell.CellBlocks.Sum(cb => cb.BlockLength);
                 }
 
            
-                EditOffset = removedTextChange; 
-                UpdateTextRangesFromCharIdx = origSelectionStart + removedTextChange;
+                EditOffset = removedTextLength; 
+                UpdateTextRangesFromCharIdx = origSelectionStart;
                 
                 PostUpdate(origSelectionStart);
 
@@ -336,8 +215,11 @@ internal class RemoveRowsUndo(
 
                 for (int clonedCellNo = 0; clonedCellNo < removedCellClones.Count; clonedCellNo++)
                 {
-                    Cell removeCell = removedCellClones[clonedCellNo].Item1;
-                    table.Cells.Remove(removeCell);
+                    if (table.Cells.FirstOrDefault(c=> c.Id == removedCellClones[clonedCellNo].Item1.Id) is Cell removeCell)
+                    {
+                        removedCellClones[clonedCellNo] = new(removeCell, removedCellClones[clonedCellNo].Item2);
+                        table.Cells.Remove(removeCell);
+                    }
                 }
 
                 for (int i = 0; i < removedRowCount; i++)
@@ -352,8 +234,8 @@ internal class RemoveRowsUndo(
                     }
                 }
 
-                EditOffset = -removedTextChange;
-                UpdateTextRangesFromCharIdx = origSelectionStart - removedTextChange;
+                EditOffset = -removedTextLength;
+                UpdateTextRangesFromCharIdx = origSelectionStart;
 
                 int selStart = origSelectionStart;
                 if (table.GetCellAt(removedRowIdx, 0) is Cell nextCell)
@@ -378,20 +260,131 @@ internal class RemoveRowsUndo(
 
 }
 
-internal class RemoveColumnsUndo(
-    int thisTableId, 
-    List<(Cell, int)> removedCellClones, 
-    List<GridLength> removedColDefWidths, 
-    int removedColIdx, 
-    int removedColCount, 
-    FlowDocument flowDoc, 
-    int origSelectionStart, 
-    int removedTextChange) : IEditDo
+internal class InsertColumnsUndo(int thisTableId, List<int> insertedCellIds, int insertedColumnIdx, int insertedColCount, FlowDocument flowDoc, int undoSelStart) : IEditDo
+{
+    public int EditOffset { get; set; } = 0;
+    public bool UpdateTextRanges => false;   // must update text ranges selectively while iterating
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    int redoSelStart = 0;
+    readonly List<(Cell, int)> insertedCells = [];
+    readonly List<ColumnDefinition> insertedColDefs = [];
+    public bool DoNextUndo => false; public bool DoNextRedo => false;
+
+    public void PerformUndo()
+    {
+        try
+        {
+            DisableUndoStack = true;
+
+            if (flowDoc.Blocks.FirstOrDefault(b => b.Id == thisTableId) is Table table)
+            {
+                insertedCells.Clear();
+
+                redoSelStart = undoSelStart;
+
+                foreach (int cellId in insertedCellIds)
+                {
+                    if (table.Cells.FirstOrDefault(c => c.Id == cellId) is Cell cellToRemove)
+                    {
+                        int startThisCell = cellToRemove.CellBlocks.First().StartInDoc;
+                        insertedCells.Add(new(cellToRemove.FullClone(table, true), table.Cells.IndexOf(cellToRemove)));
+
+                        flowDoc.UpdateTextRanges(startThisCell, -1);
+
+                        if (undoSelStart >= startThisCell)
+                            redoSelStart += 1;
+
+                        table.Cells.Remove(cellToRemove);
+                    }
+                }
+
+                insertedColDefs.Clear();
+                for (int i = 0; i < insertedColCount; i++)
+                {
+                    ColumnDefinition removedCDef = table.ColDefs[insertedColumnIdx];
+                    insertedColDefs.Add(removedCDef);
+                    table.ColDefs.Remove(removedCDef);
+                }
+
+
+                for (int rowno = 0; rowno < table.RowDefs.Count; rowno++)
+                {
+                    for (int colno = insertedColumnIdx + insertedColCount; colno < table.ColDefs.Count + insertedColCount; colno++)
+                    {
+                        if (table.GetCellAt(rowno, colno) is Cell shiftCell)
+                            shiftCell.ColNo -= insertedColCount;
+                    }
+                }
+
+                table.Width = table.ColDefs.Sum(cd => cd.Width.Value);
+
+                PostUpdate(undoSelStart);
+
+            }
+        }
+        catch (Exception ex) { Debug.WriteLine($"Failed {this.GetType().Name} at Col index: {insertedColumnIdx}\n{ex.Message}"); }
+        finally { DisableUndoStack = false; }
+    }
+
+    public void PerformRedo()
+    {
+        if (flowDoc.Blocks.FirstOrDefault(b => b.Id == thisTableId) is Table table)
+        {
+            DisableUndoStack = true;
+
+            try
+            {
+                for (int rowno = 0; rowno < table.RowDefs.Count; rowno++)
+                {
+                    for (int colno = table.ColDefs.Count - 1; colno >= insertedColumnIdx; colno--)
+                    {
+                        if (table.GetCellAt(rowno, colno) is Cell shiftCell)
+                            shiftCell.ColNo += insertedColCount;
+                    }
+                }
+
+                for (int i = 0; i < insertedColDefs.Count; i++) 
+                    table.ColDefs.Insert(insertedColumnIdx, insertedColDefs[i]);
+
+                //Debug.WriteLine("cells: " + string.Join('\n', table.Cells.ToList().ConvertAll(c => c.RowNo + ":" + c.ColNo)));
+
+                for (int clonedCellNo = insertedCells.Count - 1; clonedCellNo >= 0; clonedCellNo--)
+                {
+                    Cell insertCell = insertedCells[clonedCellNo].Item1;
+                    int insertIdx = insertedCells[clonedCellNo].Item2;
+                    table.Cells.Insert(insertIdx, insertCell);
+
+                    flowDoc.UpdateTextRanges(insertCell.CellBlocks.First().StartInDoc, 1);
+                }
+
+                table.Width = table.ColDefs.Sum(cd => cd.Width.Value);
+
+
+                PostUpdate(redoSelStart);
+
+            }
+            catch (Exception ex) { Debug.WriteLine($"Failed {this.GetType().Name} at Col index: {insertedColumnIdx}\n{ex.Message}"); }
+            finally { DisableUndoStack = false; }
+        }
+    }
+
+    private void PostUpdate(int selStart)
+    {
+        // no textrange update so no editoffset 
+
+        flowDoc.Select(selStart, 0);
+        DisableUndoStack = false;
+    }
+}
+
+internal class RemoveColumnsUndo( int thisTableId, List<(Cell, int)> removedCellClones, List<GridLength> removedColDefWidths, int removedColIdx, int removedColCount, FlowDocument flowDoc, int origSelectionStart) : IEditDo
 {
     public int EditOffset { get; set; } =  0;
-    public bool UpdateTextRanges => true;
+    public bool UpdateTextRanges => false;   // must update text ranges selectively while iterating
     public int UpdateTextRangesFromCharIdx { get; set; } = 0;
     public bool DoNextUndo => false;public bool DoNextRedo => false;
+
+    private int removedTextLength = 0;
 
     public void PerformUndo()
     {
@@ -400,6 +393,7 @@ internal class RemoveColumnsUndo(
             if (flowDoc.Blocks.FirstOrDefault(b => b.Id == thisTableId) is Table table)
             {
                 DisableUndoStack = true;
+                removedTextLength = 0;
 
                 for (int rowno = 0; rowno < table.RowDefs.Count; rowno++)
                 {
@@ -411,20 +405,22 @@ internal class RemoveColumnsUndo(
                 }
 
                 for (int i = 0; i < removedColCount; i++)
-                    table.ColDefs.Insert(removedColIdx, new ColumnDefinition(removedColDefWidths[i]));
+                    table.ColDefs.Insert(removedColIdx + i, new ColumnDefinition(removedColDefWidths[i]));
 
                 for (int clonedCellNo = 0; clonedCellNo < removedCellClones.Count; clonedCellNo++)
                 {
                     Cell insertCell = removedCellClones[clonedCellNo].Item1;
                     int insertIdx = removedCellClones[clonedCellNo].Item2;
                     table.Cells.Insert(insertIdx, insertCell);
+                    
+                    flowDoc.UpdateTextRanges(insertCell.CellBlocks.First().StartInDoc, insertCell.CellBlocks.Sum(cb=> cb.BlockLength));
                 }
 
                 table.UpdateColAndRowPoints();
                 table.UpdateCellParagraphSizes();
 
-                EditOffset = removedTextChange; 
-                UpdateTextRangesFromCharIdx = origSelectionStart + removedTextChange;
+                EditOffset = removedTextLength;
+                UpdateTextRangesFromCharIdx = origSelectionStart; 
                 
                 PostUpdate(origSelectionStart);
 
@@ -445,8 +441,15 @@ internal class RemoveColumnsUndo(
 
                 for (int clonedCellNo = 0; clonedCellNo < removedCellClones.Count; clonedCellNo++)
                 {
-                    Cell removeCell = removedCellClones[clonedCellNo].Item1;
-                    table.Cells.Remove(removeCell);
+                    if (table.Cells.FirstOrDefault(c => c.Id == removedCellClones[clonedCellNo].Item1.Id) is Cell removeCell)
+                    {
+                        removedCellClones[clonedCellNo] = new(removeCell, removedCellClones[clonedCellNo].Item2);
+                        int startThisCell = removeCell.CellBlocks.First().StartInDoc;
+                        table.Cells.Remove(removeCell);
+
+                        flowDoc.UpdateTextRanges(startThisCell, -removeCell.CellBlocks.Sum(cb => cb.BlockLength));
+
+                    }
                 }
 
                 for (int i = 0; i < removedColCount; i++)
@@ -464,9 +467,7 @@ internal class RemoveColumnsUndo(
                 table.UpdateColAndRowPoints();
                 table.UpdateCellParagraphSizes();
 
-                EditOffset = -removedTextChange;
-                UpdateTextRangesFromCharIdx = origSelectionStart - removedTextChange;
-
+                
                 int selStart = origSelectionStart;
                 if (table.GetCellAt(removedColIdx, 0) is Cell nextCell)
                     selStart = nextCell.StartInDoc;
@@ -489,8 +490,6 @@ internal class RemoveColumnsUndo(
     }
 
 }
-
-
 
 internal class AdjustTableColumnSizeUndo(int thisTableId, int columnIndex, double oldPrimarySize, double newPrimarySize, bool shiftWasOn, double oldSecondarySize, double newSecondarySize, FlowDocument flowDoc) : IEditDo
 {

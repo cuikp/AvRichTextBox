@@ -21,8 +21,10 @@ public partial class RichTextBox
 
     internal void EditableCell_MouseLeave(EditableCell edCell) { currentMouseOverEdCell = null!; MouseOverCellEmptyArea = false; }
 
+    //bool mouseOverTable = false;
     internal void EditableTable_MouseMove(EditableTable edTable, Cursor tableCursor)
     {
+        //mouseOverTable = true;
         CurrentCursor = tableCursor;
         this.Cursor = CurrentCursor;
 
@@ -44,9 +46,12 @@ public partial class RichTextBox
 
     internal void EditableTable_MouseLeave(EditableTable edTable)
     {
-        //this.Cursor = CurrentCursor;
-        //if (edTable._PointerPressedOnBorder)
-        //    UpdateSelectionIndicators();
+        if (!edTable._PointerPressedOnBorder)
+        {
+            //mouseOverTable = false;
+            Cursor = Cursor.Default;
+        }
+                
     }
 
     internal void EditableParagraph_MouseMove(EditableParagraph edPar, int charIndex)
@@ -209,7 +214,7 @@ public partial class RichTextBox
         }
     }
 
-    double downX, downY;
+    //double downX, downY;
 
     private void FlowDocSV_PointerMoved(object? sender, PointerEventArgs e)
     {
@@ -291,6 +296,8 @@ public partial class RichTextBox
                 this.Cursor = Cursor.Default;
                 return;
             }
+            
+            CurrentCursor = Cursor.Default;
 
             // Hyperlink mouse down processing
             if (currentMouseOverEdPar.IsOverHyperlink)
@@ -302,6 +309,7 @@ public partial class RichTextBox
             }
             else
                 HyperlinkClickable = false;
+                
         }
     }
 

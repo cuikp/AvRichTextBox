@@ -22,39 +22,38 @@ internal static partial class HelperMethods
 
    internal static char GetWindows1252Char(byte ansiByte)
    {
-      switch (ansiByte)
-      {
-         case 0x80: return '\u20ac';
-         case 0x82: return '\u201a';
-         case 0x83: return '\u0192';
-         case 0x84: return '\u201e';
-         case 0x85: return '\u2026';
-         case 0x86: return '\u2020';
-         case 0x87: return '\u2021';
-         case 0x88: return '\u02c6';
-         case 0x89: return '\u2030';
-         case 0x8a: return '\u0160';
-         case 0x8b: return '\u2039';
-         case 0x8c: return '\u0152';
-         case 0x8e: return '\u017d';
-         case 0x91: return '\u2018';
-         case 0x92: return '\u2019';
-         case 0x93: return '\u201c';
-         case 0x94: return '\u201d';
-         case 0x95: return '\u2022';
-         case 0x96: return '\u2013';
-         case 0x97: return '\u2014';
-         case 0x98: return '\u02dc';
-         case 0x99: return '\u2122';
-         case 0x9a: return '\u0161';
-         case 0x9b: return '\u203a';
-         case 0x9c: return '\u0153';
-         case 0x9e: return '\u017e';
-         case 0x9f: return '\u0178';
-      }
-
-      return (char)ansiByte;
-   }
+        return ansiByte switch
+        {
+            0x80 => '\u20ac',
+            0x82 => '\u201a',
+            0x83 => '\u0192',
+            0x84 => '\u201e',
+            0x85 => '\u2026',
+            0x86 => '\u2020',
+            0x87 => '\u2021',
+            0x88 => '\u02c6',
+            0x89 => '\u2030',
+            0x8a => '\u0160',
+            0x8b => '\u2039',
+            0x8c => '\u0152',
+            0x8e => '\u017d',
+            0x91 => '\u2018',
+            0x92 => '\u2019',
+            0x93 => '\u201c',
+            0x94 => '\u201d',
+            0x95 => '\u2022',
+            0x96 => '\u2013',
+            0x97 => '\u2014',
+            0x98 => '\u02dc',
+            0x99 => '\u2122',
+            0x9a => '\u0161',
+            0x9b => '\u203a',
+            0x9c => '\u0153',
+            0x9e => '\u017e',
+            0x9f => '\u0178',
+            _ => (char)ansiByte,
+        };
+    }
 
    internal static void ResizeAndSaveBitmap(Bitmap originalBitmap, int newWidth, int newHeight, Stream memoryStream)
    {

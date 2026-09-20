@@ -21,6 +21,8 @@ public partial class RichTextBox : UserControl
 
     }
 
+    public double GetVerticalScroll => RtbVm.RTBScrollOffset.Y;
+
     public RichTextBox()
     {
         InitializeComponent();
@@ -127,7 +129,7 @@ public partial class RichTextBox : UserControl
             RtbVm.FlowDoc = FlowDocument;
 
             RtbVm.FlowDoc.ScrollInDirection += RtbVm.FlowDoc_ScrollInDirection;
-            FlowDoc.ScrollToCaret += RtbVm.FlowDoc_ScrollToCaret;
+            FlowDoc?.ScrollToCaret += RtbVm.FlowDoc_ScrollToCaret;
             RtbVm.FlowDoc.UpdateRTBCaret += RtbVm.FlowDoc_UpdateRTBCaret;
 
             RtbVm.FlowDoc.SelectionBrush = this.SelectionBrush;
@@ -155,13 +157,11 @@ public partial class RichTextBox : UserControl
 
     private void UpdateCaretVisibility()
     {
-        if (_CaretRect != null)
-        {
-            // The caret should only be visible if both:
-            // 1. IsCaretVisible property is true (control-level visibility)
-            // 2. CaretVisible from ViewModel is true (caret blinking state)
-            _CaretRect.IsVisible = this.IsCaretVisible && RtbVm.CaretVisible;
-        }
+        // The caret should only be visible if both:
+        // 1. IsCaretVisible property is true (control-level visibility)
+        // 2. CaretVisible from ViewModel is true (caret blinking state)
+        _CaretRect?.IsVisible = this.IsCaretVisible && RtbVm.CaretVisible;
+
     }
 
     private void RichTextBox_GotFocus(object? sender, FocusChangedEventArgs e)

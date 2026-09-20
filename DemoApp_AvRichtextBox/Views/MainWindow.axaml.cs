@@ -75,6 +75,11 @@ public partial class MainWindow : Window
         string testdoc = Path.Combine(AppContext.BaseDirectory, "TestFiles\\TestDocumentXamlPackage.xamlp");
         MainRTB.LoadXamlPackage(testdoc);
         OpenFilePath = testdoc;
+
+        TextRange newTR = new (MainRTB.FlowDocument, 743, 765);
+        TextRange newTR2 = new (MainRTB.FlowDocument, 166, 186);
+        
+
     }
 
     internal void CreateTestDocumentWithTable()
@@ -266,7 +271,6 @@ public partial class MainWindow : Window
     private void AddNewTRButton_Click(object? sender, RoutedEventArgs e)
     {
         TextRange newTR = new(MainRTB.FlowDocument, MainRTB.FlowDocument.Selection.Start, MainRTB.FlowDocument.Selection.End);
-        //MainRTB.FlowDocument.TextRanges.Add(newTR);
 
     }
 
@@ -286,6 +290,9 @@ public partial class MainWindow : Window
 
         MainRTB.FlowDocument.Select(trange.Start, trange.Length);
 
+        bool isOutOfView = trange.GetStartRect.Y < MainRTB.GetVerticalScroll || trange.GetStartRect.Y > MainRTB.GetVerticalScroll + MainRTB.Bounds.Height;
+        if (isOutOfView)
+            MainRTB.ScrollToSelection();
     }
 
 

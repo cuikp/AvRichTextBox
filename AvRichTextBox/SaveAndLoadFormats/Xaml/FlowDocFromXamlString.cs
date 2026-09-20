@@ -198,7 +198,7 @@ internal partial class XamlConversions
 
                 case "TableRowGroup":
 
-                    int[] firstAvailableRow = Enumerable.Repeat(0, newTable.ColDefs.Count).ToArray();
+                    int[] firstAvailableRow = [.. Enumerable.Repeat(0, newTable.ColDefs.Count)];
 
                     int rowno = 0;
                     foreach (XmlNode rowNode in inlineNode.ChildNodes.OfType<XmlNode>().Where(n => n.Name == "TableRow"))

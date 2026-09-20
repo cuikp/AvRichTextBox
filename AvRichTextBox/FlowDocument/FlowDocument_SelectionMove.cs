@@ -26,7 +26,9 @@ public partial class FlowDocument
                 if (Selection.GetStartPar() is Paragraph p)
                     Selection.StartParagraph = p;
 
-                Selection.BiasForwardStart = (Selection.Start == Selection.StartParagraph.StartInDoc || Selection.StartInline is IEditable ied && ied.NextInline is EditableLineBreak);
+                Selection.BiasForwardStart = Selection.Start == Selection.StartParagraph.StartInDoc ||
+                    (Selection.StartInline is IEditable ied && ied.NextInline is EditableLineBreak);
+                    
                 Selection.BiasForwardEnd = Selection.BiasForwardStart;
 
                 break;

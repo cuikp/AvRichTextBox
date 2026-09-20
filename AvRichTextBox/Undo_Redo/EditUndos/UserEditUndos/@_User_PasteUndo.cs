@@ -88,11 +88,16 @@ internal class PasteUndo(
                 return;
 
             //if (!firstParEmpty)  // ?????????????
-            flowDoc.Blocks.RemoveAt(insertBlockIndex);
+            blockCollection.RemoveAt(insertBlockIndex);
 
-            keptOrigBlockClones = keptOrigBlockClones.ConvertAll(kbc => kbc.FullClone(true));
-
-            flowDoc.Blocks.AddOrInsertRange(keptPastedBlockClones, insertBlockIndex);
+            //keptOrigBlockClones = keptOrigBlockClones.ConvertAll(kbc => kbc.FullClone(true));
+            for (int bno = 0; bno < keptOrigBlockClones.Count; bno++)
+            {
+                if (flowDoc.GetBlockFromId(keptOrigBlockClones[bno].Id) is Block b)
+                    keptOrigBlockClones[bno] = b.FullClone(true);
+            }
+            
+            blockCollection.AddOrInsertRange(keptPastedBlockClones, insertBlockIndex);
 
             EditOffset = pastedTextLength - deletedRangeLen;
 

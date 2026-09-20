@@ -71,9 +71,9 @@ internal static partial class HtmlConversions
 
 
         double tableWidthPix = 100;
-        double margL = 0;
-        double margR = 0;
-        double marg = 0;
+        //double margL = 0;
+        //double margR = 0;
+        //double marg = 0;
 
 
         Dictionary<string, string> parsedTableStyles = ParseStyleAttribute(tableNode.GetAttributeValue("style", ""));
@@ -121,10 +121,10 @@ internal static partial class HtmlConversions
 
                 foreach (HtmlAttribute att in td.Attributes)
                 {
-                    if (att.Name == "colspan")
-                        colSpan = Math.Max(1, Int32.Parse(att.Value));
-                    if (att.Name == "rowspan")
-                        rowSpan = Math.Max(1, Int32.Parse(att.Value));
+                    if (att.Name == "colspan" && att.Value is string colSpanVal)
+                        colSpan = Math.Max(1, Int32.Parse(colSpanVal));
+                    if (att.Name == "rowspan" && att.Value is string rowSpanVal)
+                        rowSpan = Math.Max(1, Int32.Parse(rowSpanVal));
                 }
 
 
@@ -685,7 +685,7 @@ internal static partial class HtmlConversions
         return dict;
     }
 
-    private static readonly Regex Rgba = new(@"^\s*rgba?\(\s*(?<r>\d{1,3})\s*,\s*(?<g>\d{1,3})\s*,\s*(?<b>\d{1,3})\s*(?:,\s*(?<a>[-+]?\d*\.?\d+)\s*)?\)\s*;?\s*$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex Rgba = GenerateRbgaRegex();
 
 
     private static SolidColorBrush? ParseCssColor(string cssColor)
@@ -813,7 +813,7 @@ internal static partial class HtmlConversions
         if (string.IsNullOrWhiteSpace(token)) return null;
         token = token.Trim();
 
-        var m = Regex.Match(token, @"^(?<n>\d+(\.\d+)?)\s*(px)?$", RegexOptions.IgnoreCase);
+        var m = ParseCssRegex().Match(token);
         if (!m.Success) return null;
 
         if (double.TryParse(m.Groups["n"].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var v))
@@ -822,4 +822,8 @@ internal static partial class HtmlConversions
         return null;
     }
 
+    [GeneratedRegex(@"^\s*rgba?\(\s*(?<r>\d{1,3})\s*,\s*(?<g>\d{1,3})\s*,\s*(?<b>\d{1,3})\s*(?:,\s*(?<a>[-+]?\d*\.?\d+)\s*)?\)\s*;?\s*$", RegexOptions.IgnoreCase | RegexOptions.Compiled, "ja-JP")]
+    private static partial Regex GenerateRbgaRegex();
+    [GeneratedRegex(@"^(?<n>\d+(\.\d+)?)\s*(px)?$", RegexOptions.IgnoreCase, "ja-JP")]
+    private static partial Regex ParseCssRegex();
 }

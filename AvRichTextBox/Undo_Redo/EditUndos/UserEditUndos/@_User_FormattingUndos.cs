@@ -10,7 +10,7 @@ internal class InsertNewFormattedTextUndo(int parId, EditableRun removedRunClone
     public bool DoNextUndo => false;public bool DoNextRedo => false;
 
     int thisParLengthBefore = 0;
-    List<(int, IEditable)> removedInlines = [];
+    readonly List<(int, IEditable)> removedInlines = [];
 
     public void PerformUndo()
     {
@@ -87,7 +87,7 @@ internal class InsertNewFormattedTextUndo(int parId, EditableRun removedRunClone
 }
 
 
-internal class ApplyFormattingUndo(FlowDocument flowDoc, List<EditablePropertyAssociation> propertyAssociations, (int LeftId, int RightId) addedEdgeIds, int originalSelection, TextRange tRange, AvaloniaProperty avProperty) : IEditDo
+internal class ApplyFormattingUndo(FlowDocument flowDoc, List<EditablePropertyAssociation> propertyAssociations, (int LeftId, int RightId) addedEdgeIds, int originalSelection, TextRange tRange) : IEditDo
 {
     public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => false;

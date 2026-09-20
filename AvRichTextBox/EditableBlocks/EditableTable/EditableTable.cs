@@ -54,6 +54,7 @@ public partial class EditableTable : ItemsControl
                 this.Height = thisTable.RowDefs.Sum(cd => cd.Height.Value) + thisTable.BorderThickness.Top + thisTable.BorderThickness.Bottom;
 
                 break;
+
         }
 
     }

@@ -87,28 +87,30 @@ public partial class FlowDocument
 
         Paragraph relPar = (SelectionExtendMode == ExtendMode.ExtendModeLeft) ? Selection.StartParagraph : Selection.EndParagraph;
         bool atParBottom = (SelectionExtendMode == ExtendMode.ExtendModeLeft) ? relPar.IsStartAtLastLine : relPar.IsEndAtLastLine;
-        Cell currentCell = relPar.OwningCell;
-        //Debug.WriteLine("index of : " + currentCell.CellBlocks.IndexOf(relPar));
-        bool atCellBottom = atParBottom && relPar.IsCellBlock && currentCell.CellBlocks.IndexOf(relPar) == currentCell.CellBlocks.Count - 1;
+        Cell? currentCell = relPar.OwningCell;
+        
+        bool atCellBottom = atParBottom && relPar.IsCellBlock && currentCell?.CellBlocks.IndexOf(relPar) == currentCell?.CellBlocks.Count - 1;
 
         if (atCellBottom)
         {
-            int rowno = currentCell.RowNo;
+            int rowno = currentCell!.RowNo;
             int colno = currentCell.ColNo;
             int colspan = currentCell.ColSpan;
 
-            Table thisTable = relPar.OwningTable;
-            if (rowno == relPar.OwningTable.RowDefs.Count - 1)
+            if (relPar.OwningTable is Table thisTable)
             {
-                if (AllParagraphs.FirstOrDefault(p => p.StartInDoc > thisTable.EndInDoc) is Paragraph nextPar)
-                    return nextPar.StartInDoc;
-            }
-            else
-            {
-                if (thisTable.Cells.LastOrDefault(c => c.RowNo == rowno + 1 && c.ColNo <= colno + (colspan - 1)) is Cell cellBelow)
+                if (rowno == relPar.OwningTable.RowDefs.Count - 1)
                 {
-                    if (cellBelow.CellBlocks.First() is Paragraph firstPar)
-                        return firstPar.StartInDoc;
+                    if (AllParagraphs.FirstOrDefault(p => p.StartInDoc > thisTable.EndInDoc) is Paragraph nextPar)
+                        return nextPar.StartInDoc;
+                }
+                else
+                {
+                    if (thisTable.Cells.LastOrDefault(c => c.RowNo == rowno + 1 && c.ColNo <= colno + (colspan - 1)) is Cell cellBelow)
+                    {
+                        if (cellBelow.CellBlocks.First() is Paragraph firstPar)
+                            return firstPar.StartInDoc;
+                    }
                 }
             }
         }
@@ -159,24 +161,26 @@ public partial class FlowDocument
         int computedPrev = relPar.StartInDoc + posPrevLineInBlock;
 
         bool atParTop = (SelectionExtendMode == ExtendMode.ExtendModeRight) ? relPar.IsEndAtFirstLine : relPar.IsStartAtFirstLine;
-        bool atCellTop = atParTop && relPar.IsCellBlock && relPar.OwningCell.CellBlocks.IndexOf(relPar) == 0;
+        bool atCellTop = atParTop && relPar.IsCellBlock && relPar.OwningCell!.CellBlocks.IndexOf(relPar) == 0;
 
         if (atCellTop)
         {
-            int rowno = relPar.OwningCell.RowNo;
+            int rowno = relPar.OwningCell!.RowNo;
             int colno = relPar.OwningCell.ColNo;
-            Table thisTable = relPar.OwningTable;
-            if (rowno == 0)
+            if (relPar.OwningTable is Table thisTable)
             {
-                if (AllParagraphs.LastOrDefault(p=> p.StartInDoc < thisTable.StartInDoc) is Paragraph prevPar)
-                    return prevPar.EndInDoc;
-            }
-            else
-            {
-                if (thisTable.Cells.LastOrDefault(c => c.RowNo == rowno - 1 && c.ColNo <= colno) is Cell cellAbove)
+                if (rowno == 0)
                 {
-                    if (cellAbove.CellBlocks.Last() is Paragraph lastPar)
-                        return lastPar.StartInDoc + lastPar.BlockLength - 1;
+                    if (AllParagraphs.LastOrDefault(p => p.StartInDoc < thisTable.StartInDoc) is Paragraph prevPar)
+                        return prevPar.EndInDoc;
+                }
+                else
+                {
+                    if (thisTable.Cells.LastOrDefault(c => c.RowNo == rowno - 1 && c.ColNo <= colno) is Cell cellAbove)
+                    {
+                        if (cellAbove.CellBlocks.Last() is Paragraph lastPar)
+                            return lastPar.StartInDoc + lastPar.BlockLength - 1;
+                    }
                 }
             }
         }
