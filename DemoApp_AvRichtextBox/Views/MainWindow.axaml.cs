@@ -50,7 +50,7 @@ public partial class MainWindow : Window
         TopPanel.Children.Add(debugCBPanel);
 
         //CreateTestDocumentWithTable();
-        OpenTestDocument();
+        //OpenTestDocument();
 
 #endif
 
