@@ -15,12 +15,13 @@ internal class EditablePropertyAssociation
 {
     internal int InlineId { get; set; }
     internal int BlockId { get; set; }
-    internal EditableRun keepERun = null!;
-    internal object OrigPropertyValue { get; set; }
-    internal object NewPropertyValue { get; set; } = null!;
+    internal EditableRun keptERun = null!;
+    internal int keepERunId = -1;
+    internal object? OrigPropertyValue { get; set; }
+    internal object? NewPropertyValue { get; set; } = null!;
     internal FlowDocument.FormatRunsAction? FormatRuns { get; set; }
 
-    internal EditablePropertyAssociation(int blockId, int inlineId, FlowDocument.FormatRunsAction formatRuns, object origPropertyValue, object newPropertyValue)
+    internal EditablePropertyAssociation(int blockId, int inlineId, FlowDocument.FormatRunsAction formatRuns, object origPropertyValue, object? newPropertyValue)
     {
         BlockId = blockId;
         InlineId = inlineId;

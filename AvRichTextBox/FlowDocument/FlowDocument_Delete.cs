@@ -306,7 +306,7 @@ public partial class FlowDocument
             }
 
             // LineBreak must always be followed by something
-            if (firstPar.Inlines.Count > 0 && firstPar.Inlines.Last() is EditableLineBreak edLB)
+            if (firstPar.Inlines.Count > 0 && firstPar.Inlines.LastOrDefault() is EditableLineBreak edLB)
                 firstPar.Inlines.Add(new EditableRun(""));
 
         }

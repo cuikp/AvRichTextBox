@@ -115,16 +115,7 @@ internal class InsertParagraphUndo(
     }
 }
 
-internal class AddParagraphUndo(
-    FlowDocument flowDoc, 
-    int addedParId, 
-    int origSelectionStart, 
-    bool IsCellParagraph, 
-    int containingTableId, 
-    int containingCellId, 
-    int editOffset, 
-    bool doNextUndo) : IEditDo
-
+internal class AddParagraphUndo( FlowDocument flowDoc, int addedParId, int origSelectionStart, bool IsCellParagraph, int containingTableId, int containingCellId, int editOffset, bool doNextUndo) : IEditDo
 {  
     public int EditOffset { get; set; } =  0;
     public bool UpdateTextRanges => true;
@@ -133,7 +124,8 @@ internal class AddParagraphUndo(
     public bool DoNextRedo => false;
 
     Paragraph addedParagraph = null!;
-    int addedParagraphIndex = -1;
+    int updateBlockIdx = 0;
+    int insertParIndex = 0;
 
     public void PerformUndo()
     {
@@ -150,17 +142,18 @@ internal class AddParagraphUndo(
                 if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == containingTableId) is not Table containingTable) return;
                 if (containingTable.Cells.FirstOrDefault(cell => cell.Id == containingCellId) is not Cell containingCell) return;
 
-                addedParagraphIndex = flowDoc.Blocks.IndexOf(containingTable);
+                updateBlockIdx = flowDoc.Blocks.IndexOf(containingTable);
+                insertParIndex = containingCell.CellBlocks.IndexOf(insertedPar);
                 containingCell.CellBlocks.Remove(insertedPar);
             }
             else
             {
-                addedParagraphIndex = flowDoc.Blocks.IndexOf(insertedPar);
+                updateBlockIdx = flowDoc.Blocks.IndexOf(insertedPar);
                 flowDoc.Blocks.Remove(insertedPar);
             }
 
             EditOffset = editOffset;
-            PostUpdate(addedParagraphIndex, origSelectionStart);
+            PostUpdate(updateBlockIdx, origSelectionStart);
 
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at Inserted par id: {addedParId}"); }
@@ -171,21 +164,18 @@ internal class AddParagraphUndo(
     {
         try
         {
-            int blockIdx = 0;
-
             if (IsCellParagraph)
             {
                 if (flowDoc.Blocks.FirstOrDefault(bl => bl.Id == containingTableId) is not Table containingTable) return;
                 if (containingTable.Cells.FirstOrDefault(cell => cell.Id == containingCellId) is not Cell containingCell) return;
-                containingCell.CellBlocks.Insert(addedParagraphIndex, addedParagraph);
+                updateBlockIdx = flowDoc.Blocks.IndexOf(containingTable);
+                containingCell.CellBlocks.Insert(insertParIndex, addedParagraph);
             }
             else
-            {
-                flowDoc.Blocks.Insert(addedParagraphIndex, addedParagraph);
-            }
+                flowDoc.Blocks.Insert(updateBlockIdx, addedParagraph);
 
             EditOffset = -editOffset;
-            PostUpdate(blockIdx, origSelectionStart + 1);
+            PostUpdate(updateBlockIdx, origSelectionStart + 1);
 
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at Inserted par id: {addedParId}"); }

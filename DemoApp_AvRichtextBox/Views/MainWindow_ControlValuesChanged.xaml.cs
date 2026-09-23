@@ -44,21 +44,10 @@ public partial class MainWindow
         MainRTB.FlowDocument.PagePadding = new Thickness(p.Left, p.Top, p.Right, PagePaddingNSB.Value);
     }
 
-
-
-    bool _applyingFormatting = false;
-
     internal void FontSizeNS_UserValueChanged(double value)
     {
-        _applyingFormatting = true;
-
         MainRTB.FlowDocument.Selection.ApplyFormatting(FontSizeProperty, value);
 
-        Dispatcher.UIThread.Post(() =>
-        {
-            _applyingFormatting = false;
-
-        }, DispatcherPriority.Background);
     }
 
 
@@ -196,17 +185,7 @@ public partial class MainWindow
 
     private void ApplyDecoration(bool on, TextDecorationLocation textDecLoc)
     {
-        _applyingFormatting = true;
-
-
         MainRTB.FlowDocument.Selection.ApplyFormatting(Inline.TextDecorationsProperty, textDecLoc);
-
-        Dispatcher.UIThread.Post(() =>
-        {
-            _applyingFormatting = false;
-
-        }, DispatcherPriority.Background);
-
 
     }
 
@@ -260,7 +239,7 @@ public partial class MainWindow
     {
         if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock && thisPar.OwningCell is Cell c && c.GetOwningTable is Table t)
         {
-            t.InsertColumns(c.ColNo, (int)InsertNumberNS.Value);
+            t.InsertColumnsAt(c.ColNo, (int)InsertNumberNS.Value);
         }
     }
     
@@ -268,7 +247,7 @@ public partial class MainWindow
     {
         if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock && thisPar.OwningCell is Cell c && c.GetOwningTable is Table t)
         {
-            t.InsertRows(c.RowNo, (int)InsertNumberNS.Value);
+            t.InsertRowsAt(c.RowNo, (int)InsertNumberNS.Value);
         }
 
 
@@ -320,7 +299,7 @@ public partial class MainWindow
             int count = Math.Max(1, (int)MergeCountNS.Value);
             count = Math.Min(count, t.ColDefs.Count - 1 - col);
             if (count > 0)
-                t.MergeCellsRight(row, col, count);
+                t.MergeCellsRightAt(row, col, count);
         }
     }
 
@@ -333,7 +312,34 @@ public partial class MainWindow
             int count = Math.Max(1, (int)MergeCountNS.Value);
             count = Math.Min(count, t.RowDefs.Count - 1 - row);
             if (count > 0)
-                t.MergeCellsDown(row, col, count);
+                t.MergeCellsDownAt(row, col, count);
+
+        }
+    }
+
+    private void SplitColsButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock && thisPar.OwningCell is Cell c && c.GetOwningTable is Table t) 
+        {
+            int row = c.RowNo;
+            int col = c.ColNo;
+            int count = Math.Max(1, (int)SplitCountNS.Value);
+            
+            if (count > 1)
+                t.SplitCellHorizontal(row, col, count);
+        }
+    }
+
+    private void SplitRowsButton_Click(object? sender, RoutedEventArgs e)
+    {
+        if (MainRTB.FlowDocument.Selection.GetStartPar() is Paragraph thisPar && thisPar.IsCellBlock && thisPar.OwningCell is Cell c && c.GetOwningTable is Table t)
+        {
+            int row = c.RowNo;
+            int col = c.ColNo;
+            int count = Math.Max(1, (int)SplitCountNS.Value);
+
+            if (count > 1)
+                t.SplitCellVertical(row, col, count);
 
         }
     }

@@ -280,7 +280,7 @@ public partial class EditableTable : ItemsControl
 
             double newSecondarySize = _resizeStartSecondarySize - (_resizePrimarySize - _resizeStartPrimarySize);
             _resizeSecondarySize = shiftWasOnAtPress || isRightEdge ? newSecondarySize : Math.Max(MinColumnWidth, newSecondarySize);
-
+            
             _resizePrimarySize = Math.Max(MinColumnWidth, _resizeStartPrimarySize + (_resizeStartSecondarySize - _resizeSecondarySize));
             double netChange = _resizePrimarySize - _resizeStartPrimarySize;
 

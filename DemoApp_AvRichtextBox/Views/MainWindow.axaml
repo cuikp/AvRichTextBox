@@ -3,416 +3,530 @@
         xmlns:vm="using:DemoApp_AvRichtextBox.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-		xmlns:avrtb="using:AvRichTextBox"
-		xmlns:cc="using:CustomControls"
-        mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800" Height="900" Width="1150" MinWidth="500" MinHeight="200"
+        xmlns:avrtb="using:AvRichTextBox"
+        xmlns:cc="using:CustomControls"
+        mc:Ignorable="d" d:DesignWidth="1140" d:DesignHeight="800" Height="900" Width="1140" MinWidth="500" MinHeight="200"
         x:Class="DemoApp_AvRichtextBox.Views.MainWindow" WindowStartupLocation="CenterScreen" x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/avalonia-logo.ico" Title="{Binding CurrentOpenFileNameExt}" >
 
 
-	<DockPanel>
-
-		<!-- Formatting controls panel -->
-		<DockPanel DockPanel.Dock="Top"  >
-
-			<DockPanel x:Name="TopPanel" DockPanel.Dock="Top" LastChildFill="False" >
-				<Menu DockPanel.Dock="Left" BorderBrush="Gray" BorderThickness="1" Margin="15, 0">
-
-					<MenuItem Header="File">
-						<MenuItem Header="New document" Click="CreateNewDocumentMenuItem_Click"/>
-						<Separator/>
-						<MenuItem Header="Load XamlPackage" Click="LoadXamlPackageMenuItem_Click"/>
-						<MenuItem Header="Save XamlPackage" Click="SaveXamlPackageMenuItem_Click"/>
-						<Separator/>
-						<MenuItem Header="Load Rtf file" Click="LoadRtfFileMenuItem_Click"/>
-						<MenuItem Header="Save Rtf file" Click="SaveRtfFileMenuItem_Click"/>
-						<Separator/>
-						<MenuItem Header="Load Word file" Click="LoadWordFileMenuItem_Click"/>
-						<MenuItem Header="Save Word file" Click="SaveWordFileMenuItem_Click"/>
-						<Separator/>
-						<MenuItem Header="Load Html file" Click="LoadHtmlFileMenuItem_Click"/>
-						<MenuItem Header="Save Html file" Click="SaveHtmlFileMenuItem_Click"/>
-						<Separator Height="2"/>
-						<MenuItem Header="Open test files folder" Click="OpenTestFilesFolderMenuItem_Click"/>
-					</MenuItem>
-
-				</Menu>
-
-
-				<DockPanel Margin="2, 5, 2, 5" DockPanel.Dock="Left">
-					<Button x:Name="FindBut" Content="Find" DockPanel.Dock="Left" Click="FindButton_Click" />
-
-					<TextBox x:Name="FindTB" Width="250" Text="" GotFocus="FindTextBox_GotFocus" Background="LightGray" KeyDown="FindTextBox_KeyDown" FontSize="16" Margin="2, 4" Focusable="True">
-						<TextBox.Styles>
-							<Style Selector="TextBox:pointerover /template/ Border">
-								<Setter Property="Background" Value="{TemplateBinding Background}" />
-							</Style>
-						</TextBox.Styles>
-					</TextBox>
-				</DockPanel>
-
-				<Border BorderBrush="Brown" BorderThickness="1" DockPanel.Dock="Right" Background="Tan" Margin="5" Padding="5, 2" Focusable="False">
-					<DockPanel>
-						<TextBlock Text="TextRanges: "  VerticalAlignment="Center" DockPanel.Dock="Left" Focusable="False"/>
-						<Button Content="Delete"  VerticalAlignment="Center" DockPanel.Dock="Right" Click="DeleteTRButton_Click" Focusable="False"/>
-						<Button Content="Add new TR at selection" DockPanel.Dock="Right" Margin="2" Click="AddNewTRButton_Click" Focusable="False"/>
-						<ComboBox x:Name="TRCombo"  VerticalAlignment="Center" Width="200" DropDownClosed="TextRangesComboBox_DropDownClosed" ItemsSource="{Binding #MainRTB.FlowDocument.TextRanges}" DisplayMemberBinding="{Binding RangeString}" Focusable="False"/>
-
-					</DockPanel>
-				</Border>
-
-			</DockPanel>
-
-		
-
-				<!-- AttributePanel -->
-			<Border BorderThickness="1.5" BorderBrush="DarkBlue" Margin="5, 1, 5, 1" Padding="2">
-
-				<StackPanel  x:Name="TopStackPanel"  Background="LightGray" Spacing="8" HorizontalAlignment="Stretch" Orientation="Horizontal">
-
-					<Border BorderBrush="Brown" BorderThickness="3" Padding="5">
-						<DockPanel LastChildFill="False">
-
-
-							<DockPanel DockPanel.Dock="Top">
-								<TextBlock DockPanel.Dock="Top" HorizontalAlignment="Center" Text="Run"/>
-								<TextBlock Text="Font:" Margin="3,0" VerticalAlignment="Center"/>
-								<ComboBox x:Name="FontsCB" Height="35" Width="170" FontSize="16" DropDownClosed="FontsComboBox_DropDownClosed" Focusable="False" />
-							</DockPanel>
-
-							<DockPanel DockPanel.Dock="Top" Margin="3, 5">
-								
-								<DockPanel DockPanel.Dock="Left" Width="50" HorizontalAlignment="Right" Margin="1" LastChildFill="False">
-									<cc:NumericSpinner x:Name="FontSizeNS" Width="52" Margin="1" MinValue="5" MaxValue="50"  Value="50" Height="30" FontSize="16"
-										   UserValueChanged="FontSizeNS_UserValueChanged" DockPanel.Dock="Bottom" />
-									<TextBlock Text="Font size:" FontSize="10" DockPanel.Dock="Bottom" Margin="2,0" VerticalAlignment="Center"/>
-									
-								</DockPanel>
-
-								<DockPanel DockPanel.Dock="Top">
-									<DockPanel DockPanel.Dock="Top" Margin="4">
-										<ColorPicker x:Name="FontColorCP" Color="Black" ColorChanged="FontCP_ColorChanged" DockPanel.Dock="Right" Width="70"  Height="25" Background="White"/>
-										<TextBlock Text="Font color:" HorizontalAlignment="Right" Margin="3,0" VerticalAlignment="Center"/>
-									</DockPanel>
-
-									<DockPanel Margin="4" DockPanel.Dock="Top">
-										<ColorPicker Color="White" x:Name="HighlightCP"  ColorChanged="HighlightCP_ColorChanged"  DockPanel.Dock="Right" Width="70"  Height="25" />
-										<TextBlock Text="Highlight:" HorizontalAlignment="Right" Margin="3,0" VerticalAlignment="Center" />
-
-									</DockPanel>
-
-								</DockPanel>
-
-							</DockPanel>
-
-							<Border BorderBrush="Black" BorderThickness="1" >
-								<DockPanel>
-									<CheckBox x:Name="StrikeCB" Margin="3, 0" Padding="1" DockPanel.Dock="Left" Content="Strike" Focusable="False" />
-									<CheckBox x:Name="UnderCB"  Margin="3, 0"  Padding="1" DockPanel.Dock="Left" Content="Underline"  Focusable="False" />
-									<CheckBox x:Name="OverCB"  Margin="3, 0"  Padding="1" Content="Overline"  Focusable="False" />
-								</DockPanel>
-							</Border>
-						</DockPanel>
-
-					</Border>
-
-					<Border BorderBrush="Brown" BorderThickness="3" Padding="5">
-						<DockPanel>
-							<TextBlock Text="Paragraph" DockPanel.Dock="Top" HorizontalAlignment="Center"/>
-							<DockPanel>
-								<DockPanel DockPanel.Dock="Top">
-									
-									<DockPanel DockPanel.Dock="Left" LastChildFill="False" >
-										<TextBlock Text="Line height"  TextWrapping="Wrap" DockPanel.Dock="Top"/>
-										<cc:NumericSpinner x:Name="LineHeightNS" Width="55" Margin="3" MinValue="0" MaxValue="400" Value="0" Height="30" DockPanel.Dock="Top" FontSize="16"
-														 UserValueChanged="LineHeightNS_UserValueChanged" />
-									</DockPanel>
-
-									<DockPanel Margin="2">
-										<DockPanel DockPanel.Dock="Top">
-											<ComboBox x:Name="JustificationCB" DropDownClosed="JustificationComboBox_DropDownClosed" Margin="3" Width="95" MinHeight="15" Height="27" DockPanel.Dock="Right" FontSize="12" Focusable="False">
-												<ComboBox.Styles>
-													<Style Selector="ComboBoxItem">
-														<Setter Property="Padding" Value="5, 0"/>
-														<Setter Property="Height" Value="20"/>
-														<Setter Property="MinHeight" Value="12"/>
-														<Setter Property="Foreground" Value="Black"/>
-													</Style>
-												</ComboBox.Styles>
-												<ComboBoxItem Content="Left"/>
-												<ComboBoxItem Content="Center"/>
-												<ComboBoxItem Content="Right"/>
-												<ComboBoxItem Content="Justified" />
-											</ComboBox>
-											<TextBlock  Text="Just." VerticalAlignment="Center" HorizontalAlignment="Right"/>
-										</DockPanel>
-										<ColorPicker  x:Name="ParBackgroundCP" ColorChanged="ParBackground_ColorChanged" Color="Transparent" DockPanel.Dock="Right" Width="70"  Height="25" Background="White" VerticalAlignment="Center"  Focusable="False"/>
-										<TextBlock Text="Back-ground:" Width="52"  TextWrapping="Wrap"  HorizontalAlignment="Right" Margin="3,0" VerticalAlignment="Center"/>
-									</DockPanel>
-
-								</DockPanel>
-								
-								<DockPanel>
-									<TextBlock DockPanel.Dock="Top" Text="Border thickness" Width="70" VerticalAlignment="Center" Margin="0, -20, 0, 0" Focusable="False" TextWrapping="Wrap" HorizontalAlignment="Right"/>
-									<cc:NumericSpinner x:Name="ParagraphBorderNS" Width="42" Margin="3, -35, 3, 0" MinValue="0" MaxValue="20" Value="0" Height="30" DockPanel.Dock="Right" 
-													   FontSize="16" UserValueChanged="ParagraphBorderNS_UserValueChanged" Focusable="False"/>
-								</DockPanel>
-
-								<DockPanel DockPanel.Dock="Top" Margin="4">
-									<ColorPicker Color="Black" x:Name="ParBorderCP" ColorChanged="ParBorder_ColorChanged" DockPanel.Dock="Right" Width="70"  Height="25" Background="White"
-										Focusable="False" />
-									<TextBlock Text="Border color:" Width="50" Focusable="False" TextAlignment="Right" TextWrapping="Wrap" HorizontalAlignment="Right" Margin="3,0" VerticalAlignment="Center"/>
-								</DockPanel>
-
-								
-							</DockPanel>
-						</DockPanel>
-					</Border>
-
-					<Border BorderBrush="Brown" BorderThickness="3" Width="160" Padding="5">
-						<DockPanel DockPanel.Dock="Top" Margin="0" >
-							<TextBlock Text="FlowDoc" HorizontalAlignment="Center" DockPanel.Dock="Top"  />
-							<TextBlock Text="Page padding" HorizontalAlignment="Center" DockPanel.Dock="Top" VerticalAlignment="Top" Margin="0, 10, 0, 5"  />
-
-							<DockPanel DockPanel.Dock="Top">
-							<DockPanel >
-								<DockPanel DockPanel.Dock="Top">
-									<TextBlock Text="L" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-									<cc:NumericSpinner x:Name="PagePaddingNSL" Width="50" MinValue="0" MaxValue="150" Margin="3" Value="50" Height="28" FontSize="16"
-														ValueChanged="PagePaddingNSL_ValueChanged" />
-								</DockPanel>
-
-								<DockPanel DockPanel.Dock="Top" >
-									<TextBlock Text="T" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-									<cc:NumericSpinner x:Name="PagePaddingNST" Width="50" MinValue="0" MaxValue="150" Margin="3" Value="50" Height="28" FontSize="16"
-														ValueChanged="PagePaddingNST_ValueChanged" />
-								</DockPanel>
-
-							</DockPanel>
-							
-							<DockPanel >
-							<DockPanel DockPanel.Dock="Top">
-								<TextBlock Text="R" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-								<cc:NumericSpinner x:Name="PagePaddingNSR" Width="50" MinValue="0" MaxValue="150" Margin="3" Value="50" Height="28" FontSize="16"
-												   ValueChanged="PagePaddingNSR_ValueChanged" />
-							</DockPanel>
-
-							<DockPanel DockPanel.Dock="Top">
-								<TextBlock Text="B" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-								<cc:NumericSpinner x:Name="PagePaddingNSB" Width="50" MinValue="0" MaxValue="150" Margin="3" Value="50" Height="28" FontSize="16"
-												   ValueChanged="PagePaddingNSB_ValueChanged" />
-							</DockPanel>
-						</DockPanel>
-
-								</DockPanel>
-							
-							<DockPanel Margin="0, 7, 0, 0">
-								<Button DockPanel.Dock="Top" Content="Add table:" Padding="4, 2" Click="AddTableButton_Click" Focusable="False" />
-								<DockPanel>
-									<TextBlock DockPanel.Dock="Left" Text="Col" VerticalAlignment="Center"/>
-									<cc:NumericSpinner x:Name="AddColsNS" Width="42" MaxValue="15" Value="1" FontSize="16" Height="28" Margin="3, 0" Step="1" MinValue="1" Focusable="False"/>
-									<TextBlock Text="Row" VerticalAlignment="Center" />
-									<cc:NumericSpinner  x:Name="AddRowsNS"  MaxValue="15" Width="42" FontSize="16" Height="28" Step="1" Margin="3, 0" MinValue="0" Value="1"  Focusable="False"/>
-									</DockPanel>
-							</DockPanel>
-
-						</DockPanel>
-
-					</Border>
-					<Border BorderBrush="Brown" BorderThickness="3" Padding="5">
-						<DockPanel LastChildFill="False" >
-							<TextBlock Text="RichTextBox" DockPanel.Dock="Top"/>
-							<DockPanel LastChildFill="False" DockPanel.Dock="Top" Margin="0, 10, 0, 0">
-								<TextBlock Text="Zoom" DockPanel.Dock="Top"/>
-								<cc:NumericSpinner Width="50" MinValue="0.3" Step="0.1" MaxValue="12" Margin="1" Value="1" Height="28" FontSize="16"
-												   UserValueChanged="RTBZoomNS_UserValueChanged"/>
-							</DockPanel>
-							<CheckBox Content="ReadOnly" DockPanel.Dock="Top" IsCheckedChanged="CheckBox_IsCheckedChanged" Focusable="False" />
-							
-						</DockPanel>
-					</Border>
-					
-					<Border x:Name="TablePanel" BorderBrush="Black" BorderThickness="3" Padding="2" Width="355" >
-						<DockPanel LastChildFill="False" >
-							<DockPanel DockPanel.Dock="Top">
-
-																<DockPanel DockPanel.Dock="Right">
-									<TextBlock DockPanel.Dock="Left" Text="Just." VerticalAlignment="Center" />
-									<ComboBox x:Name="TableJustificationCB" DropDownClosed="TableJustificationComboBox_DropDownClosed" Margin="3" Width="95" MinHeight="15" Height="27"  DockPanel.Dock="Right" FontSize="12" Focusable="False">
-										<ComboBox.Styles>
-											<Style Selector="ComboBoxItem">
-												<Setter Property="Padding" Value="5, 0"/>
-												<Setter Property="Height" Value="20"/>
-												<Setter Property="MinHeight" Value="12"/>
-												<Setter Property="Foreground" Value="Black"/>
-											</Style>
-										</ComboBox.Styles>
-										<ComboBoxItem Content="Left"/>
-										<ComboBoxItem Content="Center"/>
-										<ComboBoxItem Content="Right"/>
-									</ComboBox>
-
-								</DockPanel>
-
-							<TextBlock Text="Table" DockPanel.Dock="Left" TextAlignment="Center"/>
-								
-							</DockPanel>
-							<DockPanel DockPanel.Dock="Top" Margin="0, 5">
-							
-								<DockPanel DockPanel.Dock="Left">
-									<TextBlock DockPanel.Dock="Top" Text="Border thickness" Width="70" VerticalAlignment="Center" Margin="0, -10, 0, 0"  TextWrapping="Wrap" HorizontalAlignment="Right"/>
-									<cc:NumericSpinner x:Name="TableBorderNS" Width="42" Margin="3" MinValue="0" MaxValue="20" Value="0" Height="30" DockPanel.Dock="Right" 
-													   FontSize="16" UserValueChanged="TableBorderNS_UserValueChanged"/>
-								</DockPanel>
-
-								<DockPanel Margin="4" DockPanel.Dock="Left" >
-									<TextBlock Text="Border color:" DockPanel.Dock="Top" Width="50" TextAlignment="Left" TextWrapping="Wrap" HorizontalAlignment="Left" Margin="3,0" VerticalAlignment="Top"/>
-									<ColorPicker Color="Black" HorizontalAlignment="Left" x:Name="TableBorderCP" ColorChanged="TableBorder_ColorChanged" DockPanel.Dock="Right" Width="70"  Height="25" Background="White" Focusable="False" />
-									
-								</DockPanel>
-
-								<DockPanel Margin="4" DockPanel.Dock="Left" >
-									<Grid DockPanel.Dock="Top" ColumnDefinitions="*, *" RowDefinitions="*,*" Width="180">
-									<Button Content="Insert cols" Focusable="False" Width="75" Padding="0" Click="InsertColsButton_Click" HorizontalAlignment="Left" Margin="0" VerticalAlignment="Top" />
-									<Button Content="Insert rows" Grid.Row="1" Focusable="False" Padding="0" Click="InsertRowsButton_Click" HorizontalAlignment="Left" Margin="0" VerticalAlignment="Top"/>
-									<Button Content="Remove cols" Grid.Column="1" Focusable="False" Padding="0" Click="RemoveColsButton_Click" HorizontalAlignment="Left" Margin="0" VerticalAlignment="Top" />
-									<Button Content="Remove rows" Grid.Row="1" Grid.Column="1" Focusable="False" Padding="0" Click="RemoveRowsButton_Click" HorizontalAlignment="Left" Margin="0" VerticalAlignment="Top"/>
-									</Grid>
-									<cc:NumericSpinner x:Name="InsertNumberNS" HorizontalAlignment="Center" Margin="0" Value="1" MaxValue="10" MinValue="1" DockPanel.Dock="Right" Width="43" Height="25" Background="White" Focusable="False" />
-								</DockPanel>
-
-							
-							
-							</DockPanel>
-							
-						<Separator Height="2" Width="{Binding $parent[Border].Bounds.Width}" DockPanel.Dock="Top"/>	
-
-							<DockPanel>
-														
-							<DockPanel DockPanel.Dock="Left" Background="Brown">
-								
-								<TextBlock Text="Cell" DockPanel.Dock="Top" TextAlignment="Center" HorizontalAlignment="Center"/>
-
-								<DockPanel Margin="2" DockPanel.Dock="Left"  Background="LightGray">
-									<TextBlock Text="Backgr:" DockPanel.Dock="Top" Width="50" TextWrapping="Wrap" Margin="3,0" />
-									<ColorPicker Color="Black" x:Name="CellBackgroundCP" ColorChanged="CellBackground_ColorChanged" DockPanel.Dock="Right" Width="70"  Height="25" Background="White"
-										Focusable="False" />
-								</DockPanel>
-								<DockPanel Background="LightGray">
-									<TextBlock Text="V. Align" DockPanel.Dock="Top"/>
-									<ComboBox x:Name="CellAlignmentCB" SelectedIndex="0" Focusable="False" Padding="5, 0, 0, 0" Width="85" DropDownClosed="CellAlignmentCB_DropDownClosed" Background="LightGray" >
-											<ComboBoxItem Content="Top"/>
-											<ComboBoxItem Content="Center"/>
-											<ComboBoxItem Content="Bottom"/>
-										</ComboBox>
-								</DockPanel>
-								</DockPanel>
-
-								<DockPanel Background="Beige">
-									<DockPanel DockPanel.Dock="Top" >
-									<Button Content="MergeRight" Click="MergeRightButton_Click" Focusable="false" Padding="3, 0" />
-									<Button Content="MergeDown" Click="MergeDownButton_Click" Focusable="false" Padding="3, 0" />
-							  </DockPanel>
-									<DockPanel>
-									
-										<DockPanel>
-											<TextBlock Text="Count+" DockPanel.Dock="Top" HorizontalAlignment="Center"/>
-											<cc:NumericSpinner x:Name="MergeCountNS" HorizontalAlignment="Center" Margin="0" Value="0" MaxValue="10" MinValue="0" Width="43" Height="25" Background="White" Focusable="False"/>
-											</DockPanel>
-									</DockPanel>
-									</DockPanel>
-							</DockPanel>
-
-							
-						</DockPanel>
-						
-						
-
-					</Border>
-
-					<Button Content="Do something" Click="DoSomethingButton_Click" Focusable="False"/>
-
-				</StackPanel>
-
-			</Border>
-
-
-		</DockPanel>
-
-		<Grid >
-	
-			<avrtb:RichTextBox Grid.Row="0" x:Name="MainRTB" Zoom="1" IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="False"  DisableUserCopy="False"
-									 CaretBrush="DarkBlue" CtrlKeyOpensHyperlink="True" PointerReleased="MainRTB_PointerReleased" KeyUp="MainRTB_KeyUp">
-
-
-				<!--<avrtb:RichTextBox.FlowDocument>
-					<avrtb:FlowDocument >
-						<avrtb:FlowDocument.Blocks>
-
-							<avrtb:Paragraph>
-								<avrtb:Paragraph.GetInlines>
-									<avrtb:EditableRun Text="This is a line of text. "/>
-									<avrtb:EditableRun Text="With a second run."/>
-								</avrtb:Paragraph.GetInlines>
-							</avrtb:Paragraph>
-
-							<avrtb:Paragraph>
-									<avrtb:Paragraph.GetInlines>
-										<avrtb:EditableInlineUIContainer >
-											<avrtb:EditableInlineUIContainer.Content>
-												<Image Width="100" Height="50" Stretch="Uniform" Source="avares://DemoApp_AvRichTextBox/Assets/avalonia-logo.ico"/>	
-											</avrtb:EditableInlineUIContainer.Content>
-										</avrtb:EditableInlineUIContainer>
-									</avrtb:Paragraph.GetInlines>
-							</avrtb:Paragraph>
-
-							<avrtb:Table ColDefs="100, 150, 100" RowDefs="100, 100, 100" >
-
-								<avrtb:Table.GetCells>
-									<avrtb:Cell RowNo="0" ColNo="0" BorderBrush="Red" BorderThickness="1" >
-										<avrtb:Cell.GetCellBlocks>
-											<avrtb:Paragraph>
-												<avrtb:Paragraph.GetInlines>
-													<avrtb:EditableRun Text="Some cell text"/>
-												</avrtb:Paragraph.GetInlines>
-											</avrtb:Paragraph>
-										</avrtb:Cell.GetCellBlocks>
-										</avrtb:Cell>
-									<avrtb:Cell RowNo="0" ColNo="1" BorderBrush="Red" BorderThickness="3"/>
-									<avrtb:Cell RowNo="0" ColNo="2" BorderBrush="Blue" BorderThickness="3"/>
-									<avrtb:Cell RowNo="1" ColNo="0" BorderBrush="Green" BorderThickness="2"/>
-									<avrtb:Cell RowNo="1" ColNo="1" BorderBrush="Black" BorderThickness="2"/>
-									<avrtb:Cell RowNo="1" ColNo="2" BorderThickness="2"/>
-									<avrtb:Cell RowNo="2" ColNo="0" BorderThickness="2"/>
-									<avrtb:Cell RowNo="2" ColNo="1" BorderThickness="2"/>
-									<avrtb:Cell RowNo="2" ColNo="2" BorderThickness="2"/>
-								</avrtb:Table.GetCells>				
-				
-								</avrtb:Table>
-					
-							<avrtb:Paragraph/>
-
-						</avrtb:FlowDocument.Blocks>
-					</avrtb:FlowDocument>
-			
-				</avrtb:RichTextBox.FlowDocument>-->
-				
-
-			</avrtb:RichTextBox>
-
-			<!--<Canvas x:Name="DebugCanvas" IsHitTestVisible="False">
-				<Ellipse x:Name="DebugDot" Width="14" Height="17" Fill="Red"/>
-			</Canvas>-->
-
-			
-			<!-- Test a second RTB in tandem-->
-			<!--<avrtb:RichTextBox Grid.Row="1" x:Name="MainRTB2"  IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="True"  DisableUserCopy="False" SelectionBrush="LightGreen" />-->
-			
-		</Grid>
-	
-		
-
-	</DockPanel>
+   <DockPanel>
+
+      <!-- Formatting controls panel -->
+      <DockPanel DockPanel.Dock="Top"  >
+
+         <DockPanel x:Name="TopPanel" DockPanel.Dock="Top" LastChildFill="False" >
+            <Menu DockPanel.Dock="Left" BorderBrush="Gray" BorderThickness="1" Margin="15, 0">
+
+               <MenuItem Header="File">
+                  <MenuItem Header="New document" Click="CreateNewDocumentMenuItem_Click"/>
+                  <Separator/>
+                  <MenuItem Header="Load XamlPackage" Click="LoadXamlPackageMenuItem_Click"/>
+                  <MenuItem Header="Save XamlPackage" Click="SaveXamlPackageMenuItem_Click"/>
+                  <Separator/>
+                  <MenuItem Header="Load Rtf file" Click="LoadRtfFileMenuItem_Click"/>
+                  <MenuItem Header="Save Rtf file" Click="SaveRtfFileMenuItem_Click"/>
+                  <Separator/>
+                  <MenuItem Header="Load Word file" Click="LoadWordFileMenuItem_Click"/>
+                  <MenuItem Header="Save Word file" Click="SaveWordFileMenuItem_Click"/>
+                  <Separator/>
+                  <MenuItem Header="Load Html file" Click="LoadHtmlFileMenuItem_Click"/>
+                  <MenuItem Header="Save Html file" Click="SaveHtmlFileMenuItem_Click"/>
+                  <Separator Height="2"/>
+                  <MenuItem Header="Open test files folder" Click="OpenTestFilesFolderMenuItem_Click"/>
+               </MenuItem>
+
+            </Menu>
+
+
+            <DockPanel Margin="2, 5, 2, 5" DockPanel.Dock="Left">
+               <Button x:Name="FindBut" Content="Find" DockPanel.Dock="Left" Click="FindButton_Click" />
+
+               <TextBox x:Name="FindTB" Width="140" Text="" GotFocus="FindTextBox_GotFocus" Background="LightGray" KeyDown="FindTextBox_KeyDown" FontSize="16" Margin="2, 4" Focusable="True">
+                  <TextBox.Styles>
+                     <Style Selector="TextBox:pointerover /template/ Border">
+                        <Setter Property="Background" Value="{TemplateBinding Background}" />
+                     </Style>
+                  </TextBox.Styles>
+               </TextBox>
+            </DockPanel>
+
+            <Border Background="#FFFFFF" BorderBrush="#D1D5DB" BorderThickness="1" CornerRadius="7" Padding="7,2">
+
+               <StackPanel Orientation="Horizontal" Spacing="10">
+
+                  <StackPanel Orientation="Horizontal" Spacing="3">
+                     <TextBlock Classes="label" Text="Zoom" VerticalAlignment="Center"/>
+                     <cc:NumericSpinner Width="50" MinValue="0.3" Step="0.1" MaxValue="12" Value="1" Height="28" FontSize="16" UserValueChanged="RTBZoomNS_UserValueChanged"/>
+                  </StackPanel>
+
+                  <CheckBox Content="ReadOnly" IsCheckedChanged="CheckBox_IsCheckedChanged" Focusable="False"/>
+
+               </StackPanel>
+            </Border>
+
+
+            <Border BorderBrush="Brown" BorderThickness="1" DockPanel.Dock="Right" Background="Tan" Margin="5" Padding="5, 2" Focusable="False">
+               <DockPanel>
+                  <TextBlock Text="TextRanges: " FontSize="12"  VerticalAlignment="Center" DockPanel.Dock="Left" Focusable="False"/>
+                  <Button Content="Delete" FontSize="12"  VerticalAlignment="Center" DockPanel.Dock="Right" Click="DeleteTRButton_Click" Focusable="False"/>
+                  <Button Content="Add current selection" DockPanel.Dock="Right" FontSize="12" Margin="2" Click="AddNewTRButton_Click" Focusable="False"/>
+                  <ComboBox x:Name="TRCombo"  VerticalAlignment="Center" Width="190" FontSize="12" DropDownClosed="TextRangesComboBox_DropDownClosed" ItemsSource="{Binding #MainRTB.FlowDocument.TextRanges}" DisplayMemberBinding="{Binding RangeString}" Focusable="False"/>
+
+               </DockPanel>
+            </Border>
+
+         </DockPanel>
+
+
+
+         <!-- AttributePanel -->
+         <Border Margin="3,1" Padding="4" Background="DimGray" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="8">
+
+            <Border.Styles>
+
+               <!-- Card / group containers -->
+               <Style Selector="Border.card">
+                  <Setter Property="Background" Value="#FFFFFF"/>
+                  <Setter Property="BorderBrush" Value="#D1D5DB"/>
+                  <Setter Property="BorderThickness" Value="1"/>
+                  <Setter Property="CornerRadius" Value="7"/>
+                  <Setter Property="Padding" Value="4"/>
+               </Style>
+
+               <Style Selector="Border.subCard">
+                  <Setter Property="Background" Value="#F8FAFC"/>
+                  <Setter Property="BorderBrush" Value="#E2E8F0"/>
+                  <Setter Property="BorderThickness" Value="1"/>
+                  <Setter Property="CornerRadius" Value="5"/>
+                  <Setter Property="Padding" Value="3"/>
+               </Style>
+
+               <!-- Typography -->
+               <Style Selector="TextBlock.sectionTitle">
+                  <Setter Property="FontSize" Value="14"/>
+                  <Setter Property="FontWeight" Value="SemiBold"/>
+                  <Setter Property="Foreground" Value="#1E293B"/>
+               </Style>
+
+               <Style Selector="TextBlock.subTitle">
+                  <Setter Property="FontSize" Value="12"/>
+                  <Setter Property="FontWeight" Value="SemiBold"/>
+                  <Setter Property="Foreground" Value="#475569"/>
+               </Style>
+
+               <Style Selector="TextBlock.label">
+                  <Setter Property="FontSize" Value="12"/>
+                  <Setter Property="Foreground" Value="#475569"/>
+                  <Setter Property="VerticalAlignment" Value="Center"/>
+               </Style>
+
+               <!-- Common controls -->
+               <Style Selector="ComboBox">
+                  <Setter Property="MinHeight" Value="30"/>
+                  <Setter Property="FontSize" Value="13"/>
+               </Style>
+
+               <Style Selector="ComboBoxItem">
+                  <Setter Property="Padding" Value="7,3"/>
+                  <Setter Property="MinHeight" Value="24"/>
+               </Style>
+
+               <Style Selector="Button.compact">
+                  <Setter Property="Padding" Value="8,4"/>
+                  <Setter Property="MinHeight" Value="28"/>
+               </Style>
+
+               <Style Selector="Button.small">
+                  <Setter Property="Padding" Value="6,2"/>
+                  <Setter Property="MinHeight" Value="25"/>
+                  <Setter Property="FontSize" Value="11"/>
+               </Style>
+
+            </Border.Styles>
+
+
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+               
+               <StackPanel x:Name="TopStackPanel" Orientation="Horizontal" HorizontalAlignment="Stretch" Spacing="8">
+
+                  <!-- =========================================================
+                  RUN / FONT
+                  ========================================================= -->
+                  <Border Classes="card" >
+                     <StackPanel Spacing="4">
+
+                        <TextBlock Classes="sectionTitle" Text="Run" HorizontalAlignment="Center"/>
+
+                        <!-- Font family -->
+                        <Grid ColumnDefinitions="Auto,*">
+                           <TextBlock Classes="label" Text="Font:" Margin="0,0,8,0"/>
+                           <ComboBox x:Name="FontsCB" HorizontalAlignment="Stretch" Grid.Column="1" Height="35" FontSize="16" DropDownClosed="FontsComboBox_DropDownClosed" Focusable="False"/>
+                        </Grid>
+
+
+                        <!-- Font size / colors -->
+                        <Grid ColumnDefinitions="Auto,Auto,Auto, *" RowDefinitions="Auto,Auto,Auto">
+
+                           <TextBlock Classes="label" Text="Font size:" Margin="0,0,8,6"/>
+                           <cc:NumericSpinner x:Name="FontSizeNS" Grid.Column="1" Width="58" HorizontalAlignment="Left" Margin="0,0,0,6" MinValue="5" MaxValue="50" Value="50" Height="30" FontSize="16" UserValueChanged="FontSizeNS_UserValueChanged"/>
+
+
+                           <TextBlock Grid.Row="0" Classes="label" Grid.Column="2" Text="Font color:" Margin="0,0,8,6"/>
+                           <ColorPicker x:Name="FontColorCP" Grid.Column="3"  Color="Black" ColorChanged="FontCP_ColorChanged" Width="85" Height="27" HorizontalAlignment="Left" Margin="0,0,0,6" Background="White"/>
+
+
+                           <TextBlock Grid.Row="2" Classes="label" Text="Highlight:" Margin="0,0,8,0"/>
+                           <ColorPicker x:Name="HighlightCP" Grid.Row="2" Grid.Column="1" Color="White" ColorChanged="HighlightCP_ColorChanged" Width="85" Height="27" HorizontalAlignment="Left"/>
+                        </Grid>
+
+                        <Border Classes="subCard">
+                           <StackPanel Orientation="Horizontal" Spacing="4">
+                              <CheckBox x:Name="StrikeCB" Content="Strike" Focusable="False"/>
+                              <CheckBox x:Name="UnderCB" Content="Underline" Focusable="False"/>
+                              <CheckBox x:Name="OverCB" Content="Overline" Focusable="False"/>
+                           </StackPanel>
+                        </Border>
+
+                     </StackPanel>
+                  </Border>
+
+
+                  <!-- =========================================================
+                  PARAGRAPH
+                  ========================================================= -->
+                  <Border Classes="card" >
+                     <StackPanel Spacing="4">
+
+                        <TextBlock Classes="sectionTitle" Text="Paragraph" HorizontalAlignment="Center"/>
+
+                        <Grid
+                           ColumnDefinitions="*,*"
+                           RowDefinitions="Auto,Auto,Auto">
+
+                           <!-- Line height -->
+                           <StackPanel Grid.Column="0" Margin="0,0,6,8" Spacing="3">
+                              <TextBlock Classes="label" Text="Line height"/>
+                              <cc:NumericSpinner x:Name="LineHeightNS" Width="60" HorizontalAlignment="Left" MinValue="0" MaxValue="400" Value="0" Height="30" FontSize="16" UserValueChanged="LineHeightNS_UserValueChanged"/>
+                           </StackPanel>
+
+
+                           <!-- Justification -->
+                           <StackPanel Grid.Column="1" Margin="6,0,0,8" Spacing="3"> 
+                              <TextBlock Classes="label" Text="Justification"/> 
+                              <ComboBox x:Name="JustificationCB" Width="100" Height="30" HorizontalAlignment="Left" FontSize="12" Focusable="False" DropDownClosed="JustificationComboBox_DropDownClosed"> 
+                                 <ComboBoxItem Content="Left"/>
+                                 <ComboBoxItem Content="Center"/>
+                                 <ComboBoxItem Content="Right"/>
+                                 <ComboBoxItem Content="Justified"/>
+                              </ComboBox>
+                           </StackPanel>
+
+
+                           <!-- Background -->
+                           <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnDefinitions="*,Auto" Margin="0,0,0,7"> 
+                              <TextBlock Classes="label" Text="Background:" Margin="0,0,8,0"/> 
+                              <ColorPicker x:Name="ParBackgroundCP" Grid.Column="1" Color="Transparent" ColorChanged="ParBackground_ColorChanged" Width="85" Height="27" Background="White" Focusable="False"/>
+                           </Grid>
+
+
+                           <!-- Border -->
+                           <Border Grid.Row="2" Grid.ColumnSpan="2" Classes="subCard">
+
+                              <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+
+                                 <TextBlock Classes="label" Text="Border thickness" Margin="0,0,8,6"/>
+                                 <cc:NumericSpinner x:Name="ParagraphBorderNS" Grid.Column="1" Width="48" MinValue="0" MaxValue="20" Value="0" Height="30" FontSize="16" Margin="0,0,0,6" UserValueChanged="ParagraphBorderNS_UserValueChanged" Focusable="False"/>
+
+                                 <TextBlock Grid.Row="1" Classes="label" Text="Border color:" Margin="0,0,8,0" Focusable="False"/>
+                                  <ColorPicker x:Name="ParBorderCP" Grid.Row="1" Grid.Column="1" Color="Black" ColorChanged="ParBorder_ColorChanged" Width="85" Height="27" Background="White" Focusable="False"/>
+                              </Grid>
+                           </Border>
+
+                        </Grid>
+                     </StackPanel>
+                  </Border>
+
+
+                  <!-- =========================================================
+                  FLOW DOCUMENT
+                  ========================================================= -->
+                  <Border Classes="card" >
+                     <StackPanel Spacing="4">
+
+                        <TextBlock Classes="sectionTitle" Text="FlowDoc" HorizontalAlignment="Center"/> 
+                        <TextBlock Classes="subTitle" Text="Page padding" HorizontalAlignment="Center"/> 
+
+                        <!-- Padding -->
+                        <Border Classes="subCard">
+                           <Grid
+                              ColumnDefinitions="Auto,Auto"
+                              RowDefinitions="Auto,Auto">
+
+                              <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Margin="0,0,8,5">
+                                 <TextBlock Classes="label" Text="L" Width="16"/>
+                                 <cc:NumericSpinner x:Name="PagePaddingNSL" Width="52" MinValue="0" MaxValue="150" Value="50" Height="28" FontSize="16" ValueChanged="PagePaddingNSL_ValueChanged"/>
+                              </StackPanel>
+
+                              <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,5">
+                                  <TextBlock Classes="label" Text="R" Width="16"/> 
+                                 <cc:NumericSpinner x:Name="PagePaddingNSR" Width="52" MinValue="0" MaxValue="150" Value="50" Height="28" FontSize="16" ValueChanged="PagePaddingNSR_ValueChanged"/>
+                              </StackPanel>
+
+                              <StackPanel Grid.Row="1" Grid.Column="0" Orientation="Horizontal" Margin="0,0,8,0">
+                                 <TextBlock Classes="label" Text="T" Width="16"/>
+                                 <cc:NumericSpinner x:Name="PagePaddingNST" Width="52" MinValue="0" MaxValue="150" Value="50" Height="28" FontSize="16" ValueChanged="PagePaddingNST_ValueChanged"/>
+                              </StackPanel>
+
+                              <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+                                 <TextBlock Classes="label" Text="B" Width="16"/>
+                                 <cc:NumericSpinner x:Name="PagePaddingNSB" Width="52" MinValue="0" MaxValue="150" Value="50" Height="28" FontSize="16" ValueChanged="PagePaddingNSB_ValueChanged"/>
+                              </StackPanel>
+
+                           </Grid>
+                        </Border>
+
+
+                        <!-- Add table -->
+                        <Border Classes="subCard">
+                           <StackPanel Spacing="6">
+
+                              <Button Classes="compact" Content="Add table" Click="AddTableButton_Click" Focusable="False" HorizontalAlignment="Stretch"/>
+
+                              <Grid ColumnDefinitions="Auto,*,Auto,*">
+                                 <TextBlock Classes="label" Text="Col" Margin="0,0,4,0"/>
+                                 <cc:NumericSpinner x:Name="AddColsNS" Grid.Column="1" Width="44" MaxValue="15" Value="1" FontSize="16" Height="28" Step="1" MinValue="1" Focusable="False"/>
+
+                                 <TextBlock Grid.Column="2" Classes="label" Text="Row" Margin="8,0,4,0"/>
+                                 <cc:NumericSpinner x:Name="AddRowsNS" Grid.Column="3" Width="44" MaxValue="15" FontSize="16" Height="28" Step="1" MinValue="0" Value="1" Focusable="False"/>
+                              </Grid>
+
+                           </StackPanel>
+                        </Border>
+
+                     </StackPanel>
+                  </Border>
+
+
+                  <!-- =========================================================
+                  TABLE
+                  ========================================================= -->
+                  <Border x:Name="TablePanel" Classes="card" Width="420">
+
+                     <StackPanel Spacing="3">
+
+                        <!-- Header -->
+                        <Grid ColumnDefinitions="*,Auto">
+
+                           <TextBlock Classes="sectionTitle" Text="Table" VerticalAlignment="Center"/>
+
+                           <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="3">
+
+                              <TextBlock Classes="label" Text="Border&#x0a;color"/>
+                              <ColorPicker x:Name="TableBorderCP" Color="Black" ColorChanged="TableBorder_ColorChanged" Width="75" Height="27" HorizontalAlignment="Left" Background="White" Focusable="False"/>
+
+
+                              <TextBlock Classes="label" Text="Border&#x0a;thickness"/>
+                              <cc:NumericSpinner x:Name="TableBorderNS" Width="48" HorizontalAlignment="Left" MinValue="0" MaxValue="20" Value="0" Height="30" FontSize="16" UserValueChanged="TableBorderNS_UserValueChanged"/>
+
+                              <TextBlock Classes="label" Text="Just."/>
+
+                              <ComboBox x:Name="TableJustificationCB" Width="95" Height="30" FontSize="12" Focusable="False" DropDownClosed="TableJustificationComboBox_DropDownClosed">
+                                 <ComboBoxItem Content="Left"/>
+                                 <ComboBoxItem Content="Center"/>
+                                 <ComboBoxItem Content="Right"/>
+                              </ComboBox>
+
+                           </StackPanel>
+                        </Grid>
+
+
+                        <!-- Table border / insertion tools -->
+                        <Border Classes="subCard">
+                           <Grid ColumnDefinitions="Auto,Auto,*" RowDefinitions="Auto">
+
+                              <!-- Row / column actions -->
+                              <Border Classes="card" >
+
+                                 <StackPanel Orientation="Horizontal"  Spacing="3">
+
+                                    <Grid ColumnDefinitions="*,*, *, *" RowDefinitions="Auto,Auto">
+
+                                       <Button Classes="small" Content="Insert cols" Focusable="False" Margin="2,0" Padding="4" VerticalContentAlignment="Center" Click="InsertColsButton_Click"/>
+                                       <Button Grid.Column="1" Classes="small" Content="Remove cols" Focusable="False" Padding="4" VerticalContentAlignment="Center"  Margin="2,0" Click="RemoveColsButton_Click"/>
+                                       <Button Grid.Row="0" Grid.Column="2" Classes="small" Content="Insert rows" Padding="4" VerticalContentAlignment="Center"  Focusable="False" Margin="2,0" Click="InsertRowsButton_Click"/>
+                                       <Button Grid.Row="0" Grid.Column="3" Classes="small" Content="Remove rows" Padding="4" VerticalContentAlignment="Center"  Focusable="False" Margin="2,0" Click="RemoveRowsButton_Click"/>
+
+                                    </Grid>
+
+                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="1">
+                                       <TextBlock Classes="label" Text="Count"/>
+                                       <cc:NumericSpinner x:Name="InsertNumberNS" FontSize="14" Value="1" MinValue="1" MaxValue="10" Width="40" Height="27" Background="White" Focusable="False"/>
+
+                                    </StackPanel>
+
+                                 </StackPanel>
+
+                              </Border>
+                           </Grid>
+                        </Border>
+
+
+                        <!-- Cell -->
+                        <Grid ColumnDefinitions="Auto, *">
+
+                           <Border Grid.Column="0" Classes="subCard" Margin="0,0,8,0">
+
+                              <StackPanel Spacing="4">
+
+                                 <TextBlock Classes="subTitle" Text="Cell" HorizontalAlignment="Center"/>
+
+                                 <Grid ColumnDefinitions="*,*">
+
+                                    <StackPanel Grid.Column="0" Margin="0,0,8,0" Spacing="3">
+                                       <TextBlock Classes="label" Text="Background"/>
+                                       <ColorPicker x:Name="CellBackgroundCP" Color="Black" ColorChanged="CellBackground_ColorChanged" Width="75" Height="27" HorizontalAlignment="Left" Background="White" Focusable="False"/>
+                                    </StackPanel>
+
+
+                                    <StackPanel Grid.Column="1" Spacing="3">
+
+                                       <TextBlock Classes="label" Text="V. Align"/>
+
+                                       <ComboBox x:Name="CellAlignmentCB" SelectedIndex="0" Focusable="False" Width="90" Height="28" DropDownClosed="CellAlignmentCB_DropDownClosed">
+                                          <ComboBoxItem Content="Top"/>
+                                          <ComboBoxItem Content="Center"/>
+                                          <ComboBoxItem Content="Bottom"/>
+                                       </ComboBox>
+
+                                    </StackPanel>
+
+                                 </Grid>
+                              </StackPanel>
+                           </Border>
+
+
+                           <!-- Merge -->
+                           <Border Grid.Column="1" Classes="subCard" >
+
+                              <StackPanel Spacing="4">
+
+                                 <Grid ColumnDefinitions="*,*, 2, *, *" RowDefinitions="*, *, *">
+
+                                    <TextBlock Classes="subTitle" Grid.ColumnSpan="2"  Text="Merge cells" HorizontalAlignment="Center"/>
+                                    
+                                    <Button Classes="small" Content="Right" Grid.Row="1" Margin="0,0,3,0" Click="MergeRightButton_Click" Focusable="false"/>
+                                    <Button Grid.Column="1" Grid.Row="1" Classes="small" Content="Down" Margin="3,0,0,0" Click="MergeDownButton_Click" Focusable="false"/>
+                                    
+                                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="5"> 
+                                       <TextBlock Classes="label" Text="Count+"/>
+                                       <cc:NumericSpinner x:Name="MergeCountNS"  MaxValue="10" MinValue="1" Value="1" Width="45" Height="27" Background="White" Focusable="False"/>
+   
+                                    </StackPanel>
+
+                                    <Rectangle Grid.Column="2" Grid.RowSpan="3" Stroke="Gray" StrokeThickness="1" />
+                                    
+                                     <TextBlock Classes="subTitle" Grid.ColumnSpan="2" Grid.Column="3" Text="Split cell into:" HorizontalAlignment="Center"/>
+                                    
+                                    <Button Classes="small" Content="#Cols" Grid.Column="3" Grid.Row="1" Margin="3,0" Click="SplitColsButton_Click" Focusable="false"/>
+                                    <Button Grid.Column="4" Grid.Row="1" Classes="small" Content="#Rows" Margin="0" Click="SplitRowsButton_Click" Focusable="false"/>
+                                    
+                                      <cc:NumericSpinner x:Name="SplitCountNS" Grid.Column="3" Grid.Row="2" Grid.ColumnSpan="2"  MaxValue="5" MinValue="2" Value="2" Width="45" Height="27" Background="White" Focusable="False"/>
+
+                                 </Grid>
+
+
+                              </StackPanel>
+                           </Border>
+
+                        </Grid>
+
+                     </StackPanel>
+                  </Border>
+
+                  <Button Classes="compact" Content="Test" Click="DoSomethingButton_Click" Background="Beige" Focusable="False" VerticalAlignment="Top"/>
+
+               </StackPanel>
+            </ScrollViewer>
+
+         </Border>
+
+      </DockPanel>
+
+      <Grid >
+
+         <avrtb:RichTextBox Grid.Row="0" x:Name="MainRTB" Zoom="1" IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="False"  DisableUserCopy="False"
+                            CaretBrush="DarkBlue" CtrlKeyOpensHyperlink="True" PointerReleased="MainRTB_PointerReleased" KeyUp="MainRTB_KeyUp">
+
+
+            <!--<avrtb:RichTextBox.FlowDocument>
+            <avrtb:FlowDocument >
+            <avrtb:FlowDocument.Blocks>
+
+            <avrtb:Paragraph>
+            <avrtb:Paragraph.GetInlines>
+            <avrtb:EditableRun Text="This is a line of text. "/>
+            <avrtb:EditableRun Text="With a second run."/>
+            </avrtb:Paragraph.GetInlines>
+            </avrtb:Paragraph>
+
+            <avrtb:Paragraph>
+            <avrtb:Paragraph.GetInlines>
+            <avrtb:EditableInlineUIContainer >
+            <avrtb:EditableInlineUIContainer.Content>
+            <Image Width="100" Height="50" Stretch="Uniform" Source="avares://DemoApp_AvRichTextBox/Assets/avalonia-logo.ico"/>
+            </avrtb:EditableInlineUIContainer.Content>
+            </avrtb:EditableInlineUIContainer>
+            </avrtb:Paragraph.GetInlines>
+            </avrtb:Paragraph>
+
+            <avrtb:Table ColDefs="100, 150, 100" RowDefs="100, 100, 100" >
+
+            <avrtb:Table.GetCells>
+            <avrtb:Cell RowNo="0" ColNo="0" ColSpan="2" BorderBrush="Red" BorderThickness="1" >
+            <avrtb:Cell.GetCellBlocks>
+            <avrtb:Paragraph>
+            <avrtb:Paragraph.GetInlines>
+            <avrtb:EditableRun Text="Some cell text"/>
+            </avrtb:Paragraph.GetInlines>
+            </avrtb:Paragraph>
+            </avrtb:Cell.GetCellBlocks>
+            </avrtb:Cell>
+            --><!--<avrtb:Cell RowNo="0" ColNo="1" BorderBrush="Red" BorderThickness="3"/>--><!--
+            <avrtb:Cell RowNo="0" ColNo="2" BorderBrush="Blue" BorderThickness="3"/>
+            <avrtb:Cell RowNo="1" ColNo="0" BorderBrush="Green" BorderThickness="2"/>
+            <avrtb:Cell RowNo="1" ColNo="1" BorderBrush="Black" BorderThickness="2"/>
+            <avrtb:Cell RowNo="1" ColNo="2" BorderThickness="2"/>
+            <avrtb:Cell RowNo="2" ColNo="0" BorderThickness="2"/>
+            <avrtb:Cell RowNo="2" ColNo="1" BorderThickness="2"/>
+            <avrtb:Cell RowNo="2" ColNo="2" BorderThickness="2"/>
+            </avrtb:Table.GetCells>
+
+            </avrtb:Table>
+
+            <avrtb:Paragraph/>
+
+            </avrtb:FlowDocument.Blocks>
+            </avrtb:FlowDocument>
+
+            </avrtb:RichTextBox.FlowDocument>-->
+
+
+         </avrtb:RichTextBox>
+
+         <!--<Canvas x:Name="DebugCanvas" IsHitTestVisible="False">
+         <Ellipse x:Name="DebugDot" Width="14" Height="17" Fill="Red"/>
+         </Canvas>-->
+
+
+         <!-- Test a second RTB in tandem-->
+         <!--<avrtb:RichTextBox Grid.Row="1" x:Name="MainRTB2"  IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="True"  DisableUserCopy="False" SelectionBrush="LightGreen" />-->
+
+      </Grid>
+
+
+
+   </DockPanel>
 
 
 

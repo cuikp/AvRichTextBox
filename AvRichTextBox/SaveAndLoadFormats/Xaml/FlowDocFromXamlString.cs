@@ -250,13 +250,20 @@ internal partial class XamlConversions
                                 }
                             }
 
-                            //foreach (XmlNode parNode in cellNode.ChildNodes.OfType<XmlNode>().Where(n => n.Name == "Paragraph"))  // for future multiple pars in a cell?
-                            if (cellNode.ChildNodes.OfType<XmlNode>().FirstOrDefault(n => n.Name == "Paragraph") is XmlNode cellParNode)
+                            foreach (XmlNode xmlNode in cellNode.ChildNodes.OfType<XmlNode>())
                             {
-                                Paragraph newPar = GetParagraph(cellParNode, fdoc);
-                                newCell.CellBlocks.Add(newPar);
+                                switch (xmlNode.Name)
+                                {
+                                    case "Paragraph":
+                                        Paragraph getNewPar = GetParagraph(xmlNode, fdoc);
+                                        newCell.CellBlocks.Add(getNewPar);
+                                        break;
+                                    case "Table":
+                                        Table getNewTable = GetTable(xmlNode, fdoc);
+                                        newCell.CellBlocks.Add(getNewTable);
+                                        break;
+                                }
                             }
-
 
                             while (rowno < firstAvailableRow[colno])
                             {
@@ -292,7 +299,7 @@ internal partial class XamlConversions
     internal static Paragraph GetParagraph(XmlNode parNode, FlowDocument fdoc)
     {
         Paragraph newPar = new();
-        //newPar.LineHeight = ;
+        //getNewPar.LineHeight = ;
         foreach (XmlAttribute xmlatt in parNode.Attributes!.OfType<XmlAttribute>())
         {
             switch (xmlatt.Name)

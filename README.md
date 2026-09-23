@@ -336,7 +336,7 @@ Pasting an image adds new paragraph at end instead of caret sitting at right of 
 Fixed rtf table cell horizontal merge borders
 
 **[ver 1.9.11] 2026/09/01**  
-Added `MergeCellsRight()`, `MergeCellsDown()` and `AddColumns()` methods to `Table`  
+Added `MergeCellsRight()` and `MergeCellsDown()` methods to `Table`  
 Returned default `Cell.BorderBrush` to `Brushes.Black`  
 Cleaner borders between table cells (no adjacent doubles)  
 Shift + mouse drag on cell border increases/decreases entire table size
@@ -388,3 +388,14 @@ Updated to Avalonia 12.1.2
 Fixed `TextRange` adjust when deleting `EditableRun`  
 Col/Row add/remove bugs fixed  
 Fixed Redo paste in Table bug  
+
+**[ver 1.11.2] 2026/09/23**  
+The following public method name changes for Col/Row manipulation:  
+`InsertRows(...)` -> `InsertRowsAt(...)`  
+`InsertCols(...)` -> `InsertColsAt(...)`  
+`MergeCellsRight(...)` -> `MergeCellsRightAt(...)`  
+`MergeCellsDown(...)` ->`MergeCellsDownAt(...)`  
+The following methods have been added, though currently without undo/redo capability:  
+`SplitCellVertical(...)`/`SplitCellHorizontal(...)`  
+Fixed bug with multiple `TextDecoration`s Undo (e.g. underline+strikeout)  
+Fixed multiple paragraphs in Cells not reading in for XamlPackage/Html  

@@ -242,13 +242,13 @@ public class TextRange : INotifyPropertyChanged, IDisposable
         return returnValue;
     }
 
-    public void ApplyFormatting(AvaloniaProperty avProp, object value)
+    public void ApplyFormatting(AvaloniaProperty avProp, object? newValue)
     {
         if (myFlowDoc == null) return;
         if (Length < 1) return;
         if (this.Text == "") return;
 
-        myFlowDoc.ApplyFormattingRange(avProp, value, this);
+        myFlowDoc.ApplyFormattingRange(avProp, newValue, this);
 
         BiasForwardStart = false;
         BiasForwardEnd = false;

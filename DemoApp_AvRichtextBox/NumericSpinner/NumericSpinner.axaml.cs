@@ -6,165 +6,165 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Threading;
-using AvRichTextBox;
 using System;
-using System.ComponentModel;
 using System.Globalization;
-using System.Runtime.CompilerServices;
 
 namespace CustomControls;
 
-public class NumericSpinnerViewModel
+public partial class NumericSpinner : UserControl
 {
+    public delegate void ValueChangedHandler(double value);
+    public event ValueChangedHandler? ValueChanged;
 
-}
+    public delegate void UserValueChangedHandler(double value);
+    public event UserValueChangedHandler? UserValueChanged;
 
-public partial class NumericSpinner : UserControl 
-{
-   public delegate void ValueChangedHandler(double value);
-   public event ValueChangedHandler? ValueChanged;
+    public NumericSpinner()
+    {
+        InitializeComponent();
 
-   public delegate void UserValueChangedHandler(double value);
-   public event UserValueChangedHandler? UserValueChanged;
+        this.DataContext = this;
 
-   public NumericSpinner()
-   {
-      InitializeComponent();
+        Step = 1;
 
-      this.DataContext = this;
+        DownKeyTimer.Tick += DownKeyTimer_Tick;
+        DownKeyTimer.Interval = new TimeSpan(0, 0, 0, 0, 200);
 
-      Step = 1;
 
-      DownKeyTimer.Tick += DownKeyTimer_Tick;
-      DownKeyTimer.Interval = new TimeSpan(0, 0, 0, 0, 200);
+        CmdUp.AddHandler(InputElement.PointerPressedEvent, CmdUp_PointerPressed, RoutingStrategies.Tunnel);
+        CmdUp.AddHandler(InputElement.PointerReleasedEvent, CmdUp_PointerReleased, RoutingStrategies.Tunnel);
+        CmdDown.AddHandler(InputElement.PointerPressedEvent, CmdDown_PointerPressed, RoutingStrategies.Tunnel);
+        CmdDown.AddHandler(InputElement.PointerReleasedEvent, CmdDown_PointerReleased, RoutingStrategies.Tunnel);
 
-     
-      CmdUp.AddHandler(InputElement.PointerPressedEvent, CmdUp_PointerPressed, RoutingStrategies.Tunnel);
-      CmdUp.AddHandler(InputElement.PointerReleasedEvent, CmdUp_PointerReleased, RoutingStrategies.Tunnel);
-      CmdDown.AddHandler(InputElement.PointerPressedEvent, CmdDown_PointerPressed, RoutingStrategies.Tunnel);
-      CmdDown.AddHandler(InputElement.PointerReleasedEvent, CmdDown_PointerReleased, RoutingStrategies.Tunnel);
+        //Value = 20;
 
-      Value = 20;
+        
 
-   }
 
-   private double _Step = 1;
-   public double Step { get { return _Step; } set { _Step = value; } }
+    }
 
-   private void CmdUp_Click(object? sender, RoutedEventArgs e) { Value += (ControlIsDown ? Step * 10 : Step); UserValueChanged?.Invoke(Value); }
-   private void CmdDown_Click(object? sender, RoutedEventArgs e) { Value -= (ControlIsDown ? Step * 10 : Step); UserValueChanged?.Invoke(Value); }
+    public double Step { get; set; }
 
-   internal DispatcherTimer DownKeyTimer = new();
+    private void CmdUp_Click(object? sender, RoutedEventArgs e) { Value += (ControlIsDown ? Step * 10 : Step); UserValueChanged?.Invoke(Value); }
+    private void CmdDown_Click(object? sender, RoutedEventArgs e) { Value -= (ControlIsDown ? Step * 10 : Step); UserValueChanged?.Invoke(Value); }
 
-   bool ControlIsDown = false;
-   bool DownKeyDown = false;
+    internal DispatcherTimer DownKeyTimer = new();
 
-   private void DownKeyTimer_Tick(object? sender, EventArgs e) 
-   { 
-      int fac = DownKeyDown ? -1 : 1;  
-      Value += (ControlIsDown ? Step * 10 : Step) * fac;
-      UserValueChanged?.Invoke(Value);
-   }
-   
-   private void CmdDown_PointerPressed(object? sender, PointerPressedEventArgs e) 
-   { 
-      DownKeyDown = true; 
-      ControlIsDown = e.KeyModifiers.HasFlag(KeyModifiers.Control); 
-      DownKeyTimer.Start();
-   }
-   
-   private void CmdUp_PointerPressed(object? sender, PointerPressedEventArgs e) 
-   { 
-      ControlIsDown = e.KeyModifiers.HasFlag(KeyModifiers.Control); 
-      DownKeyTimer.Start();
-   }
+    bool ControlIsDown = false;
+    bool DownKeyDown = false;
 
-   private void CmdDown_PointerReleased(object? sender, PointerReleasedEventArgs e) { DownKeyDown = false; DownKeyTimer.Stop();  }
-   private void CmdUp_PointerReleased(object? sender, PointerReleasedEventArgs e) { DownKeyTimer.Stop(); ;  }
+    private void DownKeyTimer_Tick(object? sender, EventArgs e)
+    {
+        int fac = DownKeyDown ? -1 : 1;
+        Value += (ControlIsDown ? Step * 10 : Step) * fac;
+        UserValueChanged?.Invoke(Value);
+    }
 
-   public static readonly StyledProperty<ISolidColorBrush> TextBackgroundProperty = AvaloniaProperty.Register<NumericSpinner, ISolidColorBrush>(nameof(TextBackground));
+    private void CmdDown_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        DownKeyDown = true;
+        ControlIsDown = e.KeyModifiers.HasFlag(KeyModifiers.Control);
+        DownKeyTimer.Start();
+    }
 
-   public SolidColorBrush TextBackground
-   {
-      get => (SolidColorBrush)GetValue(TextBackgroundProperty);
-      set => SetValue(TextBackgroundProperty, value); 
-   }
+    private void CmdUp_PointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        ControlIsDown = e.KeyModifiers.HasFlag(KeyModifiers.Control);
+        DownKeyTimer.Start();
+    }
 
-   public static readonly StyledProperty<Thickness> TextPaddingProperty = AvaloniaProperty.Register<NumericSpinner, Thickness>(nameof(TextPadding));
+    private void CmdDown_PointerReleased(object? sender, PointerReleasedEventArgs e) { DownKeyDown = false; DownKeyTimer.Stop(); }
+    private void CmdUp_PointerReleased(object? sender, PointerReleasedEventArgs e) { DownKeyTimer.Stop(); ; }
 
-   public Thickness TextPadding
-   {
-      get => (Thickness)GetValue(TextPaddingProperty); 
-      set => SetValue(TextPaddingProperty, value);
-   }
+    public static readonly StyledProperty<ISolidColorBrush> TextBackgroundProperty = AvaloniaProperty.Register<NumericSpinner, ISolidColorBrush>(nameof(TextBackground));
 
-   public static readonly StyledProperty<double> ValueProperty = AvaloniaProperty.Register<NumericSpinner, double>(nameof(Value), 80, defaultBindingMode: BindingMode.TwoWay);
+    public SolidColorBrush TextBackground
+    {
+        get => (SolidColorBrush)GetValue(TextBackgroundProperty);
+        set => SetValue(TextBackgroundProperty, value);
+    }
 
-   public double Value
-   {
-      get => (double)GetValue(ValueProperty);
-      set
-      {
-         if (value < MinValue) value = MinValue;
-         if (value > MaxValue) value = MaxValue;
+    public static readonly StyledProperty<Thickness> TextPaddingProperty = AvaloniaProperty.Register<NumericSpinner, Thickness>(nameof(TextPadding));
 
-         if (Value != value)
-         {
+    public Thickness TextPadding
+    {
+        get => (Thickness)GetValue(TextPaddingProperty);
+        set => SetValue(TextPaddingProperty, value);
+    }
+
+    public static readonly StyledProperty<double> ValueProperty = AvaloniaProperty.Register<NumericSpinner, double>(nameof(Value), 80, defaultBindingMode: BindingMode.TwoWay, coerce: CoerceValue);
+
+    public double Value
+    {
+        get => (double)GetValue(ValueProperty);
+        set
+        {        
             SetValue(ValueProperty, value);
             ValueChanged?.Invoke(value);
-         }
-         
-      }
-   }
+            
+        }
+    }
 
-   protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
-   {
-      base.OnPropertyChanged(change);
+    private static double CoerceValue(AvaloniaObject obj, double value)
+    {
+        var spinner = (NumericSpinner)obj;
 
-      //if (change.Property.Name == nameof(Value))
-      //{
-      //   double Val = (double)change.GetNewValue<double>();
-      //   ValueChanged?.Invoke(Val);
-      //}
-      
-   }
+        if (value < spinner.MinValue)
+            return spinner.MinValue;
 
-   public static readonly StyledProperty<double> MaxValueProperty = AvaloniaProperty.Register<NumericSpinner, double>(nameof(MaxValue));
+        if (value > spinner.MaxValue)
+            return spinner.MaxValue;
 
-   public double MaxValue
-   {
-      get { return (double)GetValue(MaxValueProperty); }
-      set { SetValue(MaxValueProperty, value); }
-   }
+        return value;
+    }
 
-   private void MaxValuePropertyChanged(double Val) { MaxValue = Val; }
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
 
-   public static readonly StyledProperty<double> MinValueProperty = AvaloniaProperty.Register<NumericSpinner, double>(nameof(MinValue));
+        if (change.Property == MinValueProperty || change.Property == MaxValueProperty)
+            CoerceValue(ValueProperty);
 
-   public double MinValue
-   {
-      get { return (double)GetValue(MinValueProperty); }
-      set { SetValue(MinValueProperty, value); }
-   }
+        if (change.Property == ValueProperty)
+            ValueChanged?.Invoke(change.GetNewValue<double>());
+    }
 
-   private void MinValuePropertyChanged(double Val) { MinValue = Val; }
+    public static readonly StyledProperty<double> MaxValueProperty = AvaloniaProperty.Register<NumericSpinner, double>(nameof(MaxValue), double.PositiveInfinity);
+
+    public double MaxValue
+    {
+        get => (double)GetValue(MaxValueProperty);
+        set { SetValue(MaxValueProperty, value); }
+    }
+
+    private void MaxValuePropertyChanged(double Val) { MaxValue = Val; }
+
+    public static readonly StyledProperty<double> MinValueProperty = AvaloniaProperty.Register<NumericSpinner, double>(nameof(MinValue), double.NegativeInfinity);
+
+    public double MinValue
+    {
+        get => (double)GetValue(MinValueProperty);
+        set { SetValue(MinValueProperty, value); }
+    }
+
+    private void MinValuePropertyChanged(double Val) { MinValue = Val; }
 
 
 }
 
 public class DoubleToStringConverter : IValueConverter
 {
-   public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-   {
-      if (value is double d)
-         return d.ToString(CultureInfo.InvariantCulture);
-      return "";
-   }
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is double d)
+            return d.ToString(CultureInfo.InvariantCulture);
+        return "";
+    }
 
-   public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-   {
-      if (double.TryParse(value as string, NumberStyles.Float, CultureInfo.InvariantCulture, out double result))
-         return result;
-      return 0.0; // Default fallback
-   }
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (double.TryParse(value as string, NumberStyles.Float, CultureInfo.InvariantCulture, out double result))
+            return result;
+        return 0.0; // Default fallback
+    }
 }

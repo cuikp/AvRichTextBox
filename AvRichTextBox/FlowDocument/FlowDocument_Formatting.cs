@@ -48,7 +48,7 @@ public partial class FlowDocument
     // used for inline toggling while typing
     private void ToggleInlineApplyBold(IEditable ied) { if (ied is EditableRun erun) { erun.FontWeight = BoldOn ? FontWeight.Bold : FontWeight.Normal; } }
     private void ToggleInlineApplyItalic(IEditable ied) { if (ied is EditableRun erun) { erun.FontStyle = ItalicOn ? FontStyle.Italic : FontStyle.Normal; } }
-    private void ToggleInlineApplyUnderline(IEditable ied) { if (ied is EditableRun erun) { erun.TextDecorations = UnderliningOn ? TextDecorations.Underline : null; } }
+    private void ToggleInlineApplyUnderline(IEditable ied) { if (ied is EditableRun erun) { erun.TextDecorations = UnderliningOn ? TextDecorations.Underline : erun.TextDecorations; } }
 
 
     internal void ToggleUnderlining()
@@ -112,7 +112,7 @@ public partial class FlowDocument
     }
 
 
-    internal void ApplyFormattingRange(AvaloniaProperty avProperty, object value, TextRange textRange)
+    internal void ApplyFormattingRange(AvaloniaProperty avProperty, object? newValue, TextRange textRange)
     {
         DisableUndoStack = true;
 
@@ -120,14 +120,13 @@ public partial class FlowDocument
         List<IEditable> newInlines = createdInlinesResult.createdInlines;
         (int idLeft, int idRight) edgeIds = createdInlinesResult.edgeIds;
 
-
         //Debug.WriteLine("\nnewlines created:\n" + string.Join("\n", newInlines.ConvertAll(il=> il.InlineText + " :: " + il.Id + "\nEdge ids = L: " + edgeIds.idLeft + ", R: " + edgeIds.idRight)));  
 
         //create property association for undo 
         List<EditablePropertyAssociation> propertyAssociations = [];
         foreach (EditableRun erun in newInlines.OfType<EditableRun>())
-        {
-            EditablePropertyAssociation edPropAssoc = new(erun.MyParagraphId, erun.Id, null!, null!, value);
+        {   
+            EditablePropertyAssociation edPropAssoc = new(erun.MyParagraphId, erun.Id, null!, erun.GetPropertyChangedObservable(avProperty), newValue);
             propertyAssociations.Add(edPropAssoc);
 
             if (formatRunsActions.TryGetValue(avProperty, out var runsAction))
@@ -139,12 +138,11 @@ public partial class FlowDocument
             }
         }
 
-        //this.Undos.Add(new ApplyFormattingUndo(this, propertyAssociations, edgeIds, Selection.Start, textRange, avProperty));
         this.Undos.Add(new ApplyFormattingUndo(this, propertyAssociations, edgeIds, Selection.Start, textRange));
 
 
         if (formatRunsActions.TryGetValue(avProperty, out var applyToRunsAction))
-            applyToRunsAction(newInlines, value);
+            applyToRunsAction(newInlines, newValue);
         else
             throw new NotSupportedException($"Formatting for {avProperty.Name} is not supported.");
 
@@ -168,7 +166,7 @@ public partial class FlowDocument
         UpdateSelectedParagraphs();
 
 
-        // Finally must update the selection rectangles/caret size for some formatting changes (bold, fontsize, etc.)
+        // Finally must update the selection rectangles/caret size for some formatting changes (bold, newFontsize, etc.)
         if (textRange == Selection)
         {
             Dispatcher.UIThread.Post(() => { SelectionChanged?.Invoke(Selection); }, DispatcherPriority.Background);
@@ -176,31 +174,33 @@ public partial class FlowDocument
 
     }
 
-    internal void ApplyFormattingInlines(FormatRunsAction? formatRunsAction, List<IEditable> inlineItems, object value)
+    internal void ApplyFormattingInlines(FormatRunsAction? formatRunsAction, List<IEditable> inlineItems, object? newValue)
     {
-        formatRunsAction?.Invoke(inlineItems, value);
+        formatRunsAction?.Invoke(inlineItems, newValue);
         Selection.BiasForwardStart = true;
         Selection.BiasForwardEnd = true;
 
     }
 
-    internal delegate void FormatRunsAction(List<IEditable> ieds, object value);
+    internal delegate void FormatRunsAction(List<IEditable> ieds, object? newValue);
 
-    private void ApplyFontFamilyRuns(List<IEditable> ieds, object fontfamily)
+    private void ApplyFontFamilyRuns(List<IEditable> ieds, object? newFontfamily)
     {
+        if (newFontfamily is not FontFamily applyFontFamily) return;
+
         foreach (IEditable ied in ieds)
-            if (ied is EditableRun edrun) { edrun.FontFamily = (FontFamily)fontfamily; }
+            if (ied is EditableRun edrun) { edrun.FontFamily = applyFontFamily; }
     }
 
-    private void ApplyBoldRuns(List<IEditable> ieds, object fontweight)
+    private void ApplyBoldRuns(List<IEditable> ieds, object? newFontWeight)
     {
-        if (fontweight is not FontWeight applyFontWeight) return;
+        if (newFontWeight is not FontWeight applyFontWeight) return;
 
-        // if all of the runs are bold, force style to Normal
-        if (fontweight is FontWeight.Bold)
+        // if all of the eRuns are bold, force style to Normal
+        if (newFontWeight is FontWeight.Bold)
             applyFontWeight = ieds.All(ar => ar is EditableRun edrun && edrun.FontWeight == FontWeight.Bold) ? FontWeight.Normal : FontWeight.Bold;
-        // if all of the runs are normal, force style to Bold
-        else if (fontweight is FontWeight.Normal)
+        // if all of the eRuns are normal, force style to Bold
+        else if (newFontWeight is FontWeight.Normal)
             applyFontWeight = ieds.All(ar => ar is EditableRun edrun && edrun.FontWeight == FontWeight.Normal) ? FontWeight.Bold : FontWeight.Normal;
 
 
@@ -209,67 +209,62 @@ public partial class FlowDocument
 
     }
 
-    private void ApplyItalicRuns(List<IEditable> ieds, object fontstyle)
+    private void ApplyItalicRuns(List<IEditable> ieds, object? newFontstyle)
     {
-        if (fontstyle is not FontStyle applyFontStyle) return;
+        if (newFontstyle is not FontStyle applyFontStyle) return;
 
-        // if all of the runs are italic, force style to Normal
-        if (fontstyle is FontStyle.Italic)
+        // if all of the eRuns are italic, force style to Normal
+        if (newFontstyle is FontStyle.Italic)
             applyFontStyle = ieds.All(ar => ar is EditableRun edrun && edrun.FontStyle == FontStyle.Italic) ? FontStyle.Normal : FontStyle.Italic;
-        // if all of the runs are normal, force style to Italic
-        else if (fontstyle is FontStyle.Normal)
+        // if all of the eRuns are normal, force style to Italic
+        else if (newFontstyle is FontStyle.Normal)
             applyFontStyle = ieds.All(ar => ar is EditableRun edrun && edrun.FontStyle == FontStyle.Normal) ? FontStyle.Italic : FontStyle.Normal;
-        // otherwise (if mixed), apply italic to all runs
+        // otherwise (if mixed), apply italic to all eRuns
         foreach (EditableRun erun in ieds.OfType<EditableRun>())
             erun.FontStyle = applyFontStyle;
 
 
     }
 
-    private void ApplyTextDecorationRuns(List<IEditable> ieds, object textDecLocation)
+
+    private void ApplyTextDecorationRuns(List<IEditable> ieds, object? newTextDecorationLocation)
     {
-        if (textDecLocation is not TextDecorationLocation applyTextDecLoc) return;
+        if (newTextDecorationLocation is not TextDecorationLocation applyTextDecorationLocation)
+            return;
 
-        // Get all runs without this new text dec
-        List<EditableRun> applyToRuns = [.. ieds.OfType<EditableRun>().Where(edrun => edrun.TextDecorations != null && edrun.TextDecorations.Any(tdec => tdec.Location == applyTextDecLoc))];
-        if (applyToRuns.Count == ieds.Count)
-        { // all runs contain textdec, so remove from all 
-            foreach (EditableRun erun in ieds.OfType<EditableRun>())
+        var eRuns = ieds.OfType<EditableRun>().ToList();
+
+        bool remove = eRuns.All(r => r.TextDecorations?.Any(d => d.Location.HasFlag(applyTextDecorationLocation)) ?? false);
+
+        foreach (var erun in eRuns)
+        {
+            var decorations = erun.TextDecorations == null ? new TextDecorationCollection() : [.. erun.TextDecorations];
+
+            if (remove)
             {
-                if (erun.TextDecorations is TextDecorationCollection currentDec)
-                {
-                    currentDec.RemoveAll(currentDec.Where(cdec => cdec.Location == applyTextDecLoc));
-                    if (currentDec.Count == 0) currentDec = null!;
-                }
+                decorations.RemoveAll([.. decorations.Where(d => d.Location == applyTextDecorationLocation)]);
             }
-        }
-        else
-        { // none of the runs contain textdec, or mixed, so add to all which lack it
-            foreach (EditableRun erun in ieds.OfType<EditableRun>())
+            else if (!decorations.Any(d => d.Location == applyTextDecorationLocation))
             {
-                var currentDec = erun.TextDecorations == null ? new TextDecorationCollection() : [.. erun.TextDecorations];
-
-                bool alreadyHasDecoration = currentDec.Any(x => x.Location == applyTextDecLoc);
-                if (!alreadyHasDecoration)
-                    currentDec.Add(new TextDecoration() { Location = applyTextDecLoc });
-
-                erun.TextDecorations = currentDec;
+                decorations.Add(new TextDecoration { Location = applyTextDecorationLocation });
             }
+
+            erun.TextDecorations = decorations.Count == 0 ? null : decorations;
         }
-
-
     }
-
-    private void ApplyFontSizeRuns(List<IEditable> ieds, object fontsize)
+      
+    private void ApplyFontSizeRuns(List<IEditable> ieds, object? newFontsize)
     {
+        if (newFontsize is not double applyFontSize) return;
+
         foreach (IEditable ied in ieds)
-            if (ied is EditableRun edrun) { edrun.FontSize = (double)fontsize; }
+            if (ied is EditableRun edrun) { edrun.FontSize = applyFontSize; }
     }
 
-    private void ApplyBackgroundRuns(List<IEditable> ieds, object background)
+    private void ApplyBackgroundRuns(List<IEditable> ieds, object? newBackground)
     {
         ISolidColorBrush applyBrush = Brushes.Transparent;
-        if (background is ISolidColorBrush solidBrush)
+        if (newBackground is ISolidColorBrush solidBrush)
             applyBrush = solidBrush;
 
         foreach (IEditable ied in ieds)
@@ -277,26 +272,28 @@ public partial class FlowDocument
 
     }
 
-    private void ApplyForegroundRuns(List<IEditable> ieds, object foreground)
+    private void ApplyForegroundRuns(List<IEditable> ieds, object? newForeground)
     {
         ISolidColorBrush applyBrush = Brushes.Transparent;
-        if (foreground is SolidColorBrush solidBrush)
+        if (newForeground is SolidColorBrush solidBrush)
             applyBrush = solidBrush;
         foreach (IEditable ied in ieds)
             if (ied is EditableRun edrun) { edrun.Foreground = applyBrush; }
 
     }
 
-    private void ApplyFontStretchRuns(List<IEditable> ieds, object fontstretch)
+    private void ApplyFontStretchRuns(List<IEditable> ieds, object? newFontstretch)
     {
+        if (newFontstretch is not FontStretch applyFontStretch) return;
         foreach (IEditable ied in ieds)
-            if (ied is EditableRun edrun) { edrun.FontStretch = (FontStretch)fontstretch; }
+            if (ied is EditableRun edrun) { edrun.FontStretch = applyFontStretch; }
     }
 
-    private void ApplyBaselineAlignmentRuns(List<IEditable> ieds, object baselinealignment)
+    private void ApplyBaselineAlignmentRuns(List<IEditable> ieds, object? newBaselinealignment)
     {
+        if (newBaselinealignment is not BaselineAlignment applyBaselineAlignment) return;
         foreach (IEditable ied in ieds)
-            if (ied is EditableRun edrun) { edrun.BaselineAlignment = (BaselineAlignment)baselinealignment; }
+            if (ied is EditableRun edrun) { edrun.BaselineAlignment = applyBaselineAlignment; }
     }
 
     internal void ResetInsertFormatting()
@@ -321,26 +318,6 @@ public partial class FlowDocument
         elink.Foreground = linkRun.Foreground;
     }
 
-    //internal static void EnsureEmptyRuns(ref Paragraph newpar)
-    //{
-    //   if (newpar.Inlines.Count == 0)
-    //      newpar.Inlines.Add(new EditableRun(""));
-
-    //   // linebreaks must have empty runs between them
-    //   for (int i = newpar.Inlines.Count - 1; i >= 0; i--)
-    //   {
-    //      if (!newpar.Inlines[i].IsLineBreak)
-    //         continue;
-
-    //      bool addBefore = i == 0 || newpar.Inlines[i - 1].IsLineBreak;
-    //      bool addAfter = i == newpar.Inlines.Count - 1;
-
-    //      if (addAfter)
-    //         newpar.Inlines.Insert(i + 1, new EditableRun(""));
-    //      if (addBefore)
-    //         newpar.Inlines.Insert(i, new EditableRun(""));
-    //   }
-    //}
-
+  
 }
 

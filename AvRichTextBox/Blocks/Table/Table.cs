@@ -43,9 +43,13 @@ public partial class Table : Block
     internal event RowDefsChangedHandler? RowDefsChanged;
 
     internal ObservableCollection<Cell> Cells { get; } = [];
+    
+    /// <summary>
+    /// Enumerates the cells in this table.
+    /// Do not cast this collection to a mutable collection type to add/remove Cells, instead use Add/RemoveColumns() and Add/RemoveRows()
+    /// </summary>
     public IEnumerable<Cell> GetCells => Cells;
-
-   
+    
     public ColumnDefinitions ColDefs 
     { 
         get; 
@@ -54,7 +58,7 @@ public partial class Table : Block
             field?.CollectionChanged -= ColDefs_CollectionChanged; 
             field = value; 
             field.CollectionChanged += ColDefs_CollectionChanged; 
-            foreach (ColumnDefinition cdef in field) AddDefaultCellToNewColDef(ColDefs.IndexOf(cdef)); 
+            foreach (ColumnDefinition cdef in field) AddDefaultCellsToNewColDef(ColDefs.IndexOf(cdef)); 
         } 
     } = [];
     
@@ -66,7 +70,7 @@ public partial class Table : Block
             field?.CollectionChanged -= RowDefs_CollectionChanged; 
             field = value; 
             field.CollectionChanged += RowDefs_CollectionChanged; 
-            foreach (RowDefinition rdef in field) AddDefaultCellToNewRowDef(RowDefs.IndexOf(rdef)); 
+            foreach (RowDefinition rdef in field) AddDefaultCellsToNewRowDef(RowDefs.IndexOf(rdef)); 
         } 
     } = [];
 
@@ -84,6 +88,7 @@ public partial class Table : Block
 
         ColDefs.CollectionChanged += ColDefs_CollectionChanged;
         RowDefs.CollectionChanged += RowDefs_CollectionChanged;
+
     }
 
     /// <summary>
@@ -125,7 +130,6 @@ public partial class Table : Block
 
     internal void UpdateColAndRowPoints()
     {
-
         Dispatcher.UIThread.Post(() =>
         {
             this.Width = ColDefs.Sum(cd => cd.Width.Value) + this.BorderThickness.Left + this.BorderThickness.Right;
@@ -145,14 +149,19 @@ public partial class Table : Block
         });
     }
 
-    private void AddDefaultCellToNewRowDef(int rowDefIndex)
+    private void AddDefaultCellsToNewRowDef(int rowDefIndex)
     {
         DisableUndoStack = true;
+
+        int baseInsertIdx = Cells.Count;
+
+        if (Cells.FirstOrDefault(c => c.RowNo == rowDefIndex + 1) is Cell insertBeforeCell)
+            baseInsertIdx = Cells.IndexOf(insertBeforeCell);
 
         // Insert default cells
         for (int colno = 0; colno < ColDefs.Count; colno++)
         {
-            int insertNo = rowDefIndex * ColDefs.Count + colno;
+            int insertNo = baseInsertIdx + colno;
 
             Cell newCell = new()
             {
@@ -183,17 +192,22 @@ public partial class Table : Block
 
     }
 
-    private void AddDefaultCellToNewColDef(int cdefIndex)
+    private void AddDefaultCellsToNewColDef(int colDefIndex)
     {
         DisableUndoStack = true;
 
+        int insertIdx = Cells.Count;
+
         for (int rowno = 0; rowno < this.RowDefs.Count; rowno++)
-        {
-            int insertNo = rowno * ColDefs.Count + cdefIndex;
+        {        
+            if (Cells.FirstOrDefault(c => c.RowNo == rowno && c.ColNo == colDefIndex + 1) is Cell insertBeforeCell)
+                insertIdx = Cells.IndexOf(insertBeforeCell);
+            else if(Cells.FirstOrDefault(c => c.RowNo == rowno + 1 && c.ColNo == 0) is Cell firstCellNextRow)
+                insertIdx = Cells.IndexOf(firstCellNextRow);
 
             Cell newCell = new()
             {
-                ColNo = cdefIndex,
+                ColNo = colDefIndex,
                 RowNo = rowno,
                 BorderThickness = new(1),
                 BorderBrush = Brushes.Black,
@@ -206,7 +220,7 @@ public partial class Table : Block
 
             newCell.CellBlocks.Add(newPar);
             
-            Cells.Insert(insertNo, newCell);
+            Cells.Insert(insertIdx, newCell);
 
             newCell.IsAttachedToDocument = this.IsAttachedToDocument;
             newCell.ResizeCellBlocks();
@@ -235,12 +249,12 @@ public partial class Table : Block
                     // shift all cells right one column from insertion point, *before* adding new cell at insertion point
                     for (int colno = ColDefs.Count - numAdded; colno >= colIndex; colno--)
                     {
-                        if (GetCellAt(rowno, colno) is Cell lowerCell)
-                            lowerCell.ColNo += 1;
+                        if (GetCellAt(rowno, colno) is Cell rightCell)
+                            rightCell.ColNo += 1;
                     }
                 }
 
-                AddDefaultCellToNewColDef(colIndex);
+                AddDefaultCellsToNewColDef(colIndex);
 
             }
 
@@ -265,8 +279,8 @@ public partial class Table : Block
 
                         for (int colno = ColDefs.Count; colno >= oldIndex + 1; colno--)
                         {
-                            if (GetCellAt(rowno, colno) is Cell lowerCell)
-                                lowerCell.ColNo -= 1;
+                            if (GetCellAt(rowno, colno) is Cell rightCell)
+                                rightCell.ColNo -= 1;
                         }
                     }
                 }
@@ -303,7 +317,7 @@ public partial class Table : Block
                     }
                 }
                                 
-                AddDefaultCellToNewRowDef(rowIndex);
+                AddDefaultCellsToNewRowDef(rowIndex);
 
             }
 

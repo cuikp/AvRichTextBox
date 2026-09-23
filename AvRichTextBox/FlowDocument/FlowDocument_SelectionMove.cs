@@ -123,7 +123,7 @@ public partial class FlowDocument
             Selection.CollapseToEnd();
 
         // stop at end line of document
-        if (Blocks.Last() is Paragraph lastP && 
+        if (Blocks.LastOrDefault() is Paragraph lastP && 
             lastP.TextLayout.TextLines[lastP.TextLayout.TextLines.Count - 1] is TextLine lastLine && 
             lastP.StartInDoc + lastLine.FirstTextSourceIndex <= Selection.End)
            return;

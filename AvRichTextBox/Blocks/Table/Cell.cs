@@ -261,10 +261,32 @@ public class Cell : AvaloniaObject, INotifyPropertyChanged
             NotifyPropertyChanged(nameof(Padding)); 
         } 
     } = new(5);
-    
+
+
+    //bool _internalSet = false;
+    //internal void SetColNo(int value)
+    //{
+    //    _internalSet = true;
+    //    ColNo = value;
+    //    _internalSet = false;
+    //}
+    //public int ColNo { get; set { if (!_internalSet) throw new Exception("HALT"); field = value; NotifyPropertyChanged(nameof(ColNo)); } }
+
+    /// <summary>
+    /// Do not set ColNo directly on Cells in code-behind, it is set automatically with Add/RemoveColumns() and MergeCellsRight()
+    /// </summary>
     public int ColNo { get; set { field = value; NotifyPropertyChanged(nameof(ColNo)); } }
+    /// <summary>
+    /// Do not set RowNo directly on Cells in code-behind, it is set automatically with Add/RemoveRows() and MergeCellsDown()
+    /// </summary>
     public int RowNo { get; set { field = value; NotifyPropertyChanged(nameof(RowNo)); } }
+    /// <summary>
+    /// Do not set ColSpan directly on Cells in code-behind, it is set automatically with Add/RemoveColumns() and MergeCellsRight()
+    /// </summary>
     public int ColSpan { get; set { field = value; NotifyPropertyChanged(nameof(ColSpan)); } } = 1;
+    /// <summary>
+    /// Do not set RowSpan directly on Cells in code-behind, it is set automatically with Add/RemoveRows() and MergeCellsDown()
+    /// </summary>
     public int RowSpan { get; set { field = value; NotifyPropertyChanged(nameof(RowSpan)); } } = 1;
 
     public bool Selected { get; set { field = value; NotifyPropertyChanged(nameof(Selected)); } } = false;

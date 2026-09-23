@@ -93,7 +93,7 @@ public partial class FlowDocument
                 case RTFDomTable rtftable:
                     Table rtfTable = RtfConversions.GetTableFromRtfDom(rtftable, this, rtfdoc.ColorTable);
                     
-                    if (lastElm is RTFDomParagraph lastRtfPar && rtfBlockList.Last() is Paragraph lastPar && lastPar.IsEmptyInlinePar)
+                    if (lastElm is RTFDomParagraph lastRtfPar && rtfBlockList.LastOrDefault() is Paragraph lastPar && lastPar.IsEmptyInlinePar)
                         rtfBlockList.Remove(lastPar);  // Table doesn't need to be in a new paragraph 
 
                     rtfBlockList.Add(rtfTable);
@@ -409,7 +409,7 @@ public partial class FlowDocument
 
 
             // Ending line break must be followed by empty run
-            if (originalPar.Inlines.Last() is EditableLineBreak)
+            if (originalPar.Inlines.LastOrDefault() is EditableLineBreak)
                 originalPar.Inlines.Insert(originalPar.Inlines.Count, new EditableRun(""));
 
             parToInsert = originalPar.PropertyClone();
@@ -431,7 +431,7 @@ public partial class FlowDocument
             }
 
             // Line break at paragraph start must be preceded by an empty run
-            if (parToInsert.Inlines.First() is EditableLineBreak)
+            if (parToInsert.Inlines.FirstOrDefault() is EditableLineBreak)
                 parToInsert.Inlines.Insert(0, new EditableRun(""));
 
             if (addUndo)
@@ -471,7 +471,6 @@ public partial class FlowDocument
             ScrollInDirection?.Invoke(1);
         });
 
-        DisableUndoStack = false;
 
     }
 

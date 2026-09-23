@@ -611,7 +611,7 @@ internal class MergeCellsUndo(int tableId, int startMergedCellId, List<Cell> ori
             {
                 DisableUndoStack = true;
 
-                this.keepStartMergedCell = startMergedCell;
+                keepStartMergedCell = startMergedCell;
 
                 int cellIndex = table.Cells.IndexOf(startMergedCell);
                 table.Cells.Remove(startMergedCell);
@@ -641,7 +641,15 @@ internal class MergeCellsUndo(int tableId, int startMergedCellId, List<Cell> ori
             {
                 DisableUndoStack = true;
 
-                table.Cells.RemoveMany(origMergedCellClones);
+                for (int mergedCellNo = 0; mergedCellNo < origMergedCellClones.Count; mergedCellNo++)
+                {
+                    if (table.Cells.FirstOrDefault(c=> c.Id == origMergedCellClones[mergedCellNo].Id) is Cell getClonedCell)
+                    {
+                        origMergedCellClones[mergedCellNo] = getClonedCell;
+                        table.Cells.Remove(getClonedCell);
+                    }
+                }
+                
 
                 int cellIndex = origMergedCellCloneIndexes[0];
                 table.Cells.Insert(cellIndex, keepStartMergedCell);

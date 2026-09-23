@@ -179,14 +179,23 @@ internal static partial class HtmlConversions
                     }
 
 
-                HtmlNode? contentNode = td.ChildNodes.FirstOrDefault(n => n.NodeType == HtmlNodeType.Element);
-
-                if (contentNode != null)
+                foreach (HtmlNode contentNode in td.ChildNodes.OfType<HtmlNode>())
                 {
-                    Paragraph p = GetParagraphFromNode(contentNode, fdoc);
-                    newCell.CellBlocks.Add(p);
+                    switch (contentNode.Name)
+                    {
+                        case "p":
+                            Paragraph p = GetParagraphFromNode(contentNode, fdoc);
+                            newCell.CellBlocks.Add(p);
+                            break;
+
+                        case "t":
+                            Table t = GetTableFromNode(contentNode, fdoc);
+                            newCell.CellBlocks.Add(t);
+                            break;
+                    }
                 }
-                else
+
+                if (newCell.CellBlocks.Count == 0)
                     newCell.CellBlocks.Add(new Paragraph());
 
                 newTable.Cells.Add(newCell);

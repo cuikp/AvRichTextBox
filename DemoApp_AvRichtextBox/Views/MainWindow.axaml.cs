@@ -43,13 +43,14 @@ public partial class MainWindow : Window
         TextBlock debugTB = new() { Text = "DebugPanel", VerticalAlignment = VerticalAlignment.Center };
         CheckBox debugCB = new() { Focusable = false };
         debugCB.IsCheckedChanged += DebugPanelCB_CheckedUnchecked;
-        debugCB.IsChecked = false;
+        debugCB.IsChecked = MainRTB.ShowDebuggerPanelInDebugMode;
         debugCBPanel.Children.Add(debugCB);
         debugCBPanel.Children.Add(debugTB);
+        debugCBPanel.IsVisible = MainRTB.ShowDebuggerPanelInDebugMode;
         TopPanel.Children.Add(debugCBPanel);
 
         //CreateTestDocumentWithTable();
-        //OpenTestDocument();
+        OpenTestDocument();
 
 #endif
 
@@ -168,8 +169,8 @@ public partial class MainWindow : Window
         });
 
         //Merge cells
-        newTable.MergeCellsRight(rowNo: 1, colNo: 1, numberCellsToMerge: 1);
-        newTable.MergeCellsDown(rowNo: 1, colNo: 3, numberCellsToMerge: 1);
+        newTable.MergeCellsRightAt(rowNo: 1, colNo: 1, numberCellsToMerge: 1);
+        newTable.MergeCellsDownAt(rowNo: 1, colNo: 3, numberCellsToMerge: 1);
 
         //newTable.InsertColumns(0, 1);
 
@@ -258,7 +259,12 @@ public partial class MainWindow : Window
         if (firstMatch != null)
         {
             MainRTB.FlowDocument.Select(firstMatch.Index, FindTB.Text.Length);
-            MainRTB.ScrollToSelection();
+
+            bool isOutOfView = MainRTB.FlowDocument.Selection.GetStartRect.Y < MainRTB.GetVerticalScroll || MainRTB.FlowDocument.Selection.GetStartRect.Y > MainRTB.GetVerticalScroll + MainRTB.Bounds.Height;
+            
+            if (isOutOfView)
+                MainRTB.ScrollToSelection();
+
         }
         else
         {
@@ -293,6 +299,8 @@ public partial class MainWindow : Window
         bool isOutOfView = trange.GetStartRect.Y < MainRTB.GetVerticalScroll || trange.GetStartRect.Y > MainRTB.GetVerticalScroll + MainRTB.Bounds.Height;
         if (isOutOfView)
             MainRTB.ScrollToSelection();
+
+
     }
 
 

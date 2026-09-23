@@ -111,10 +111,11 @@ internal class ApplyFormattingUndo(FlowDocument flowDoc, List<EditablePropertyAs
 
             foreach (EditablePropertyAssociation propassoc in propertyAssociations)
             {
+                                
                 if (allPars.FirstOrDefault(bl => bl.Id == propassoc.BlockId) is Paragraph p && p.Inlines.FirstOrDefault(il => il.Id == propassoc.InlineId) is EditableRun erun)
                 {
-                    propassoc.keepERun = erun;
-                    flowDoc.ApplyFormattingInlines(propassoc.FormatRuns, [erun], propassoc.OrigPropertyValue);
+                    propassoc.keptERun = erun;
+                    flowDoc.ApplyFormattingInlines(propassoc.FormatRuns, [erun], propassoc.NewPropertyValue);
                 }
             }
 
@@ -189,7 +190,7 @@ internal class ApplyFormattingUndo(FlowDocument flowDoc, List<EditablePropertyAs
             DisableUndoStack = true;
 
             foreach (EditablePropertyAssociation propassoc in propertyAssociations)
-                flowDoc.ApplyFormattingInlines(propassoc.FormatRuns, [propassoc.keepERun], propassoc.NewPropertyValue);
+                flowDoc.ApplyFormattingInlines(propassoc.FormatRuns, [propassoc.keptERun], propassoc.NewPropertyValue);
 
             Paragraph lastPar = null!;
             for (int infono = removedInlinesInfo.Count - 1; infono >= 0; infono--)

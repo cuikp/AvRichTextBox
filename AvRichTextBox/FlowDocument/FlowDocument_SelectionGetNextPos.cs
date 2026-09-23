@@ -108,7 +108,7 @@ public partial class FlowDocument
                 {
                     if (thisTable.Cells.LastOrDefault(c => c.RowNo == rowno + 1 && c.ColNo <= colno + (colspan - 1)) is Cell cellBelow)
                     {
-                        if (cellBelow.CellBlocks.First() is Paragraph firstPar)
+                        if (cellBelow.CellBlocks.FirstOrDefault() is Paragraph firstPar)
                             return firstPar.StartInDoc;
                     }
                 }
@@ -178,7 +178,7 @@ public partial class FlowDocument
                 {
                     if (thisTable.Cells.LastOrDefault(c => c.RowNo == rowno - 1 && c.ColNo <= colno) is Cell cellAbove)
                     {
-                        if (cellAbove.CellBlocks.Last() is Paragraph lastPar)
+                        if (cellAbove.CellBlocks.LastOrDefault() is Paragraph lastPar)
                             return lastPar.StartInDoc + lastPar.BlockLength - 1;
                     }
                 }
