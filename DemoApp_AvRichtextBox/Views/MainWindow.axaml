@@ -492,7 +492,7 @@
             </avrtb:Paragraph>
             </avrtb:Cell.GetCellBlocks>
             </avrtb:Cell>
-            --><!--<avrtb:Cell RowNo="0" ColNo="1" BorderBrush="Red" BorderThickness="3"/>--><!--
+            <avrtb:Cell RowNo="0" ColNo="1" BorderBrush="Red" BorderThickness="3"/>
             <avrtb:Cell RowNo="0" ColNo="2" BorderBrush="Blue" BorderThickness="3"/>
             <avrtb:Cell RowNo="1" ColNo="0" BorderBrush="Green" BorderThickness="2"/>
             <avrtb:Cell RowNo="1" ColNo="1" BorderBrush="Black" BorderThickness="2"/>

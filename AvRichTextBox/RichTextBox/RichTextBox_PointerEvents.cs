@@ -214,14 +214,11 @@ public partial class RichTextBox
         }
     }
 
-    //double downX, downY;
-
     private void FlowDocSV_PointerMoved(object? sender, PointerEventArgs e)
     {
         Point currPoint = e.GetPosition(this);
         if (Math.Abs(currPoint.X - downPoint.X) < 2 && Math.Abs(currPoint.Y - downPoint.Y) < 2)
             return;
-            
         
         if (PointerDownOverRTB)
         {
@@ -239,19 +236,26 @@ public partial class RichTextBox
             }
 
             double RTBTransformedY = this.GetTransformedBounds()!.Value.Clip.Y;
+            double RTBTransformedX = this.GetTransformedBounds()!.Value.Clip.X;
 
             foreach (KeyValuePair<EditableParagraph, Rect> kvp in VisualHelper.GetVisibleEditableParagraphs(FlowDocSV))
             {
+                //Debug.WriteLine("kvp = " + kvp.Key.Text + " //// " + kvp.Value.ToString());
+
                 Point ePoint = e.GetCurrentPoint(FlowDocSV).Position;
                 ePoint = ePoint.Transform(Matrix.CreateScale(scaleXTransform, scaleYTransform));
 
                 Rect thisEPRect = new(kvp.Value.X - this.Padding.Left, kvp.Value.Y - this.Padding.Top, kvp.Value.Width, kvp.Value.Height);
 
                 double adjustedMouseY = ePoint.Y + RTBTransformedY;
-                bool epContainsPoint = thisEPRect.Top <= adjustedMouseY && thisEPRect.Bottom >= adjustedMouseY;
+                double adjustedMouseX = ePoint.X + RTBTransformedX;
+                bool epContainsPoint = thisEPRect.Top <= adjustedMouseY && thisEPRect.Bottom >= adjustedMouseY && thisEPRect.Left <= adjustedMouseX && thisEPRect.Right >= adjustedMouseX;
 
                 if (epContainsPoint)
-                { overEP = kvp.Key; break; }
+                { 
+                    overEP = kvp.Key;
+                    break; 
+                }
             }
 
             if (overEP != null)

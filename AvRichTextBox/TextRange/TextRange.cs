@@ -1,7 +1,4 @@
-﻿using Avalonia.Media.TextFormatting;
-using DocumentFormat.OpenXml.Office2010.CustomUI;
-using DocumentFormat.OpenXml.Spreadsheet;
-using DynamicData;
+﻿using DynamicData;
 using System.ComponentModel;
 using System.Text;
 using static AvRichTextBox.XamlConversions;

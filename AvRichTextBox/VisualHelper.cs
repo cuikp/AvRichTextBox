@@ -25,16 +25,15 @@ internal static class VisualHelper
             return items;
         
         var edPars = itemsControl.GetVisualDescendants().OfType<EditableParagraph>();
+
         foreach (var edpar in edPars)
-        {
+        {   
             Rect vRect = edpar.GetTransformedBounds()!.Value.Clip;
-            //Rect vRect = edpar.Bounds;
-            
+            //Debug.WriteLine("\nvRect = " + vRect.ToString() + " /// " + edpar.Text);
+
             if (vRect.Y > 0)   // Greater than zero means it's visible
-                items.Add(edpar, edpar.GetTransformedBounds()!.Value.Clip);
-                //items.Add(edpar, edpar.GetTransformedBounds()!.Value.Bounds);
+                items.Add(edpar, vRect);
         }
-        
 
         return items;
     }

@@ -2,6 +2,8 @@
 using Avalonia.Layout;
 using Avalonia.Threading;
 using DynamicData;
+using System.Reflection;
+using System.Transactions;
 
 namespace AvRichTextBox;
 
@@ -668,3 +670,249 @@ internal class MergeCellsUndo(int tableId, int startMergedCellId, List<Cell> ori
 }
 
 
+internal class SplitCellVerticalUndo(int tableId, int splitStartCellId, int addedRowsIndexStart, int addedRowsCount, List<int> addedCellIds, FlowDocument flowDoc) : IEditDo
+{
+    public int EditOffset { get; set; } = 0;
+    public bool UpdateTextRanges => false;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false; public bool DoNextRedo => false;
+
+    readonly List<double> RowDefMinHeights = [];
+    readonly List<(Cell insertCell, int insertIdx)> insertCellInfo = [];
+    public void PerformUndo()
+    {
+        try
+        {
+            if (flowDoc.GetBlockFromId(tableId) is Table table && table.Cells.FirstOrDefault(c => c.Id == splitStartCellId) is Cell startMergedCell)
+            {
+                DisableUndoStack = true;
+
+                int cellIndex = table.Cells.IndexOf(startMergedCell);
+
+                if (addedRowsCount > 0)
+                {
+                    RowDefMinHeights.Clear();
+                    for (int rowno = addedRowsIndexStart + addedRowsCount - 1; rowno >= addedRowsIndexStart; rowno--)
+                    {
+                        RowDefMinHeights.Insert(0, table.RowDefs[rowno].MinHeight);
+
+                        for (int colno = 0; colno < table.ColDefs.Count; colno++)
+                        {
+                            if (table.Cells.FirstOrDefault(c => c.ColNo == colno && c.RowNo == startMergedCell.RowNo && c.ColNo != startMergedCell.ColNo) is Cell adjustCell)
+                                adjustCell.RowSpan -= 1;
+                        }
+
+                        table.RowDefs.RemoveAt(rowno);  // collectionchanged logic is skipped
+                    }
+                }
+                else
+                    startMergedCell.RowSpan += addedCellIds.Count;
+
+                //adjust all subsequent row numbers
+                for (int adjustRowNo = addedRowsIndexStart + addedRowsCount; adjustRowNo < table.RowDefs.Count + addedRowsCount; adjustRowNo++)
+                {
+                    for (int colno = 0; colno < table.ColDefs.Count; colno++)
+                    {
+                        if (table.Cells.FirstOrDefault(c => c.ColNo == colno && c.RowNo == adjustRowNo) is Cell adjustRowCell)
+                            adjustRowCell.RowNo -= addedRowsCount;
+                    }
+                }
+
+                insertCellInfo.Clear();
+                for (int cellidno = addedCellIds.Count - 1; cellidno >=0; cellidno--)
+                {
+                    if (table.Cells.FirstOrDefault(c => c.Id == addedCellIds[cellidno]) is Cell insertedCell)
+                    {
+                        int insertIdx = table.Cells.IndexOf(insertedCell);
+                        insertCellInfo.Insert(0, new(insertedCell, insertIdx));
+
+                        flowDoc.UpdateTextRanges(insertedCell.StartInDoc, -1);
+
+                        table.Cells.Remove(insertedCell);
+                    }
+                }
+
+                table.UpdateCellParagraphSizes();
+                table.UpdateColAndRowPoints();
+
+                DisableUndoStack = false;
+
+            }
+        }
+        catch { Debug.WriteLine($"Failed {this.GetType().Name} for vertical split cell: {splitStartCellId}"); }
+        finally { DisableUndoStack = false; }
+    }
+
+    public void PerformRedo()
+    {
+        try
+        {
+            if (flowDoc.GetBlockFromId(tableId) is Table table && table.Cells.FirstOrDefault(c => c.Id == splitStartCellId) is Cell startMergedCell)
+            {
+                DisableUndoStack = true;
+
+                for (int i = 0; i < RowDefMinHeights.Count; i++)
+                {
+                    //table.RowDefs.Insert(addedRowsIndexStart + i, new RowDefinition(rminheight, GridUnitType.Pixel));
+                    table.RowDefs.Insert(addedRowsIndexStart + i, new RowDefinition(35, GridUnitType.Pixel));
+
+                    for (int colno = 0; colno < table.ColDefs.Count; colno++)
+                    {
+                        if (table.Cells.FirstOrDefault(c => c.ColNo == colno && c.RowNo == startMergedCell.RowNo && c.ColNo != startMergedCell.ColNo) is Cell adjustCell)
+                            adjustCell.RowSpan += 1;
+                    }
+                }
+
+                //adjust all subsequent row numbers
+                for (int adjustRowNo = table.RowDefs.Count - addedRowsCount - 1; adjustRowNo >= addedRowsIndexStart; adjustRowNo--)
+                {
+                    for (int colno = 0; colno < table.ColDefs.Count; colno++)
+                    {
+                        if (table.Cells.FirstOrDefault(c => c.ColNo == colno && c.RowNo == adjustRowNo) is Cell adjustRowCell)
+                            adjustRowCell.RowNo += addedRowsCount;
+                    }
+                }
+
+
+                foreach ((Cell insertCell, int insertIdx) in insertCellInfo)
+                {
+                    flowDoc.UpdateTextRanges(insertCell.StartInDoc, 1);
+                    table.Cells.Insert(insertIdx, insertCell);
+                }
+
+
+                table.UpdateCellParagraphSizes();
+                table.UpdateColAndRowPoints();
+
+                DisableUndoStack = false;
+            }
+        }
+        catch { Debug.WriteLine($"Failed {MethodBase.GetCurrentMethod()?.Name} for vertical split cell: {splitStartCellId}"); }
+        finally { DisableUndoStack = false; }
+    }
+
+}
+
+internal class SplitCellHorizontalUndo(int tableId, int splitStartCellId, int addedColsIndexStart, int addedColsCount, List<int> addedCellIds, FlowDocument flowDoc) : IEditDo
+{
+    public int EditOffset { get; set; } = 0;
+    public bool UpdateTextRanges => false;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false; public bool DoNextRedo => false;
+    readonly List<(Cell insertCell, int insertIdx)> insertCellInfo = [];
+    readonly List<double> ColDefHeights = [];
+
+    public void PerformUndo()
+    {
+        try
+        {
+            if (flowDoc.GetBlockFromId(tableId) is Table table && table.Cells.FirstOrDefault(c => c.Id == splitStartCellId) is Cell startMergedCell)
+            {
+                DisableUndoStack = true;
+
+                int cellIndex = table.Cells.IndexOf(startMergedCell);
+
+                //////////////////////******************
+                if (addedColsCount > 0)
+                {
+                    ColDefHeights.Clear();
+
+                    for (int colno = addedColsIndexStart + addedColsCount - 1; colno >= addedColsIndexStart; colno--)
+                    {
+                        ColDefHeights.Insert(0, table.ColDefs[colno].Width.Value);
+
+                        for (int rowno = 0; rowno < table.RowDefs.Count; rowno++)
+                        {
+                            if (table.Cells.FirstOrDefault(c => c.RowNo == rowno && c.ColNo == startMergedCell.ColNo && c.RowNo != startMergedCell.RowNo) is Cell adjustCell)
+                                adjustCell.ColSpan -= 1;
+                        }
+
+                        table.ColDefs.RemoveAt(colno);  // collectionchanged logic is skipped
+                    }
+                }
+                else
+                    startMergedCell.ColSpan += addedCellIds.Count;
+
+                //adjust all subsequent column numbers
+                for (int adjustColNo = addedColsIndexStart + addedColsCount; adjustColNo < table.ColDefs.Count + addedColsCount; adjustColNo++)
+                {
+                    for (int rowno = 0; rowno < table.RowDefs.Count; rowno++)
+                    {
+                        if (table.Cells.FirstOrDefault(c => c.RowNo == rowno && c.ColNo == adjustColNo) is Cell adjustColCell)
+                            adjustColCell.ColNo -= addedColsCount;
+                    }
+                }
+
+                insertCellInfo.Clear();
+                for (int cellidno = addedCellIds.Count - 1; cellidno >= 0; cellidno--)
+                {
+                    if (table.Cells.FirstOrDefault(c => c.Id == addedCellIds[cellidno]) is Cell insertedCell)
+                    {
+                        int insertIdx = table.Cells.IndexOf(insertedCell);
+                        insertCellInfo.Insert(0, new(insertedCell, insertIdx));
+
+                        flowDoc.UpdateTextRanges(insertedCell.StartInDoc, -1);
+
+                        table.Cells.Remove(insertedCell);
+                    }
+                }
+
+
+                /////////////////////******************
+
+                table.UpdateCellParagraphSizes();
+                table.UpdateColAndRowPoints();
+                DisableUndoStack = false;
+
+            }
+        }
+        catch { Debug.WriteLine($"Failed {this.GetType().Name} for horizontal split cell: {{splitStartCellId}}"); }
+        finally { DisableUndoStack = false; }
+    }
+
+    public void PerformRedo()
+    {
+        try
+        {
+            if (flowDoc.GetBlockFromId(tableId) is Table table && table.Cells.FirstOrDefault(c => c.Id == splitStartCellId) is Cell startMergedCell)
+            {
+                DisableUndoStack = true;
+
+                for (int i = 0; i < addedColsCount; i++)
+                {
+                    table.ColDefs.Insert(addedColsIndexStart + i, new ColumnDefinition(ColDefHeights[i], GridUnitType.Pixel));
+                    
+                    for (int rowno = 0; rowno < table.RowDefs.Count; rowno++)
+                    {                        
+                        if (table.Cells.FirstOrDefault(c => c.RowNo == rowno && c.ColNo == startMergedCell.ColNo && c.RowNo != startMergedCell.RowNo) is Cell adjustCell)
+                            adjustCell.ColSpan += 1;
+                    }
+                }
+
+                //adjust all subsequent row numbers
+                for (int rowno = 0; rowno < table.RowDefs.Count; rowno++) 
+                { 
+                    for (int adjustColNo = table.ColDefs.Count - addedColsCount - 1; adjustColNo >= addedColsIndexStart; adjustColNo--)
+                    {
+                        if (table.Cells.FirstOrDefault(c => c.RowNo == rowno && c.ColNo == adjustColNo) is Cell adjustRowCell)
+                            adjustRowCell.ColNo += addedColsCount;
+                    }
+                }
+
+                foreach ((Cell insertCell, int insertIdx) in insertCellInfo)
+                {
+                    flowDoc.UpdateTextRanges(insertCell.StartInDoc, 1);
+                    table.Cells.Insert(insertIdx, insertCell);
+                }
+
+
+                table.UpdateCellParagraphSizes();
+                table.UpdateColAndRowPoints();
+
+                DisableUndoStack = false;
+            }
+        }
+        catch { Debug.WriteLine($"Failed {MethodBase.GetCurrentMethod()?.Name} for vertical split cell: {splitStartCellId}"); }
+        finally { DisableUndoStack = false; }
+    }
+}

@@ -261,16 +261,7 @@ public class Cell : AvaloniaObject, INotifyPropertyChanged
             NotifyPropertyChanged(nameof(Padding)); 
         } 
     } = new(5);
-
-
-    //bool _internalSet = false;
-    //internal void SetColNo(int value)
-    //{
-    //    _internalSet = true;
-    //    ColNo = value;
-    //    _internalSet = false;
-    //}
-    //public int ColNo { get; set { if (!_internalSet) throw new Exception("HALT"); field = value; NotifyPropertyChanged(nameof(ColNo)); } }
+       
 
     /// <summary>
     /// Do not set ColNo directly on Cells in code-behind, it is set automatically with Add/RemoveColumns() and MergeCellsRight()
@@ -373,6 +364,7 @@ public class Cell : AvaloniaObject, INotifyPropertyChanged
         return newCell;
     }
 
+    public string GetText => string.Join('\n', this.CellBlocks.ToList().ConvertAll(cb => cb.Text));
 
 }
 

@@ -65,7 +65,11 @@ public partial class RichTextBox
     {
         var sb = new StringBuilder();
 
-        List<Block> rangeBlocks = FlowDoc.GetOverlappingBlocksInRange(range, range.BiasForwardEnd);
+        List<Block> rangeBlocks = range.StartParagraph.IsCellBlock switch
+        {
+            true => FlowDoc.GetOverlappingParagraphsInRange(range, range.BiasForwardEnd).ConvertAll(p=> p as Block),
+            _ => FlowDoc.GetOverlappingBlocksInRange(range, range.BiasForwardEnd)
+        };
 
         rangeBlocks = rangeBlocks.ConvertAll(b=> 
         { 
@@ -175,6 +179,9 @@ public partial class RichTextBox
             _ => FlowDoc.GetOverlappingBlocksInRange(insertRange, FlowDoc.Selection.BiasForwardEnd).ConvertAll(ob => ob.FullClone(true))
         };
 
+        if (originalRangeBlockClones.Count == 0) // when selection is at start of empty paragraph and no range blocks were found
+            originalRangeBlockClones = [FlowDoc.Selection.StartParagraph.FullClone(true)];
+
         int insertParIndex = -1;
         if (destStartPar.IsCellBlock && destStartPar.OwningCell is Cell owningCell)
             insertParIndex = owningCell.CellBlocks.IndexOf(destStartPar);
@@ -252,23 +259,32 @@ public partial class RichTextBox
             }
 
             destStartPar.CallRequestInlinesUpdate();
+            //destEndPar.CallRequestTextLayoutInfoStart();
+            //destEndPar.CallRequestTextLayoutInfoEnd();
 
             FlowDoc.UpdateBlockAndInlineStarts(insertParIndex);
             FlowDoc.UpdateSelection();
 
-            this.DocIC.UpdateLayout();
-
             FlowDoc.UpdateTextRanges(originalSelectionStart, pastedTextLength - deleteRangeLength);
 
-            CreateClient();
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                this.DocIC.UpdateLayout();
 
-            FlowDoc.RestoreCaretTo(originalSelectionStart + pastedTextLength);
-            
-            FlowDoc.SelectionExtendMode = ExtendMode.ExtendModeNone;
-            FlowDoc.Selection.BiasForwardStart = false;
-            FlowDoc.Selection.BiasForwardEnd = false;
-            FlowDoc.ScrollFlowDocToCaret();
-            
+                bool isOutOfView = FlowDocument.Selection.GetStartRect.Y < GetVerticalScroll || FlowDocument.Selection.GetStartRect.Y > GetVerticalScroll + Bounds.Height - 40;
+                if (isOutOfView)
+                    FlowDoc.ScrollFlowDocToCaret();
+
+                CreateClient();
+
+                FlowDoc.RestoreCaretTo(originalSelectionStart + pastedTextLength);
+
+                FlowDoc.SelectionExtendMode = ExtendMode.ExtendModeNone;
+                FlowDoc.Selection.BiasForwardStart = false;
+                FlowDoc.Selection.BiasForwardEnd = false;
+
+            });
+
         }
     }
 

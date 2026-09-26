@@ -399,3 +399,8 @@ The following methods have been added, though currently without undo/redo capabi
 `SplitCellVertical(...)`/`SplitCellHorizontal(...)`  
 Fixed bug with multiple `TextDecoration`s Undo (e.g. underline+strikeout)  
 Fixed multiple paragraphs in Cells not reading in for XamlPackage/Html  
+
+**[ver 1.11.3] 2026/09/26**  
+`SplitCellVertical` fixes  
+Fixed mouse text selection inside `Table` Cells  
+`SplitCellVertical`  and `SplitCellHorizontal` undo/redo added

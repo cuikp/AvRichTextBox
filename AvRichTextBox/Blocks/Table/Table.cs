@@ -151,6 +151,7 @@ public partial class Table : Block
 
     private void AddDefaultCellsToNewRowDef(int rowDefIndex)
     {
+        bool keepDisableUndoStack = DisableUndoStack;
         DisableUndoStack = true;
 
         int baseInsertIdx = Cells.Count;
@@ -187,13 +188,14 @@ public partial class Table : Block
 
         this.UpdateColAndRowPoints();
         MyFlowDoc?.UpdateBlockAndInlineStarts(MyFlowDoc.Blocks.IndexOf(this));
-        
-        DisableUndoStack = false;
+
+        DisableUndoStack = keepDisableUndoStack;
 
     }
 
     private void AddDefaultCellsToNewColDef(int colDefIndex)
     {
+        bool keepDisableUndoStack = DisableUndoStack;
         DisableUndoStack = true;
 
         int insertIdx = Cells.Count;
@@ -229,7 +231,7 @@ public partial class Table : Block
         MyFlowDoc?.UpdateBlockAndInlineStarts(MyFlowDoc.Blocks.IndexOf(this));
         this.UpdateColAndRowPoints();
 
-        DisableUndoStack = false;
+        DisableUndoStack = keepDisableUndoStack;
     }
 
     private void ColDefs_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -296,7 +298,7 @@ public partial class Table : Block
 
     }
 
-    private void RowDefs_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    private void RowDefs_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         if (!this.IsAttachedToDocument || DisableUndoStack) return;
 
@@ -361,7 +363,7 @@ public partial class Table : Block
 
     bool _internalChange = false;
 
-    private void Cells_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    private void Cells_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         if (_internalChange) return;
         
@@ -391,7 +393,7 @@ public partial class Table : Block
                         if (cell.CellBlocks.Count == 0)
                             AddDefaultParagraph(cell.CellBlocks);
                     }
-                    catch (Exception ex) { Debug.WriteLine("Error trying to redefine cell: " + existingCell.ColNo + ", " + ex.Message); }
+                    catch (Exception ex) { Debug.WriteLine($"Error trying to redefine cell: {existingCell.ColNo}, {ex.Message}"); }
                     finally { _internalChange = false; }
                 }
 

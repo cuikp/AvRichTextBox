@@ -77,7 +77,7 @@ public partial class MainWindow : Window
         MainRTB.LoadXamlPackage(testdoc);
         OpenFilePath = testdoc;
 
-        TextRange newTR = new (MainRTB.FlowDocument, 743, 765);
+        TextRange newTR = new (MainRTB.FlowDocument, 787, 809);
         TextRange newTR2 = new (MainRTB.FlowDocument, 166, 186);
         
 

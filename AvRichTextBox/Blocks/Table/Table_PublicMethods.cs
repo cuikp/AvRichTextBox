@@ -206,16 +206,24 @@ public partial class Table
 
     internal void MergeCellsRight(int rowNo, int colNo, bool addUndo, int numberCellsToMerge = 1) 
     {
-
         if (GetCellAt(rowNo, colNo) is not Cell firstCell) return;
 
-        List<Cell> getMergeCells = [.. this.Cells.Where(c => c.RowNo == rowNo && c.ColNo >= colNo && c.ColNo <= colNo + numberCellsToMerge)];
+        int firstCellEndColNo = colNo + firstCell.ColSpan - 1;
+        //Do not allow horizontal merging of mixed row-span cells or at end of row
+        for (int i = 1; i <= numberCellsToMerge; i++)
+        {
+            Cell? checkCellToMerge = GetCellAt(rowNo, firstCellEndColNo + i);
+            if (checkCellToMerge == null || checkCellToMerge.RowSpan != firstCell.RowSpan)
+                return;
+        }
+
+        List<Cell> getMergeCells = [.. this.Cells.Where(c => c.RowNo == rowNo && c.ColNo >= colNo && c.ColNo <= firstCellEndColNo + numberCellsToMerge)];
         List<Cell> origMergedCellClones = [.. getMergeCells.Select(cell => cell.FullClone(this, true))];
         List<int> origMergedCellCloneIndexes = getMergeCells.ConvertAll(cc => this.Cells.IndexOf(cc));
 
         for (int i = 1; i <= numberCellsToMerge; i++)
         {
-            if (GetCellAt(rowNo, colNo + i) is Cell cellToMerge)
+            if (GetCellAt(rowNo, firstCellEndColNo + i) is Cell cellToMerge)
             {
                 firstCell.ColSpan += cellToMerge.ColSpan;
                 firstCell.CellBlocks.AddRange(cellToMerge.CellBlocks);
@@ -236,42 +244,35 @@ public partial class Table
 
     }
 
-    internal void RemoveUnnecessaryColumns()
-    {
-        for (int cdefno = ColDefs.Count - 1; cdefno >=0; cdefno--)
-        {
-            ColumnDefinition thisCD = ColDefs[cdefno];
-            if (!Cells.Any(c=> c.ColNo == cdefno))
-            {
-                foreach (Cell c in Cells)
-                {
-                    if (c.ColNo + c.ColSpan - 1 == cdefno)
-                        c.ColSpan -= 1;
-                }
-
-                ColDefs.RemoveAt(cdefno);
-
-            }
-        }
-        
-    }
-
     internal void MergeCellsDown(int rowNo, int colNo, bool addUndo, int numberCellsToMerge = 1)
     {
         if (GetCellAt(rowNo, colNo) is not Cell firstCell) return;
 
-        List<Cell> getMergeCells = [.. this.Cells.Where(c => c.ColNo == colNo && c.RowNo >= rowNo && c.RowNo <= rowNo + numberCellsToMerge)];
+        int firstCellEndRowNo = rowNo + firstCell.RowSpan - 1;
+
+        //Do not allow vertical merging of mixed col-span cells 
+        for (int i = 1; i <= numberCellsToMerge; i++)
+        {
+            Cell? checkCellToMerge = GetCellAt(firstCellEndRowNo + i, colNo);
+            if (checkCellToMerge == null || checkCellToMerge.ColSpan != firstCell.ColSpan)
+            return;
+        } 
+
+        List<Cell> getMergeCells = [.. this.Cells.Where(c => c.ColNo == colNo && c.RowNo >= rowNo && c.RowNo <= firstCellEndRowNo + numberCellsToMerge)];
         List<Cell> origMergedCellClones = [.. getMergeCells.Select(cell => cell.FullClone(this, true))];
         List<int> origMergedCellCloneIndexes = getMergeCells.ConvertAll(cc => this.Cells.IndexOf(cc));
 
         for (int i = 1; i <= numberCellsToMerge; i++)
         {
-            if (GetCellAt(rowNo + i, colNo) is Cell cellToMerge)
+            for (int mergeRightNo = 0; mergeRightNo < firstCell.ColSpan; mergeRightNo++)
             {
-                firstCell.RowSpan += cellToMerge.RowSpan;
-                firstCell.CellBlocks.AddRange(cellToMerge.CellBlocks);
-                cellToMerge.CellBlocks.Clear();
-                Cells.Remove(cellToMerge);
+                if (GetCellAt(firstCellEndRowNo + i, colNo + mergeRightNo) is Cell cellToMerge)
+                {
+                    firstCell.RowSpan += cellToMerge.RowSpan;
+                    firstCell.CellBlocks.AddRange(cellToMerge.CellBlocks);
+                    cellToMerge.CellBlocks.Clear();
+                    Cells.Remove(cellToMerge);
+                }
             }
         }
 
@@ -292,43 +293,150 @@ public partial class Table
     {
         if (GetCellAt(rowNo, colNo) is not Cell firstCell) return;
 
+        int addedRowsIndexStart = -1; 
+        int addedRowsCount = 0;
+        int noRequiredRowsToAdd = numberTargetRows - firstCell.RowSpan;
+        List<int> addedCellIds = [];
 
-        InsertRows(rowNo + 1, numberTargetRows - 1, addUndo: false);
-
-        for (int colIterate = 0; colIterate < ColDefs.Count; colIterate++)
+        if (noRequiredRowsToAdd > 0)
         {
-            if (colIterate != colNo)
+            addedRowsIndexStart = rowNo + 1;
+            addedRowsCount = numberTargetRows - 1;
+
+            InsertRows(addedRowsIndexStart, addedRowsCount, addUndo: false);
+            MyFlowDoc.UpdateBlockAndInlineStarts(this.StartInDoc);
+
+            DisableUndoStack = true;
+
+            for (int colIterate = 0; colIterate < ColDefs.Count; colIterate++)
             {
-                if (GetCellAt(rowNo + 1, colIterate) is Cell newMergingCell)
-                    newMergingCell.CellBlocks.Clear();
-                MergeCellsDown(rowNo, colIterate, false, numberTargetRows - 1);
+                for (int nextDownNo = 1; nextDownNo < numberTargetRows; nextDownNo++)
+                {
+                    if (GetCellAt(rowNo + nextDownNo, colIterate) is Cell nextDownCell)
+                    {
+                        if (colIterate == colNo)
+                        {
+                            nextDownCell.BorderThickness = firstCell.BorderThickness;
+                            nextDownCell.BorderBrush = firstCell.BorderBrush;
+                            nextDownCell.CellBackground = firstCell.CellBackground;
+                            nextDownCell.CellVerticalAlignment = firstCell.CellVerticalAlignment;
+                            nextDownCell.Padding = firstCell.Padding;
+                            addedCellIds.Add(nextDownCell.Id);
+                        }
+                        else
+                        {
+                            MyFlowDoc.UpdateTextRanges(nextDownCell.StartInDoc, -1);
+                            nextDownCell.CellBlocks.Clear();
+                        }
+                    }
+                }
+
+                if (colIterate != colNo)
+                {  // if a row was added, other col cells need to be merged with the new row
+                    int mergeFromRowNo = rowNo;
+                    Cell rowToIncreaseSpan = null!;
+
+                    while (rowToIncreaseSpan is null)
+                    {
+                        rowToIncreaseSpan = GetCellAt(mergeFromRowNo, colIterate)!;
+                        if (rowToIncreaseSpan != null)
+                        {
+                            if (mergeFromRowNo < 0 || (mergeFromRowNo < rowNo - 1 && rowToIncreaseSpan.RowSpan == 1))
+                                rowToIncreaseSpan = null!;
+                            break;
+                        }
+                        mergeFromRowNo -= 1;
+
+                    }
+
+                    if (rowToIncreaseSpan != null)
+                        MergeCellsDown(mergeFromRowNo, colIterate, false, noRequiredRowsToAdd);
+                    
+                }
+
             }
         }
+        else
+        { // split in place, no row additions necessary
 
-        //MyFlowDoc.Undos.Add(new SplitCellsVerticalUndo(this.Id, firstCell.Id, origMergedCellClones, origMergedCellCloneIndexes, MyFlowDoc));
-        //MyFlowDoc.Redos.Clear();
+            DisableUndoStack = true;
+
+            int thisCellIndex = Cells.Count;
+
+            for (int i = numberTargetRows - 1; i >=1; i--)
+            {
+                Cell newCell = new()
+                {
+                    ColNo = colNo,
+                    RowNo = rowNo + i,
+                    BorderThickness = firstCell.BorderThickness,
+                    BorderBrush = firstCell.BorderBrush,
+                    CellBackground = firstCell.CellBackground,
+                    CellVerticalAlignment = firstCell.CellVerticalAlignment,
+                    Padding = firstCell.Padding,
+                    OwningTable = this,
+                };
+
+                Paragraph newPar = new() { MyFlowDoc = this.MyFlowDoc, IsTableCellBlock = true, OwningTableId = this.Id, OwningCellId = newCell.Id, TextAlignment = TextAlignment.Center };
+                newPar.Inlines.Add(new EditableRun(""));
+                newCell.CellBlocks.Add(newPar);
+
+
+                if (Cells.FirstOrDefault(c => c.RowNo == rowNo + i && c.ColNo == colNo + 1) is Cell nextRightCell)
+                    thisCellIndex = Cells.IndexOf(nextRightCell);
+                else if (Cells.FirstOrDefault(c => c.RowNo == rowNo + i + 1 && c.ColNo == 0) is Cell firstCellNextRow)
+                    thisCellIndex = Cells.IndexOf(firstCellNextRow);
+
+                Cells.Insert(thisCellIndex, newCell);
+
+                addedCellIds.Insert(0, newCell.Id);
+
+                MyFlowDoc.UpdateTextRanges(newCell.StartInDoc, 1);
+                                
+                newCell.IsAttachedToDocument = this.IsAttachedToDocument;
+
+                firstCell.RowSpan -= 1;
+
+            }
+            
+        }
+
+        MyFlowDoc.Undos.Add(new SplitCellVerticalUndo(this.Id, firstCell.Id, addedRowsIndexStart, addedRowsCount, addedCellIds, MyFlowDoc));
+        MyFlowDoc.Redos.Clear();
 
         this.UpdateColAndRowPoints();
+
+        MyFlowDoc.UpdateCaret();
+        DisableUndoStack = false;
 
 
     }
 
-    
+
     public void SplitCellHorizontal(int rowNo, int colNo, int numberTargetCols = 2)
     {
         if (GetCellAt(rowNo, colNo) is not Cell firstCell) return;
-        int thisCellIndex = Cells.IndexOf(firstCell);
 
+        int addedColsIndexStart = -1;
+        int addedColsCount = 0;
+        List<int> addedCellIds = [];
         int noRequiredColsToAdd = numberTargetCols - firstCell.ColSpan;
 
         if (noRequiredColsToAdd > 0)
         {
-            InsertColumns(colNo + 1, noRequiredColsToAdd, addUndo: false);
+            addedColsIndexStart = colNo + 1;
+            addedColsCount = numberTargetCols - 1;
+
+            InsertColumns(colNo + 1, noRequiredColsToAdd, addUndo: false); // adds default cells
+
+            //return;
 
             DisableUndoStack = true;
 
             for (int rowIterate = 0; rowIterate < RowDefs.Count; rowIterate++)
             {
+                int mergeFromColNo = colNo;
+
                 for (int nextRightNo = 1; nextRightNo < numberTargetCols; nextRightNo++)
                 {
                     if (GetCellAt(rowIterate, colNo + nextRightNo) is Cell nextRightCell)
@@ -340,25 +448,60 @@ public partial class Table
                             nextRightCell.CellBackground = firstCell.CellBackground;
                             nextRightCell.CellVerticalAlignment = firstCell.CellVerticalAlignment;
                             nextRightCell.Padding = firstCell.Padding;
+                            addedCellIds.Add(nextRightCell.Id);
                         }
                         else
-                            nextRightCell.CellBlocks.Clear();  // clear so no text is added during merge (see below)
+                        {
+                            nextRightCell.CellBlocks.Clear();  // clear so no text is added during merge
+                            ////for (int wlno = colNo + nextRightNo - 1; wlno >=0; wlno--)
+                            //for (int wlno = colNo; wlno >=0; wlno--)
+                            //{
+                            //    if (GetCellAt(rowIterate, wlno) is Cell cmg)
+                            //    {
+                            //        mergeFromColNo = wlno;
+                            //        noRequiredColsToAdd += (cmg.ColSpan - 1);
+                            //        break;
+                            //    }
+                            //}
+                        }
+                            
                     }
                 }
-                
+
                 if (rowIterate != rowNo)
-                    MergeCellsRight(rowIterate, colNo, addUndo: false, noRequiredColsToAdd);
+                {   // if a col was added, other row cells need to be merged with the new column
+                    Cell cellToIncreaseSpan = null!;
+                    while (cellToIncreaseSpan is null)
+                    {
+                        cellToIncreaseSpan = GetCellAt(rowIterate, mergeFromColNo)!;
+                        if (cellToIncreaseSpan != null)
+                        {
+                            if (mergeFromColNo < 0 || (mergeFromColNo < colNo - 1 && cellToIncreaseSpan.ColSpan == 1))
+                                cellToIncreaseSpan = null!;
+                            break;
+                        }
+                        mergeFromColNo -= 1;
+                    }
+
+                    if (cellToIncreaseSpan != null)
+                        MergeCellsRight(rowIterate, mergeFromColNo, addUndo: false, noRequiredColsToAdd);
+                }
+
+
             }
         }
         else
-        {
+        {  // split in place, no column additions necessary
             DisableUndoStack = true;
 
-            for (int i = 1; i < numberTargetCols; i++)
+            int thisCellIndex = Cells.IndexOf(firstCell);
+
+            for (int i = numberTargetCols - 1; i >= 1; i--)
             {
                 Cell newCell = new()
                 {
-                    ColNo = colNo + firstCell.ColSpan - i,
+                    //ColNo = colNo + firstCell.ColSpan - i,
+                    ColNo = colNo + i,
                     RowNo = rowNo,
                     BorderThickness = firstCell.BorderThickness,
                     BorderBrush = firstCell.BorderBrush,
@@ -368,13 +511,14 @@ public partial class Table
                     Padding = firstCell.Padding,
                     OwningTable = this,
                 };
-
                
                 Paragraph newPar = new() { MyFlowDoc = this.MyFlowDoc, IsTableCellBlock = true, OwningTableId = this.Id, OwningCellId = newCell.Id, TextAlignment = TextAlignment.Center };
                 newPar.Inlines.Add(new EditableRun(""));
                 newCell.CellBlocks.Add(newPar);
 
-                Cells.Insert(thisCellIndex + i, newCell);
+                Cells.Insert(thisCellIndex + 1, newCell);
+
+                addedCellIds.Add(newCell.Id);
 
                 newCell.IsAttachedToDocument = this.IsAttachedToDocument;
 
@@ -383,8 +527,9 @@ public partial class Table
             }
         }
 
-        //MyFlowDoc.Undos.Add(new SplitCellsVerticalUndo(this.Id, firstCell.Id, origMergedCellClones, origMergedCellCloneIndexes, MyFlowDoc));
-        //MyFlowDoc.Redos.Clear();
+        MyFlowDoc.Undos.Add(new SplitCellHorizontalUndo(this.Id, firstCell.Id, addedColsIndexStart, addedColsCount, addedCellIds, MyFlowDoc));
+        
+        MyFlowDoc.Redos.Clear();
 
         this.UpdateCellParagraphSizes();
         this.UpdateColAndRowPoints();
@@ -394,7 +539,25 @@ public partial class Table
 
     }
 
-  
+    internal void RemoveUnnecessaryColumns()
+    {
+        for (int cdefno = ColDefs.Count - 1; cdefno >= 0; cdefno--)
+        {
+            ColumnDefinition thisCD = ColDefs[cdefno];
+            if (!Cells.Any(c => c.ColNo == cdefno))
+            {
+                foreach (Cell c in Cells)
+                {
+                    if (c.ColNo + c.ColSpan - 1 == cdefno)
+                        c.ColSpan -= 1;
+                }
+
+                ColDefs.RemoveAt(cdefno);
+
+            }
+        }
+    }
+
 
 }
 

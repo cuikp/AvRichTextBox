@@ -209,7 +209,11 @@ public partial class FlowDocument
         int originalRangeEnd = trange.End; // trange.Start + trange.Length;
 
         List<Block> rangeBlocks = GetOverlappingBlocksInRange(trange, Selection.BiasForwardEnd);
-                
+
+
+        if (rangeBlocks.Count == 0)  // when selection is at start of empty paragraph and no range blocks were found
+            rangeBlocks = [Selection.StartParagraph];
+
         int firstBlockId = rangeBlocks.First().Id;
         int firstBlockIndex = Blocks.IndexOf(rangeBlocks.First());
 
