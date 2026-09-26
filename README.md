@@ -81,6 +81,7 @@ The RichTextBox has the usual key functions:
 * <kbd>Ctrl</kbd>-<kbd>I</kbd> for *italic*/unitalic
 * <kbd>Ctrl</kbd>-<kbd>U</kbd> for <u>underline</u>/remove underline
 * <kbd>Ctrl</kbd>-<kbd>Z</kbd> for undo
+* <kbd>Ctrl</kbd>-<kbd>Y</kbd> for redo
 * <kbd>Ctrl</kbd>-<kbd>A</kbd> for select all
 
 The `FlowDoc` has a `Selection` property, with `Start`, `End`, `Length`, `Select`, `Delete`, `Text`, etc.
