@@ -38,6 +38,19 @@ public class HeadlessApiTests
         Assert.Equal(["abc", "def"], Paragraphs(Headless(rtf)).Select(TextOf));
     }
 
+    // Text without an explicit \f uses the \deff font, also after \plain; an explicit \f still wins.
+    [AvaloniaFact]
+    public void LoadRtf_TextWithoutFontControlWord_UsesTheDefaultFont()
+    {
+        FlowDocument document = Headless(@"{\rtf1\ansi\deff0{\fonttbl{\f0\fnil Arial;}{\f1\fnil Courier New;}}" +
+                                         @"\pard\fs20 abc \f1 def\plain  ghi\par}");
+
+        List<EditableRun> runs = [.. document.Blocks.OfType<Paragraph>().SelectMany(p => p.Inlines).OfType<EditableRun>()];
+        Assert.Equal("Arial", runs.Single(run => run.Text!.Contains("abc")).FontFamily.Name);
+        Assert.Equal("Courier New", runs.Single(run => run.Text!.Contains("def")).FontFamily.Name);
+        Assert.Equal("Arial", runs.Single(run => run.Text!.Contains("ghi")).FontFamily.Name);
+    }
+
     [AvaloniaFact]
     public void AppendRtfToRtf_ToAnEmptyBase_ReturnsTheAppendedText()
     {
