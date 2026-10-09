@@ -88,6 +88,39 @@ public class FormattingTests
     }
 
     [AvaloniaFact]
+    public void Enter_AtTheEndOfAParagraph_ContinuesTheCharacterFormat()
+    {
+        using var host = new EditorHost(@"{\rtf1{\fonttbl{\f0 Arial;}}\pard\f0\fs20\b abc}");
+        EditableRun last = RunWithText(host, "abc");
+
+        host.Select(3, 0);
+        host.Press(Key.Enter);
+
+        // The new paragraph carries the format before anything is typed - a formatting toolbar shows it at the caret.
+        Paragraph second = host.Document.Blocks.OfType<Paragraph>().ElementAt(1);
+        EditableRun empty = Assert.IsType<EditableRun>(Assert.Single(second.Inlines));
+        Assert.Equal(last.FontFamily.Name, empty.FontFamily.Name);
+        Assert.Equal(last.FontSize, empty.FontSize);
+        Assert.Equal(FontWeight.Bold, empty.FontWeight);
+
+        host.Type("x");
+        Assert.Equal("Arial", RunWithText(host, "x").FontFamily.Name);
+    }
+
+    [AvaloniaFact]
+    public void Enter_AfterAHyperlinkAtTheLineEnd_StartsPlainText()
+    {
+        using var host = new EditorHost(@"{\rtf1\pard see {\field{\*\fldinst HYPERLINK ""https://example.com""}{\fldrslt link}}}");
+        Assert.Contains(host.Document.Blocks.OfType<Paragraph>().First().Inlines, inline => inline is EditableHyperlink);
+
+        host.Select(host.Document.Blocks.OfType<Paragraph>().First().Text.TrimEnd('\r').Length, 0);
+        host.Press(Key.Enter);
+
+        Paragraph second = host.Document.Blocks.OfType<Paragraph>().ElementAt(1);
+        Assert.IsNotType<EditableHyperlink>(Assert.Single(second.Inlines));
+    }
+
+    [AvaloniaFact]
     public void GetCaretFormat_ReportsAPendingTypingFormat()
     {
         using var host = new EditorHost(@"{\rtf1\pard abc}");

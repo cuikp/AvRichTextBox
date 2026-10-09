@@ -126,6 +126,29 @@ public partial class FlowDocument
 
     }
 
+    // Empty run for a paragraph started by Enter at a line end: it continues the character format of the last run.
+    // After a hyperlink the new text is plain text in the same font (a link is not continued).
+    private static EditableRun EmptyRunContinuing(EditableRun lastRun)
+    {
+        EditableRun emptyRun = new("")
+        {
+            FontFamily = lastRun.FontFamily,
+            FontSize = lastRun.FontSize,
+            FontWeight = lastRun.FontWeight,
+            FontStyle = lastRun.FontStyle,
+        };
+
+        if (lastRun is not EditableHyperlink)
+        {
+            emptyRun.TextDecorations = lastRun.TextDecorations;
+            emptyRun.Foreground = lastRun.Foreground;
+            emptyRun.Background = lastRun.Background;
+            emptyRun.BaselineAlignment = lastRun.BaselineAlignment;
+        }
+
+        return emptyRun;
+    }
+
     internal void InsertText(string? insertText)
     {
 
@@ -366,8 +389,12 @@ public partial class FlowDocument
 
         if (Selection.End == insertPar.EndInDoc)
         {   // only need to add insert a new paragraph at the index
-            parToInsert = new Paragraph();
+            // As in RichEdit the new paragraph continues the paragraph format and the character format at the end of
+            // the line; a plain new Paragraph() started in the default font, so a toolbar showed no font at the caret.
+            parToInsert = insertPar.PropertyClone();
             insertPar.ContinueListIn(parToInsert);
+            if (insertPar.Inlines.LastOrDefault(inline => inline is EditableRun) is EditableRun lastRun)
+                parToInsert.Inlines.Add(EmptyRunContinuing(lastRun));
 
             if (insertPar.IsCellBlock)
                 insertPar.OwningCell?.CellBlocks.Insert(parIndex + 1, parToInsert);

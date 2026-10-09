@@ -416,6 +416,7 @@ Caret and selection are shown without an adorner layer (window templates without
 The editor no longer takes the keyboard focus when it loads or gets a document  
 Escape without an open popup stays unhandled for the hosting window  
 Fixed formatting the same range twice (second call had no effect)  
+Enter at a line end continues the paragraph and character format (font, size, bold, ...) as in RichEdit; after a hyperlink it starts plain text  
 Fixed typing over a whole-document selection losing the text; an emptied paragraph keeps the deleted character format  
 Fixed `GetSelectedParagraphs` for selections across paragraphs and `GetFormatting(FontWeight)`  
 RTF: fixed export of a document ending with a table (lost the last row), images without explicit size, truncated font sizes and character formatting carried into the next paragraph; missing or undecodable pictures no longer abort loading; text before the first paragraph control word is read  
