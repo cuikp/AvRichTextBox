@@ -13,7 +13,9 @@ public class RtfImportTests
     {
         var bitmap = new WriteableBitmap(new PixelSize(width, height), new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Premul);
         using var stream = new MemoryStream();
+#pragma warning disable CS0618 // same PNG encoder overload the library itself uses for RTF export
         bitmap.Save(stream);
+#pragma warning restore CS0618
         return Convert.ToHexString(stream.ToArray());
     }
 
