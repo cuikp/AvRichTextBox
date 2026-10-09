@@ -74,16 +74,7 @@ public partial class RichTextBox
       { new(Key.Left, Ctrl: true), () => { FlowDoc.MoveLeftWord(); } },
       { new(Key.Left, Ctrl: true, Shift: true), () => { FlowDoc.ExtendSelectionLeftWord(); } },
 
-      // Normal keys
-      { new(Key.Escape), () =>
-         {
-            if (HyperlinkPopupOpen)
-               CloseHyperlinkPopup();
-            else if (PreeditOverlay.IsVisible)
-               HideIMEOverlay();
-         }
-      },
-                
+      // Normal keys (Escape: see RichTextBox_KeyDown - handled only while a popup or the IME overlay is open)
       { new(Key.Home), () => { FlowDoc.MoveToStartOfLine(false); } },
       { new(Key.Home, Shift: true), () => { FlowDoc.MoveToStartOfLine(true); } },
       { new(Key.End), () => { FlowDoc.MoveToEndOfLine(false); } },
@@ -126,7 +117,25 @@ public partial class RichTextBox
 
     private void RichTextBox_KeyDown(object? sender, KeyEventArgs e)
     {
-        TryHandleKeyAction(e);
+        // Escape closes an open hyperlink popup or the IME overlay; otherwise it stays unhandled so the
+        // hosting window can process it (e.g. the accelerator of a Cancel button).
+        if (e.Key == Key.Escape && e.KeyModifiers == KeyModifiers.None)
+        {
+            if (HyperlinkPopupOpen)
+            {
+                CloseHyperlinkPopup();
+                e.Handled = true;
+            }
+            else if (PreeditOverlay.IsVisible)
+            {
+                HideIMEOverlay();
+                e.Handled = true;
+            }
+        }
+        else
+        {
+            TryHandleKeyAction(e);
+        }
 
 
         if (_CaretRect.Classes.Remove("blinking"))

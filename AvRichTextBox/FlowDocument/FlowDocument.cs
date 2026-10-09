@@ -48,7 +48,11 @@ public partial class FlowDocument : AvaloniaObject
     
     public void ScrollFlowDocToCaret() { Dispatcher.UIThread.Post(() => { ScrollToCaret?.Invoke(); }); }
 
-    public List<Paragraph> GetSelectedParagraphs => [.. AllParagraphs.Where(p => p.StartInDoc <= Selection.Start && p.EndInDoc >= Selection.End).Select(b => (Paragraph)b)];
+    // Collapsed selection: the paragraph holding the caret. Otherwise every paragraph overlapping the range -
+    // the former test (paragraph contains the whole range) returned nothing for a multi-paragraph selection.
+    public List<Paragraph> GetSelectedParagraphs => [.. AllParagraphs.Where(p => Selection.Length == 0
+        ? p.StartInDoc <= Selection.Start && Selection.Start < p.EndInDoc
+        : p.StartInDoc < Selection.End && p.EndInDoc > Selection.Start)];
 
     internal static readonly StyledProperty<ObservableCollection<Block>> BlocksProperty = AvaloniaProperty.Register<FlowDocument, ObservableCollection<Block>>(nameof(Blocks), defaultBindingMode: BindingMode.TwoWay);
     public ObservableCollection<Block> Blocks

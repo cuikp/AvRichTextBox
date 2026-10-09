@@ -15,9 +15,16 @@ public partial class FlowDocument
    [GeneratedRegex("\\\\o \".*?\"")]
    private static partial Regex RemoveOverstrikeRegex();
 
+   [GeneratedRegex(@"^(\s*\{\\rtf\d+)\b", RegexOptions.CultureInvariant)]
+   private static partial Regex RtfHeaderRegex();
+
    internal void LoadRtf(string rtfContent)
 	{
       RTFDomDocument rtfdom = new();
+
+      // The parser reads text only after a paragraph or formatting control word. RTF starts with the default
+      // paragraph format anyway; \pard makes it explicit without adding a paragraph or changing later formatting.
+      rtfContent = RtfHeaderRegex().Replace(rtfContent, "$1\\pard", 1);
 
 		// Do this to fix malformed `\o "` (overstrike) with/without orphaned quotes (old rtf feature that can break parsing)
 		if (rtfContent.Contains("\\o "))
@@ -37,9 +44,14 @@ public partial class FlowDocument
 			GetFlowDocumentFromRtf(rtfdom!, this);
 			InitializeDocument();
 		}
-		catch (Exception ex2) { Debug.WriteLine($"error getting flow doc:\n{ex2.Message}"); }
+		catch (Exception ex2)
+		{
+			Debug.WriteLine($"error getting flow doc:\n{ex2.Message}");
+			// The document is already cleared: without a paragraph the editor accepts no input.
+			InitializeDocument();
+		}
 	}
-	
+
 	internal void LoadRtfFromFile(string fileName)
 	{
 		try

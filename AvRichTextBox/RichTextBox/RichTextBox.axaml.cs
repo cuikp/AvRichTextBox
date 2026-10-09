@@ -99,7 +99,8 @@ public partial class RichTextBox : UserControl
         BindSelectionPropertiesToDebuggerPanel();
 #endif
 
-        this.Focus();
+        // No Focus() on load: a control must not take the keyboard focus away from the hosting window
+        // (an editor placed on a form stole it from the form's first input field).
 
         SelectionPath.Fill = this.SelectionBrush;
         UpdateSelectionIndicators();

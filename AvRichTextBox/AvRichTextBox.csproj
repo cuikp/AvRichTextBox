@@ -88,6 +88,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="AvRichTextBox.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="RtfDomParserAv">
       <HintPath>RtfDomParserAv.dll</HintPath>
     </Reference>

@@ -210,6 +210,8 @@ public class TextRange : INotifyPropertyChanged, IDisposable
     {
         object? formatting = null;
         if (myFlowDoc == null) return null;
+        // StartInline may still belong to the previous position until the context is refreshed.
+        UpdateContextStart();
         if (StartInline is IEditable currentInline)
             formatting = GetFormattingOfInline(avProp, currentInline);
 
@@ -224,7 +226,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
         {
             switch (avProperty.Name)
             {
-                case "Bold": returnValue = run.FontWeight; break;
+                case "FontWeight": returnValue = run.FontWeight; break;
                 case "FontFamily": returnValue = run.FontFamily; break;
                 case "FontStyle": returnValue = run.FontStyle; break;
                 case "TextDecorations": returnValue = run.TextDecorations; break;

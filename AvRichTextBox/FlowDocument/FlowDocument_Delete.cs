@@ -157,9 +157,9 @@ public partial class FlowDocument
                         Undos.Add(new DeleteCharUndo(startP.Id, startInline.Id, idxStartInlineInPar, deletedChar, selectionStartInInline, this, originalSelectionStart));
                     }
 
-                    //Paragraph must always have at least an empty run
+                    //Paragraph must always have at least an empty run (formatted like the deleted char, as in RichEdit)
                     if (startP.Inlines.Count == 0)
-                        startP.Inlines.Add(new EditableRun(""));
+                        startP.Inlines.Add(EmptyRunFormattedLike(startInline));
 
                 }
             }
@@ -251,6 +251,9 @@ public partial class FlowDocument
         List<IEditable> rangeInlines = createdInlinesResult.createdInlines;
         (int idLeft, int idRight) edgeIds = createdInlinesResult.edgeIds;
 
+        // An emptied paragraph keeps the format of the first deleted run, so typing continues in it (RichEdit behavior).
+        IEditable? formatTemplate = rangeInlines.FirstOrDefault(inline => inline is EditableRun);
+
         List<Block> toRemoveBlocks = [];
 
         //Delete the range inlines
@@ -263,7 +266,7 @@ public partial class FlowDocument
                 {
                     if (rangePar.IsTableCellBlock)
                     {  // if overlapping cell blocks got deleted, they shouldn't be removed
-                        rangePar.Inlines.Add(new EditableRun(""));
+                        rangePar.Inlines.Add(EmptyRunFormattedLike(formatTemplate));
                     }
                     else
                         toRemoveBlocks.Add(rangePar);
@@ -322,7 +325,7 @@ public partial class FlowDocument
         
         //Special case with one remaining block with no inlines
         if (Blocks.Count == 1 && Blocks[0] is Paragraph onlyPar && onlyPar.Inlines.Count == 0)
-            onlyPar.Inlines.Add(new EditableRun(""));
+            onlyPar.Inlines.Add(EmptyRunFormattedLike(formatTemplate));
 
         DisableUndoStack = keepDisableUndoStack;
 
@@ -332,6 +335,24 @@ public partial class FlowDocument
 
         return edgeIds;
 
+    }
+
+    // Empty run carrying the character format of the deleted text, so typing continues in that format.
+    private static EditableRun EmptyRunFormattedLike(IEditable? template)
+    {
+        if (template is not EditableRun run)
+            return new EditableRun("");
+        return new EditableRun("")
+        {
+            FontStyle = run.FontStyle,
+            FontWeight = run.FontWeight,
+            TextDecorations = run.TextDecorations,
+            FontSize = run.FontSize,
+            FontFamily = run.FontFamily,
+            Background = run.Background,
+            BaselineAlignment = run.BaselineAlignment,
+            Foreground = run.Foreground,
+        };
     }
 
     internal void MergeParagraphForward(int mergeCharIndex, bool addUndo, int originalSelectionStart)

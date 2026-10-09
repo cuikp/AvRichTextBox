@@ -191,6 +191,18 @@ public partial class FlowDocument
                 DeleteRange(Selection, true, false, true);
                 Selection.CollapseToStart();
                 SelectionExtendMode = ExtendMode.ExtendModeNone;
+
+                // The inline determined before deleting is often no longer part of the paragraph (whole selection
+                // deleted, e.g. after Ctrl+A); the text then went into a detached run and was lost.
+                if (Selection.GetStartPar() is Paragraph deletePar && deletePar.Inlines.Count == 0)
+                {
+                    deletePar.Inlines.Add(new EditableRun(""));
+                    UpdateBlockAndInlineStarts(deletePar);
+                }
+                Selection.UpdateContextStart();
+                if (Selection.StartInline is not IEditable remainingInline || remainingInline is EditableInlineUIContainer)
+                    return;
+                startInline = remainingInline;
             }
 
             DisableUndoStack = true;
