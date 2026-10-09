@@ -67,7 +67,7 @@
 		<ScrollViewer x:Name="FlowDocSV"  HorizontalScrollBarVisibility="Disabled" Margin="0" Padding="0" Offset="{Binding RTBScrollOffset, Mode=OneWay}" ScrollChanged="ScrollViewer_ScrollChanged" PointerPressed="FlowDocSV_PointerPressed" PointerMoved="FlowDocSV_PointerMoved" PointerReleased="FlowDocSV_PointerReleased"  >
 						
 
-			<Grid VerticalAlignment="Top">
+			<Grid x:Name="DocOverlayHost" VerticalAlignment="Top">
 
 				<!-- The FlowDocument itself -->
 				<ItemsControl x:Name="DocIC" DataContext="{Binding FlowDoc}" VerticalAlignment="Top" ItemsSource="{Binding Blocks}" Margin="0" Padding="{Binding PagePadding}" >
