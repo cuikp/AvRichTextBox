@@ -405,3 +405,20 @@ Fixed multiple paragraphs in Cells not reading in for XamlPackage/Html
 `SplitCellVertical` fixes  
 Fixed mouse text selection inside `Table` Cells  
 `SplitCellVertical`  and `SplitCellHorizontal` undo/redo added
+
+**[ver 1.11.4] 2026/10/09**  
+Updated to Avalonia 12.1.3; `Avalonia.ReactiveUI` replaced by `DynamicData` and `System.Reactive`  
+RTF list paragraphs: `\pntext`/`\listtext` markers become `Paragraph.ListMarker` (shown beside the text, hanging indent via `LeftIndent`/`FirstLineIndent`), saved again as `\pntext`; Enter continues the numbering, Backspace at an item start removes the marker (undoable)  
+XAML import reads inherited formatting (Section/List/Paragraph/Span), `Bold`/`Italic`/`Underline` nesting, text outside `<Run>`, lengths with units (px, pt, in, cm) and `List`/`ListItem`; XAML export writes list paragraphs as `List`/`ListItem`  
+New `FlowDocument.ApplyFormattingOrTypingFormat`/`GetCaretFormat` for formatting toolbars (formats the selection, or the next typed text without a selection); `ToggleBold`/`ToggleItalic`/`ToggleUnderlining` are public  
+New headless APIs: `FlowDocument.AppendRtfToRtf`, `LoadRtfHeadless`/`SaveRtfHeadless`, `SelectHeadless`/`ReplaceSelectionWithText`; `RichTextBox.ApplyBlackOnWhite()` keeps the document black on white under themes  
+Caret and selection are shown without an adorner layer (window templates without `VisualLayerManager`)  
+The editor no longer takes the keyboard focus when it loads or gets a document  
+Escape without an open popup stays unhandled for the hosting window  
+Fixed formatting the same range twice (second call had no effect)  
+Fixed typing over a whole-document selection losing the text; an emptied paragraph keeps the deleted character format  
+Fixed `GetSelectedParagraphs` for selections across paragraphs and `GetFormatting(FontWeight)`  
+RTF: fixed export of a document ending with a table (lost the last row), images without explicit size, truncated font sizes and character formatting carried into the next paragraph; missing or undecodable pictures no longer abort loading; text before the first paragraph control word is read  
+XAML column widths and HTML table widths are parsed culture invariant  
+Paragraph text is measured before `Loaded` (single-pass rendering for printing/image export)  
+Added a headless test project (`AvRichTextBox.Tests`)
