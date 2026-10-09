@@ -32,7 +32,7 @@ public partial class FlowDocument
 			rtfContent = rtfContent.Replace("\\o \"}", "\\o \"\"}").Replace(" \"}", " }");
 			rtfContent = RemoveOverstrikeRegex().Replace(rtfContent, "\\o\"\"");
 		}
-		rtfContent = NormalizeCharacterEscapes(rtfContent);
+		rtfContent = NormalizeCharacterEscapes(PrepareListText(rtfContent));
 		using MemoryStream rtfStream = new(Encoding.UTF8.GetBytes(rtfContent));
 		using StreamReader streamReader = new(rtfStream);
 

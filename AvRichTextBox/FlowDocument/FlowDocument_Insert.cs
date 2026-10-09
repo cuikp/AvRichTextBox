@@ -74,7 +74,7 @@ public partial class FlowDocument
 
         string rtfstring = Encoding.ASCII.GetString(rtfbytes);
         RTFDomDocument rtfdoc = new();
-        rtfdoc.LoadRTFText(rtfstring);
+        rtfdoc.LoadRTFText(RtfConversions.PrepareListText(rtfstring));
 
         //Debug.WriteLine("RTF: " + rtfstring);
 
@@ -394,6 +394,7 @@ public partial class FlowDocument
         if (Selection.End == insertPar.EndInDoc)
         {   // only need to add insert a new paragraph at the index
             parToInsert = new Paragraph();
+            insertPar.ContinueListIn(parToInsert);
 
             if (insertPar.IsCellBlock)
                 insertPar.OwningCell?.CellBlocks.Insert(parIndex + 1, parToInsert);
@@ -431,6 +432,7 @@ public partial class FlowDocument
                 originalPar.Inlines.Insert(originalPar.Inlines.Count, new EditableRun(""));
 
             parToInsert = originalPar.PropertyClone();
+            originalPar.ContinueListIn(parToInsert);
             parToInsert.Inlines.AddRange(RunList2);
 
             //Insert paragraph in appropriate block

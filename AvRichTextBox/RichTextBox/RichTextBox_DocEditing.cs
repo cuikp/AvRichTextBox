@@ -59,8 +59,12 @@ public partial class RichTextBox
    {
       if (IsReadOnly) return;
 
+      Paragraph startPar = FlowDoc.Selection.StartParagraph;
       if (FlowDoc.Selection.Length > 0)
          FlowDoc.DeleteSelection();
+      // As in RichEdit: at the paragraph start Backspace removes the list marker first.
+      else if (backspace && startPar.HasListMarker && FlowDoc.Selection.Start == startPar.StartInDoc)
+         startPar.ListMarker = "";
       else
       {
          if (backspace)

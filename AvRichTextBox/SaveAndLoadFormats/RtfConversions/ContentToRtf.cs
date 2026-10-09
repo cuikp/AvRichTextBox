@@ -336,6 +336,10 @@ internal static partial class RtfConversions
             parRtf.Append(@$"\cbpat{bkColIdx}");
         }
 
+        if (par.LeftIndent != 0) parRtf.Append($@"\li{(int)Math.Round(PixToTwip(par.LeftIndent))}");
+        if (par.FirstLineIndent != 0) parRtf.Append($@"\fi{(int)Math.Round(PixToTwip(par.FirstLineIndent))}");
+        parRtf.Append(GetListTextRtf(par, fontMap));
+
         foreach (IEditable ied in par.Inlines)
             parRtf.Append(GetIEditableRtf(ied, ref BoldOn, ref ItalicOn, ref UnderlineOn, ref StrikeoutOn, ref SuperscriptOn, ref SubscriptOn, ref CurrentLang, fontMap, colorMap));
 
@@ -356,6 +360,36 @@ internal static partial class RtfConversions
 
     }
 
+
+    private const string BulletMarker = "•";
+    private const string SymbolFontName = "Symbol";
+
+    // List marker as RichEdit writes it: \pntext carries the finished marker, {\*\pn...} the definition
+    // (bullet: Symbol \'B7, number: \pndec with \pnstart, letter: \pnlcltr/\pnucltr, otherwise a text marker).
+    private static string GetListTextRtf(Paragraph par, Dictionary<string, int> fontMap)
+    {
+        if (!par.HasListMarker)
+            return "";
+
+        if (par.ListMarker == BulletMarker)
+        {
+            int symbolFont = fontMap[SymbolFontName];
+            return $@"{{\pntext\f{symbolFont}\'B7\tab}}{{\*\pn\pnlvlblt\pnf{symbolFont}\pnindent0{{\pntxtb\'B7}}}}";
+        }
+
+        int font = fontMap.TryGetValue(par.ListMarkerFontFamily.Name, out int markerFont) ? markerFont : 0;
+        int lang = 1033;
+        string markerText = GetRtfRunText(par.ListMarker, ref lang);
+        string label = par.ListMarker.TrimEnd('.');
+        string numbering = label switch
+        {
+            _ when int.TryParse(label, out int number) => $@"\pnlvlbody\pnf{font}\pnindent0\pnstart{number}\pndec{{\pntxta.}}",
+            [>= 'a' and <= 'z'] => $@"\pnlvlbody\pnf{font}\pnindent0\pnstart{label[0] - 'a' + 1}\pnlcltr{{\pntxta.}}",
+            [>= 'A' and <= 'Z'] => $@"\pnlvlbody\pnf{font}\pnindent0\pnstart{label[0] - 'A' + 1}\pnucltr{{\pntxta.}}",
+            _ => $@"\pnlvlblt\pnf{font}\pnindent0{{\pntxtb {markerText}}}",
+        };
+        return $@"{{\pntext\f{font} {markerText}\tab}}{{\*\pn{numbering}}}";
+    }
 
     internal static string GetRtfFromInlines(List<IEditable> inlines)
     {
@@ -643,6 +677,9 @@ internal static partial class RtfConversions
         if (par.Background is ISolidColorBrush parBackground && parBackground.Color != Colors.Transparent)
             if (!colorMap.ContainsKey(parBackground.Color))
                 colorMap[parBackground.Color] = colorIndex++;
+
+        if (par.ListMarker == BulletMarker && !fontMap.ContainsKey(SymbolFontName))
+            fontMap[SymbolFontName] = fontIndex++;
 
         foreach (IEditable ied in par.Inlines)
         {

@@ -106,18 +106,24 @@
 										<Border BorderThickness="{Binding BorderThickness}" BorderBrush="{Binding BorderBrush}" CornerRadius="3" Margin="{Binding Margin}"
 											  VerticalAlignment="Top" HorizontalAlignment="Stretch" Padding="0" Background="{Binding Background}">
 
-											<local:EditableParagraph Classes="paragraphBindings" xml:space="preserve" Background="Transparent" 
-													MouseMove="EditableParagraph_MouseMove" 
-													MouseLeave="EditableParagraph_MouseLeave" 
-													LostFocus="EditableParagraph_LostFocus" 
+											<DockPanel Margin="{Binding IndentMargin}">
+												<TextBlock DockPanel.Dock="Left" VerticalAlignment="Top" IsVisible="{Binding HasListMarker}"
+														Text="{Binding ListMarker}" Width="{Binding ListMarkerWidth}"
+														FontFamily="{Binding ListMarkerFontFamily}" FontSize="{Binding ListMarkerFontSize}" />
 
-													TextLayoutInfoStartRequested="{Binding RequestTextLayoutInfoStart}"
-													TextLayoutInfoEndRequested="{Binding RequestTextLayoutInfoEnd}"
-													local:RequestExtensions.TextBlockFocusRequested="{Binding RequestTextBlockFocus}"
-													local:RequestExtensions.IsInlineUpdateRequested="{Binding RequestInlinesUpdate}"
-													local:RequestExtensions.InvalidateVisualRequested="{Binding RequestInvalidateVisual}"
-													/>
-											
+												<local:EditableParagraph Classes="paragraphBindings" xml:space="preserve" Background="Transparent"
+														MouseMove="EditableParagraph_MouseMove"
+														MouseLeave="EditableParagraph_MouseLeave"
+														LostFocus="EditableParagraph_LostFocus"
+
+														TextLayoutInfoStartRequested="{Binding RequestTextLayoutInfoStart}"
+														TextLayoutInfoEndRequested="{Binding RequestTextLayoutInfoEnd}"
+														local:RequestExtensions.TextBlockFocusRequested="{Binding RequestTextBlockFocus}"
+														local:RequestExtensions.IsInlineUpdateRequested="{Binding RequestInlinesUpdate}"
+														local:RequestExtensions.InvalidateVisualRequested="{Binding RequestInvalidateVisual}"
+														/>
+											</DockPanel>
+
 										</Border>
 									</DataTemplate>
 
@@ -152,18 +158,24 @@
 															
 																	<ItemsControl.ItemTemplate>
 
-																		<DataTemplate>
+																		<DataTemplate x:DataType="local:Paragraph">
 
-																			<local:EditableParagraph x:DataType="local:Paragraph" Classes="paragraphBindings" xml:space="preserve" 
-																				MouseMove="EditableParagraph_MouseMove" LostFocus="EditableParagraph_LostFocus" MouseLeave="EditableParagraph_MouseLeave" 
-																
-																				TextLayoutInfoStartRequested="{Binding RequestTextLayoutInfoStart}"
-																				TextLayoutInfoEndRequested="{Binding RequestTextLayoutInfoEnd}"
-																				local:RequestExtensions.TextBlockFocusRequested="{Binding RequestTextBlockFocus}"
-																				local:RequestExtensions.IsInlineUpdateRequested="{Binding RequestInlinesUpdate}"
-																				local:RequestExtensions.InvalidateVisualRequested="{Binding RequestInvalidateVisual}"
-																				local:RequestExtensions.SizeChangedRequested="{Binding RequestSizeChanged}"
-																				/>  
+																			<DockPanel Margin="{Binding IndentMargin}">
+																				<TextBlock DockPanel.Dock="Left" VerticalAlignment="Top" IsVisible="{Binding HasListMarker}"
+																						Text="{Binding ListMarker}" Width="{Binding ListMarkerWidth}"
+																						FontFamily="{Binding ListMarkerFontFamily}" FontSize="{Binding ListMarkerFontSize}" />
+
+																				<local:EditableParagraph Classes="paragraphBindings" xml:space="preserve"
+																					MouseMove="EditableParagraph_MouseMove" LostFocus="EditableParagraph_LostFocus" MouseLeave="EditableParagraph_MouseLeave"
+
+																					TextLayoutInfoStartRequested="{Binding RequestTextLayoutInfoStart}"
+																					TextLayoutInfoEndRequested="{Binding RequestTextLayoutInfoEnd}"
+																					local:RequestExtensions.TextBlockFocusRequested="{Binding RequestTextBlockFocus}"
+																					local:RequestExtensions.IsInlineUpdateRequested="{Binding RequestInlinesUpdate}"
+																					local:RequestExtensions.InvalidateVisualRequested="{Binding RequestInvalidateVisual}"
+																					local:RequestExtensions.SizeChangedRequested="{Binding RequestSizeChanged}"
+																					/>
+																			</DockPanel>
 																		</DataTemplate>
 																	</ItemsControl.ItemTemplate>
 																</ItemsControl>

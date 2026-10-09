@@ -63,25 +63,10 @@ internal partial class EditableParagraph : TextBlock
 
     private ItemsControl myDocIC = null!;
 
-    private ItemsControl GetDocIC => ThisPar == null ? null! : ThisPar.IsTableCellBlock switch
-    {
-        //Dig back to get top itemscontrol from paragraph cell:
-        true => (this.Parent is ContentPresenter cpres &&
-                 cpres.Parent is ItemsControl itemsCont &&
-                 itemsCont.Parent is EditableCell ecell &&
-                 ecell.Parent is Grid gr &&
-                 gr.Parent is ContentPresenter grcp &&
-                 grcp.Parent is EditableTable etable &&
-                 etable.Parent is ContentControl cc &&
-                 cc.Parent is ContentPresenter cp &&
-                 cp.Parent is ItemsControl ic) ? ic : null!,
-
-        //Dig back to get itemscontrol from normal paragraph:
-        false => (this.Parent is Border b &&
-                 b.Parent is ContentControl cc &&
-                 cc.Parent is ContentPresenter cp &&
-                 cp.Parent is ItemsControl ic) ? ic : null!
-    };
+    // The document ItemsControl of the RichTextBox, however deep the paragraph template (table cell, list marker
+    // column) nests the paragraph.
+    private ItemsControl GetDocIC => ThisPar == null ? null! :
+        this.GetVisualAncestors().OfType<ItemsControl>().FirstOrDefault(ic => ic.Name == "DocIC")!;
 
 
 
@@ -237,7 +222,8 @@ internal partial class EditableParagraph : TextBlock
         if (!thisPar.IsCellBlock) return;
         if (thisPar.OwningTable is not Table thisTable) return;
         if (thisPar.OwningCell is not Cell thisCell) return;
-        if (this.Parent is not ContentPresenter contPres || contPres.Parent is not ItemsControl itemsControl) return;
+        // The paragraph stack of the cell; the paragraph template may nest the paragraph (list marker column).
+        if (this.FindAncestorOfType<ItemsControl>() is not ItemsControl itemsControl) return;
         //Debug.WriteLine("\nnew size height = " + e.NewSize);
 
         double minCellContentHeight = thisTable.RowDefs[thisCell.RowNo].MinHeight;
