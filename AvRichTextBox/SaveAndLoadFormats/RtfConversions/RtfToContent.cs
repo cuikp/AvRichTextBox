@@ -298,13 +298,34 @@ internal static partial class RtfConversions
 
                 Avalonia.Controls.Image img = new()
                 {
-                    Width = TwipToPix(rtfImage.Width),
-                    Height = TwipToPix(rtfImage.Height),
                     Stretch = Stretch.Fill
                 };
 
-                MemoryStream memStream = new(rtfImage.Data) { Position = 0 };
-                img.Source = new Bitmap(memStream);
+                // Loaded RTF is external input (stored documents, clipboard of other programs): a picture group
+                // without data or in a format Avalonia cannot decode must not abort loading the whole document.
+                // The image then stays without a source.
+                Bitmap? imageSource = null;
+                if (rtfImage.Data is byte[] imageData && imageData.Length > 0)
+                {
+                    try
+                    {
+                        MemoryStream memStream = new(imageData) { Position = 0 };
+                        imageSource = new Bitmap(memStream);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine("image data could not be decoded: " + ex.Message);
+                    }
+                }
+                img.Source = imageSource;
+
+                // \picwgoal/\pichgoal is the display size. If it is missing or 0 the bitmap size applies;
+                // otherwise the loaded image would get width and height 0 and stay invisible.
+                double goalWidth = TwipToPix(rtfImage.Width);
+                double goalHeight = TwipToPix(rtfImage.Height);
+                img.Width = goalWidth > 0 ? goalWidth : imageSource?.Size.Width ?? 0;
+                img.Height = goalHeight > 0 ? goalHeight : imageSource?.Size.Height ?? 0;
+
                 eIUC.SetChild(img);
                 returnList.Add(eIUC);
             }
