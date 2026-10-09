@@ -74,6 +74,20 @@ public class FormattingTests
     }
 
     [AvaloniaFact]
+    public void FontSize_AppliedTwiceToTheSameSelection_TakesTheSecondValue()
+    {
+        using var host = new EditorHost(@"{\rtf1\pard abc}");
+
+        host.Select(0, 3);
+        host.Document.ApplyFormattingOrTypingFormat(Inline.FontSizeProperty, 20.0);
+        EditorHost.Pump();
+        host.Document.ApplyFormattingOrTypingFormat(Inline.FontSizeProperty, 30.0);
+        EditorHost.Pump();
+
+        Assert.Equal(30.0, RunWithText(host, "abc").FontSize);
+    }
+
+    [AvaloniaFact]
     public void GetCaretFormat_ReportsAPendingTypingFormat()
     {
         using var host = new EditorHost(@"{\rtf1\pard abc}");

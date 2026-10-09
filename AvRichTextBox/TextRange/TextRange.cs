@@ -245,6 +245,12 @@ public class TextRange : INotifyPropertyChanged, IDisposable
     {
         if (myFlowDoc == null) return;
         if (Length < 1) return;
+
+        // A non-empty range starts at its first character. The backward start bias left by a previous call (below)
+        // made a range beginning at a paragraph start find no start paragraph: Text came back empty and formatting
+        // the same range again did nothing.
+        BiasForwardStart = true;
+
         if (this.Text == "") return;
 
         myFlowDoc.ApplyFormattingRange(avProp, newValue, this);
