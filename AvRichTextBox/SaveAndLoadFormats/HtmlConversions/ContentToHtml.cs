@@ -193,7 +193,7 @@ internal static partial class HtmlConversions
                   if (eUIC.GetChild() is Image img && img.Source is Bitmap bmp)
                   {
                      using var memStream = new MemoryStream();
-                     bmp.Save(memStream);
+                     bmp.Save(memStream, PngBitmapEncoderOptions.Default);
                      var base64 = Convert.ToBase64String(memStream.ToArray());
 
                      var imgNode = hdoc.CreateElement("img");

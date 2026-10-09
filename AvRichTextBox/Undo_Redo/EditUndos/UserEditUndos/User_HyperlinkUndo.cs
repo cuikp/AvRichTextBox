@@ -90,7 +90,7 @@ internal class InsertHyperlinkAtCharIdxUndo(
 
 }
 
-internal class HyperlinkUpdateUndo (int parId, int hyperlinkId, string oldNavUri, string newNavUri, string oldText, string newText, FlowDocument flowDoc, int selStart, int textChangeLen): IEditDo
+internal class HyperlinkUpdateUndo (int parId, int hyperlinkId, string oldNavUri, string newNavUri, string oldText, string newText, FlowDocument flowDoc): IEditDo
 {
     public int EditOffset { get; set; }
     public bool UpdateTextRanges => false;

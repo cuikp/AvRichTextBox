@@ -477,7 +477,7 @@ internal static partial class RtfConversions
                         using (var context = renderTarget.CreateDrawingContext())
                             context.DrawImage(imgbitmap, new Rect(0, 0, picw, pich));
 
-                        renderTarget.Save(memoryStream);  // png by default
+                        renderTarget.Save(memoryStream, PngBitmapEncoderOptions.Default);
                     }
                     memoryStream.Seek(0, SeekOrigin.Begin);
 

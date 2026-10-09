@@ -141,7 +141,6 @@ public partial class FlowDocument
         Paragraph par = GetContainingParagraph(Selection.Start);
         if (par == null) return;
 
-        int updateOrigSelStart = Selection.Start;
         int oldLength = existingHyperlink.InlineLength;
 
         DisableUndoStack = true;
@@ -160,7 +159,7 @@ public partial class FlowDocument
         if (lengthDelta != 0)
             UpdateTextRanges(par.StartInDoc + existingHyperlink.TextPositionOfInlineInParagraph, lengthDelta);
 
-        Undos.Add(new HyperlinkUpdateUndo(par.Id, existingHyperlink.Id, oldUri, navigateUri, oldText, displayText, this, updateOrigSelStart, -lengthDelta));
+        Undos.Add(new HyperlinkUpdateUndo(par.Id, existingHyperlink.Id, oldUri, navigateUri, oldText, displayText, this));
 
         DisableUndoStack = false;
 

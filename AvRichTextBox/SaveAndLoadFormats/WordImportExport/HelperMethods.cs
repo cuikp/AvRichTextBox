@@ -64,7 +64,7 @@ internal static partial class HelperMethods
          context.DrawImage(originalBitmap, new Rect(0, 0, newWidth, newHeight));
       }
 
-      renderTarget.Save(memoryStream);  // png by default
+      renderTarget.Save(memoryStream, PngBitmapEncoderOptions.Default);
    }
 
    internal static string WordColorValueToHexString(string hcv, bool isBackground)
