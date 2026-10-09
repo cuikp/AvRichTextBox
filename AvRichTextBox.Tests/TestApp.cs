@@ -9,8 +9,10 @@ namespace AvRichTextBox.Tests
 {
     public class TestAppBuilder
     {
+        // Skia rendering instead of headless drawing: image export (RenderTargetBitmap) and frame captures need it.
         public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<App>()
-            .UseHeadless(new AvaloniaHeadlessPlatformOptions());
+            .UseSkia()
+            .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false });
     }
 
     public class App : Application
