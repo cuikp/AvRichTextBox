@@ -2,15 +2,45 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using System.Globalization;
 using System.IO.Compression;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
+using static AvRichTextBox.HelperMethods;
 
 namespace AvRichTextBox;
 
 internal partial class XamlConversions
 {
+    // WPF lengths in XAML (FontSize, Width, Height, BorderThickness) optionally carry a unit: px (default), pt, in,
+    // cm; HTML converters write CSS font sizes as "10pt". The number is culture invariant. Result in
+    // device-independent pixels (96 per inch), as WPF resolves the value.
+    internal static double ParseXamlLength(string value)
+    {
+        var text = value.Trim();
+        var factor = 1.0;
+        if (text.EndsWith("px", StringComparison.OrdinalIgnoreCase))
+        {
+            text = text[..^2];
+        }
+        else if (text.EndsWith("pt", StringComparison.OrdinalIgnoreCase))
+        {
+            factor = 96.0 / 72.0;
+            text = text[..^2];
+        }
+        else if (text.EndsWith("in", StringComparison.OrdinalIgnoreCase))
+        {
+            factor = 96.0;
+            text = text[..^2];
+        }
+        else if (text.EndsWith("cm", StringComparison.OrdinalIgnoreCase))
+        {
+            factor = 96.0 / 2.54;
+            text = text[..^2];
+        }
+        return double.Parse(text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture) * factor;
+    }
 
     readonly static List<Bitmap> consecutiveImageBitmaps = [];
 
@@ -102,33 +132,118 @@ internal partial class XamlConversions
     {  //Debug.WriteLine("xaml:\n" + docXamlString);
 
         fdoc.Blocks.Clear();
+        foreach (Block block in GetBlocksFromXamlString(docXamlString, fdoc))
+            fdoc.Blocks.Add(block);
+    }
 
+    // Indent per list level and hanging first-line indent of the marker, as RichEdit stores a WPF list
+    // (\li720, nested \li1440, \fi-360).
+    private const double ListLevelIndentTwips = 720;
+    private const double ListMarkerIndentTwips = 360;
+
+    // Inheritable TextElement properties: WPF passes them from Section, List, ListItem, Paragraph and Span on to
+    // the runs, so a paragraph with FontWeight="bold" makes its text bold.
+    private static readonly HashSet<string> InheritedAttributeNames =
+        ["FontFamily", "FontSize", "FontWeight", "FontStyle", "FontStretch", "Foreground", "TextDecorations", "TextAlignment"];
+
+    internal static List<Block> GetBlocksFromXamlString(string xamlString, FlowDocument fdoc)
+    {
+        List<Block> blocks = [];
         XmlDocument xamlDocument = new();
+        xamlDocument.LoadXml(xamlString);
+        if (xamlDocument.ChildNodes.Count == 1 && xamlDocument.ChildNodes[0] is XmlNode sectionNode && sectionNode.Name == "Section")
+            AddBlocks(sectionNode, blocks, fdoc, Inherit([], sectionNode), 0);
+        return blocks;
+    }
 
-        xamlDocument.LoadXml(docXamlString);
-        if (xamlDocument.ChildNodes.Count == 1)
+    private static void AddBlocks(XmlNode containerNode, List<Block> blocks, FlowDocument fdoc, Dictionary<string, string> inherited, int listLevel)
+    {
+        foreach (XmlNode blockNode in containerNode.ChildNodes.OfType<XmlNode>())
         {
-            XmlNode? SectionNode = xamlDocument.ChildNodes[0];
-            if (SectionNode!.Name == "Section")
+            switch (blockNode.Name)
             {
-                foreach (XmlNode blockNode in SectionNode.ChildNodes.OfType<XmlNode>())
-                {
-                    switch (blockNode.Name)
-                    {
-                        case "Paragraph":
+                case "Paragraph":
+                    blocks.Add(GetParagraph(blockNode, fdoc, inherited, listLevel));
+                    break;
 
-                            fdoc.Blocks.Add(GetParagraph(blockNode, fdoc));
-                            break;
+                case "Table":
+                    blocks.Add(GetTable(blockNode, fdoc));
+                    break;
 
-                        case "Table":
+                case "Section":
+                    AddBlocks(blockNode, blocks, fdoc, Inherit(inherited, blockNode), listLevel);
+                    break;
 
-                            fdoc.Blocks.Add(GetTable(blockNode, fdoc));
-                            break;
-                    }
-                }
+                case "List":
+                    AddList(blockNode, blocks, fdoc, Inherit(inherited, blockNode), listLevel + 1);
+                    break;
             }
         }
+    }
 
+    // Each ListItem becomes its paragraphs; the first one carries the marker.
+    private static void AddList(XmlNode listNode, List<Block> blocks, FlowDocument fdoc, Dictionary<string, string> inherited, int listLevel)
+    {
+        string markerStyle = listNode.Attributes?["MarkerStyle"]?.Value ?? "Disc";
+        int index = int.TryParse(listNode.Attributes?["StartIndex"]?.Value, out int startIndex) ? startIndex : 1;
+
+        foreach (XmlNode itemNode in listNode.ChildNodes.OfType<XmlNode>().Where(n => n.Name == "ListItem"))
+        {
+            int firstItemBlock = blocks.Count;
+            AddBlocks(itemNode, blocks, fdoc, Inherit(inherited, itemNode), listLevel);
+            if (firstItemBlock < blocks.Count && blocks[firstItemBlock] is Paragraph { HasListMarker: false } itemPar)
+            {
+                itemPar.ListMarker = ListMarkerText(markerStyle, index);
+                itemPar.FirstLineIndent = -TwipToPix(ListMarkerIndentTwips);
+            }
+            index++;
+        }
+    }
+
+    private static string ListMarkerText(string markerStyle, int index) => markerStyle switch
+    {
+        "None" => "",
+        "Circle" => "○",
+        "Square" => "■",
+        "Box" => "□",
+        "Decimal" => $"{index}.",
+        "LowerLatin" => $"{(char)('a' + (index - 1) % 26)}.",
+        "UpperLatin" => $"{(char)('A' + (index - 1) % 26)}.",
+        "LowerRoman" => $"{ToRoman(index).ToLowerInvariant()}.",
+        "UpperRoman" => $"{ToRoman(index)}.",
+        _ => "•",
+    };
+
+    private static string ToRoman(int number)
+    {
+        (int Value, string Digits)[] romanDigits = [(1000, "M"), (900, "CM"), (500, "D"), (400, "CD"), (100, "C"), (90, "XC"), (50, "L"), (40, "XL"), (10, "X"), (9, "IX"), (5, "V"), (4, "IV"), (1, "I")];
+        StringBuilder roman = new();
+        foreach ((int value, string digits) in romanDigits)
+            for (; number >= value; number -= value)
+                roman.Append(digits);
+        return roman.ToString();
+    }
+
+    // Inherited properties plus the inheritable attributes of the node (its own override inherited ones).
+    private static Dictionary<string, string> Inherit(Dictionary<string, string> inherited, XmlNode node, string? impliedName = null, string? impliedValue = null)
+    {
+        Dictionary<string, string> result = new(inherited);
+        if (impliedName != null)
+            result[impliedName] = impliedValue!;
+        foreach (XmlAttribute att in node.Attributes?.OfType<XmlAttribute>() ?? [])
+            if (InheritedAttributeNames.Contains(att.Name))
+                result[att.Name] = att.Value;
+        return result;
+    }
+
+    // All attributes that apply to the node: inherited ones it does not set itself, then its own.
+    private static IEnumerable<(string Name, string Value)> EffectiveAttributes(Dictionary<string, string> inherited, XmlNode? node)
+    {
+        Dictionary<string, string> own = node?.Attributes?.OfType<XmlAttribute>().ToDictionary(a => a.Name, a => a.Value) ?? [];
+        foreach (var kv in inherited.Where(kv => !own.ContainsKey(kv.Key)))
+            yield return (kv.Key, kv.Value);
+        foreach (var kv in own)
+            yield return (kv.Key, kv.Value);
     }
 
 
@@ -167,9 +282,9 @@ internal partial class XamlConversions
                 case "BorderThickness":
                     string[] vals = xmlatt.Value.Split(',', StringSplitOptions.TrimEntries);
                     if (vals.Length == 4)
-                        newTable.BorderThickness = new(Double.Parse(vals[0]), Double.Parse(vals[1]), Double.Parse(vals[2]), Double.Parse(vals[3]));
+                        newTable.BorderThickness = new(ParseXamlLength(vals[0]), ParseXamlLength(vals[1]), ParseXamlLength(vals[2]), ParseXamlLength(vals[3]));
                     else if(vals.Length > 0)
-                        newTable.BorderThickness = new(Double.Parse(vals[0]));
+                        newTable.BorderThickness = new(ParseXamlLength(vals[0]));
                     break;
 
                 case "BorderBrush":
@@ -296,16 +411,21 @@ internal partial class XamlConversions
     }
 
 
-    internal static Paragraph GetParagraph(XmlNode parNode, FlowDocument fdoc)
+    internal static Paragraph GetParagraph(XmlNode parNode, FlowDocument fdoc) => GetParagraph(parNode, fdoc, [], 0);
+
+    internal static Paragraph GetParagraph(XmlNode parNode, FlowDocument fdoc, Dictionary<string, string> inherited, int listLevel)
     {
-        Paragraph newPar = new();
-        //getNewPar.LineHeight = ;
-        foreach (XmlAttribute xmlatt in parNode.Attributes!.OfType<XmlAttribute>())
+        Paragraph newPar = new()
         {
-            switch (xmlatt.Name)
+            LeftIndent = TwipToPix(listLevel * ListLevelIndentTwips)
+        };
+
+        foreach ((string name, string value) in EffectiveAttributes(inherited, parNode))
+        {
+            switch (name)
             {
                 case "TextAlignment":
-                    switch (xmlatt.Value)
+                    switch (value)
                     {
                         case "Left": newPar.TextAlignment = TextAlignment.Left; break;
                         case "Justify": newPar.TextAlignment = TextAlignment.Justify; break;
@@ -315,266 +435,218 @@ internal partial class XamlConversions
                     break;
 
                 case "FontFamily":
-                    newPar.FontFamily = new FontFamily(xmlatt.Value);
+                    newPar.FontFamily = new FontFamily(value);
                     break;
 
                 case "FontSize":
-                    newPar.FontSize = Convert.ToDouble(xmlatt.Value);
+                    newPar.FontSize = ParseXamlLength(value);
                     break;
 
                 case "FontWeight":
-                    switch (xmlatt.Value)
-                    {
-                        case "Normal": newPar.FontWeight = FontWeight.Normal; break;
-                        case "Bold": newPar.FontWeight = FontWeight.Bold; break;
-                    }
+                    if (Enum.TryParse<FontWeight>(value, true, out FontWeight parWeight))
+                        newPar.FontWeight = parWeight;
                     break;
 
                 case "FontStyle":
-                    switch (xmlatt.Value)
-                    {
-                        case "Normal": newPar.FontStyle = FontStyle.Normal; break;
-                        case "Italic": newPar.FontStyle = FontStyle.Italic; break;
-                    }
+                    if (Enum.TryParse<FontStyle>(value, true, out FontStyle parStyle))
+                        newPar.FontStyle = parStyle;
                     break;
 
                 case "Background":
-                    newPar.Background = new SolidColorBrush(Color.Parse(xmlatt.Value));
+                    newPar.Background = new SolidColorBrush(Color.Parse(value));
                     break;
 
                 case "Margin":
-                    newPar.Margin = Thickness.Parse(xmlatt.Value);
+                    newPar.Margin = Thickness.Parse(value);
                     break;
-
             }
         }
 
-        //Debug.WriteLine("XmlAttributes:\n" + string.Join("____", tableNode.Attributes!.OfType<XmlAttribute>().Select(att => att.Name + "///" + att.Value)));
-
-        foreach (XmlNode inlineNode in parNode.ChildNodes.OfType<XmlNode>())
-        {
-            IEditable? newIED = null;
-            switch (inlineNode.Name)
-            {
-                case "Hyperlink":
-                    EditableHyperlink elink = new();
-                    foreach (XmlAttribute att in inlineNode.Attributes!)
-                    {
-                        switch (att.Name)
-                        {
-                            case "NavigateUri":
-                                elink.NavigateUri = att.Value;
-                                break;
-                        }
-                    }
-                    foreach (XmlNode runNode in inlineNode.ChildNodes.OfType<XmlNode>())
-                    {
-                        switch (runNode.Name)
-                        {
-                            case "Run":
-                                EditableRun linkRun = GetRun(runNode);
-                                FlowDocument.CopyRunPropsToHyperlinkText(linkRun, ref elink);
-                                break;
-                        }
-                    }
-                    newIED = elink;
-                    break;
-
-                case "Run":
-
-                    newIED = GetRun(inlineNode);
-                    break;
-
-                case "LineBreak":
-
-                    newIED = new EditableLineBreak();
-                    break;
-
-                case "InlineUIContainer":
-                    EditableInlineUIContainer eIUC = new(null!);
-
-                    foreach (XmlAttribute att in inlineNode.Attributes!)
-                    {
-                        switch (att.Name)
-                        {
-                            case "FontFamily":
-                                eIUC.FontFamily = new FontFamily(att.Value);
-                                break;
-                        }
-                    }
-
-                    if (inlineNode.ChildNodes.Count == 1)
-                    {
-                        XmlNode? controlNode = inlineNode.ChildNodes[0];
-                        if (controlNode!.Name == "Image")
-                        {
-                            Image img = new();
-
-                            foreach (XmlAttribute attC in controlNode.Attributes!)
-                            {
-                                switch (attC.Name)
-                                {
-                                    case "Width":
-                                        img.Width = double.Parse(attC.Value);
-                                        break;
-
-                                    case "Height":
-                                        img.Height = double.Parse(attC.Value);
-                                        break;
-
-                                    case "Stretch":
-                                        img.Stretch = Stretch.Fill; // leave fixed for now 
-                                        break;
-                                }
-                            }
-
-                            if (controlNode.ChildNodes.Count == 1 && controlNode.ChildNodes[0] is XmlNode sourceNode && sourceNode.Name == "Image.Source")
-                            {
-                                if (sourceNode.ChildNodes.Count == 1 && sourceNode.ChildNodes[0] is XmlNode bitmapNode && bitmapNode.Name == "BitmapImage")
-                                {
-                                    if (bitmapNode.Attributes?.OfType<XmlAttribute>().Where(batt => batt.Name == "UriSource").FirstOrDefault() is XmlAttribute uriSourceAtt)
-                                    {
-                                        Match imgNoMatch = ImageNoMatchRegex().Match(uriSourceAtt.Value);
-                                        if (imgNoMatch.Success)
-                                        {
-                                            int ImageNo = int.Parse(imgNoMatch.Value);
-                                            img.Source = consecutiveImageBitmaps[ImageNo - 1];
-                                        }
-                                    }
-                                }
-                            }
-
-                            eIUC.SetChild(img);
-                        }
-                    }
-
-                    newIED = eIUC;
-
-                    break;
-
-                default:
-                    Debug.WriteLine("unknown par xmlnode: " + inlineNode.Name);
-                    break;
-            }
-
-            if (newIED != null)
-                newPar.Inlines.Add(newIED);
-        }
-
+        AddInlines(parNode, newPar, Inherit(inherited, parNode));
 
         newPar.EnsureEmptyRuns();
 
         return newPar;
     }
 
-    internal static EditableRun GetRun(XmlNode inlineNode)
+    // Inline content of a paragraph or span. Span, Bold, Italic and Underline carry only formatting that their
+    // runs inherit; their text is taken flat into the paragraph.
+    private static void AddInlines(XmlNode containerNode, Paragraph par, Dictionary<string, string> inherited)
     {
-        EditableRun erun = new(inlineNode.InnerText);
-
-        foreach (XmlAttribute att in inlineNode.Attributes!)
+        foreach (XmlNode inlineNode in containerNode.ChildNodes.OfType<XmlNode>())
         {
-            switch (att.Name)
+            switch (inlineNode.Name)
             {
-                case "FontFamily":
-
-                    switch (att.Value)
-                    {
-                        case "$Default":
-                            //do nothing - inherit paragraph font
-                            break;
-                        default:
-                            erun.FontFamily = new FontFamily(att.Value);
-                            break;
-                    }
+                // Text directly in the paragraph without <Run> (WPF: implicit run with the paragraph format). HTML
+                // converters produce it for text before/between formatted passages and for plain text.
+                case "#text":
+                case "#cdata-section":
+                    par.Inlines.Add(CreateRun(inlineNode.Value ?? "", inherited));
                     break;
 
-                case "FontWeight":
-                    switch (att.Value)
-                    {
-                        case "Normal": erun.FontWeight = FontWeight.Normal; break;
-                        case "Bold": erun.FontWeight = FontWeight.Bold; break;
-                        case "DemiBold": erun.FontWeight = FontWeight.DemiBold; break;
-                        case "ExtraBold": erun.FontWeight = FontWeight.ExtraBold; break;
-                        case "Light": erun.FontWeight = FontWeight.Light; break;
-                        case "Thin": erun.FontWeight = FontWeight.Thin; break;
-                        case "Black": erun.FontWeight = FontWeight.Black; break;
-                        case "ExtraBlack": erun.FontWeight = FontWeight.ExtraBlack; break;
-                        case "UltraLight": erun.FontWeight = FontWeight.UltraLight; break;
-                        case "ExtraLight": erun.FontWeight = FontWeight.ExtraLight; break;
-                        case "SemiLight": erun.FontWeight = FontWeight.SemiLight; break;
-                        case "Heavy": erun.FontWeight = FontWeight.Heavy; break;
-                    }
+                case "Run":
+                    par.Inlines.Add(CreateRun(inlineNode.InnerText, inherited, inlineNode));
                     break;
 
-                case "FontSize":
-                    erun.FontSize = double.Parse(att.Value);
+                case "Span":
+                    AddInlines(inlineNode, par, Inherit(inherited, inlineNode));
                     break;
 
-                case "FontStyle":
-                    switch (att.Value)
-                    {
-                        case "Normal": erun.FontStyle = FontStyle.Normal; break;
-                        case "Italic": erun.FontStyle = FontStyle.Italic; break;
-                        case "Oblique": erun.FontStyle = FontStyle.Oblique; break;
-                    }
+                case "Bold":
+                    AddInlines(inlineNode, par, Inherit(inherited, inlineNode, "FontWeight", "Bold"));
                     break;
 
-                case "TextDecorations":
-                    erun.TextDecorations = [];
-                    foreach (string tDecRaw in att.Value.Split(','))
-                    {
-                        string tDec = tDecRaw.Trim();
-                        switch (tDec)
-                        {
-                            case "Underline": erun.TextDecorations.Add(new() { Location = TextDecorationLocation.Underline }); break;
-                            case "Overline": erun.TextDecorations.Add(new() { Location = TextDecorationLocation.Overline }); break;
-                            case "Baseline": erun.TextDecorations.Add(new() { Location = TextDecorationLocation.Baseline }); break;
-                            case "Strikethrough": erun.TextDecorations.Add(new() { Location = TextDecorationLocation.Strikethrough }); break;
-                        }
-                    }
+                case "Italic":
+                    AddInlines(inlineNode, par, Inherit(inherited, inlineNode, "FontStyle", "Italic"));
                     break;
 
-                case "Foreground":
-                    erun.Foreground = new SolidColorBrush(Color.Parse(att.Value));
+                case "Underline":
+                    AddInlines(inlineNode, par, Inherit(inherited, inlineNode, "TextDecorations", "Underline"));
                     break;
 
-                case "Background":
-                    erun.Background = new SolidColorBrush(Color.Parse(att.Value));
+                case "Hyperlink":
+                    par.Inlines.Add(GetHyperlink(inlineNode, Inherit(inherited, inlineNode)));
                     break;
 
-                case "FontStretch":
-                    switch (att.Value)
-                    {
-                        case "Normal": erun.FontStretch = FontStretch.Normal; break;
-                        case "Condensed": erun.FontStretch = FontStretch.Condensed; break;
-                        case "SemiCondensed": erun.FontStretch = FontStretch.SemiCondensed; break;
-                        case "ExtraCondensed": erun.FontStretch = FontStretch.ExtraCondensed; break;
-                        case "UltraCondensed": erun.FontStretch = FontStretch.UltraCondensed; break;
-                        case "Expanded": erun.FontStretch = FontStretch.Expanded; break;
-                        case "SemiExpanded": erun.FontStretch = FontStretch.SemiExpanded; break;
-                        case "ExtraExpanded": erun.FontStretch = FontStretch.ExtraExpanded; break;
-                        case "UltraExpanded": erun.FontStretch = FontStretch.UltraExpanded; break;
-                    }
+                case "LineBreak":
+                    par.Inlines.Add(new EditableLineBreak());
                     break;
 
-                case "BaselineAlignment":
-                    switch (att.Value)
-                    {
-                        case "Baseline": erun.BaselineAlignment = BaselineAlignment.Baseline; break;
-                        case "Bottom": erun.BaselineAlignment = BaselineAlignment.Bottom; break;
-                        case "Top": erun.BaselineAlignment = BaselineAlignment.Top; break;
-                        case "Center": erun.BaselineAlignment = BaselineAlignment.Center; break;
-                        case "TextTop": erun.BaselineAlignment = BaselineAlignment.TextTop; break;
-                        case "TextBottom": erun.BaselineAlignment = BaselineAlignment.TextBottom; break;
-                        case "Superscript": erun.BaselineAlignment = BaselineAlignment.Superscript; break;
-                        case "Subscript": erun.BaselineAlignment = BaselineAlignment.Subscript; break;
-                    }
+                case "InlineUIContainer":
+                    par.Inlines.Add(GetInlineUIContainer(inlineNode));
+                    break;
 
+                default:
+                    Debug.WriteLine("unknown par xmlnode: " + inlineNode.Name);
+                    break;
+            }
+        }
+    }
+
+    private static EditableHyperlink GetHyperlink(XmlNode linkNode, Dictionary<string, string> inherited)
+    {
+        EditableHyperlink elink = new();
+        if (linkNode.Attributes?["NavigateUri"] is XmlAttribute uriAtt)
+            elink.NavigateUri = uriAtt.Value;
+
+        foreach (XmlNode runNode in linkNode.ChildNodes.OfType<XmlNode>().Where(n => n.Name == "Run"))
+        {
+            EditableRun linkRun = CreateRun(runNode.InnerText, inherited, runNode);
+            FlowDocument.CopyRunPropsToHyperlinkText(linkRun, ref elink);
+        }
+
+        return elink;
+    }
+
+    private static EditableInlineUIContainer GetInlineUIContainer(XmlNode containerNode)
+    {
+        EditableInlineUIContainer eIUC = new(null!);
+
+        if (containerNode.Attributes?["FontFamily"] is XmlAttribute fontAtt)
+            eIUC.FontFamily = new FontFamily(fontAtt.Value);
+
+        if (containerNode.ChildNodes.Count != 1 || containerNode.ChildNodes[0] is not XmlNode controlNode || controlNode.Name != "Image")
+            return eIUC;
+
+        Image img = new();
+        foreach (XmlAttribute attC in controlNode.Attributes!)
+        {
+            switch (attC.Name)
+            {
+                case "Width":
+                    img.Width = ParseXamlLength(attC.Value);
+                    break;
+
+                case "Height":
+                    img.Height = ParseXamlLength(attC.Value);
+                    break;
+
+                case "Stretch":
+                    img.Stretch = Stretch.Fill; // leave fixed for now
                     break;
             }
         }
 
+        if (controlNode.ChildNodes.Count == 1 && controlNode.ChildNodes[0] is XmlNode sourceNode && sourceNode.Name == "Image.Source"
+            && sourceNode.ChildNodes.Count == 1 && sourceNode.ChildNodes[0] is XmlNode bitmapNode && bitmapNode.Name == "BitmapImage"
+            && bitmapNode.Attributes?.OfType<XmlAttribute>().FirstOrDefault(batt => batt.Name == "UriSource") is XmlAttribute uriSourceAtt)
+        {
+            Match imgNoMatch = ImageNoMatchRegex().Match(uriSourceAtt.Value);
+            if (imgNoMatch.Success)
+                img.Source = consecutiveImageBitmaps[int.Parse(imgNoMatch.Value) - 1];
+        }
+
+        eIUC.SetChild(img);
+        return eIUC;
+    }
+
+    internal static EditableRun GetRun(XmlNode inlineNode) => CreateRun(inlineNode.InnerText, [], inlineNode);
+
+    private static EditableRun CreateRun(string text, Dictionary<string, string> inherited, XmlNode? runNode = null)
+    {
+        EditableRun erun = new(text);
+        foreach ((string name, string value) in EffectiveAttributes(inherited, runNode))
+            ApplyRunAttribute(erun, name, value);
         return erun;
+    }
+
+    private static void ApplyRunAttribute(EditableRun erun, string name, string value)
+    {
+        switch (name)
+        {
+            case "FontFamily":
+                // "$Default" inherits the paragraph font.
+                if (value != "$Default")
+                    erun.FontFamily = new FontFamily(value);
+                break;
+
+            case "FontWeight":
+                // WPF XAML reads the values case-insensitively; HTML converters write CSS values in lower case ("bold").
+                if (Enum.TryParse<FontWeight>(value, true, out FontWeight runWeight))
+                    erun.FontWeight = runWeight;
+                break;
+
+            case "FontSize":
+                erun.FontSize = ParseXamlLength(value);
+                break;
+
+            case "FontStyle":
+                if (Enum.TryParse<FontStyle>(value, true, out FontStyle runStyle))
+                    erun.FontStyle = runStyle;
+                break;
+
+            case "TextDecorations":
+                erun.TextDecorations = [];
+                foreach (string tDecRaw in value.Split(','))
+                {
+                    switch (tDecRaw.Trim())
+                    {
+                        case "Underline": erun.TextDecorations.Add(new() { Location = TextDecorationLocation.Underline }); break;
+                        case "Overline": erun.TextDecorations.Add(new() { Location = TextDecorationLocation.Overline }); break;
+                        case "Baseline": erun.TextDecorations.Add(new() { Location = TextDecorationLocation.Baseline }); break;
+                        case "Strikethrough": erun.TextDecorations.Add(new() { Location = TextDecorationLocation.Strikethrough }); break;
+                    }
+                }
+                break;
+
+            case "Foreground":
+                erun.Foreground = new SolidColorBrush(Color.Parse(value));
+                break;
+
+            case "Background":
+                erun.Background = new SolidColorBrush(Color.Parse(value));
+                break;
+
+            case "FontStretch":
+                if (Enum.TryParse<FontStretch>(value, true, out FontStretch runStretch))
+                    erun.FontStretch = runStretch;
+                break;
+
+            case "BaselineAlignment":
+                if (Enum.TryParse<BaselineAlignment>(value, true, out BaselineAlignment runAlignment))
+                    erun.BaselineAlignment = runAlignment;
+                break;
+        }
     }
 
 }

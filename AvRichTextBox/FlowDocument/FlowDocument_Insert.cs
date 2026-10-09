@@ -120,34 +120,7 @@ public partial class FlowDocument
 
         string xamlString = Encoding.ASCII.GetString(xamlbytes);
 
-        List<Block> xamlBlocks = [];
-
-        XmlDocument xamlDocument = new();
-
-        xamlDocument.LoadXml(xamlString);
-
-        if (xamlDocument.ChildNodes.Count == 1)
-        {
-            XmlNode? SectionNode = xamlDocument.ChildNodes[0];
-            if (SectionNode!.Name == "Section")
-            {
-                foreach (XmlNode blockNode in SectionNode.ChildNodes.OfType<XmlNode>())
-                {
-                    switch (blockNode.Name)
-                    {
-                        case "Paragraph":
-
-                            xamlBlocks.Add(XamlConversions.GetParagraph(blockNode, this));
-                            break;
-
-                        case "Table":
-
-                            xamlBlocks.Add(XamlConversions.GetTable(blockNode, this));
-                            break;
-                    }
-                }
-            }
-        }
+        List<Block> xamlBlocks = XamlConversions.GetBlocksFromXamlString(xamlString, this);
 
         return ProcessInsertBlocks(xamlBlocks, startPar, insertIdx, insertParIndex, addedBlockIds, rightSplitRuns);
 
