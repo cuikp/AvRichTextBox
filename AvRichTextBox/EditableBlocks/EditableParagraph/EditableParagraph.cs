@@ -45,6 +45,14 @@ internal partial class EditableParagraph : TextBlock
     internal bool IsOverHyperlink = false;
     internal EditableHyperlink CurrentOverHyperlink = null!;
 
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+        // The first layout pass must already measure the text: Loaded comes later through the dispatcher, and a host
+        // that renders the document once (printing, image export) never waits for it.
+        UpdateInlines();
+    }
+
     internal void EditableParagraph_MouseMove(EditableParagraph sender, int charIndex)
     {
 
