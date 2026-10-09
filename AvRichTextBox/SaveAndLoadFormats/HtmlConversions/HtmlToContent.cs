@@ -85,7 +85,7 @@ internal static partial class HtmlConversions
         newTable.BorderThickness = tableBorderThickness;
 
         if (parsedTableStyles.TryGetValue("width", out var widthString))
-            tableWidthPix = Double.Parse(widthString.Replace("px", ""));
+            tableWidthPix = double.Parse(widthString.Replace("px", ""), NumberStyles.Float, CultureInfo.InvariantCulture);
 
         HorizontalAlignment tableHorizAlignment = HorizontalAlignment.Left;
         GetAlignmentFromCssStyle(parsedTableStyles, ref tableHorizAlignment);

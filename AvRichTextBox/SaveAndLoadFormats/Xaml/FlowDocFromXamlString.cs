@@ -304,7 +304,7 @@ internal partial class XamlConversions
                         {
                             foreach (XmlAttribute xmlatt in atts.OfType<XmlAttribute>().Where(widthAtt => widthAtt.Name == "Width"))
                             {
-                                double colWidth = Double.Parse(xmlatt.Value);
+                                double colWidth = ParseXamlLength(xmlatt.Value);
                                 newTable.ColDefs.Add(new ColumnDefinition(colWidth, GridUnitType.Pixel));
                             }
                         }

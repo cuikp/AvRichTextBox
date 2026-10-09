@@ -46,6 +46,26 @@ public class XamlTests
     }
 
     [AvaloniaFact]
+    public void LoadXaml_TableColumnWidth_IsReadCultureInvariant()
+    {
+        CultureInfo previousCulture = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = new CultureInfo("de-DE");
+        try
+        {
+            using var host = LoadXaml(
+                "<Table><Table.Columns><TableColumn Width=\"100.5\"/></Table.Columns>" +
+                "<TableRowGroup><TableRow><TableCell><Paragraph>a</Paragraph></TableCell></TableRow></TableRowGroup></Table>");
+
+            Table table = Assert.Single(host.Document.Blocks.OfType<Table>());
+            Assert.Equal(100.5, table.ColDefs[0].Width.Value);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = previousCulture;
+        }
+    }
+
+    [AvaloniaFact]
     public void LoadXaml_ParagraphFormatting_IsInheritedByItsRuns()
     {
         using var host = LoadXaml("<Paragraph FontWeight=\"bold\" FontStyle=\"italic\"><Run>abc</Run></Paragraph>");
