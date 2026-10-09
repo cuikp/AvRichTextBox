@@ -209,8 +209,12 @@ public partial class FlowDocument
 
             int insertIdx = 0;
             int originalStart = Selection.Start;
-            
-            if (InsertRunMode)
+
+            // A new run is also needed for a pending typing format (ApplyFormattingOrTypingFormat). The bold/italic/
+            // underline toggle (toggleFormatRun) applies only if IT requested the insert run - otherwise an earlier
+            // toggle state would rewrite the formatting of the new run.
+            bool toggleRequestedInsertRun = InsertRunMode;
+            if (InsertRunMode || HasPendingTypingFormats)
             {
                 if (startInline.CloneWithId() is not EditableRun startInlineRunClone) return;
                
@@ -236,8 +240,10 @@ public partial class FlowDocument
 
                 startInline.InlineText = insertText;
 
-                toggleFormatRun?.Invoke(startInline);
-                
+                if (toggleRequestedInsertRun)
+                    toggleFormatRun?.Invoke(startInline);
+                ApplyPendingTypingFormats(startInline);
+
                 InsertRunMode = false;
 
             }

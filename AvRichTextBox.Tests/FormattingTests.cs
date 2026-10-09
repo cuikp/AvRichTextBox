@@ -1,0 +1,102 @@
+using Avalonia.Controls.Documents;
+using Avalonia.Headless.XUnit;
+using Avalonia.Input;
+using Avalonia.Media;
+using Xunit;
+
+namespace AvRichTextBox.Tests;
+
+public class FormattingTests
+{
+    // "aa bb cc" with "bb" (chars 3-4) formatted; selecting exactly "bb" splits off zero-length edge runs.
+    private static EditorHost HostWithFormattedMiddleRun(string formatOn, string formatOff) =>
+        new($@"{{\rtf1\pard aa {formatOn} bb{formatOff}  cc}}");
+
+    private static EditableRun RunWithText(EditorHost host, string text) =>
+        Assert.Single(host.Runs, run => run.Text == text);
+
+    [AvaloniaFact]
+    public void CtrlB_OnExactlySelectedBoldRun_RemovesBold()
+    {
+        using var host = HostWithFormattedMiddleRun(@"\b", @"\b0");
+
+        host.Select(3, 2);
+        host.Press(Key.B, RawInputModifiers.Control);
+
+        Assert.Equal(FontWeight.Normal, RunWithText(host, "bb").FontWeight);
+    }
+
+    [AvaloniaFact]
+    public void CtrlI_OnExactlySelectedItalicRun_RemovesItalic()
+    {
+        using var host = HostWithFormattedMiddleRun(@"\i", @"\i0");
+
+        host.Select(3, 2);
+        host.Press(Key.I, RawInputModifiers.Control);
+
+        Assert.Equal(FontStyle.Normal, RunWithText(host, "bb").FontStyle);
+    }
+
+    [AvaloniaFact]
+    public void CtrlU_OnExactlySelectedUnderlinedRun_RemovesUnderline()
+    {
+        using var host = HostWithFormattedMiddleRun(@"\ul", @"\ulnone");
+
+        host.Select(3, 2);
+        host.Press(Key.U, RawInputModifiers.Control);
+
+        Assert.Null(RunWithText(host, "bb").TextDecorations);
+    }
+
+    [AvaloniaFact]
+    public void TypingFormat_WithoutSelection_AppliesToTheNextTypedText()
+    {
+        using var host = new EditorHost(@"{\rtf1\pard abc}");
+
+        host.Select(3, 0);
+        host.Document.ApplyFormattingOrTypingFormat(Inline.FontSizeProperty, 30.0);
+        host.Type("x");
+
+        Assert.Equal(30.0, RunWithText(host, "x").FontSize);
+        Assert.NotEqual(30.0, RunWithText(host, "abc").FontSize);
+    }
+
+    [AvaloniaFact]
+    public void TypingFormat_WithSelection_AppliesToTheSelectionAtOnce()
+    {
+        using var host = new EditorHost(@"{\rtf1\pard abc}");
+
+        host.Select(0, 3);
+        host.Document.ApplyFormattingOrTypingFormat(Inline.FontSizeProperty, 30.0);
+        EditorHost.Pump();
+
+        Assert.Equal(30.0, RunWithText(host, "abc").FontSize);
+    }
+
+    [AvaloniaFact]
+    public void GetCaretFormat_ReportsAPendingTypingFormat()
+    {
+        using var host = new EditorHost(@"{\rtf1\pard abc}");
+
+        host.Select(1, 0);
+        host.Document.ApplyFormattingOrTypingFormat(Inline.FontSizeProperty, 30.0);
+
+        Assert.Equal(30.0, host.Document.GetCaretFormat(Inline.FontSizeProperty));
+    }
+
+    [AvaloniaFact]
+    public void TypingFormat_DoesNotReapplyAnEarlierBoldToggle()
+    {
+        using var host = new EditorHost(@"{\rtf1\pard abc}");
+
+        host.Select(3, 0);
+        host.Press(Key.B, RawInputModifiers.Control);
+        host.Type("a");
+        // Moving the caret programmatically (like a mouse click) does not reset the toggle state.
+        host.Select(0, 0);
+        host.Document.ApplyFormattingOrTypingFormat(Inline.FontSizeProperty, 30.0);
+        host.Type("x");
+
+        Assert.Equal(FontWeight.Normal, RunWithText(host, "x").FontWeight);
+    }
+}
