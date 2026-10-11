@@ -52,7 +52,7 @@ namespace RtfDomParserAv
             set => strLeadingChars = value;
         }
 
-        private Encoding myDefaultEncoding = System.Text.Encoding.Default;
+        private Encoding myDefaultEncoding = Defaults.AnsiEncoding;
         /// <summary>
         /// text encoding of current font
         /// </summary>

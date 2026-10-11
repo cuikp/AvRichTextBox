@@ -336,7 +336,7 @@ namespace RtfDomParserAv
             }
             else if (fchartset == 1)
             {
-                return Encoding.Default;
+                return Defaults.AnsiEncoding;
             }
             else
             {
