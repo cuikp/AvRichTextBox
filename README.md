@@ -409,7 +409,7 @@ Fixed mouse text selection inside `Table` Cells
 **[ver 1.11.5] 2026/10/10**  
 RTFDomParserAv code incorporated into package (no .dll dependency)  
 
-**[unreleased]**  
+**[ver 1.11.6] 2026/10/13**  
 Updated to Avalonia 12.1.3; `Avalonia.ReactiveUI` replaced by `DynamicData` and `System.Reactive`  
 RTF list paragraphs: `\pntext`/`\listtext` markers become `Paragraph.ListMarker` (shown beside the text, hanging indent via `LeftIndent`/`FirstLineIndent`), saved again as `\pntext`; Enter continues the numbering, Backspace at an item start removes the marker (undoable)  
 XAML import reads inherited formatting (Section/List/Paragraph/Span), `Bold`/`Italic`/`Underline` nesting, text outside `<Run>`, lengths with units (px, pt, in, cm) and `List`/`ListItem`; XAML export writes list paragraphs as `List`/`ListItem`  
@@ -425,5 +425,7 @@ Fixed `GetSelectedParagraphs` for selections across paragraphs and `GetFormattin
 RTF: fixed export of a document ending with a table (lost the last row), images without explicit size, truncated font sizes and character formatting carried into the next paragraph; missing or undecodable pictures no longer abort loading; text before the first paragraph control word is read; the `\deff` default font applies to text without a font control word  
 XAML column widths and HTML table widths are parsed culture invariant  
 Paragraph text is measured before `Loaded` (single-pass rendering for printing/image export)  
-Fixed `Paragraph.Margin` applied twice outside tables (on the paragraph border and on the text)  
-Added a headless test project (`AvRichTextBox.Tests`)
+Fixed `Paragraph.Margin` applied twice outside tables (on the paragraph border and on the text)   
+Added a headless test project (`AvRichTextBox.Tests`)  
+Fixed failure to replace text with `SelectAll()` followed by char input  
+

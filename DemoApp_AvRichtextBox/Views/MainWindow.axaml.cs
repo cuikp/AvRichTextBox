@@ -55,7 +55,9 @@ public partial class MainWindow : Window
 #endif
 
         progChange = false;
-                        
+
+
+        MainRTB.Focus();
 
     }
 

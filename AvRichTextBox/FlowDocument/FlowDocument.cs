@@ -202,11 +202,11 @@ public partial class FlowDocument : AvaloniaObject
 
     public void SelectAll()
     {
-        Selection.Start = 0;
-        Selection.End = 0;
-        //SelectionParagraphs.Clear();
-        Selection.End = this.DocEndPoint;
+        Select(0, this.DocEndPoint);
         this.SelectionExtendMode = ExtendMode.ExtendModeRight;
+        Selection.BiasForwardStart = true;
+        Selection.BiasForwardEnd = true;
+
     }
 
     public void Select(int Start, int Length)
