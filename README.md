@@ -162,8 +162,8 @@ xmlns:avrtb="using:AvRichTextBox"
 <avrtb:RichTextBox >
 
 	<avrtb:RichTextBox.FlowDocument>
-					<avrtb:FlowDocument >
-						<avrtb:FlowDocument.Blocks>
+			<avrtb:FlowDocument >
+					<avrtb:FlowDocument.Blocks>
 
 							<avrtb:Paragraph>
 								<avrtb:Paragraph.GetInlines>
@@ -174,7 +174,7 @@ xmlns:avrtb="using:AvRichTextBox"
 
                      <avrtb:Table ColDefs="100, 150, 100" RowDefs="100, 100, 100" />
 					
-				         <avrtb:Paragraph/>
+                     <avrtb:Paragraph/>
 
 						</avrtb:FlowDocument.Blocks>
 					</avrtb:FlowDocument>
@@ -406,7 +406,10 @@ Fixed multiple paragraphs in Cells not reading in for XamlPackage/Html
 Fixed mouse text selection inside `Table` Cells  
 `SplitCellVertical`  and `SplitCellHorizontal` undo/redo added
 
-**[ver 1.11.4] 2026/10/09**  
+**[ver 1.11.5] 2026/10/10**  
+RTFDomParserAv code incorporated into package (no .dll dependency)  
+
+**[unreleased]**  
 Updated to Avalonia 12.1.3; `Avalonia.ReactiveUI` replaced by `DynamicData` and `System.Reactive`  
 RTF list paragraphs: `\pntext`/`\listtext` markers become `Paragraph.ListMarker` (shown beside the text, hanging indent via `LeftIndent`/`FirstLineIndent`), saved again as `\pntext`; Enter continues the numbering, Backspace at an item start removes the marker (undoable)  
 XAML import reads inherited formatting (Section/List/Paragraph/Span), `Bold`/`Italic`/`Underline` nesting, text outside `<Run>`, lengths with units (px, pt, in, cm) and `List`/`ListItem`; XAML export writes list paragraphs as `List`/`ListItem`  

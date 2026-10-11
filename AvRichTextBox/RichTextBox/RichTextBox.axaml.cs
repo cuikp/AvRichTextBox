@@ -26,7 +26,7 @@ public partial class RichTextBox : UserControl
     public RichTextBox()
     {
         InitializeComponent();
-                
+
         this.PropertyChanged += RichTextBox_PropertyChanged;
         this.Loaded += RichTextBox_Loaded;
         this.Initialized += RichTextBox_Initialized;
@@ -111,7 +111,7 @@ public partial class RichTextBox : UserControl
         SelectionPath.Fill = this.SelectionBrush;
         UpdateSelectionIndicators();
 
-        DisableUndoStack =  false;
+        DisableUndoStack = false;
 
     }
 
@@ -173,12 +173,13 @@ public partial class RichTextBox : UserControl
 
     private void RichTextBox_GotFocus(object? sender, FocusChangedEventArgs e)
     {
-        //Debug.WriteLine("Got focus rtb");
+        IsCaretVisible = true;
     }
 
     private void RichTextBox_LostFocus(object? sender, FocusChangedEventArgs e)
     {
-        //Debug.WriteLine("lost focus rtb");
+        if (!IsInactiveCaretEnabled)
+            IsCaretVisible = false;
     }
 
     internal void UpdateAllInlines()
@@ -360,6 +361,8 @@ public partial class RichTextBox : UserControl
         FlowDoc.DeleteSelection();
     }
 
-
+    private void UserControl_GotFocus(object? sender, Avalonia.Input.FocusChangedEventArgs e)
+    {
+    }
 }
 

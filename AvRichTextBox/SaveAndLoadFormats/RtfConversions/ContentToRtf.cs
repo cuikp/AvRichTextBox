@@ -786,6 +786,7 @@ internal static partial class RtfConversions
                 sb.Append(@"\'22"); // Escape double quote
             else if (c > 127) // Non-ASCII
                 sb.Append(@"{\u" + (int)c + "?}"); // Grouped Unicode escape
+                //sb.Append(@"\u" + (int)c + "?"); // Grouped Unicode escape
             else
                 sb.Append(c);
 

@@ -7,7 +7,7 @@
 			 xmlns:local="using:AvRichTextBox" 
 			 x:Class="AvRichTextBox.RichTextBox" 
 			 PointerReleased="RichTextBox_PointerReleased" PointerExited="RichTextBox_PointerExited" KeyDown="RichTextBox_KeyDown" KeyUp="RichTextBox_KeyUp"  Focusable="True"
-			 BorderBrush="Black" BorderThickness="1" Background="White" Template="{StaticResource NoPaddingTemplate}" Padding="0" >
+			 BorderBrush="Black" BorderThickness="1" Background="White" Template="{StaticResource NoPaddingTemplate}" Padding="0" GotFocus="RichTextBox_GotFocus" LostFocus="RichTextBox_LostFocus" >
 
 	<!--Disable user settings for Horiz/VerticalContentAlignment, because that would break internal positioning -->
 	<UserControl.Resources>
