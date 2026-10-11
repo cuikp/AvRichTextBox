@@ -421,7 +421,7 @@ Escape without an open popup stays unhandled for the hosting window
 Fixed formatting the same range twice (second call had no effect)  
 Enter at a line end continues the paragraph and character format (font, size, bold, ...) as in RichEdit; after a hyperlink it starts plain text  
 Fixed typing over a whole-document selection losing the text; an emptied paragraph keeps the deleted character format  
-Fixed `GetSelectedParagraphs` for selections across paragraphs and `GetFormatting(FontWeight)`  
+Fixed `GetSelectedParagraphs` for selections across paragraphs and `GetFormatting(FontWeight)`; `GetFormatting` on a selection reports its first character also after `ApplyFormatting`  
 RTF: fixed export of a document ending with a table (lost the last row), images without explicit size, truncated font sizes and character formatting carried into the next paragraph; missing or undecodable pictures no longer abort loading; text before the first paragraph control word is read; the `\deff` default font applies to text without a font control word  
 XAML column widths and HTML table widths are parsed culture invariant  
 Paragraph text is measured before `Loaded` (single-pass rendering for printing/image export)  

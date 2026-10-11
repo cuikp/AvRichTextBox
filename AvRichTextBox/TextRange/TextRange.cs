@@ -210,6 +210,27 @@ public class TextRange : INotifyPropertyChanged, IDisposable
     {
         object? formatting = null;
         if (myFlowDoc == null) return null;
+
+        // A non-empty range reports its first character, where ApplyFormatting starts; an empty range (caret) reports
+        // the character before it. Without the forward bias a non-empty range read the character before its start:
+        // at the document start that is none (null), elsewhere the neighbour's formatting. The bias and the context
+        // fields are restored, so the call leaves the range as the caret lookup would.
+        if (Length > 0 && !BiasForwardStart)
+        {
+            var savedParagraph = StartParagraph;
+            var savedInline = StartInline;
+            var savedInlinePrevious = StartInlinePrevious;
+            BiasForwardStart = true;
+            if (StartInline is IEditable firstInline)
+                formatting = GetFormattingOfInline(avProp, firstInline);
+            BiasForwardStart = false;
+            StartParagraph = savedParagraph;
+            StartInline = savedInline;
+            StartInlinePrevious = savedInlinePrevious;
+            UpdateContextStart();
+            return formatting;
+        }
+
         // StartInline may still belong to the previous position until the context is refreshed.
         UpdateContextStart();
         if (StartInline is IEditable currentInline)

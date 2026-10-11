@@ -131,6 +131,33 @@ public class FormattingTests
         Assert.Equal(30.0, host.Document.GetCaretFormat(Inline.FontSizeProperty));
     }
 
+    // ApplyFormatting leaves a backward start bias; a formatting toolbar reads the format right afterwards.
+    [AvaloniaFact]
+    public void GetFormatting_AfterFormattingASelectionAtTheDocumentStart_ReportsTheNewFormat()
+    {
+        using var host = new EditorHost(@"{\rtf1\pard abc}");
+
+        host.Select(0, 3);
+        host.Document.Selection.ApplyFormatting(Inline.FontSizeProperty, 30.0);
+        EditorHost.Pump();
+
+        Assert.Equal(30.0, host.Document.Selection.GetFormatting(Inline.FontSizeProperty));
+    }
+
+    [AvaloniaFact]
+    public void GetFormatting_AfterFormattingASelectionAfterAnotherRun_ReportsTheNewFormat()
+    {
+        using var host = new EditorHost(@"{\rtf1\pard aa bb cc}");
+
+        host.Select(3, 2);
+        host.Document.Selection.ApplyFormatting(Inline.FontWeightProperty, FontWeight.Bold);
+        EditorHost.Pump();
+
+        Assert.Equal(FontWeight.Bold, host.Document.Selection.GetFormatting(Inline.FontWeightProperty));
+        Assert.Equal(3, host.Document.Selection.Start);
+        Assert.Equal(2, host.Document.Selection.Length);
+    }
+
     [AvaloniaFact]
     public void TypingFormat_DoesNotReapplyAnEarlierBoldToggle()
     {
