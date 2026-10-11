@@ -73,6 +73,23 @@ public class FormattingTests
         Assert.Equal(30.0, RunWithText(host, "abc").FontSize);
     }
 
+    // A toolbar Bold button without a selection: like Ctrl+B, the next typed text toggles against the caret format.
+    [AvaloniaFact]
+    public void TypingFormat_FontWeightBold_TogglesTheNextTypedText()
+    {
+        using var host = new EditorHost(@"{\rtf1\pard abc\b def}");
+
+        host.Select(3, 0);
+        host.Document.ApplyFormattingOrTypingFormat(Inline.FontWeightProperty, FontWeight.Bold);
+        host.Type("x");
+        host.Select(7, 0);
+        host.Document.ApplyFormattingOrTypingFormat(Inline.FontWeightProperty, FontWeight.Bold);
+        host.Type("y");
+
+        Assert.Equal(FontWeight.Bold, RunWithText(host, "x").FontWeight);
+        Assert.Equal(FontWeight.Normal, RunWithText(host, "y").FontWeight);
+    }
+
     [AvaloniaFact]
     public void FontSize_AppliedTwiceToTheSameSelection_TakesTheSecondValue()
     {

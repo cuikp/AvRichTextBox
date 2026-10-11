@@ -413,7 +413,7 @@ RTFDomParserAv code incorporated into package (no .dll dependency)
 Updated to Avalonia 12.1.3; `Avalonia.ReactiveUI` replaced by `DynamicData` and `System.Reactive`  
 RTF list paragraphs: `\pntext`/`\listtext` markers become `Paragraph.ListMarker` (shown beside the text, hanging indent via `LeftIndent`/`FirstLineIndent`), saved again as `\pntext`; Enter continues the numbering, Backspace at an item start removes the marker (undoable)  
 XAML import reads inherited formatting (Section/List/Paragraph/Span), `Bold`/`Italic`/`Underline` nesting, text outside `<Run>`, lengths with units (px, pt, in, cm) and `List`/`ListItem`; XAML export writes list paragraphs as `List`/`ListItem`  
-New `FlowDocument.ApplyFormattingOrTypingFormat`/`GetCaretFormat` for formatting toolbars (formats the selection, or the next typed text without a selection); `ToggleBold`/`ToggleItalic`/`ToggleUnderlining` are public  
+New `FlowDocument.ApplyFormattingOrTypingFormat`/`GetCaretFormat` for formatting toolbars (formats the selection, or the next typed text without a selection)  
 New headless APIs: `FlowDocument.AppendRtfToRtf`, `LoadRtfHeadless`/`SaveRtfHeadless`, `SelectHeadless`/`ReplaceSelectionWithText`; `RichTextBox.ApplyBlackOnWhite()` keeps the document black on white under themes  
 Caret and selection are shown without an adorner layer (window templates without `VisualLayerManager`)  
 The editor no longer takes the keyboard focus when it loads or gets a document  

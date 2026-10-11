@@ -92,7 +92,7 @@ public partial class FlowDocument
     private void ToggleInlineApplyUnderline(IEditable ied) { if (ied is EditableRun erun) { erun.TextDecorations = UnderliningOn ? TextDecorations.Underline : erun.TextDecorations; } }
 
 
-    public void ToggleUnderlining()
+    internal void ToggleUnderlining()
     {
         if (Selection.Length == 0)
         {
@@ -105,7 +105,7 @@ public partial class FlowDocument
             Selection.ApplyFormatting(Inline.TextDecorationsProperty, TextDecorationLocation.Underline);
     }
 
-    public void ToggleItalic()
+    internal void ToggleItalic()
     {
         if (Selection.Length == 0)
         {
@@ -119,7 +119,7 @@ public partial class FlowDocument
 
     }
 
-    public void ToggleBold()
+    internal void ToggleBold()
     {
         if (Selection.Length == 0)
         {
