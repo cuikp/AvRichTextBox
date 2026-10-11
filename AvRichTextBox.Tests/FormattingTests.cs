@@ -90,6 +90,34 @@ public class FormattingTests
         Assert.Equal(FontWeight.Normal, RunWithText(host, "y").FontWeight);
     }
 
+    // A second click on the toolbar button before typing cancels the first, as a second Ctrl+B does.
+    [AvaloniaFact]
+    public void TypingFormat_FontWeightBoldTwice_LeavesTheNextTypedTextUnchanged()
+    {
+        using var host = new EditorHost(@"{\rtf1\pard abc}");
+
+        host.Select(3, 0);
+        host.Document.ApplyFormattingOrTypingFormat(Inline.FontWeightProperty, FontWeight.Bold);
+        host.Document.ApplyFormattingOrTypingFormat(Inline.FontWeightProperty, FontWeight.Bold);
+        host.Type("x");
+
+        // Nothing pending: the typed text continues the existing run.
+        Assert.Equal(FontWeight.Normal, RunWithText(host, "abcx").FontWeight);
+    }
+
+    [AvaloniaFact]
+    public void TypingFormat_UnderlineTwice_LeavesTheNextTypedTextUnchanged()
+    {
+        using var host = new EditorHost(@"{\rtf1\pard abc}");
+
+        host.Select(3, 0);
+        host.Document.ApplyFormattingOrTypingFormat(Inline.TextDecorationsProperty, TextDecorationLocation.Underline);
+        host.Document.ApplyFormattingOrTypingFormat(Inline.TextDecorationsProperty, TextDecorationLocation.Underline);
+        host.Type("x");
+
+        Assert.Null(RunWithText(host, "abcx").TextDecorations);
+    }
+
     [AvaloniaFact]
     public void FontSize_AppliedTwiceToTheSameSelection_TakesTheSecondValue()
     {

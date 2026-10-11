@@ -65,8 +65,19 @@ public partial class FlowDocument
             return;
         }
 
+        // Bold, italic and decorations toggle against the run format: the same value again before typing cancels
+        // the pending toggle, as a second Ctrl+B does. The other properties set their value, the last one wins.
+        if (IsToggleFormat(avProperty) && pendingTypingFormats.TryGetValue(avProperty, out object? pending) && Equals(pending, value))
+        {
+            pendingTypingFormats.Remove(avProperty);
+            return;
+        }
+
         pendingTypingFormats[avProperty] = value;
     }
+
+    private static bool IsToggleFormat(AvaloniaProperty avProperty) =>
+        avProperty == Inline.FontWeightProperty || avProperty == Inline.FontStyleProperty || avProperty == Inline.TextDecorationsProperty;
 
     private void ApplyPendingTypingFormats(IEditable insertedRun)
     {
