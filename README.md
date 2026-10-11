@@ -425,4 +425,5 @@ Fixed `GetSelectedParagraphs` for selections across paragraphs and `GetFormattin
 RTF: fixed export of a document ending with a table (lost the last row), images without explicit size, truncated font sizes and character formatting carried into the next paragraph; missing or undecodable pictures no longer abort loading; text before the first paragraph control word is read; the `\deff` default font applies to text without a font control word  
 XAML column widths and HTML table widths are parsed culture invariant  
 Paragraph text is measured before `Loaded` (single-pass rendering for printing/image export)  
+Fixed `Paragraph.Margin` applied twice outside tables (on the paragraph border and on the text)  
 Added a headless test project (`AvRichTextBox.Tests`)

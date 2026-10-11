@@ -42,7 +42,6 @@
 
 		 <Style Selector="local|EditableParagraph.paragraphBindings" x:DataType="local:Paragraph">
 			<Setter Property="TextWrapping" Value="Wrap"/>
-			<Setter Property="Margin" Value="{Binding Margin}"/>
 			<Setter Property="LineHeight" Value="{Binding LineHeight}"/>
 			<!--<Setter Property="LineSpacing" Value="{Binding LineSpacing}"/>-->
 			<Setter Property="FontFamily" Value="{Binding FontFamily}"/>
@@ -165,7 +164,7 @@
 																						Text="{Binding ListMarker}" Width="{Binding ListMarkerWidth}"
 																						FontFamily="{Binding ListMarkerFontFamily}" FontSize="{Binding ListMarkerFontSize}" />
 
-																				<local:EditableParagraph Classes="paragraphBindings" xml:space="preserve"
+																				<local:EditableParagraph Classes="paragraphBindings" xml:space="preserve" Margin="{Binding Margin}"
 																					MouseMove="EditableParagraph_MouseMove" LostFocus="EditableParagraph_LostFocus" MouseLeave="EditableParagraph_MouseLeave"
 
 																					TextLayoutInfoStartRequested="{Binding RequestTextLayoutInfoStart}"
