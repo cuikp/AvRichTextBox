@@ -162,8 +162,8 @@ xmlns:avrtb="using:AvRichTextBox"
 <avrtb:RichTextBox >
 
 	<avrtb:RichTextBox.FlowDocument>
-					<avrtb:FlowDocument >
-						<avrtb:FlowDocument.Blocks>
+			<avrtb:FlowDocument >
+					<avrtb:FlowDocument.Blocks>
 
 							<avrtb:Paragraph>
 								<avrtb:Paragraph.GetInlines>
@@ -174,7 +174,7 @@ xmlns:avrtb="using:AvRichTextBox"
 
                      <avrtb:Table ColDefs="100, 150, 100" RowDefs="100, 100, 100" />
 					
-				         <avrtb:Paragraph/>
+                     <avrtb:Paragraph/>
 
 						</avrtb:FlowDocument.Blocks>
 					</avrtb:FlowDocument>
@@ -405,3 +405,6 @@ Fixed multiple paragraphs in Cells not reading in for XamlPackage/Html
 `SplitCellVertical` fixes  
 Fixed mouse text selection inside `Table` Cells  
 `SplitCellVertical`  and `SplitCellHorizontal` undo/redo added
+
+**[ver 1.11.5] 2026/10/10**  
+RTFDomParserAv code incorporated into package (no .dll dependency)  

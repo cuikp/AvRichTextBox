@@ -1,5 +1,4 @@
 ﻿using Avalonia.Threading;
-using DocumentFormat.OpenXml.Office2010.CustomUI;
 using DynamicData;
 
 namespace AvRichTextBox;

@@ -1,0 +1,24 @@
+﻿/*
+ * 
+ *  RTFDomParserAv, modified from original:
+ *   DCSoft RTF DOM v1.0
+ *   Author : Yuan yong fu.
+ *   Email  : yyf9989@hotmail.com
+ *   blog site:http://www.cnblogs.com/xdesigner.
+ * 
+ */
+
+using System.Text;
+
+namespace RtfDomParserAv
+{
+    public static class Defaults
+    {
+        public static string FontName { get; set; } = "Times New Roman";
+
+        public static void LoadEncodings()
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        }
+    }
+}

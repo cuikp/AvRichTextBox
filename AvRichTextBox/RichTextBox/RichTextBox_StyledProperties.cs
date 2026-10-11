@@ -54,6 +54,13 @@ public partial class RichTextBox
       set { SetValue(DisableEditingShortcutsProperty, value);  }
    }
 
+   internal static readonly StyledProperty<bool> IsInactiveCaretEnabledProperty = AvaloniaProperty.Register<RichTextBox, bool>(nameof(IsInactiveCaretEnabled), false);
+   public bool IsInactiveCaretEnabled
+    {
+      get => GetValue(IsInactiveCaretEnabledProperty);
+      set { SetValue(IsInactiveCaretEnabledProperty, value);  }
+   }
+
    internal static readonly StyledProperty<bool> ShowDebuggerPanelInDebugModeProperty = AvaloniaProperty.Register<RichTextBox, bool>(nameof(ShowDebuggerPanelInDebugMode), false);
    public bool ShowDebuggerPanelInDebugMode
    {

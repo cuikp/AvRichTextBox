@@ -25,7 +25,8 @@ public partial class FlowDocument
 			rtfContent = rtfContent.Replace("\\o \"}", "\\o \"\"}").Replace(" \"}", " }");
 			rtfContent = RemoveOverstrikeRegex().Replace(rtfContent, "\\o\"\"");
 		}
-		rtfContent = NormalizeCharacterEscapes(rtfContent);
+		
+        //rtfContent = NormalizeCharacterEscapes(rtfContent); //$$$$$$$$$$
 		using MemoryStream rtfStream = new(Encoding.UTF8.GetBytes(rtfContent));
 		using StreamReader streamReader = new(rtfStream);
 
@@ -72,25 +73,190 @@ public partial class FlowDocument
 		return GetRtfFromFlowDocument(this);
 	}
 
-	private static string NormalizeCharacterEscapes(string rtfContent)
-	{
-		rtfContent = AnsiHexEscapeRegex().Replace(rtfContent, match =>
-		{
-			byte ansiByte = Convert.ToByte(match.Groups[1].Value, 16);
-			return GetGroupedUnicodeEscape(HelperMethods.GetWindows1252Char(ansiByte));
-		});
+    private static string NormalizeCharacterEscapesOLD(string rtfContent)
+    {
+        rtfContent = AnsiHexEscapeRegex().Replace(rtfContent, match =>
+        {
+            byte ansiByte = Convert.ToByte(match.Groups[1].Value, 16);
+            return GetGroupedUnicodeEscape(HelperMethods.GetWindows1252Char(ansiByte));
+        });
 
-		return UnicodeEscapeRegex().Replace(rtfContent, match =>
-		{
-			int unicodeValue = int.Parse(match.Groups[1].Value);
-			return @"{\u" + unicodeValue + "?}";
-		});
-	}
+        return UnicodeEscapeRegex().Replace(rtfContent, match =>
+        {
+            int unicodeValue = int.Parse(match.Groups[1].Value);
+            return @"{\u" + unicodeValue + "?}";
+            //return @"\u" + unicodeValue + "?";
+        });
+    }
 
-	private static string GetGroupedUnicodeEscape(char c)
-	{
-		return @"{\u" + (int)c + "?}";
-	}
+
+
+
+    private static string NormalizeCharacterEscapes(string rtf)
+    {
+        StringBuilder sb = new(rtf.Length);
+
+        int ucValue = 1;       // RTF default
+        int skipFallback = 0;
+
+        for (int i = 0; i < rtf.Length;)
+        {
+            // \ucN
+            if (rtf[i] == '\\' &&
+                i + 3 < rtf.Length &&
+                rtf.AsSpan(i + 1).StartsWith("uc"))
+            {
+                int p = i + 3;
+                int start = p;
+
+                while (p < rtf.Length && char.IsDigit(rtf[p]))
+                    p++;
+
+                if (p > start && int.TryParse(rtf[start..p], out int n))
+                    ucValue = n;
+
+                sb.Append(rtf, i, p - i);
+
+                if (p < rtf.Length && rtf[p] == ' ')
+                {
+                    sb.Append(' ');
+                    p++;
+                }
+
+                i = p;
+                continue;
+            }
+
+            // \uN
+            if (rtf[i] == '\\' &&
+                i + 2 < rtf.Length &&
+                rtf[i + 1] == 'u' &&
+                (char.IsDigit(rtf[i + 2]) || rtf[i + 2] == '-'))
+            {
+                int p = i + 2;
+
+                if (rtf[p] == '-')
+                    p++;
+
+                while (p < rtf.Length && char.IsDigit(rtf[p]))
+                    p++;
+
+                // Leave the Unicode escape exactly as supplied.
+                sb.Append(rtf, i, p - i);
+
+                // The following ucValue fallback units must NOT be normalized.
+                skipFallback = ucValue;
+
+                if (p < rtf.Length && rtf[p] == ' ')
+                {
+                    sb.Append(' ');
+                    p++;
+                }
+
+                i = p;
+                continue;
+            }
+
+            //// \'xx
+            //if (rtf[i] == '\\' &&
+            //    i + 3 < rtf.Length &&
+            //    rtf[i + 1] == '\'' &&
+            //    IsHex(rtf[i + 2]) &&
+            //    IsHex(rtf[i + 3]))
+            //{
+            //    if (skipFallback > 0)
+            //    {
+            //        // Unicode fallback: preserve exactly.
+            //        sb.Append(rtf, i, 4);
+            //        skipFallback--;
+            //    }
+            //    else
+            //    {
+            //        // Genuine ANSI escape: retain your previous normalization.
+            //        byte b = Convert.ToByte(rtf.Substring(i + 2, 2), 16);
+            //        char c = HelperMethods.GetWindows1252Char(b);
+
+            //        sb.Append(@"\u");
+            //        sb.Append((int)c);
+            //        sb.Append('?');
+            //    }
+
+            //    i += 4;
+            //    continue;
+            //}
+
+            //// Plain fallback character after \uN, e.g. \u233?
+            //if (skipFallback > 0)
+            //{
+            //    sb.Append(rtf[i]);
+            //    skipFallback--;
+            //    i++;
+            //    continue;
+            //}
+
+
+
+            // \'xx
+            if (rtf[i] == '\\' &&
+                i + 3 < rtf.Length &&
+                rtf[i + 1] == '\'' &&
+                IsHex(rtf[i + 2]) &&
+                IsHex(rtf[i + 3]))
+            {
+                if (skipFallback > 0)
+                {
+                    // Unicode fallback: preserve exactly.
+                    sb.Append(rtf, i, 4);
+                    skipFallback--;
+                }
+                else
+                {
+                    // Genuine ANSI escape.
+                    byte b = Convert.ToByte(rtf.Substring(i + 2, 2), 16);
+                    char c = HelperMethods.GetWindows1252Char(b);
+
+                    sb.Append(@"\u");
+                    sb.Append((int)c);
+                    sb.Append('?');
+                }
+
+                i += 4;
+                continue;
+            }
+
+            // CR/LF etc. are formatting whitespace in the RTF source.
+            // Do not count them against \ucN.
+            if (skipFallback > 0 &&
+                rtf[i] is '\r' or '\n' or '\t' or '\0')
+            {
+                sb.Append(rtf[i]);
+                i++;
+                continue;
+            }
+
+            // Literal fallback character, e.g. the ? in \u233?
+            if (skipFallback > 0)
+            {
+                sb.Append(rtf[i]);
+                skipFallback--;
+                i++;
+                continue;
+            }
+
+
+
+
+
+            sb.Append(rtf[i]);
+            i++;
+        }
+
+        return sb.ToString();
+    }
+
+    private static bool IsHex(char c) => c is >= '0' and <= '9' or >= 'a' and <= 'f' or >= 'A' and <= 'F';
+
+    private static string GetGroupedUnicodeEscape(char c) => @"{\u" + (int)c + "?}";
 
 	[GeneratedRegex(@"(?<!\{)\\u(-?\d+)(.)")]
 	private static partial Regex UnicodeEscapeRegex();

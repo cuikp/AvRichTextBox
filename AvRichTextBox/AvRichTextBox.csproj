@@ -20,13 +20,13 @@
 	  
 	  <RepositoryUrl>https://github.com/cuikp/AvRichTextBox</RepositoryUrl>
 	  <RepositoryType>git</RepositoryType>
-	  <PackageReleaseNotes>ver 1.11.4
-</PackageReleaseNotes>
+	  <PackageReleaseNotes>ver 1.11.5
+RtfDomParserAv code directly incorporated into package (no .dll dependency), with attribution to original</PackageReleaseNotes>
       
      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 	  <PackageOutputPath>D:\PROG\LocalNuget\AvRichTextBox</PackageOutputPath>
 	  
-	  <Version>1.11.4</Version>
+	  <Version>1.11.5</Version>
 	  <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 	  <AssemblyVersion>1.0.0.0</AssemblyVersion>
 	  
@@ -83,13 +83,6 @@
     <PackageReference Include="HtmlAgilityPack" Version="1.13.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="RtfDomParserAv">
-      <HintPath>RtfDomParserAv.dll</HintPath>
-    </Reference>
-	  <None Include="RtfDomParserAv.dll" Pack="true" PackagePath="lib\$(TargetFramework)\" />
-  </ItemGroup>
-
 	
 	<ItemGroup>
     <Compile Update="FlowDocument\FlowDocument_SelectionGetNextPos.cs">
@@ -139,6 +132,14 @@
 
 	<ItemGroup>
 		<None Include="..\README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+		<None Include="..\LICENSE.txt">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+		<None Include="..\AvRichTextBox\SaveAndLoadFormats\RtfConversions\RTfDomParserAv\_RTFDomParserAv_LICENSE.txt">
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
 		</None>

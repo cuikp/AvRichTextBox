@@ -262,8 +262,13 @@ internal static partial class RtfConversions
         if (rtfpar.Format.MultipleLineSpacing)
             newpar.LineHeight = ilineH * (rtfpar.Format.LineSpacing / 240.0);
         else
-            newpar.LineHeight = Math.Abs(rtfpar.Format.LineSpacing) / 15.0;
-
+        {
+            if (rtfpar.Format.Spacing == 0)
+                newpar.LineHeight = 0;
+            else
+                newpar.LineHeight = Math.Abs(rtfpar.Format.LineSpacing) / 15.0;
+        }
+        
 
         return newpar;
     }
@@ -400,17 +405,17 @@ internal static partial class RtfConversions
         return erun;
     }
 
-    private static string DecodeRtfUnicode(string rtfText)
-    {
-        return RtfUnicodeRegex().Replace(rtfText, match =>
-        {
-            int unicodeValue = int.Parse(match.Groups[1].Value);
-            return char.ConvertFromUtf32(unicodeValue);
-        });
-    }
+    //private static string DecodeRtfUnicode(string rtfText)
+    //{
+    //    return RtfUnicodeRegex().Replace(rtfText, match =>
+    //    {
+    //        int unicodeValue = int.Parse(match.Groups[1].Value);
+    //        return char.ConvertFromUtf32(unicodeValue);
+    //    });
+    //}
 
-    [GeneratedRegex(@"\\u(-?\d+)\?")]
-    private static partial Regex RtfUnicodeRegex();
+    //[GeneratedRegex(@"\\u(-?\d+)\?")]
+    //private static partial Regex RtfUnicodeRegex();
 
     private enum BorderType
     {
