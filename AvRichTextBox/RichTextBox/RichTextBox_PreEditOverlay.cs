@@ -18,8 +18,8 @@ public partial class RichTextBox
       client = new RichTextBoxTextInputClient(this);
       //Debug.WriteLine("created new client)");
 
-      this.Focus();
-
+      // No Focus() here: this runs whenever a document is assigned, also while the editor is being created.
+      // The input method requests the client as soon as the editor gets the focus.
    }
 
    RichTextBoxTextInputClient client = null!;

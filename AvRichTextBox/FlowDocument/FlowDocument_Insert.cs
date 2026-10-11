@@ -74,7 +74,7 @@ public partial class FlowDocument
 
         string rtfstring = Encoding.ASCII.GetString(rtfbytes);
         RTFDomDocument rtfdoc = new();
-        rtfdoc.LoadRTFText(rtfstring);
+        rtfdoc.LoadRTFText(RtfConversions.PrepareListText(rtfstring));
 
         //Debug.WriteLine("RTF: " + rtfstring);
 
@@ -120,37 +120,33 @@ public partial class FlowDocument
 
         string xamlString = Encoding.ASCII.GetString(xamlbytes);
 
-        List<Block> xamlBlocks = [];
-
-        XmlDocument xamlDocument = new();
-
-        xamlDocument.LoadXml(xamlString);
-
-        if (xamlDocument.ChildNodes.Count == 1)
-        {
-            XmlNode? SectionNode = xamlDocument.ChildNodes[0];
-            if (SectionNode!.Name == "Section")
-            {
-                foreach (XmlNode blockNode in SectionNode.ChildNodes.OfType<XmlNode>())
-                {
-                    switch (blockNode.Name)
-                    {
-                        case "Paragraph":
-
-                            xamlBlocks.Add(XamlConversions.GetParagraph(blockNode, this));
-                            break;
-
-                        case "Table":
-
-                            xamlBlocks.Add(XamlConversions.GetTable(blockNode, this));
-                            break;
-                    }
-                }
-            }
-        }
+        List<Block> xamlBlocks = XamlConversions.GetBlocksFromXamlString(xamlString, this);
 
         return ProcessInsertBlocks(xamlBlocks, startPar, insertIdx, insertParIndex, addedBlockIds, rightSplitRuns);
 
+    }
+
+    // Empty run for a paragraph started by Enter at a line end: it continues the character format of the last run.
+    // After a hyperlink the new text is plain text in the same font (a link is not continued).
+    private static EditableRun EmptyRunContinuing(EditableRun lastRun)
+    {
+        EditableRun emptyRun = new("")
+        {
+            FontFamily = lastRun.FontFamily,
+            FontSize = lastRun.FontSize,
+            FontWeight = lastRun.FontWeight,
+            FontStyle = lastRun.FontStyle,
+        };
+
+        if (lastRun is not EditableHyperlink)
+        {
+            emptyRun.TextDecorations = lastRun.TextDecorations;
+            emptyRun.Foreground = lastRun.Foreground;
+            emptyRun.Background = lastRun.Background;
+            emptyRun.BaselineAlignment = lastRun.BaselineAlignment;
+        }
+
+        return emptyRun;
     }
 
     internal void InsertText(string? insertText)
@@ -191,14 +187,30 @@ public partial class FlowDocument
                 DeleteRange(Selection, true, false, true);
                 Selection.CollapseToStart();
                 SelectionExtendMode = ExtendMode.ExtendModeNone;
+
+                // The inline determined before deleting is often no longer part of the paragraph (whole selection
+                // deleted, e.g. after Ctrl+A); the text then went into a detached run and was lost.
+                if (Selection.GetStartPar() is Paragraph deletePar && deletePar.Inlines.Count == 0)
+                {
+                    deletePar.Inlines.Add(new EditableRun(""));
+                    UpdateBlockAndInlineStarts(deletePar);
+                }
+                Selection.UpdateContextStart();
+                if (Selection.StartInline is not IEditable remainingInline || remainingInline is EditableInlineUIContainer)
+                    return;
+                startInline = remainingInline;
             }
 
             DisableUndoStack = true;
 
             int insertIdx = 0;
             int originalStart = Selection.Start;
-            
-            if (InsertRunMode)
+
+            // A new run is also needed for a pending typing format (ApplyFormattingOrTypingFormat). The bold/italic/
+            // underline toggle (toggleFormatRun) applies only if IT requested the insert run - otherwise an earlier
+            // toggle state would rewrite the formatting of the new run.
+            bool toggleRequestedInsertRun = InsertRunMode;
+            if (InsertRunMode || HasPendingTypingFormats)
             {
                 if (startInline.CloneWithId() is not EditableRun startInlineRunClone) return;
                
@@ -224,8 +236,10 @@ public partial class FlowDocument
 
                 startInline.InlineText = insertText;
 
-                toggleFormatRun?.Invoke(startInline);
-                
+                if (toggleRequestedInsertRun)
+                    toggleFormatRun?.Invoke(startInline);
+                ApplyPendingTypingFormats(startInline);
+
                 InsertRunMode = false;
 
             }
@@ -375,7 +389,12 @@ public partial class FlowDocument
 
         if (Selection.End == insertPar.EndInDoc)
         {   // only need to add insert a new paragraph at the index
-            parToInsert = new Paragraph();
+            // As in RichEdit the new paragraph continues the paragraph format and the character format at the end of
+            // the line; a plain new Paragraph() started in the default font, so a toolbar showed no font at the caret.
+            parToInsert = insertPar.PropertyClone();
+            insertPar.ContinueListIn(parToInsert);
+            if (insertPar.Inlines.LastOrDefault(inline => inline is EditableRun) is EditableRun lastRun)
+                parToInsert.Inlines.Add(EmptyRunContinuing(lastRun));
 
             if (insertPar.IsCellBlock)
                 insertPar.OwningCell?.CellBlocks.Insert(parIndex + 1, parToInsert);
@@ -413,6 +432,7 @@ public partial class FlowDocument
                 originalPar.Inlines.Insert(originalPar.Inlines.Count, new EditableRun(""));
 
             parToInsert = originalPar.PropertyClone();
+            originalPar.ContinueListIn(parToInsert);
             parToInsert.Inlines.AddRange(RunList2);
 
             //Insert paragraph in appropriate block

@@ -15,9 +15,23 @@ public partial class FlowDocument
    [GeneratedRegex("\\\\o \".*?\"")]
    private static partial Regex RemoveOverstrikeRegex();
 
+   [GeneratedRegex(@"^(\s*\{\\rtf\d+)\b", RegexOptions.CultureInvariant)]
+   private static partial Regex RtfHeaderRegex();
+
+   [GeneratedRegex(@"\\deff(\d+)", RegexOptions.CultureInvariant)]
+   private static partial Regex DefaultFontRegex();
+
+   [GeneratedRegex(@"\\plain(?![a-zA-Z0-9])", RegexOptions.CultureInvariant)]
+   private static partial Regex PlainRegex();
+
    internal void LoadRtf(string rtfContent)
 	{
       RTFDomDocument rtfdom = new();
+
+      // The parser reads text only after a paragraph or formatting control word. RTF starts with the default
+      // paragraph format anyway; \pard makes it explicit without adding a paragraph or changing later formatting.
+      rtfContent = RtfHeaderRegex().Replace(rtfContent, "$1\\pard", 1);
+      rtfContent = SelectDefaultFont(rtfContent);
 
 		// Do this to fix malformed `\o "` (overstrike) with/without orphaned quotes (old rtf feature that can break parsing)
 		if (rtfContent.Contains("\\o "))
@@ -25,7 +39,7 @@ public partial class FlowDocument
 			rtfContent = rtfContent.Replace("\\o \"}", "\\o \"\"}").Replace(" \"}", " }");
 			rtfContent = RemoveOverstrikeRegex().Replace(rtfContent, "\\o\"\"");
 		}
-		
+		rtfContent = PrepareListText(rtfContent);
         //rtfContent = NormalizeCharacterEscapes(rtfContent); //$$$$$$$$$$
 		using MemoryStream rtfStream = new(Encoding.UTF8.GetBytes(rtfContent));
 		using StreamReader streamReader = new(rtfStream);
@@ -38,9 +52,41 @@ public partial class FlowDocument
 			GetFlowDocumentFromRtf(rtfdom!, this);
 			InitializeDocument();
 		}
-		catch (Exception ex2) { Debug.WriteLine($"error getting flow doc:\n{ex2.Message}"); }
+		catch (Exception ex2)
+		{
+			Debug.WriteLine($"error getting flow doc:\n{ex2.Message}");
+			// The document is already cleared: without a paragraph the editor accepts no input.
+			InitializeDocument();
+		}
 	}
-	
+
+   // The parser ignores \deffN: text without an explicit \f got the parser's own default font. Select the default
+   // font explicitly where RTF falls back to it: after the font table (start of the body) and after every \plain.
+   internal static string SelectDefaultFont(string rtfContent)
+   {
+      Match defaultFont = DefaultFontRegex().Match(rtfContent);
+      int tableStart = rtfContent.IndexOf("{\\fonttbl", StringComparison.Ordinal);
+      if (!defaultFont.Success || tableStart < 0) return rtfContent;
+
+      int tableEnd = -1;
+      int depth = 0;
+      for (int i = tableStart; i < rtfContent.Length && tableEnd < 0; i++)
+      {
+         switch (rtfContent[i])
+         {
+            case '\\': i++; break;
+            case '{': depth++; break;
+            case '}': if (--depth == 0) tableEnd = i; break;
+         }
+      }
+      if (tableEnd < 0) return rtfContent;
+
+      string fontWord = "\\f" + defaultFont.Groups[1].Value;
+      string body = PlainRegex().Replace(rtfContent[(tableEnd + 1)..], "\\plain" + fontWord);
+      string delimiter = body.Length > 0 && char.IsLetterOrDigit(body[0]) ? " " : "";
+      return rtfContent[..(tableEnd + 1)] + fontWord + delimiter + body;
+   }
+
 	internal void LoadRtfFromFile(string fileName)
 	{
 		try

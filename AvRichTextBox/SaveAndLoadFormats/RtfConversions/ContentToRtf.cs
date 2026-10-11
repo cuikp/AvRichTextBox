@@ -23,13 +23,14 @@ internal static partial class RtfConversions
         string margb = Math.Round(PixToTwip(fdoc.PagePadding.Bottom)).ToString();
         sb.Append(@$"\margl{margl}\margr{margr}\margt{margt}\margb{margb}");
 
+        var carry = new CharacterFormatCarry();
         foreach (Block block in fdoc.Blocks)
         {
             switch (block)
             {
                 case Paragraph p:
 
-                    string parRtf = GetParagraphRtf(p, fontMap, colorMap);
+                    string parRtf = GetParagraphRtf(p, fontMap, colorMap, false, ref carry);
                     sb.Append(parRtf);
                     break;
 
@@ -40,7 +41,11 @@ internal static partial class RtfConversions
             }
 
         }
-        sb.Remove(sb.Length - 5, 5);  // remove final \par
+        // remove the final \par - only if the document ends with one: a document ending with a table would
+        // otherwise lose its closing "\row " (same length) and come back without the last row
+        const string finalPar = @"\par ";
+        if (sb.Length >= finalPar.Length && sb.ToString(sb.Length - finalPar.Length, finalPar.Length) == finalPar)
+            sb.Remove(sb.Length - finalPar.Length, finalPar.Length);
         sb.Append('}');
         return sb.ToString();
     }
@@ -241,8 +246,27 @@ internal static partial class RtfConversions
 
     }
 
-   
+
+    // Character state at the end of a paragraph. \pard resets only paragraph formatting; a following paragraph
+    // with content must switch the states still on off explicitly, otherwise it inherits them (a paragraph after
+    // a predecessor ending in bold became bold entirely).
+    internal struct CharacterFormatCarry
+    {
+        public bool Bold;
+        public bool Italic;
+        public bool Underline;
+        public bool Strikeout;
+        public bool Superscript;
+        public bool Subscript;
+    }
+
     internal static string GetParagraphRtf(Paragraph par, Dictionary<string, int> fontMap, Dictionary<Color, int> colorMap, bool isTablePar = false)
+    {
+        var carry = new CharacterFormatCarry();
+        return GetParagraphRtf(par, fontMap, colorMap, isTablePar, ref carry);
+    }
+
+    internal static string GetParagraphRtf(Paragraph par, Dictionary<string, int> fontMap, Dictionary<Color, int> colorMap, bool isTablePar, ref CharacterFormatCarry carry)
     {
         bool BoldOn = false;
         bool ItalicOn = false;
@@ -255,6 +279,18 @@ internal static partial class RtfConversions
         StringBuilder parRtf = new();
 
         parRtf.Append(@"\pard" + (isTablePar ? @"\intbl" : ""));
+        // Only a paragraph with text resets; an empty final paragraph (\par at the document end) leaves the state
+        // and adds no extra control words.
+        bool hasText = par.Inlines.Any(inline => !string.IsNullOrEmpty(inline.InlineText));
+        if (hasText)
+        {
+            if (carry.Bold) parRtf.Append(@"\b0");
+            if (carry.Italic) parRtf.Append(@"\i0");
+            if (carry.Underline) parRtf.Append(@"\ul0");
+            if (carry.Strikeout) parRtf.Append(@"\strike0");
+            if (carry.Superscript || carry.Subscript) parRtf.Append(@"\nosupersub");
+            carry = new CharacterFormatCarry();
+        }
         parRtf.Append(par.TextAlignment switch
         {
             TextAlignment.Center => @"\qc",
@@ -300,8 +336,22 @@ internal static partial class RtfConversions
             parRtf.Append(@$"\cbpat{bkColIdx}");
         }
 
+        if (par.LeftIndent != 0) parRtf.Append($@"\li{(int)Math.Round(PixToTwip(par.LeftIndent))}");
+        if (par.FirstLineIndent != 0) parRtf.Append($@"\fi{(int)Math.Round(PixToTwip(par.FirstLineIndent))}");
+        parRtf.Append(GetListTextRtf(par, fontMap));
+
         foreach (IEditable ied in par.Inlines)
             parRtf.Append(GetIEditableRtf(ied, ref BoldOn, ref ItalicOn, ref UnderlineOn, ref StrikeoutOn, ref SuperscriptOn, ref SubscriptOn, ref CurrentLang, fontMap, colorMap));
+
+        if (hasText)
+        {
+            carry.Bold = BoldOn;
+            carry.Italic = ItalicOn;
+            carry.Underline = UnderlineOn;
+            carry.Strikeout = StrikeoutOn;
+            carry.Superscript = SuperscriptOn;
+            carry.Subscript = SubscriptOn;
+        }
 
         if (!isTablePar)
             parRtf.Append(@"\par ");
@@ -310,6 +360,36 @@ internal static partial class RtfConversions
 
     }
 
+
+    private const string BulletMarker = "•";
+    private const string SymbolFontName = "Symbol";
+
+    // List marker as RichEdit writes it: \pntext carries the finished marker, {\*\pn...} the definition
+    // (bullet: Symbol \'B7, number: \pndec with \pnstart, letter: \pnlcltr/\pnucltr, otherwise a text marker).
+    private static string GetListTextRtf(Paragraph par, Dictionary<string, int> fontMap)
+    {
+        if (!par.HasListMarker)
+            return "";
+
+        if (par.ListMarker == BulletMarker)
+        {
+            int symbolFont = fontMap[SymbolFontName];
+            return $@"{{\pntext\f{symbolFont}\'B7\tab}}{{\*\pn\pnlvlblt\pnf{symbolFont}\pnindent0{{\pntxtb\'B7}}}}";
+        }
+
+        int font = fontMap.TryGetValue(par.ListMarkerFontFamily.Name, out int markerFont) ? markerFont : 0;
+        int lang = 1033;
+        string markerText = GetRtfRunText(par.ListMarker, ref lang);
+        string label = par.ListMarker.TrimEnd('.');
+        string numbering = label switch
+        {
+            _ when int.TryParse(label, out int number) => $@"\pnlvlbody\pnf{font}\pnindent0\pnstart{number}\pndec{{\pntxta.}}",
+            [>= 'a' and <= 'z'] => $@"\pnlvlbody\pnf{font}\pnindent0\pnstart{label[0] - 'a' + 1}\pnlcltr{{\pntxta.}}",
+            [>= 'A' and <= 'Z'] => $@"\pnlvlbody\pnf{font}\pnindent0\pnstart{label[0] - 'A' + 1}\pnucltr{{\pntxta.}}",
+            _ => $@"\pnlvlblt\pnf{font}\pnindent0{{\pntxtb {markerText}}}",
+        };
+        return $@"{{\pntext\f{font} {markerText}\tab}}{{\*\pn{numbering}}}";
+    }
 
     internal static string GetRtfFromInlines(List<IEditable> inlines)
     {
@@ -375,8 +455,10 @@ internal static partial class RtfConversions
                     int picw = imgbitmap.PixelSize.Width;
                     int pich = imgbitmap.PixelSize.Height;
 
-                    double displayW = thisImg.Width;
-                    double displayH = thisImg.Height;
+                    // An image without a set size (a pasted bitmap is Image { Source = bitmap }) has NaN Width/Height,
+                    // which converts to \picwgoal0\pichgoal0 and comes back invisible; use the bitmap size then.
+                    double displayW = double.IsNaN(thisImg.Width) ? imgbitmap.Size.Width : thisImg.Width;
+                    double displayH = double.IsNaN(thisImg.Height) ? imgbitmap.Size.Height : thisImg.Height;
 
                     if (thisImg.Stretch is Stretch.Uniform)
                     {  // preserve aspect ratio
@@ -390,23 +472,27 @@ internal static partial class RtfConversions
 
                     using MemoryStream memoryStream = new();
 
-                    var renderTarget = new RenderTargetBitmap(new PixelSize(picw, pich));
-                    using (var context = renderTarget.CreateDrawingContext())
-                        context.DrawImage(imgbitmap, new Rect(0, 0, picw, pich));
+                    using (var renderTarget = new RenderTargetBitmap(new PixelSize(picw, pich)))
+                    {
+                        using (var context = renderTarget.CreateDrawingContext())
+                            context.DrawImage(imgbitmap, new Rect(0, 0, picw, pich));
 
-                    renderTarget.Save(memoryStream);  // png by default
+                        renderTarget.Save(memoryStream, PngBitmapEncoderOptions.Default);
+                    }
                     memoryStream.Seek(0, SeekOrigin.Begin);
 
                     byte[] imgbytes = new byte[memoryStream.Length];
                     memoryStream.Read(imgbytes, 0, imgbytes.Length);
 
-                    // add image to rtf code:
-                    iedSB.AppendLine($@"{{\pict\pngblip\picw{picw}\pich{pich}\picwgoal{picwgoal}\pichgoal{pichgoal}");
+                    // add image to rtf code - without line breaks: GetRtfFromInlines replaces "\r\n" with "\par ",
+                    // and a \par inside the hex data makes a clipboard payload unreadable. The space after
+                    // \pichgoal ends the control word and is not part of the data.
+                    iedSB.Append($@"{{\pict\pngblip\picw{picw}\pich{pich}\picwgoal{picwgoal}\pichgoal{pichgoal} ");
 
                     foreach (byte b in imgbytes)
                         iedSB.Append(b.ToString("x2"));  // hex encoding
 
-                    iedSB.AppendLine("}");
+                    iedSB.Append('}');
                 }
                 break;
 
@@ -458,7 +544,8 @@ internal static partial class RtfConversions
         if (!ItalicOn && erun.FontStyle == FontStyle.Italic) { iedSB.Append(@"\i "); ; ItalicOn = true; }
         if (ItalicOn && erun.FontStyle == FontStyle.Normal) { iedSB.Append(@"\i0 "); ItalicOn = false; }
 
-        if (erun.FontSize > 0) iedSB.Append($@"\fs{(int)(PixelsToPoints(erun.FontSize) * 2)} ");
+        // Rounded: 10pt set as 13.333 px converts to 19.999... and was truncated to \fs19 (9.5pt).
+        if (erun.FontSize > 0) iedSB.Append($@"\fs{(int)Math.Round(PixelsToPoints(erun.FontSize) * 2)} ");
 
         if (fontMap.TryGetValue(erun.FontFamily.Name, out int fontIndex))
             iedSB.Append($@"\f{fontIndex} ");
@@ -590,6 +677,9 @@ internal static partial class RtfConversions
         if (par.Background is ISolidColorBrush parBackground && parBackground.Color != Colors.Transparent)
             if (!colorMap.ContainsKey(parBackground.Color))
                 colorMap[parBackground.Color] = colorIndex++;
+
+        if (par.ListMarker == BulletMarker && !fontMap.ContainsKey(SymbolFontName))
+            fontMap[SymbolFontName] = fontIndex++;
 
         foreach (IEditable ied in par.Inlines)
         {

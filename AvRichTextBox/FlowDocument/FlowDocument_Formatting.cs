@@ -45,6 +45,58 @@ public partial class FlowDocument
     private ToggleFormatRun? toggleFormatRun;
 
     private delegate void ToggleFormatRun(IEditable ied);
+
+    // Formatting for the NEXT typed text when nothing is selected (font size, family, color, strikethrough): the
+    // same insert-run mechanism as ToggleBold, but for any run property. Several properties collect until the next
+    // inserted character; with a selection the value applies to the range at once. TextRange.ApplyFormatting alone
+    // does nothing for an empty selection, so a formatting toolbar would appear dead.
+    private readonly Dictionary<AvaloniaProperty, object> pendingTypingFormats = [];
+
+    internal bool HasPendingTypingFormats => pendingTypingFormats.Count > 0;
+
+    public void ApplyFormattingOrTypingFormat(AvaloniaProperty avProperty, object value)
+    {
+        if (!formatRunsActions.ContainsKey(avProperty))
+            throw new NotSupportedException($"Formatting for {avProperty.Name} is not supported.");
+
+        if (Selection.Length > 0)
+        {
+            Selection.ApplyFormatting(avProperty, value);
+            return;
+        }
+
+        // Bold, italic and decorations toggle against the run format: the same value again before typing cancels
+        // the pending toggle, as a second Ctrl+B does. The other properties set their value, the last one wins.
+        if (IsToggleFormat(avProperty) && pendingTypingFormats.TryGetValue(avProperty, out object? pending) && Equals(pending, value))
+        {
+            pendingTypingFormats.Remove(avProperty);
+            return;
+        }
+
+        pendingTypingFormats[avProperty] = value;
+    }
+
+    private static bool IsToggleFormat(AvaloniaProperty avProperty) =>
+        avProperty == Inline.FontWeightProperty || avProperty == Inline.FontStyleProperty || avProperty == Inline.TextDecorationsProperty;
+
+    private void ApplyPendingTypingFormats(IEditable insertedRun)
+    {
+        foreach (KeyValuePair<AvaloniaProperty, object> pending in pendingTypingFormats)
+            formatRunsActions[pending.Key]([insertedRun], pending.Value);
+
+        pendingTypingFormats.Clear();
+    }
+
+    // Format value at the caret (current font shown in a formatting toolbar): a pending typing format overrides
+    // the value of the run holding the caret.
+    public object? GetCaretFormat(AvaloniaProperty avProperty)
+    {
+        if (pendingTypingFormats.TryGetValue(avProperty, out object? pending))
+            return pending;
+
+        return Selection.StartInline is EditableRun run ? run.GetValue(avProperty) : null;
+    }
+
     // used for inline toggling while typing
     private void ToggleInlineApplyBold(IEditable ied) { if (ied is EditableRun erun) { erun.FontWeight = BoldOn ? FontWeight.Bold : FontWeight.Normal; } }
     private void ToggleInlineApplyItalic(IEditable ied) { if (ied is EditableRun erun) { erun.FontStyle = ItalicOn ? FontStyle.Italic : FontStyle.Normal; } }

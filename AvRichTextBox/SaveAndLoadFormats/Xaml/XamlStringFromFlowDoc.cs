@@ -16,7 +16,7 @@ internal partial class XamlConversions
     internal static Uri packageRelsUri = new(@"avares://AvRichTextBox/SaveAndLoadFormats/Xaml/XamlPackageData/.rels");
     internal static Uri contentTypesUri = new(@"avares://AvRichTextBox/SaveAndLoadFormats/Xaml/XamlPackageData/[Content_Types].xml");
 
-    //string ParagraphTextDefault => "<Paragraph LineHeight=\"18.666666666666668\" FontFamily=\"Times New Roman, ‚l‚r –¾’©\" Margin=\"0,0,0,0\" Padding=\"0,0,0,0\">";
+    //string ParagraphTextDefault => "<Paragraph LineHeight=\"18.666666666666668\" FontFamily=\"Times New Roman, ï¿½lï¿½r ï¿½ï¿½ï¿½ï¿½\" Margin=\"0,0,0,0\" Padding=\"0,0,0,0\">";
 
     internal static void SaveXamlPackage(string fileName, FlowDocument fdoc)
     {
@@ -134,8 +134,25 @@ internal partial class XamlConversions
         /////  make more general to use for any textrange 
         //selXaml.Append(GetBlocksXaml(new TextRange(this, 0, this.DocEndPoint)));
 
+        // Open List elements (each with an open ListItem), innermost on top.
+        Stack<string> openLists = new();
         foreach (Block block in fdoc.Blocks)
         {
+            (int level, string markerStyle, int index) = block is Paragraph { HasListMarker: true } listPar ? GetListPosition(listPar) : (0, "", 0);
+
+            while (openLists.Count > level || level > 0 && openLists.Count == level && openLists.Peek() != markerStyle)
+            {
+                selXaml.Append("</ListItem></List>");
+                openLists.Pop();
+            }
+            if (level > 0 && openLists.Count == level)
+                selXaml.Append("</ListItem><ListItem>");
+            while (openLists.Count < level)
+            {
+                selXaml.Append($"<List MarkerStyle=\"{markerStyle}\" StartIndex=\"{index}\"><ListItem>");
+                openLists.Push(markerStyle);
+            }
+
             switch (block)
             {
                 case Paragraph par:
@@ -149,11 +166,46 @@ internal partial class XamlConversions
                     break;
             }
         }
+        for (; openLists.Count > 0; openLists.Pop())
+            selXaml.Append("</ListItem></List>");
 
         selXaml.Append("</Section>");
 
         return selXaml.ToString();
 
+    }
+
+    // Level (from the indent, 720 twips per level as when loading), WPF MarkerStyle and number of a list paragraph.
+    private static (int Level, string MarkerStyle, int Index) GetListPosition(Paragraph par)
+    {
+        int level = Math.Max(1, (int)Math.Round(PixToTwip(par.LeftIndent) / 720));
+        string label = par.ListMarker.TrimEnd('.');
+        return label switch
+        {
+            "â€¢" => (level, "Disc", 1),
+            "â—‹" => (level, "Circle", 1),
+            "â– " => (level, "Square", 1),
+            "â–¡" => (level, "Box", 1),
+            _ when int.TryParse(label, out int number) => (level, "Decimal", number),
+            [>= 'a' and <= 'z'] => (level, "LowerLatin", label[0] - 'a' + 1),
+            [>= 'A' and <= 'Z'] => (level, "UpperLatin", label[0] - 'A' + 1),
+            _ when label.All(c => "ivxlcdm".Contains(c)) => (level, "LowerRoman", FromRoman(label)),
+            _ when label.All(c => "IVXLCDM".Contains(c)) => (level, "UpperRoman", FromRoman(label)),
+            _ => (level, "Disc", 1),
+        };
+    }
+
+    private static int FromRoman(string roman)
+    {
+        int total = 0;
+        int previous = 0;
+        foreach (char c in roman.ToUpperInvariant().Reverse())
+        {
+            int value = c switch { 'I' => 1, 'V' => 5, 'X' => 10, 'L' => 50, 'C' => 100, 'D' => 500, _ => 1000 };
+            total += value < previous ? -value : value;
+            previous = Math.Max(previous, value);
+        }
+        return total;
     }
 
     internal static string GetTableXaml(Table table, bool isXamlPackage)

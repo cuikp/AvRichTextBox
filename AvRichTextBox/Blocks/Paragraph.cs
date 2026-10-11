@@ -90,7 +90,63 @@ public class Paragraph : Block
             MyFlowDoc.InvokeSelectionChanged();
 
         } 
-    } = 0;  // based on fontsize 
+    } = 0;  // based on fontsize
+
+    // Left indent and first-line indent in pixels (RTF \li, \fi). A list paragraph hangs: the marker sits in the
+    // negative first-line indent, all text lines start at LeftIndent.
+    public double LeftIndent { get; set { field = value; NotifyListLayoutChanged(); } } = 0;
+    public double FirstLineIndent { get; set { field = value; NotifyListLayoutChanged(); } } = 0;
+
+    // Bullet or number ("•", "1."); empty = no list paragraph. Not part of the text.
+    public string ListMarker
+    {
+        get;
+        set
+        {
+            string oldMarker = field;
+            field = value ?? "";
+
+            if (IsAttachedToDocument && !DisableUndoStack && oldMarker != field)
+                MyFlowDoc.Undos.Add(new ParagraphListMarkerChangeUndo(this.Id, oldMarker, field, MyFlowDoc));
+
+            NotifyListLayoutChanged();
+        }
+    } = "";
+
+    public bool HasListMarker => ListMarker.Length > 0;
+    public double ListMarkerWidth => FirstLineIndent < 0 ? -FirstLineIndent : double.NaN;
+    public Thickness IndentMargin => new(Math.Max(0, LeftIndent + (HasListMarker ? Math.Min(FirstLineIndent, 0) : 0)), 0, 0, 0);
+
+    // The marker takes font and size of the first text run, as RichEdit does without its own \pnf.
+    private EditableRun? FirstRun => Inlines.OfType<EditableRun>().FirstOrDefault();
+    public FontFamily ListMarkerFontFamily => FirstRun?.FontFamily ?? FontFamily;
+    public double ListMarkerFontSize => FirstRun is { FontSize: > 0 } run ? run.FontSize : FontSize;
+
+    private void NotifyListLayoutChanged()
+    {
+        NotifyPropertyChanged(nameof(LeftIndent));
+        NotifyPropertyChanged(nameof(FirstLineIndent));
+        NotifyPropertyChanged(nameof(ListMarker));
+        NotifyPropertyChanged(nameof(HasListMarker));
+        NotifyPropertyChanged(nameof(ListMarkerWidth));
+        NotifyPropertyChanged(nameof(IndentMargin));
+    }
+
+    // Marker for a list paragraph split off by Enter: numbers count on.
+    internal static string NextListMarker(string marker)
+    {
+        if (marker.EndsWith('.') && int.TryParse(marker[..^1], out int number))
+            return $"{number + 1}.";
+        return marker;
+    }
+
+    // Copies the list layout to a paragraph split off by Enter.
+    internal void ContinueListIn(Paragraph newParagraph)
+    {
+        newParagraph.LeftIndent = this.LeftIndent;
+        newParagraph.FirstLineIndent = this.FirstLineIndent;
+        newParagraph.ListMarker = NextListMarker(this.ListMarker);
+    }
 
     internal TextLayout TextLayout = null!;
     internal double DocICRelativeTop = 0;
@@ -294,7 +350,10 @@ public class Paragraph : Block
             OwningTableId = this.OwningTableId,
             OwningCellId = this.OwningCellId,
             StartInDoc = this.StartInDoc,
-            MyFlowDoc = this.MyFlowDoc
+            MyFlowDoc = this.MyFlowDoc,
+            LeftIndent = this.LeftIndent,
+            FirstLineIndent = this.FirstLineIndent,
+            ListMarker = this.ListMarker
         };
 
         if (keepId)

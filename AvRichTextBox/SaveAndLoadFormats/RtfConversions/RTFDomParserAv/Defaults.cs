@@ -16,6 +16,16 @@ namespace RtfDomParserAv
     {
         public static string FontName { get; set; } = "Times New Roman";
 
+        // RTF default code page (\ansi). Encoding.Default is UTF-8 on .NET Core and decodes \'xx bytes as U+FFFD.
+        internal static Encoding AnsiEncoding
+        {
+            get
+            {
+                LoadEncodings();
+                return Encoding.GetEncoding(1252);
+            }
+        }
+
         public static void LoadEncodings()
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);

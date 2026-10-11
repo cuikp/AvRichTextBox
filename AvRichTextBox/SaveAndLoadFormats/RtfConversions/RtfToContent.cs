@@ -5,6 +5,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using DynamicData;
 using RtfDomParserAv;
+using System.Text;
 using System.Text.RegularExpressions;
 using static AvRichTextBox.HelperMethods;
 
@@ -249,9 +250,11 @@ internal static partial class RtfConversions
         newpar.BorderBrush = new SolidColorBrush(rtfpar.Format.BorderColor);
         newpar.BorderThickness = new Thickness(TwipToPix(rtfpar.Format.BorderWidth));
         newpar.FontFamily = new FontFamily(rtfpar.Format.FontName);
-        //newpar.Margin = new Thickness(rtfpar.Format.xxx);
+        newpar.LeftIndent = TwipToPix(rtfpar.Format.LeftIndent);
+        newpar.FirstLineIndent = TwipToPix(rtfpar.Format.ParagraphFirstLineIndent);
 
         List<IEditable> addInlines = GetRtfTextElementsAsInlines(rtfpar.Elements);
+        newpar.ListMarker = TakeListText(addInlines);
 
         newpar.Inlines.AddRange(addInlines);
 
@@ -303,13 +306,34 @@ internal static partial class RtfConversions
 
                 Avalonia.Controls.Image img = new()
                 {
-                    Width = TwipToPix(rtfImage.Width),
-                    Height = TwipToPix(rtfImage.Height),
                     Stretch = Stretch.Fill
                 };
 
-                MemoryStream memStream = new(rtfImage.Data) { Position = 0 };
-                img.Source = new Bitmap(memStream);
+                // Loaded RTF is external input (stored documents, clipboard of other programs): a picture group
+                // without data or in a format Avalonia cannot decode must not abort loading the whole document.
+                // The image then stays without a source.
+                Bitmap? imageSource = null;
+                if (rtfImage.Data is byte[] imageData && imageData.Length > 0)
+                {
+                    try
+                    {
+                        MemoryStream memStream = new(imageData) { Position = 0 };
+                        imageSource = new Bitmap(memStream);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine("image data could not be decoded: " + ex.Message);
+                    }
+                }
+                img.Source = imageSource;
+
+                // \picwgoal/\pichgoal is the display size. If it is missing or 0 the bitmap size applies;
+                // otherwise the loaded image would get width and height 0 and stay invisible.
+                double goalWidth = TwipToPix(rtfImage.Width);
+                double goalHeight = TwipToPix(rtfImage.Height);
+                img.Width = goalWidth > 0 ? goalWidth : imageSource?.Size.Width ?? 0;
+                img.Height = goalHeight > 0 ? goalHeight : imageSource?.Size.Height ?? 0;
+
                 eIUC.SetChild(img);
                 returnList.Add(eIUC);
             }
@@ -404,6 +428,104 @@ internal static partial class RtfConversions
 
         return erun;
     }
+
+    // Mark around the content of \pntext/\listtext (U+2063, invisible separator). These groups carry the finished
+    // list marker of the paragraph ("·" + tab, "1." + tab); the DOM parser returns it as text.
+    private const char ListTextMark = (char)0x2063;
+
+    private static readonly string ListTextMarkRtf = $@"{{\u{(int)ListTextMark}?}}";
+
+    // Prepares RTF for the DOM parser. {\*\pn...} (list definition, ignorable destination) is dropped because the
+    // parser would otherwise write its \pntxtb/\pntxta text into the paragraph; \pntext and \listtext are marked at
+    // start and end. \listtext (Word lists) carries the same as \pntext and is passed on as \pntext; the parser
+    // would otherwise append a space after the group.
+    internal static string PrepareListText(string rtf)
+    {
+        StringBuilder result = new(rtf.Length);
+        for (int pos = 0; pos < rtf.Length; pos++)
+        {
+            if (rtf[pos] == '\\' && pos + 1 < rtf.Length)
+            {
+                result.Append(rtf, pos, 2);
+                pos++;
+            }
+            else if (StartsWith(rtf, pos, @"{\*\pn"))
+                pos = GroupEnd(rtf, pos);
+            else if (GetListTextWordLength(rtf, pos) is int wordLength and > 0)
+            {
+                int end = GroupEnd(rtf, pos);
+                result.Append('{').Append(ListTextMarkRtf).Append(@"\pntext").Append(rtf, pos + wordLength, end - pos - wordLength).Append(ListTextMarkRtf).Append('}');
+                pos = end;
+            }
+            else
+                result.Append(rtf[pos]);
+        }
+        return result.ToString();
+    }
+
+    private static bool StartsWith(string rtf, int pos, string text) => string.CompareOrdinal(rtf, pos, text, 0, text.Length) == 0;
+
+    private static bool StartsWithControlWord(string rtf, int pos, string word) =>
+        StartsWith(rtf, pos, word) && (pos + word.Length >= rtf.Length || !char.IsLetter(rtf[pos + word.Length]));
+
+    // Length of "{\pntext" or "{\listtext" at pos, otherwise 0.
+    private static int GetListTextWordLength(string rtf, int pos) =>
+        StartsWithControlWord(rtf, pos, @"{\pntext") ? 8 : StartsWithControlWord(rtf, pos, @"{\listtext") ? 10 : 0;
+
+    // Index of the closing brace of the group at pos; escaped braces do not count.
+    private static int GroupEnd(string rtf, int pos)
+    {
+        int depth = 0;
+        for (; pos < rtf.Length; pos++)
+        {
+            switch (rtf[pos])
+            {
+                case '\\': pos++; break;
+                case '{': depth++; break;
+                case '}': if (--depth == 0) return pos; break;
+            }
+        }
+        return rtf.Length - 1;
+    }
+
+    // Takes the marked list marker off the paragraph start and returns it without tab/spaces.
+    private static string TakeListText(List<IEditable> inlines)
+    {
+        if (inlines.FirstOrDefault() is not EditableRun { Text: string firstText } firstRun || !firstText.StartsWith(ListTextMark))
+            return "";
+
+        firstRun.Text = firstText[1..];
+        StringBuilder marker = new();
+        while (inlines.FirstOrDefault() is EditableRun run)
+        {
+            string text = run.Text ?? "";
+            int end = text.IndexOf(ListTextMark);
+            string fontName = run.FontFamily.Name;
+            marker.Append((end < 0 ? text : text[..end]).Select(c => MapSymbolFontChar(c, fontName)).ToArray());
+
+            if (end >= 0 && end + 1 < text.Length)
+            {
+                run.Text = text[(end + 1)..];
+                break;
+            }
+            inlines.RemoveAt(0);
+            if (end >= 0)
+                break;
+        }
+        return marker.ToString().Trim();
+    }
+
+    // Bullets of the symbol fonts as Unicode (\'B7 in Symbol is the bullet, not the middle dot).
+    private static char MapSymbolFontChar(char c, string fontName) => (fontName, c) switch
+    {
+        ("Symbol", '·') => '•',
+        ("Wingdings", '§') => '▪',
+        ("Wingdings", 'l') => '●',
+        ("Wingdings", 'n') => '■',
+        ("Wingdings", 'Ø') => '➢',
+        ("Wingdings", 'ü') => '✓',
+        _ => c,
+    };
 
     //private static string DecodeRtfUnicode(string rtfText)
     //{

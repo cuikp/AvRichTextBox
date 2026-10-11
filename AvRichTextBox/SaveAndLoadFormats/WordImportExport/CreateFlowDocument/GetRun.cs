@@ -4,7 +4,6 @@ using Avalonia.Media.Imaging;
 using Avalonia.Media.Immutable;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
-using ReactiveUI;
 using System;
 using System.Linq;
 using System.Text;

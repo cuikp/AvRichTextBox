@@ -72,6 +72,40 @@ internal class ParagraphLineHeightChangeUndo(int parId, double oldLineHeight, do
 }
 
 
+internal class ParagraphListMarkerChangeUndo(int parId, string oldListMarker, string newListMarker, FlowDocument flowDoc) : IEditDo
+{
+    public int EditOffset { get; set; } =  0;
+    public bool UpdateTextRanges => false;
+    public int UpdateTextRangesFromCharIdx { get; set; } = 0;
+    public bool DoNextUndo => false;public bool DoNextRedo => false;
+
+    public void PerformUndo()
+    {
+        DoListMarkerChange(oldListMarker);
+    }
+
+    public void PerformRedo()
+    {
+        DoListMarkerChange(newListMarker);
+    }
+
+    private void DoListMarkerChange(string targetListMarker)
+    {
+        try
+        {
+            DisableUndoStack = true;
+
+            if (flowDoc.GetBlockFromId(parId) is Paragraph par)
+                par.ListMarker = targetListMarker;
+
+            DisableUndoStack = false;
+        }
+        catch (Exception ex) { Debug.WriteLine($"Failed {this.GetType().Name} at parId: {parId}\n{ex.Message}"); }
+        finally { DisableUndoStack = false; }
+    }
+}
+
+
 internal class InsertInlineAtUndo(int parId, int inlineId, FlowDocument flowDoc) : IEditDo
 {
     public int EditOffset { get; set; } =  0;

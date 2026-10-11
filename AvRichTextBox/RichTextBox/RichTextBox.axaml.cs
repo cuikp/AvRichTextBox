@@ -70,11 +70,17 @@ public partial class RichTextBox : UserControl
 
         SelectionPath.Data = _geometry;
 
-        var panel = new Canvas();
+        // Caret and selection sit as topmost child in the document grid instead of the AdornerLayer: a window
+        // template without VisualLayerManager (custom shells, docking hosts) has no adorner layer, and the caret
+        // and selection were never shown there. The grid shares the coordinate system of DocIC and scrolls with it.
+        var panel = new Canvas
+        {
+            IsHitTestVisible = false,
+            ZIndex = 1000
+        };
         panel.Children.Add(SelectionPath);
         panel.Children.Add(_CaretRect);
-        AdornerLayer.SetAdorner(DocIC, panel);
-        //AdornerLayer.SetIsClipEnabled(panel, false);
+        DocOverlayHost.Children.Add(panel);
 
     }
 
@@ -99,7 +105,8 @@ public partial class RichTextBox : UserControl
         BindSelectionPropertiesToDebuggerPanel();
 #endif
 
-        this.Focus();
+        // No Focus() on load: a control must not take the keyboard focus away from the hosting window
+        // (an editor placed on a form stole it from the form's first input field).
 
         SelectionPath.Fill = this.SelectionBrush;
         UpdateSelectionIndicators();
