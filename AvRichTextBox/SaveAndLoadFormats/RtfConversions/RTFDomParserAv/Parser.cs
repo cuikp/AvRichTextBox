@@ -70,8 +70,9 @@ namespace RtfDomParserAv
                             {   // 紧跟在在“\uN”后面的问号忽略掉
                                 if (token.Key.Length > 0)
                                 {
+                                    // Only the '?' fallback is skipped; the text that follows it belongs to the document.
                                     CheckBuffer();
-                                    //myStr.Append(token.Key.Substring(1));
+                                    myStr.Append(token.Key.Substring(1));
                                 }
                                 return true;
                             }
