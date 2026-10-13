@@ -50,13 +50,15 @@ public partial class FlowDocument
          ))];
 
 
-        if (AllSelectedInlines.Count == 0 ||
-           trange.GetStartPar() is not Paragraph startPar ||
-           trange.GetEndPar() is not Paragraph endPar)
+        if (AllSelectedInlines.Count == 0)
         {
             edgeIds.idRight = trange.StartInline?.Id ?? 0;
             return ([], edgeIds);
         }
+
+        // A boundary-biased range can point at the next paragraph even though none of its runs are selected.
+        Paragraph startPar = AllParagraphs.First(p => p.Inlines.Contains(AllSelectedInlines[0]));
+        Paragraph endPar = AllParagraphs.First(p => p.Inlines.Contains(AllSelectedInlines[^1]));
 
         if (!addToDoc)
         {  // make clones when copying

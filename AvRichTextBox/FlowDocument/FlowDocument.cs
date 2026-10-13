@@ -144,6 +144,7 @@ public partial class FlowDocument : AvaloniaObject
                 {
                     c.OwningTable = table;
                     c.IsAttachedToDocument = table.IsAttachedToDocument;
+                    c.IsClonedCell = false;
                     foreach (Block b in c.CellBlocks)
                     {
                         b.IsTableCellBlock = true;

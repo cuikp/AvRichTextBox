@@ -12,10 +12,7 @@ internal class PasteUndo(
    int origSelectionStart,
    int deletedRangeLen,
    int pastedTextLength,
-   bool firstParEmpty,
    List<int> addedBlockIds,
-   bool firstParWasDeleted,
-   bool lastParWasDeleted,
    bool pastedInCellBlock,
    int containingTableId,
    int containingCellId
@@ -41,31 +38,11 @@ internal class PasteUndo(
             if (DetermineBlockCollection(out updateBlocksFromIndex) is not ObservableCollection<Block> blockCollection || updateBlocksFromIndex == -1)
                 return;
 
-            if (blockCollection.FirstOrDefault(b => b.Id == origStartBlockId) is Block firstOrigBlock)
-                keptPastedBlockClones.Add(firstOrigBlock.FullClone(true));
-
-            flowDoc.RestoreDeletedBlocks(keptOrigBlockClones, insertBlockIndex, firstParWasDeleted, lastParWasDeleted, blockCollection, updateBlocksFromIndex);
-
-            foreach (int bid in addedBlockIds)
-            {
-                if (blockCollection.FirstOrDefault(b => b.Id == bid) is Block foundBlock)
-                {
-                    int indexInCol = blockCollection.IndexOf(foundBlock);
-                    keptPastedBlockClones.Add(foundBlock.FullClone(true));
-                    blockCollection.Remove(foundBlock);
-                }
-            }
-
-            keptPastedBlockClones.ForEach(bc => bc.MyFlowDoc = null!);
-
-            if (firstParEmpty)
-            {
-                Block firstBlock = blockCollection[insertBlockIndex];
-                if (firstBlock is Paragraph firstPar && firstPar.Inlines.Count == 1 && firstPar.Inlines[0] is EditableRun run)
-                    run.Text = ""; 
-            }
-
-
+            var affectedIds = keptOrigBlockClones.Select(b => b.Id).Concat(addedBlockIds).Append(origStartBlockId).ToHashSet();
+            keptPastedBlockClones = blockCollection.Where(b => affectedIds.Contains(b.Id))
+                .Select(b => b.FullClone(true)).ToList();
+            ReplaceBlocks(blockCollection, keptPastedBlockClones, keptOrigBlockClones);
+            flowDoc.UpdateBlockAndInlineStarts(updateBlocksFromIndex);
 
             EditOffset = deletedRangeLen - pastedTextLength;
             UpdateTextRangesFromCharIdx = origSelectionStart;
@@ -87,17 +64,8 @@ internal class PasteUndo(
             if (DetermineBlockCollection(out updateBlocksFromIndex) is not ObservableCollection<Block> blockCollection || updateBlocksFromIndex == -1)
                 return;
 
-            //if (!firstParEmpty)  // ?????????????
-            blockCollection.RemoveAt(insertBlockIndex);
-
-            //keptOrigBlockClones = keptOrigBlockClones.ConvertAll(kbc => kbc.FullClone(true));
-            for (int bno = 0; bno < keptOrigBlockClones.Count; bno++)
-            {
-                if (flowDoc.GetBlockFromId(keptOrigBlockClones[bno].Id) is Block b)
-                    keptOrigBlockClones[bno] = b.FullClone(true);
-            }
-            
-            blockCollection.AddOrInsertRange(keptPastedBlockClones, insertBlockIndex);
+            ReplaceBlocks(blockCollection, keptOrigBlockClones, keptPastedBlockClones);
+            flowDoc.UpdateBlockAndInlineStarts(updateBlocksFromIndex);
 
             EditOffset = pastedTextLength - deletedRangeLen;
 
@@ -107,6 +75,17 @@ internal class PasteUndo(
         }
         catch { Debug.WriteLine($"Failed {this.GetType().Name} at OrigSelectionStart: {origSelectionStart}"); }
         finally { DisableUndoStack =  false; }
+    }
+
+    private void ReplaceBlocks(ObservableCollection<Block> blockCollection, List<Block> currentBlocks, List<Block> restoredBlocks)
+    {
+        var currentIds = currentBlocks.Select(b => b.Id).ToHashSet();
+        foreach (Block block in blockCollection.Where(b => currentIds.Contains(b.Id)).ToList())
+            blockCollection.Remove(block);
+
+        // Keep history snapshots detached: subsequent edits must not change a saved undo state.
+        blockCollection.AddOrInsertRange(restoredBlocks.Select(b => b.FullClone(true)), insertBlockIndex);
+        FlowDocument.UpdateTextLayouts(blockCollection.Skip(insertBlockIndex).Take(restoredBlocks.Count));
     }
 
     private ObservableCollection<Block> DetermineBlockCollection(out int updateBlocksFromIndex)
