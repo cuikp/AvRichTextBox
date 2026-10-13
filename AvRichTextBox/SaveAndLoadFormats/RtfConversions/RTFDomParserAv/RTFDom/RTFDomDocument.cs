@@ -1727,14 +1727,22 @@ namespace RtfDomParserAv
                     case "blue":
                         b = reader.Parameter;
                         break;
-                    case ";":
-                        if (r >= 0 && g >= 0 && b >= 0)
+                    default:
+                        if (reader.TokenType == RTFTokenType.Text)
                         {
-                            Color c = Color.FromArgb(255, (byte)r, (byte)g, (byte)b);
-                            myColorTable.Add(c);
-                            r = -1;
-                            g = -1;
-                            b = -1;
+                            foreach (char character in reader.Keyword)
+                            {
+                                if (character != ';')
+                                    continue;
+
+                                Color c = r >= 0 && g >= 0 && b >= 0
+                                    ? Color.FromArgb(255, (byte)r, (byte)g, (byte)b)
+                                    : Colors.Transparent;
+                                myColorTable.Add(c);
+                                r = -1;
+                                g = -1;
+                                b = -1;
+                            }
                         }
                         break;
                 }
