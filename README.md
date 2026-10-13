@@ -188,7 +188,7 @@ xmlns:avrtb="using:AvRichTextBox"
 * Word/Html/RTF export and import can be fleshed out (to support more attributes)
 * Allow setting of Undo limit
 
-`RtfDomParser` used for reading/parsing of rtf files can be found at https://github.com/SourceCodeBackup/RtfDomParser, but for this project I had to manually modify it to use `Avalonia.Media` instead of `System.Drawing`.  That modified library is included in this project as `RtfDomParserAv.dll`.  Generation of .rtf for saving is my own concoction with the bare minimum necessary to produce a readable .rtf file/dataobject.
+`RtfDomParser` used for reading/parsing of rtf files can be found at https://github.com/SourceCodeBackup/RtfDomParser, but for this project I had to manually modify it to use `Avalonia.Media` instead of `System.Drawing`.  The project includes the modified parser sources in `AvRichTextBox/SaveAndLoadFormats/RtfConversions/RTFDomParserAv` and does not require a separate `RtfDomParserAv.dll`.  Generation of .rtf for saving is my own concoction with the bare minimum necessary to produce a readable .rtf file/dataobject.
 
 ## Usage Examples
 I'd appreciate any contributors who have used this library and have time/interest to add usage examples for this library.
