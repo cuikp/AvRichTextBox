@@ -134,6 +134,7 @@ public class EditableHyperlink : EditableRun
 
         EditableHyperlink newEHL = new(this.LinkDisplayText!, this.NavigateUri)
         {
+            MarkdownInfo = this.MarkdownInfo,
             FontStyle = this.FontStyle,
             FontWeight = this.FontWeight,
             TextDecorations = this.TextDecorations,

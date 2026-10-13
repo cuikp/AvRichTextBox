@@ -305,6 +305,7 @@ public class Paragraph : Block
 
         Paragraph newPar = new()
         {
+            MarkdownInfo = this.MarkdownInfo,
             TextAlignment = this.TextAlignment,
             //LineSpacing = this.LineSpacing,
             BorderBrush = this.BorderBrush,
@@ -335,6 +336,7 @@ public class Paragraph : Block
 
         Paragraph newPar = new()
         {
+            MarkdownInfo = this.MarkdownInfo,
             TextAlignment = this.TextAlignment,
             //LineSpacing = this.LineSpacing,
             BorderBrush = this.BorderBrush,
@@ -371,6 +373,7 @@ public class Paragraph : Block
         DisableUndoStack =  true;
 
         this.TextAlignment = sourceP.TextAlignment;
+        this.MarkdownInfo = sourceP.MarkdownInfo;
         //this.LineSpacing = sourceP.LineSpacing;
         this.BorderBrush = sourceP.BorderBrush;
         this.BorderThickness = sourceP.BorderThickness;

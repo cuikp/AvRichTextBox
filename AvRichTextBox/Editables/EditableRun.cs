@@ -6,6 +6,7 @@ namespace AvRichTextBox;
 [DebuggerDisplay("Text: {Text}")]
 public class EditableRun : Run, IEditable
 {
+    internal MarkdownInlineInfo? MarkdownInfo { get; set; }
 
     public EditableRun() { InitializeRun(); }
 
@@ -140,6 +141,7 @@ public class EditableRun : Run, IEditable
 
         EditableRun clonedRun = new (this.Text!)
         {
+            MarkdownInfo = this.MarkdownInfo,
             FontStyle = this.FontStyle,
             FontWeight = this.FontWeight,
             TextDecorations = this.TextDecorations,
