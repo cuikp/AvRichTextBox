@@ -34,6 +34,25 @@
 </avrtb:RichTextBox>
 ```
 
+## Display text without user selection
+
+Set `IsSelectionEnabled` to `False` to prevent mouse and keyboard selection.
+
+```xaml
+<avrtb:RichTextBox IsSelectionEnabled="False"
+                  IsReadOnly="True"
+                  CtrlKeyOpensHyperlink="False" />
+```
+
+Hyperlinks remain clickable. `CtrlKeyOpensHyperlink` still controls whether a link requires the Ctrl key.
+
+`IsSelectionEnabled` is a bindable property with a default value of `True`.
+When this property becomes `False`, the control clears the current selection and stops an active mouse selection.
+Selections made through the document API remain available, but the control hides their text and table highlights.
+The Copy and Cut commands do not copy text while selection is disabled.
+
+`IsSelectionEnabled` does not prevent text edits or caret movement. Use `IsReadOnly="True"` to prevent text edits, as in this example.
+
 ## Adding a table
 ```xaml  
 <avrtb:RichTextBox  >

@@ -105,7 +105,17 @@ public partial class RichTextBox
 
     private bool TryHandleKeyAction(KeyEventArgs e)
     {
-        if (KeyActions.TryGetValue(GetCombo(e), out var action))
+        KeyCombo combo = GetCombo(e);
+        bool selectsText = (combo.Ctrl && combo.Key == Key.A) ||
+            (combo.Shift && combo.Key is Key.Left or Key.Right or Key.Up or Key.Down or
+                Key.Home or Key.End or Key.PageUp or Key.PageDown);
+        if (!IsSelectionEnabled && selectsText)
+        {
+            e.Handled = true;
+            return true;
+        }
+
+        if (KeyActions.TryGetValue(combo, out var action))
         {
             action();
             e.Handled = true;

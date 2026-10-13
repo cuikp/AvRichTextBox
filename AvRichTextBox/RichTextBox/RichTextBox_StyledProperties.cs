@@ -96,5 +96,15 @@ public partial class RichTextBox
        set => SetValue(IsCaretVisibleProperty, value);
     }
 
+    public static readonly StyledProperty<bool> IsSelectionEnabledProperty = AvaloniaProperty.Register<RichTextBox, bool>(nameof(IsSelectionEnabled), true);
+    /// <summary>
+    /// Gets or sets whether users can select and copy text. Disabling selection clears the current selection
+    /// and hides programmatic selections. Hyperlinks remain interactive.
+    /// </summary>
+    public bool IsSelectionEnabled
+    {
+       get => GetValue(IsSelectionEnabledProperty);
+       set => SetValue(IsSelectionEnabledProperty, value);
+    }
 
 }

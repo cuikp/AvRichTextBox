@@ -113,6 +113,13 @@ public partial class RichTextBox
 
         int clickPosition = thisPar.StartInDoc + hitCarIndex.TextPosition;
 
+        if (!IsSelectionEnabled)
+        {
+            SelectionOrigin = clickPosition;
+            FlowDoc.Select(clickPosition, 0);
+            return;
+        }
+
         // Shift+Click: extend selection from current anchor
         if (e.KeyModifiers.HasFlag(KeyModifiers.Shift))
         {
