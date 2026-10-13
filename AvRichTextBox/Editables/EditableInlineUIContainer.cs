@@ -106,8 +106,19 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
     internal int MyParagraphId { get; set; }
     int IEditable.MyParagraphId { get => MyParagraphId; set => MyParagraphId = value; }
 
-    internal FlowDocument MyFlowDoc { get; set; } = null!;
+    internal FlowDocument MyFlowDoc
+    {
+        get;
+        set
+        {
+            if (ReferenceEquals(field, value)) return;
+            field = value;
+            OnFlowDocumentChanged();
+        }
+    } = null!;
     FlowDocument IEditable.MyFlowDoc { get => MyFlowDoc; set => MyFlowDoc = value; }
+
+    protected virtual void OnFlowDocumentChanged() { }
 
     public int TextPositionOfInlineInParagraph { get; set; }
 
@@ -144,7 +155,7 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
     
     internal int ImageNo;
 
-    public IEditable Clone()
+    public virtual IEditable Clone()
     {
         bool keepDisableUndoStack = DisableUndoStack;
         DisableUndoStack =  true;
@@ -180,7 +191,7 @@ public class EditableInlineUIContainer : InlineUIContainer, IEditable
 
     }
 
-    public IEditable CloneWithId()
+    public virtual IEditable CloneWithId()
     {
         IEditable IdClone = this.Clone();
         IdClone.Id = this.Id;

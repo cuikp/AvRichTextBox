@@ -59,6 +59,10 @@ internal static partial class WordConversions
          {
             switch (iline)
             {
+               case CustomInline custom:
+                  parg.AppendChild(new DOW.Run(new DOW.Text(custom.Definition.FallbackText) { Space = SpaceProcessingModeValues.Preserve }));
+                  break;
+
                case EditableHyperlink hlink:
 
                   if (Uri.TryCreate(hlink.NavigateUri, UriKind.Absolute, out var uri))

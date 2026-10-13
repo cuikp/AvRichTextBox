@@ -153,6 +153,11 @@ internal static partial class HtmlConversions
       {
           switch (ied)
          {
+            case CustomInline custom:
+               parnode.AppendChild(hdoc.CreateTextNode(WebUtility.HtmlEncode(custom.Definition.FallbackText)));
+               hasContent = true;
+               break;
+
             case EditableHyperlink elink:
                {
                   if (!string.IsNullOrEmpty(elink.LinkDisplayText))

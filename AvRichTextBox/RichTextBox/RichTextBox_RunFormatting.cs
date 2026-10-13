@@ -39,6 +39,8 @@ public partial class RichTextBox
               
 
         var dataTransfer = new DataTransfer();
+        if (FlowDoc.SelectionContainsCustomContent(FlowDoc.Selection))
+            dataTransfer.Add(DataTransferItem.Create(CustomContentClipboardFormat, Encoding.UTF8.GetBytes(FlowDoc.GetCustomSelectionXaml(FlowDoc.Selection))));
 
         // Rtf format
         string rtfString = GetRtfFromRange(FlowDoc.Selection);
@@ -54,7 +56,7 @@ public partial class RichTextBox
         if (rangeInlines.LastOrDefault() is EditableLineBreak elb)
             rangeInlines.Remove(elb);
 
-        string inlinesText = string.Join("", rangeInlines.ConvertAll(il => il.InlineText));
+        string inlinesText = string.Join("", rangeInlines.ConvertAll(il => il is CustomInline custom ? custom.Definition.FallbackText : il.InlineText));
         dataTransfer.Add(DataTransferItem.CreateText(inlinesText));
 
         _ = clipboard.SetDataAsync(dataTransfer);
@@ -152,6 +154,8 @@ public partial class RichTextBox
 
         var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
         if (clipboard == null) return;
+
+        if (!plainTextOnly && await PasteCustomContentAsync(clipboard)) return;
 
         // Get paste location properties
         int originalSelectionStart = FlowDoc.Selection.Start;
