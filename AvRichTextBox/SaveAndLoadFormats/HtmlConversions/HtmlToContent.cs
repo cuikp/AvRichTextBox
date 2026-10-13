@@ -458,16 +458,7 @@ internal static partial class HtmlConversions
                             var hyperlink = new EditableHyperlink(linkText, href);
                             var aFormatting = formatting.Clone();
                             ApplyStyleToFormatting(node.GetAttributeValue("style", ""), aFormatting);
-                            // Apply formatting except foreground/decorations (EditableHyperlink forces those)
-                            hyperlink.FontWeight = aFormatting.FontWeight;
-                            hyperlink.FontStyle = aFormatting.FontStyle;
-                            hyperlink.BaselineAlignment = aFormatting.BaselineAlignment;
-                            if (aFormatting.FontFamily != null)
-                                hyperlink.FontFamily = aFormatting.FontFamily;
-                            if (aFormatting.FontSize.HasValue)
-                                hyperlink.FontSize = aFormatting.FontSize.Value;
-                            if (aFormatting.Background != null)
-                                hyperlink.Background = aFormatting.Background;
+                            aFormatting.ApplyTo(hyperlink);
                             par.Inlines.Add(hyperlink);
                         }
                     }
@@ -549,7 +540,8 @@ internal static partial class HtmlConversions
                     break;
 
                 case "text-decoration":
-
+                    if (kvp.Value.Trim().Equals("none", StringComparison.OrdinalIgnoreCase))
+                        formatting.TextDecorations = [];
                     if (kvp.Value.Contains("underline"))
                     {
                         formatting.TextDecorations ??= [];

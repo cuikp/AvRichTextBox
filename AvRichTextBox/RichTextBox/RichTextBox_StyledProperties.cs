@@ -46,6 +46,17 @@ public partial class RichTextBox
       get => GetValue(CtrlKeyOpensHyperlinkProperty);
       set { SetValue(CtrlKeyOpensHyperlinkProperty, value);  }
    }
+
+   public static readonly StyledProperty<IBrush> HyperlinkBrushProperty = AvaloniaProperty.Register<RichTextBox, IBrush>(nameof(HyperlinkBrush), defaultValue: Brushes.Blue);
+
+   /// <summary>
+   /// Gets or sets the initial foreground for hyperlinks inserted by the editor. Existing hyperlinks keep their formatting.
+   /// </summary>
+   public IBrush HyperlinkBrush
+   {
+      get => GetValue(HyperlinkBrushProperty);
+      set => SetValue(HyperlinkBrushProperty, value);
+   }
    
    internal static readonly StyledProperty<bool> DisableEditingShortcutsProperty = AvaloniaProperty.Register<RichTextBox, bool>(nameof(DisableEditingShortcuts), false);
    public bool DisableEditingShortcuts

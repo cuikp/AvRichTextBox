@@ -129,7 +129,7 @@ public partial class RichTextBox
         {   // Insert new hyperlink from the current selection
             if (FlowDoc.Selection.GetStartPar() is Paragraph startPar)
             {
-                var newHyperlink = new EditableHyperlink(text, url);
+                var newHyperlink = new EditableHyperlink(text, url) { Foreground = HyperlinkBrush };
                 FlowDoc.InsertHyperlinkAt(FlowDoc.Selection, newHyperlink);
 
                 // Move caret to end of inserted hyperlink
