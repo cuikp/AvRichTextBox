@@ -23,4 +23,8 @@
     <ProjectReference Include="..\AvRichTextBox\AvRichTextBox.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="ImageDropFiles\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
