@@ -283,6 +283,83 @@ public class TableEditingTests
         Assert.Equal(original, host.Editor.SaveXamlString());
     }
 
+    private static async Task<EditorHost> LoadDemoDocument()
+    {
+        var host = new EditorHost();
+        string path = Path.Combine(AppContext.BaseDirectory, "TestFiles", "TestDocumentXamlPackage.xamlp");
+        Assert.True(await XamlConversions.LoadXamlPackage(path, host.Document));
+        host.Document.InitializeDocument();
+        EditorHost.Pump();
+        return host;
+    }
+
+    private static string FirstLineText(EditorHost host) => ((Paragraph)host.Document.Blocks[0]).Text.TrimEnd('\r');
+
+    // Home and Shift+End select the whole text of the title line. The paragraph end mark stays outside the selection,
+    // so the title paragraph must stay and take the pasted content, and the empty paragraph after it must stay too.
+    [AvaloniaTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PasteOverWholeLineSelectedWithShiftEnd_ReplacesTheLineText(bool plainText)
+    {
+        using var host = await LoadDemoDocument();
+        string original = host.Editor.SaveXamlString();
+        int blockCount = host.Document.Blocks.Count;
+        if (plainText)
+        {
+            var data = new DataTransfer();
+            data.Add(DataTransferItem.CreateText("The"));
+            await host.Window.Clipboard!.SetDataAsync(data);
+        }
+        else
+        {
+            var body = host.Document.Blocks.OfType<Paragraph>().First(paragraph => paragraph.Text.StartsWith("The cat"));
+            host.Select(body.StartInDoc, 3);
+            host.Press(Key.C, RawInputModifiers.Control);
+        }
+
+        host.Select(0, 0);
+        host.Press(Key.Home);
+        host.Press(Key.End, RawInputModifiers.Shift);
+        Assert.Equal("The (wonderful, blunderful) cat", host.Document.Selection.Text);
+        host.Press(Key.V, RawInputModifiers.Control);
+        string pasted = host.Editor.SaveXamlString();
+        Assert.Equal("The", FirstLineText(host));
+        Assert.Equal(blockCount, host.Document.Blocks.Count);
+
+        for (int attempt = 0; attempt < 3; attempt++)
+        {
+            host.Press(Key.Z, RawInputModifiers.Control);
+            Assert.Equal(original, host.Editor.SaveXamlString());
+            host.Press(Key.Y, RawInputModifiers.Control);
+            Assert.Equal(pasted, host.Editor.SaveXamlString());
+        }
+    }
+
+    [AvaloniaFact]
+    public async Task DeleteWholeLineSelectedWithShiftEnd_KeepsTheEmptyParagraph()
+    {
+        using var host = await LoadDemoDocument();
+        string original = host.Editor.SaveXamlString();
+        int blockCount = host.Document.Blocks.Count;
+
+        host.Select(0, 0);
+        host.Press(Key.Home);
+        host.Press(Key.End, RawInputModifiers.Shift);
+        host.Press(Key.Delete);
+        string deleted = host.Editor.SaveXamlString();
+        Assert.Equal("", FirstLineText(host));
+        Assert.Equal(blockCount, host.Document.Blocks.Count);
+
+        for (int attempt = 0; attempt < 3; attempt++)
+        {
+            host.Press(Key.Z, RawInputModifiers.Control);
+            Assert.Equal(original, host.Editor.SaveXamlString());
+            host.Press(Key.Y, RawInputModifiers.Control);
+            Assert.Equal(deleted, host.Editor.SaveXamlString());
+        }
+    }
+
     [AvaloniaTheory]
     [InlineData(0, 0)]
     [InlineData(1, 2)]
