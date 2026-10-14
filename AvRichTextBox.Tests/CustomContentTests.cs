@@ -194,6 +194,20 @@ public class CustomContentTests
     }
 
     [AvaloniaFact]
+    public void Markdown_ExportsFallbackTextOfInlinesAndBlocks()
+    {
+        using var host = new EditorHost(@"{\rtf1\pard before after}");
+        host.Document.InsertCustomInline(Mention("@User"), 7);
+        host.Document.InsertCustomBlock(1, Mention("@Other"));
+        EditorHost.Pump();
+
+        string markdown = host.Editor.SaveMarkdown();
+
+        Assert.Contains("before @Userafter", markdown);
+        Assert.Contains("@Other", markdown);
+    }
+
+    [AvaloniaFact]
     public void XamlRange_PreservesCustomInlineAndLeavesStreamsOpen()
     {
         using var source = new EditorHost(@"{\rtf1\pard ab}");
