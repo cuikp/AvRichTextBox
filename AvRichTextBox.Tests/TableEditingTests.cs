@@ -254,6 +254,35 @@ public class TableEditingTests
         Assert.Equal(original, host.Editor.SaveXamlString());
     }
 
+    // The selection "bcd" plus the paragraph end reaches the start of the next paragraph; the paste replaces it
+    // and joins both paragraphs.
+    [AvaloniaTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PasteOverSelectionEndingAtNextParagraphStart_InsertsTheContent(bool plainText)
+    {
+        using var host = new EditorHost(@"{\rtf1\pard abcd\par efgh\par tail}");
+        string original = host.Editor.SaveXamlString();
+        if (plainText)
+        {
+            var data = new DataTransfer();
+            data.Add(DataTransferItem.CreateText("ab"));
+            await host.Window.Clipboard!.SetDataAsync(data);
+        }
+        else
+        {
+            host.Select(0, 2);
+            host.Press(Key.C, RawInputModifiers.Control);
+        }
+
+        host.Select(1, 4);
+        host.Press(Key.V, RawInputModifiers.Control);
+        Assert.Equal("aabefgh\rtail", host.Document.Text.TrimEnd('\r'));
+
+        host.Press(Key.Z, RawInputModifiers.Control);
+        Assert.Equal(original, host.Editor.SaveXamlString());
+    }
+
     [AvaloniaTheory]
     [InlineData(0, 0)]
     [InlineData(1, 2)]
