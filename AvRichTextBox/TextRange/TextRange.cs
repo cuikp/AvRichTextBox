@@ -298,6 +298,9 @@ public class TextRange : INotifyPropertyChanged, IDisposable
     {
         switch (dataFormat)
         {
+            case ContentDataFormat.Markdown:
+                stream.Write(Encoding.UTF8.GetBytes(myFlowDoc.SaveMarkdown(this)));
+                break;
             case ContentDataFormat.Xaml:
 
                 StringBuilder rangeXamlBuilder = new(SectionTextDefault);
@@ -329,6 +332,13 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 
     public void Load(Stream stream, ContentDataFormat dataFormat)
     {
+        if (dataFormat == ContentDataFormat.Markdown)
+        {
+            using var reader = new StreamReader(stream, Encoding.UTF8, true, leaveOpen: true);
+            myFlowDoc.InsertMarkdown(reader.ReadToEnd(), this);
+            return;
+        }
+
         myFlowDoc.DeleteRange(this, false, false, false);
 
         byte[] streamBytes = new byte[stream.Length];

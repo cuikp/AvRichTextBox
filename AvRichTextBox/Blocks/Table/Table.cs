@@ -411,6 +411,7 @@ public partial class Table : Block
 
         Table newTable = new()
         {
+            MarkdownInfo = this.MarkdownInfo,
             ColDefs = CloneColDefs(this.ColDefs),   // copied RowDefs and ColDefs must be cloned to be free of previously bound BindableGrid 
             RowDefs = CloneRowDefs(this.RowDefs),
             IsTableCellBlock = this.IsTableCellBlock,
@@ -443,6 +444,7 @@ public partial class Table : Block
 
         Table newTable = new()
         {
+            MarkdownInfo = this.MarkdownInfo,
             ColDefs = CloneColDefs(this.ColDefs),   // copied RowDefs and ColDefs must be cloned to be free of previously bound BindableGrid 
             RowDefs = CloneRowDefs(this.RowDefs),
             IsTableCellBlock = this.IsTableCellBlock,

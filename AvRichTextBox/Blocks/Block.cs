@@ -12,6 +12,7 @@ public class Block : AvaloniaObject, INotifyPropertyChanged
     internal void NotifyPropertyChanged([CallerMemberName] String propertyName = "") { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
 
     internal int Id = 0;
+    internal MarkdownBlockInfo? MarkdownInfo { get; set; }
     public int GetID => Id;
 
     internal bool IsTableCellBlock = false;
@@ -336,6 +337,7 @@ public class Block : AvaloniaObject, INotifyPropertyChanged
         
         Block newBlock = new () 
         { 
+            MarkdownInfo = this.MarkdownInfo,
             IsTableCellBlock = this.IsTableCellBlock,
             Margin = this.Margin,
             MyFlowDoc = this.MyFlowDoc

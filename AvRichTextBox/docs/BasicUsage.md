@@ -34,24 +34,54 @@
 </avrtb:RichTextBox>
 ```
 
-## Display text without user selection
+## Markdown
 
-Set `IsSelectionEnabled` to `False` to prevent mouse and keyboard selection.
+Use `LoadMarkdown` to replace the document and `SaveMarkdown` to get Markdown text:
 
-```xaml
-<avrtb:RichTextBox IsSelectionEnabled="False"
-                  IsReadOnly="True"
-                  CtrlKeyOpensHyperlink="False" />
+```csharp
+editor.LoadMarkdown("# Notes\n\nText with **bold**, *italic*, and [a link](https://example.com).");
+string markdown = editor.SaveMarkdown();
+
+editor.LoadMarkdownDoc("notes.md");
+editor.SaveMarkdownDoc("notes.md");
 ```
 
-Hyperlinks remain clickable. `CtrlKeyOpensHyperlink` still controls whether a link requires the Ctrl key.
+`FlowDocument` provides the same string methods without a visible control. It also supports UTF-8 streams.
+Stream methods start at the current position and leave the stream open.
 
-`IsSelectionEnabled` is a bindable property with a default value of `True`.
-When this property becomes `False`, the control clears the current selection and stops an active mouse selection.
-Selections made through the document API remain available, but the control hides their text and table highlights.
-The Copy and Cut commands do not copy text while selection is disabled.
+```csharp
+var document = new FlowDocument();
+document.LoadMarkdown(inputStream);
+document.SaveMarkdown(outputStream);
+```
 
-`IsSelectionEnabled` does not prevent text edits or caret movement. Use `IsReadOnly="True"` to prevent text edits, as in this example.
+Use `ContentDataFormat.Markdown` to save or replace a `TextRange`. `InsertMarkdown` replaces the current selection as one undoable edit.
+Insertion supports paragraph boundaries in the document or within one table cell.
+A selection that crosses table cell boundaries raises `NotSupportedException` before any change.
+
+```csharp
+editor.FlowDocument.InsertMarkdown("**Inserted text**");
+editor.FlowDocument.Selection.Save(outputStream, ContentDataFormat.Markdown);
+editor.FlowDocument.Selection.Load(inputStream, ContentDataFormat.Markdown);
+
+await editor.CopyMarkdownAsync();
+await editor.PasteMarkdownAsync();
+```
+
+The clipboard methods return `false` when the operation is unavailable. Copy respects `DisableUserCopy`, and paste respects `IsReadOnly`.
+Ordinary paste keeps its existing behavior. The explicit Markdown paste method parses clipboard text as Markdown.
+
+Supported syntax includes six heading levels, paragraphs, bold, italic, strikethrough, inline code, fenced and indented code blocks,
+ordered and unordered lists, nested lists, block quotes, hard line breaks, links, image references, thematic breaks, and pipe tables.
+Image references appear as links with their alternative text. The importer does not read or download image files.
+Raw HTML appears as literal text.
+
+Export produces normalized Markdown. It does not retain the original spacing, delimiter choice, or reference-link definitions.
+Table export uses the first row as the header, joins multiple cell paragraphs with spaces, and does not preserve merged cells.
+Embedded UI controls and formatting without Markdown equivalents, such as colors and page margins, are not exported.
+Markdown structure follows document clones and undo/redo. Other export formats do not retain the Markdown-specific structure metadata.
+
+An application can use these APIs to switch between a source editor and the rendered document.
 
 ## Adding a table
 ```xaml  
