@@ -1,4 +1,5 @@
 ﻿using Avalonia.Media;
+using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -10,17 +11,54 @@ internal static partial class MarkdownConversions
     {
         StringBuilder result = new();
         int previousQuoteDepth = 0;
-        bool first = true;
+        Block? previous = null;
+        Dictionary<int, ListItemKind> lastItems = [];
         foreach (var block in blocks)
         {
             int quoteDepth = block.MarkdownInfo?.QuoteDepth ?? 0;
-            if (!first)
-                result.Append('\n').Append(string.Concat(Enumerable.Repeat("> ", Math.Min(previousQuoteDepth, quoteDepth)))).Append('\n');
+            bool tight = ContinuesTightList(block, previous, lastItems);
+            if (previous != null)
+            {
+                result.Append('\n');
+                if (!tight)
+                    result.Append(string.Concat(Enumerable.Repeat("> ", Math.Min(previousQuoteDepth, quoteDepth)))).Append('\n');
+            }
             result.Append(WriteBlock(block));
             previousQuoteDepth = quoteDepth;
-            first = false;
+            previous = block;
         }
         return result.ToString();
+    }
+
+    private readonly record struct ListItemKind(bool Ordered, int Number);
+
+    /// <summary>
+    /// Items of one tight list follow each other without a blank line. An item continues the list of the last item at
+    /// its level when both are bullets, or numbered with the next number; the first item of a nested list continues its
+    /// parent item. Loose lists and anything after text inside an item keep the blank line.
+    /// </summary>
+    private static bool ContinuesTightList(Block block, Block? previous, Dictionary<int, ListItemKind> lastItems)
+    {
+        if (block is not Paragraph { HasListMarker: true } item)
+        {
+            // Text inside a list item keeps the list context; any other block ends all lists.
+            if ((block.MarkdownInfo?.ListIndent ?? 0) == 0)
+                lastItems.Clear();
+            return false;
+        }
+
+        int level = item.MarkdownInfo?.ListIndent ?? 0;
+        int number = 0;
+        bool ordered = item.ListMarker.EndsWith('.') && int.TryParse(item.ListMarker[..^1], NumberStyles.None, CultureInfo.InvariantCulture, out number);
+        foreach (int deeperLevel in lastItems.Keys.Where(key => key > level).ToList())
+            lastItems.Remove(deeperLevel);
+
+        bool continues = lastItems.TryGetValue(level, out var last)
+            ? last.Ordered == ordered && (!ordered || number == last.Number + 1)
+            : previous is Paragraph { HasListMarker: true } parent && (parent.MarkdownInfo?.ListIndent ?? 0) < level;
+        lastItems[level] = new(ordered, number);
+
+        return continues && item.MarkdownInfo?.LooseList != true && previous is Paragraph { HasListMarker: true };
     }
 
     private static string WriteBlock(Block block)
@@ -42,8 +80,14 @@ internal static partial class MarkdownConversions
             }
             else if (info.IsThematicBreak && paragraph.Inlines.All(inline => inline.InlineLength == 0))
                 content = "---";
+            else if (info.HeadingLevel > 0)
+            {
+                // Heading text is bold by definition, and a trailing '#' run would be read as a closing sequence.
+                string text = TrailingHashes().Replace(WriteInlines(paragraph.Inlines, implicitBold: true), "\\$0");
+                content = new string('#', info.HeadingLevel) + " " + text;
+            }
             else
-                content = new string('#', info.HeadingLevel) + (info.HeadingLevel > 0 ? " " : "") + WriteInlines(paragraph.Inlines);
+                content = WriteInlines(paragraph.Inlines);
 
             if (paragraph.HasListMarker)
             {
@@ -60,7 +104,8 @@ internal static partial class MarkdownConversions
 
     private sealed record RunFormat(bool Bold, bool Italic, bool Strike, MarkdownInlineInfo? Info, string? Url);
 
-    internal static string WriteInlines(IEnumerable<IEditable> inlines)
+    // implicitBold: the block is bold by definition (heading, table header row), so bold runs need no markers.
+    internal static string WriteInlines(IEnumerable<IEditable> inlines, bool implicitBold = false)
     {
         StringBuilder result = new();
         StringBuilder text = new();
@@ -75,7 +120,7 @@ internal static partial class MarkdownConversions
         {
             if (inline is EditableRun run)
             {
-                var format = new RunFormat(run.FontWeight >= FontWeight.Bold, run.FontStyle == FontStyle.Italic,
+                var format = new RunFormat(!implicitBold && run.FontWeight >= FontWeight.Bold, run.FontStyle == FontStyle.Italic,
                     run.TextDecorations?.Any(decoration => decoration.Location == TextDecorationLocation.Strikethrough) == true,
                     run.MarkdownInfo, (run as EditableHyperlink)?.NavigateUri);
                 if (format != previous) { Flush(); previous = format; }
@@ -90,7 +135,8 @@ internal static partial class MarkdownConversions
             }
         }
         Flush();
-        return EdgeWhitespace().Replace(result.ToString(), match => string.Concat(match.Value.Select(character => character == '\t' ? "&#9;" : "&#32;")));
+        string written = EdgeWhitespace().Replace(result.ToString(), match => string.Concat(match.Value.Select(character => character == '\t' ? "&#9;" : "&#32;")));
+        return LineStartMarker().Replace(written, "$1\\$2");
     }
 
     private static string WriteRun(string text, RunFormat format)
@@ -128,13 +174,32 @@ internal static partial class MarkdownConversions
         return content;
     }
 
+    /// <summary>
+    /// Escapes characters that would start inline markup. Block markers ('#', '>', '-', '+', "1.") only count at the
+    /// start of a line and are escaped there (LineStartMarker), so ordinary punctuation inside a sentence stays as is.
+    /// </summary>
     private static string Escape(string text)
     {
         StringBuilder result = new();
-        const string punctuation = "\\`*_{}[]()#+-.!|>~<\"&";
-        foreach (char character in text)
+        for (int index = 0; index < text.Length; index++)
         {
-            if (punctuation.Contains(character)) result.Append('\\');
+            char character = text[index];
+            char before = index > 0 ? text[index - 1] : ' ';
+            char after = index + 1 < text.Length ? text[index + 1] : ' ';
+            bool escape = character switch
+            {
+                '\\' or '`' or '*' or '[' or ']' or '|' => true,
+                // An underscore between letters or digits cannot open or close emphasis.
+                '_' => !(char.IsLetterOrDigit(before) && char.IsLetterOrDigit(after)),
+                // Only a double tilde marks strikethrough.
+                '~' => before == '~' || after == '~',
+                // '<' starts an autolink only before a letter, '/', '!' or '?'.
+                '<' => char.IsLetter(after) || after is '/' or '!' or '?',
+                // '&' starts a character reference only in the form "&name;" or "&#123;".
+                '&' => EntityAt().IsMatch(text, index),
+                _ => false,
+            };
+            if (escape) result.Append('\\');
             result.Append(character);
         }
         return result.ToString();
@@ -148,6 +213,17 @@ internal static partial class MarkdownConversions
     [GeneratedRegex(@"(?m)^[ \t]+|[ \t]+\z")]
     private static partial Regex EdgeWhitespace();
 
+    // A heading, quote, list item, ordered item ("1." after the digits of group 1), or a line of only '-' or '='
+    // (thematic break, setext underline) at the start of a line; the backslash goes before group 2.
+    [GeneratedRegex(@"(?m)^(\d{0,9})(#{1,6}(?=[ \t]|$)|>|[-+](?=[ \t]|$)|(?<=\d)[.)](?=[ \t]|$)|-+[ \t]*$|=+[ \t]*$)")]
+    private static partial Regex LineStartMarker();
+
+    [GeneratedRegex(@"(?<=^|[ \t])#+(?=[ \t]*$)")]
+    private static partial Regex TrailingHashes();
+
+    [GeneratedRegex(@"\G&(?:#[0-9]{1,7}|#[xX][0-9a-fA-F]{1,6}|[A-Za-z][A-Za-z0-9]{1,31});")]
+    private static partial Regex EntityAt();
+
     private static string WriteTable(Table table)
     {
         int columns = table.ColDefs.Count;
@@ -158,7 +234,8 @@ internal static partial class MarkdownConversions
             var cells = Enumerable.Range(0, columns).Select(column =>
             {
                 var cell = table.Cells.FirstOrDefault(candidate => candidate.RowNo == row && candidate.ColNo == column);
-                return cell == null ? "" : string.Join(" ", cell.CellBlocks.OfType<Paragraph>().Select(paragraph => WriteInlines(paragraph.Inlines).Replace("  \n", " ").Replace('\n', ' ')));
+                // The header row is bold by definition.
+                return cell == null ? "" : string.Join(" ", cell.CellBlocks.OfType<Paragraph>().Select(paragraph => WriteInlines(paragraph.Inlines, implicitBold: row == 0).Replace("  \n", " ").Replace('\n', ' ')));
             });
             rows.Add("| " + string.Join(" | ", cells) + " |");
             if (row == 0)
