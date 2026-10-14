@@ -24,7 +24,6 @@ public partial class FlowDocument
 
         Paragraph original = paragraph.FullClone(true);
         int oldLength = DocEndPoint;
-        bool firstEmpty = paragraph.IsEmptyInlinePar;
         List<int> addedBlockIds = [];
         bool previousUndoState = DisableUndoStack;
         DisableUndoStack = true;
@@ -70,7 +69,7 @@ public partial class FlowDocument
             int insertedLength = DocEndPoint - oldLength;
 
             Undos.Add(new PasteUndo(paragraph.Id, paragraphIndex, [original], this, position, 0,
-                insertedLength, firstEmpty, addedBlockIds, false, false, paragraph.IsCellBlock,
+                insertedLength, addedBlockIds, paragraph.IsCellBlock,
                 paragraph.OwningTable?.Id ?? -1, paragraph.OwningCell?.Id ?? -1));
             Redos.Clear();
             UpdateTextRanges(position, insertedLength);

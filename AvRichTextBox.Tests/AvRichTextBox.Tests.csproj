@@ -21,6 +21,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AvRichTextBox\AvRichTextBox.csproj" />
+    <None Include="..\DemoApp_AvRichtextBox\TestFiles\TestDocumentXamlPackage.xamlp"
+          Link="TestFiles\TestDocumentXamlPackage.xamlp" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

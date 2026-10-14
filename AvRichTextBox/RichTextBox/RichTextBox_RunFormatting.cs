@@ -155,7 +155,6 @@ public partial class RichTextBox
 
         // Get paste location properties
         int originalSelectionStart = FlowDoc.Selection.Start;
-        int originalSelectionEnd = FlowDoc.Selection.End;
         TextRange insertRange = FlowDoc.Selection;
         int deleteRangeLength = insertRange.Length;
 
@@ -165,13 +164,6 @@ public partial class RichTextBox
             bool pasteForward = p.IsEmptyInlinePar || p.StartInDoc == 0 || p.StartInDoc == FlowDoc.Selection.Start;
             return pasteForward ? p.StartInDoc <= insertRange.Start : p.StartInDoc < insertRange.Start;
         });
-
-        Paragraph destEndPar = FlowDoc.AllParagraphs.Last(p =>
-        {
-            bool pasteForward = p.IsEmptyInlinePar || p.StartInDoc == 0 || p.StartInDoc == FlowDoc.Selection.Start;
-            return pasteForward ? p.StartInDoc <= insertRange.End : p.StartInDoc < insertRange.End;
-        });
-
 
         List<Block> originalRangeBlockClones = destStartPar.IsCellBlock switch 
         {
@@ -188,12 +180,9 @@ public partial class RichTextBox
         else
             insertParIndex = FlowDoc.Blocks.IndexOf(destStartPar);
 
-        bool firstParEmpty = destStartPar is Paragraph p && p.Inlines[0] is EditableRun erun && erun.Text == "";
         int pastedTextLength = 0;
         List<int> addedBlockIds = [];
 
-        bool firstBlockWasDeleted = destStartPar.StartInDoc == originalSelectionStart; // && destStartPar.EndInDoc <= originalSelectionEnd && !firstParEmpty;
-        bool lastBlockWasDeleted = !firstBlockWasDeleted && destEndPar.EndInDoc == originalSelectionEnd;
         bool addUndo = true;
         bool contentPasted = false;
 
@@ -248,10 +237,7 @@ public partial class RichTextBox
                    originalSelectionStart,
                    deleteRangeLength,
                    pastedTextLength,
-                   firstParEmpty,
                    addedBlockIds,
-                   firstBlockWasDeleted,
-                   lastBlockWasDeleted,
                    destStartPar.IsCellBlock,
                    destStartPar.OwningTable == null ? -1 : destStartPar.OwningTable.Id,
                    destStartPar.OwningCell == null ? -1 : destStartPar.OwningCell.Id

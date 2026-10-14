@@ -219,7 +219,16 @@ public partial class FlowDocument
         bool keepDisableUndoStack = DisableUndoStack;
         DisableUndoStack = true;
 
+        // A range that ends at or before the end of its first paragraph leaves that paragraph's end mark in place, so the
+        // paragraph is only emptied, never removed (for example the whole text of a line selected with Shift+End).
+        // Paragraphs holding a single embedded element keep their own handling.
+        Paragraph? emptiedParagraph = rangeBlocks[0] is Paragraph rangeStartPar && !rangeStartPar.IsTableCellBlock &&
+            !(rangeStartPar.Inlines.Count == 1 && rangeStartPar.Inlines[0] is EditableInlineUIContainer) &&
+            originalRangeEnd <= rangeStartPar.EndInDoc ? rangeStartPar : null;
+
         List<Block> blocksFullyInRange = GetFullBlocksInRange(trange);
+        if (emptiedParagraph != null)
+            blocksFullyInRange.Remove(emptiedParagraph);
         bool firstBlockDeleted = blocksFullyInRange.Count > 0 && blocksFullyInRange.First().StartInDoc == originalRangeStart;
         bool lastBlockDeleted = blocksFullyInRange.Count > 0 && blocksFullyInRange.Last().EndInDoc == originalRangeEnd;
 
@@ -263,8 +272,8 @@ public partial class FlowDocument
                 rangePar.Inlines.Remove(toDeleteRun);
                 if (rangePar.Inlines.Count == 0)
                 {
-                    if (rangePar.IsTableCellBlock)
-                    {  // if overlapping cell blocks got deleted, they shouldn't be removed
+                    if (rangePar.IsTableCellBlock || rangePar == emptiedParagraph)
+                    {  // overlapping cell blocks and a paragraph whose end mark stays are emptied, not removed
                         rangePar.Inlines.Add(EmptyRunFormattedLike(formatTemplate));
                     }
                     else

@@ -22,6 +22,7 @@ public partial class FlowDocument
         if (tRange.Length > 0)
         {
             DeleteRange(tRange, false, false, true);  // no undo, handled by PasteUndo
+            UpdateBlockAndInlineStarts(startPar);
             tRange.CollapseToStart();
             SelectionExtendMode = ExtendMode.ExtendModeNone;
         }
@@ -29,7 +30,11 @@ public partial class FlowDocument
 
         /////// can just call paste text here instead?:::::$$$$$$$$$$$$$$$$$
 
-        if (tRange.StartInline is not IEditable startInline) return;
+        // Deleting the selection can remove its cached start run or move the remaining runs.
+        startPar = GetContainingParagraph(tRange.Start);
+        IEditable? startInline = startPar.Inlines.LastOrDefault(inline =>
+            startPar.StartInDoc + inline.TextPositionOfInlineInParagraph <= tRange.Start);
+        if (startInline == null) return;
 
         List<IEditable> splitInlines = SplitRunAtPos(tRange.Start, startInline, GetCharPosInInline(startInline, tRange.Start));
 
