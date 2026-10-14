@@ -5,5 +5,6 @@ public enum ContentDataFormat
    Xaml,
    Text,
    Rtf,
-   XamlPackage
+   XamlPackage,
+   Markdown
 }

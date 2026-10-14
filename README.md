@@ -188,9 +188,11 @@ xmlns:avrtb="using:AvRichTextBox"
 * Word/Html/RTF export and import can be fleshed out (to support more attributes)
 * Allow setting of Undo limit
 
-`RtfDomParser` used for reading/parsing of rtf files can be found at https://github.com/SourceCodeBackup/RtfDomParser, but for this project I had to manually modify it to use `Avalonia.Media` instead of `System.Drawing`.  That modified library is included in this project as `RtfDomParserAv.dll`.  Generation of .rtf for saving is my own concoction with the bare minimum necessary to produce a readable .rtf file/dataobject.
+`RtfDomParser` used for reading/parsing of rtf files can be found at https://github.com/SourceCodeBackup/RtfDomParser, but for this project I had to manually modify it to use `Avalonia.Media` instead of `System.Drawing`.  The project includes the modified parser sources in `AvRichTextBox/SaveAndLoadFormats/RtfConversions/RTFDomParserAv` and does not require a separate `RtfDomParserAv.dll`.  Generation of .rtf for saving is my own concoction with the bare minimum necessary to produce a readable .rtf file/dataobject.
 
 ## Usage Examples
+Markdown import and export support headings, paragraphs, lists, block quotes, code, links, text formatting, and simple pipe tables. Use `LoadMarkdown` and `SaveMarkdown` on a `RichTextBox` or `FlowDocument`. See the [Markdown examples](AvRichTextBox/docs/BasicUsage.md#markdown) for streams, files, selections, clipboard conversion, and format limits.
+
 Applications can add custom inline content and blocks with their own Avalonia controls. See [Custom blocks and inline content](AvRichTextBox/docs/CustomContent.md) for registration, token replacement, persistence, and clipboard behavior.
 
 ```csharp

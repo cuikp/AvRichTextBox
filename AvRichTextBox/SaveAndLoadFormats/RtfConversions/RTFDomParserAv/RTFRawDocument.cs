@@ -180,11 +180,16 @@ namespace RtfDomParserAv
                 {
                     b = node.Parameter;
                 }
-                if (node.Keyword == ";")
+                if (node.Type == RTFNodeType.Text)
                 {
-                    if (r >= 0 && g >= 0 && b >= 0)
+                    foreach (char character in node.Keyword)
                     {
-                        Color c = Color.FromArgb(255, (byte)r, (byte)g, (byte)b);
+                        if (character != ';')
+                            continue;
+
+                        Color c = r >= 0 && g >= 0 && b >= 0
+                            ? Color.FromArgb(255, (byte)r, (byte)g, (byte)b)
+                            : Colors.Transparent;
                         myColorTable.Add(c);
                         r = -1;
                         g = -1;

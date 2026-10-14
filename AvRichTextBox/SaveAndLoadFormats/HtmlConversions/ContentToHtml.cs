@@ -290,7 +290,7 @@ internal static partial class HtmlConversions
          sb.Append($"background-color:{backgroundColor};");
 
 
-      if (run.TextDecorations != null)
+      if (run.TextDecorations is { Count: > 0 })
       {
          var decs = new List<string>();
          foreach (var td in run.TextDecorations)
@@ -311,6 +311,8 @@ internal static partial class HtmlConversions
          if (decs.Count > 0)
             sb.Append($"text-decoration:{string.Join(' ', decs)};");
       }
+      else if (run is EditableHyperlink)
+         sb.Append("text-decoration:none;");
 
       if (run.BaselineAlignment == BaselineAlignment.Superscript)
          sb.Append("vertical-align: super;");
