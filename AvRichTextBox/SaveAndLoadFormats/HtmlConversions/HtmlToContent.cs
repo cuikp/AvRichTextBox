@@ -36,28 +36,166 @@ internal static partial class HtmlConversions
                 }
             }
 
-            //foreach (HtmlNode tableNode in bodyNode.ChildNodes.Where(cn => cn.Name == "par"))
-            foreach (HtmlNode childNode in bodyNode.ChildNodes)
-            {
-                switch (childNode.Name)
-                {
-                    case "p":
-                        Paragraph p = GetParagraphFromNode(childNode, fdoc);
-                        fdoc.Blocks.Add(p);
-                        break;
-
-                    case "table":
-                        Table t = GetTableFromNode(childNode, fdoc);
-                        fdoc.Blocks.Add(t);
-                        break;
-                }
-
-            }
-
+            AddBlocksFromNode(bodyNode, fdoc.Blocks, fdoc, 0);
 
         }
         catch (Exception ex) { Debug.WriteLine($"Error getting flow doc: \n{ex.Message}"); }
 
+    }
+
+    // Elements whose content is read as blocks: paragraphs, tables, lists or further containers.
+    private static readonly HashSet<string> ContainerElements =
+        ["div", "section", "article", "main", "header", "footer", "nav", "aside", "blockquote", "figure", "figcaption",
+         "form", "fieldset", "center", "address", "details", "summary", "dl", "dt", "dd", "li"];
+
+    // Elements without document content.
+    private static readonly HashSet<string> SkippedElements = ["head", "title", "meta", "link", "script", "style", "noscript", "template"];
+
+    private static bool IsBlockElement(string name) =>
+        name is "p" or "pre" or "h1" or "h2" or "h3" or "h4" or "h5" or "h6" or "table" or "ul" or "ol" or "hr" ||
+        ContainerElements.Contains(name);
+
+    private static bool IsLineBreak(HtmlNode node) =>
+        node.NodeType == HtmlNodeType.Element && node.Name.Equals("br", StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsWhitespaceText(HtmlNode node) =>
+        node.NodeType == HtmlNodeType.Text && string.IsNullOrWhiteSpace(WebUtility.HtmlDecode(node.InnerText));
+
+    private static Paragraph EmptyParagraph()
+    {
+        Paragraph par = new();
+        par.EnsureEmptyRuns();
+        return par;
+    }
+
+    /// <summary>
+    /// Reads the block content of the body, a container element or a table cell. Paragraphs, headings, tables and
+    /// lists become blocks, container elements such as div or section are read recursively, and inline content outside
+    /// a paragraph (text directly in a div or a cell) forms a paragraph of its own.
+    /// </summary>
+    private static void AddBlocksFromNode(HtmlNode container, IList<Block> blocks, FlowDocument fdoc, int listLevel)
+    {
+        List<HtmlNode> looseInlines = [];
+
+        foreach (HtmlNode node in container.ChildNodes)
+        {
+            if (node.NodeType == HtmlNodeType.Comment)
+                continue;
+
+            string name = node.Name.ToLowerInvariant();
+            if (node.NodeType != HtmlNodeType.Element || !IsBlockElement(name))
+            {
+                if (!SkippedElements.Contains(name))
+                    looseInlines.Add(node);
+                continue;
+            }
+
+            AddLooseInlines(looseInlines, blocks, container.OwnerDocument);
+
+            switch (name)
+            {
+                case "p":
+                case "pre":
+                    blocks.Add(GetParagraphFromNode(node, fdoc));
+                    break;
+
+                case "h1":
+                case "h2":
+                case "h3":
+                case "h4":
+                case "h5":
+                case "h6":
+                    // Same sizes as headings imported from Markdown.
+                    int level = name[1] - '0';
+                    blocks.Add(GetParagraphFromNode(node, fdoc, new InlineFormatting { FontWeight = FontWeight.Bold, FontSize = 16 + (7 - level) * 4 }));
+                    break;
+
+                case "table":
+                    blocks.Add(GetTableFromNode(node, fdoc));
+                    break;
+
+                case "ul":
+                case "ol":
+                    AddListItems(node, name == "ol", blocks, fdoc, listLevel);
+                    break;
+
+                case "hr":
+                    break;
+
+                default:
+                    AddBlocksFromNode(node, blocks, fdoc, listLevel);
+                    break;
+            }
+        }
+
+        AddLooseInlines(looseInlines, blocks, container.OwnerDocument);
+    }
+
+    /// <summary>
+    /// List items become paragraphs with a list marker, indented like lists imported from Markdown. Further paragraphs
+    /// of an item keep its indent; nested lists indent one level further.
+    /// </summary>
+    private static void AddListItems(HtmlNode listNode, bool ordered, IList<Block> blocks, FlowDocument fdoc, int listLevel)
+    {
+        int number = ordered && int.TryParse(listNode.GetAttributeValue("start", "1"), NumberStyles.Integer, CultureInfo.InvariantCulture, out int start) ? start : 1;
+        double indent = listLevel * 32 + 24;
+
+        foreach (HtmlNode item in listNode.ChildNodes.Where(node => node.NodeType == HtmlNodeType.Element && node.Name.Equals("li", StringComparison.OrdinalIgnoreCase)))
+        {
+            int firstIndex = blocks.Count;
+            AddBlocksFromNode(item, blocks, fdoc, listLevel + 1);
+
+            for (int index = firstIndex; index < blocks.Count; index++)
+                if (blocks[index] is Paragraph itemParagraph && itemParagraph.LeftIndent == 0)
+                    itemParagraph.LeftIndent = indent;
+
+            // An item that starts with a table or a nested list gets an empty line for its marker.
+            if (blocks.Count == firstIndex || blocks[firstIndex] is not Paragraph first || first.LeftIndent != indent)
+            {
+                first = EmptyParagraph();
+                first.LeftIndent = indent;
+                blocks.Insert(firstIndex, first);
+            }
+
+            first.ListMarker = ordered ? number.ToString(CultureInfo.InvariantCulture) + "." : "•";
+            first.FirstLineIndent = -24;
+            number++;
+        }
+    }
+
+    /// <summary>
+    /// Inline content between blocks forms one paragraph. Whitespace at its edges is formatting of the HTML source;
+    /// line breaks alone stand for empty lines, and a trailing line break ends the line without adding one.
+    /// </summary>
+    private static void AddLooseInlines(List<HtmlNode> nodes, IList<Block> blocks, HtmlDocument hdoc)
+    {
+        List<HtmlNode> content = [.. nodes];
+        nodes.Clear();
+
+        while (content.Count > 0 && IsWhitespaceText(content[0])) content.RemoveAt(0);
+        while (content.Count > 0 && IsWhitespaceText(content[^1])) content.RemoveAt(content.Count - 1);
+        if (content.Count == 0)
+            return;
+
+        if (content.All(IsLineBreak))
+        {
+            foreach (HtmlNode _ in content)
+                blocks.Add(EmptyParagraph());
+            return;
+        }
+
+        if (IsLineBreak(content[^1]))
+            content.RemoveAt(content.Count - 1);
+
+        if (content[0].NodeType == HtmlNodeType.Text)
+            content[0] = hdoc.CreateTextNode(content[0].InnerText.TrimStart());
+        if (content[^1].NodeType == HtmlNodeType.Text)
+            content[^1] = hdoc.CreateTextNode(content[^1].InnerText.TrimEnd());
+
+        Paragraph par = new();
+        AddInlinesFromNodes(content, par, new InlineFormatting());
+        par.EnsureEmptyRuns();
+        blocks.Add(par);
     }
 
     private static Table GetTableFromNode(HtmlNode tableNode, FlowDocument fdoc)
@@ -179,21 +317,7 @@ internal static partial class HtmlConversions
                     }
 
 
-                foreach (HtmlNode contentNode in td.ChildNodes.OfType<HtmlNode>())
-                {
-                    switch (contentNode.Name)
-                    {
-                        case "p":
-                            Paragraph p = GetParagraphFromNode(contentNode, fdoc);
-                            newCell.CellBlocks.Add(p);
-                            break;
-
-                        case "t":
-                            Table t = GetTableFromNode(contentNode, fdoc);
-                            newCell.CellBlocks.Add(t);
-                            break;
-                    }
-                }
+                AddBlocksFromNode(td, newCell.CellBlocks, fdoc, 0);
 
                 if (newCell.CellBlocks.Count == 0)
                     newCell.CellBlocks.Add(new Paragraph());
@@ -344,9 +468,12 @@ internal static partial class HtmlConversions
     /// Recursively processes inline HTML nodes, accumulating formatting from nested tags
     /// like <b>, <i>, <u>, <sup>, <sub>, <span>, etc.
     /// </summary>
-    private static void AddInlinesFromNode(HtmlNode parentNode, Paragraph par, InlineFormatting formatting)
+    private static void AddInlinesFromNode(HtmlNode parentNode, Paragraph par, InlineFormatting formatting) =>
+        AddInlinesFromNodes(parentNode.ChildNodes, par, formatting);
+
+    private static void AddInlinesFromNodes(IEnumerable<HtmlNode> nodes, Paragraph par, InlineFormatting formatting)
     {
-        foreach (HtmlNode node in parentNode.ChildNodes.Where(cn => cn.NodeType is HtmlNodeType.Element or HtmlNodeType.Text))
+        foreach (HtmlNode node in nodes.Where(cn => cn.NodeType is HtmlNodeType.Element or HtmlNodeType.Text))
         {
             switch (node.Name)
             {
@@ -581,14 +708,13 @@ internal static partial class HtmlConversions
     }
 
 
-    private static Paragraph GetParagraphFromNode(HtmlNode childNode, FlowDocument fdoc)
+    private static Paragraph GetParagraphFromNode(HtmlNode childNode, FlowDocument fdoc, InlineFormatting? formatting = null)
     {
         Paragraph par = new();
 
         if (!IsHtmlEmptyParagraph(childNode))
         {
-            InlineFormatting defaultFormatting = new();
-            AddInlinesFromNode(childNode, par, defaultFormatting);
+            AddInlinesFromNode(childNode, par, formatting ?? new());
         }
 
         foreach (KeyValuePair<string, string> kvp in ParseStyleAttribute(childNode.GetAttributeValue("style", "")))
