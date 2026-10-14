@@ -5,7 +5,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:system="using:System" mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450" 
 			 xmlns:local="using:AvRichTextBox" 
-			 x:Class="AvRichTextBox.RichTextBox" 
+			 x:Class="AvRichTextBox.RichTextBox"
+             DragDrop.AllowDrop="True" DragDrop.DragOver="RichTextBox_DragOver" DragDrop.Drop="RichTextBox_Drop"
 			 PointerReleased="RichTextBox_PointerReleased" PointerExited="RichTextBox_PointerExited" KeyDown="RichTextBox_KeyDown" KeyUp="RichTextBox_KeyUp"  Focusable="True"
 			 BorderBrush="Black" BorderThickness="1" Background="White" Template="{StaticResource NoPaddingTemplate}" Padding="0" GotFocus="RichTextBox_GotFocus" LostFocus="RichTextBox_LostFocus" >
 

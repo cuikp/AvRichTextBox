@@ -42,10 +42,10 @@ namespace RtfDomParserAv
       /// <returns>color value</returns>
       public Color GetColor(int index, Color DefaultValue)
       {
-         index--;
          if (index >= 0 && index < myItems.Count)
          {
-            return (Avalonia.Media.Color)myItems[index]!;
+            Color color = (Color)myItems[index]!;
+            return color.A == 0 ? DefaultValue : color;
          }
          else
          {
@@ -73,7 +73,12 @@ namespace RtfDomParserAv
       public void Add(Color c)
       {
          if (c.A == 0)
+         {
+            // Imported tables retain empty automatic-color entries at their original indices.
+            if (!bolCheckValueExistWhenAdd)
+               myItems.Add(c);
             return;
+         }
 
          if (c.A != 255)
             c = Color.FromArgb(255, c.R, c.G, c.B);
@@ -141,13 +146,15 @@ namespace RtfDomParserAv
       {
          writer.WriteStartGroup();
          writer.WriteKeyword(RTFConsts._colortbl);
-         writer.WriteRaw(";");
          for (int iCount = 0; iCount < myItems.Count; iCount++)
          {
             Color c = (Color)myItems[iCount];
-            writer.WriteKeyword("red" + c.R);
-            writer.WriteKeyword("green" + c.G);
-            writer.WriteKeyword("blue" + c.B);
+            if (c.A != 0)
+            {
+               writer.WriteKeyword("red" + c.R);
+               writer.WriteKeyword("green" + c.G);
+               writer.WriteKeyword("blue" + c.B);
+            }
             writer.WriteRaw(";");
          }
          writer.WriteEndGroup();

@@ -33,8 +33,11 @@ public partial class RichTextBox : UserControl
       ClearSelectionHighlighting();
 
       bool caretOnly = FlowDoc.Selection.Length == 0;
-      SelectionPath.IsVisible = !caretOnly;
+      SelectionPath.IsVisible = IsSelectionEnabled && !caretOnly;
       RtbVm.CaretVisible = caretOnly;
+
+      if (!IsSelectionEnabled && !caretOnly)
+         return;
 
       //Get rect measurement for each line in each selected paragraph 
       for (int parno = 0; parno < FlowDoc.SelectionParagraphs.Count; parno++)

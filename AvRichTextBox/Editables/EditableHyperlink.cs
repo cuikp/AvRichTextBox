@@ -6,22 +6,11 @@ namespace AvRichTextBox;
 public class EditableHyperlink : EditableRun
 {
 
-    private static readonly ISolidColorBrush displayBrush = Brushes.Blue;
-    private static readonly TextDecorationCollection displayDecoration =
-       [ new() {
-         Location = TextDecorationLocation.Underline,
-         Stroke = displayBrush,
-         StrokeThicknessUnit = TextDecorationUnit.Pixel,
-         StrokeThickness = 1
-      }];
-
-    public EditableHyperlink(string displayText, string navigateUri)
+    public EditableHyperlink(string displayText, string navigateUri) : this()
     {
         Id = ++FlowDocument.InlineIdCounter;
         LinkDisplayText = displayText;
         NavigateUri = navigateUri;
-
-        ForceFormatting();
 
         this.LinkOpening += EditableHyperlink_LinkOpening;
 
@@ -54,41 +43,15 @@ public class EditableHyperlink : EditableRun
         Process.Start(psi);
     }
 
-    private void ForceFormatting()
+    internal EditableHyperlink()
     {
-        this.Foreground = displayBrush;
-        this.TextDecorations = displayDecoration;
-    }
-
-    internal EditableHyperlink() { ForceFormatting(); }
-
-
-    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs e)
-    {
-        base.OnPropertyChanged(e);
-
-
-        switch (e.Property)
+        Foreground = Brushes.Blue;
+        TextDecorations = [new()
         {
-            
-            case AvaloniaProperty tp when tp == InlineUIContainer.ForegroundProperty:
-                //Prevent user change to hyperlink formatting
-                if (!Equals(e.NewValue, displayBrush))
-                {
-                    SetCurrentValue(ForegroundProperty, displayBrush);
-                }
-                break;
-
-            case AvaloniaProperty tp when tp == InlineUIContainer.TextDecorationsProperty:
-                //Prevent user change to hyperlink formatting
-                if (!Equals(e.NewValue, displayDecoration))
-                {
-                    SetCurrentValue(TextDecorationsProperty, displayDecoration);
-                }
-                break;
-
-        }
-
+            Location = TextDecorationLocation.Underline,
+            StrokeThicknessUnit = TextDecorationUnit.Pixel,
+            StrokeThickness = 1
+        }];
     }
 
     [Obsolete("get/set LinkDisplayText instead.", true)]
