@@ -32,7 +32,7 @@ public partial class RichTextBox
 
     private void CopyToClipboard()
     {
-        if (DisableUserCopy) return;
+        if (DisableUserCopy || !IsSelectionEnabled) return;
 
         var clipboard = TopLevel.GetTopLevel(this)?.Clipboard;
         if (clipboard == null) return;
@@ -276,7 +276,7 @@ public partial class RichTextBox
 
     private void CutToClipboard()
     {
-        if (IsReadOnly) return;
+        if (IsReadOnly || !IsSelectionEnabled) return;
         CopyToClipboard();
         PerformDelete(false);
     }

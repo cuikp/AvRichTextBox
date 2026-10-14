@@ -25,4 +25,8 @@
           Link="TestFiles\TestDocumentXamlPackage.xamlp" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="ImageDropFiles\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

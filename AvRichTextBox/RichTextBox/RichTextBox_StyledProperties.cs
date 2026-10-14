@@ -46,6 +46,17 @@ public partial class RichTextBox
       get => GetValue(CtrlKeyOpensHyperlinkProperty);
       set { SetValue(CtrlKeyOpensHyperlinkProperty, value);  }
    }
+
+   public static readonly StyledProperty<IBrush> HyperlinkBrushProperty = AvaloniaProperty.Register<RichTextBox, IBrush>(nameof(HyperlinkBrush), defaultValue: Brushes.Blue);
+
+   /// <summary>
+   /// Gets or sets the initial foreground for hyperlinks inserted by the editor. Existing hyperlinks keep their formatting.
+   /// </summary>
+   public IBrush HyperlinkBrush
+   {
+      get => GetValue(HyperlinkBrushProperty);
+      set => SetValue(HyperlinkBrushProperty, value);
+   }
    
    internal static readonly StyledProperty<bool> DisableEditingShortcutsProperty = AvaloniaProperty.Register<RichTextBox, bool>(nameof(DisableEditingShortcuts), false);
    public bool DisableEditingShortcuts
@@ -96,5 +107,15 @@ public partial class RichTextBox
        set => SetValue(IsCaretVisibleProperty, value);
     }
 
+    public static readonly StyledProperty<bool> IsSelectionEnabledProperty = AvaloniaProperty.Register<RichTextBox, bool>(nameof(IsSelectionEnabled), true);
+    /// <summary>
+    /// Gets or sets whether users can select and copy text. Disabling selection clears the current selection
+    /// and hides programmatic selections. Hyperlinks remain interactive.
+    /// </summary>
+    public bool IsSelectionEnabled
+    {
+       get => GetValue(IsSelectionEnabledProperty);
+       set => SetValue(IsSelectionEnabledProperty, value);
+    }
 
 }

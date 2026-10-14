@@ -155,6 +155,17 @@ public partial class RichTextBox : UserControl
         {
             UpdateCaretVisibility();
         }
+        else if (e.Property == IsSelectionEnabledProperty)
+        {
+            if (!IsSelectionEnabled)
+            {
+                PointerDownOverRTB = false;
+                FlowDoc.SelectionExtendMode = FlowDocument.ExtendMode.ExtendModeNone;
+                FlowDoc.Select(FlowDoc.Selection.Start, 0);
+            }
+
+            UpdateSelectionIndicators();
+        }
     }
 
     private void RichTextBox_ActualThemeVariantChanged(object? sender, EventArgs e)
@@ -350,7 +361,7 @@ public partial class RichTextBox : UserControl
 
     private void CutSelectionMenuItem_Click(object? sender, RoutedEventArgs e)
     {
-        if (IsReadOnly) return;
+        if (IsReadOnly || !IsSelectionEnabled) return;
         CopyToClipboard();
         FlowDoc.DeleteSelection();
     }
