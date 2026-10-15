@@ -44,10 +44,13 @@
     <Content Include="TestFiles\TestDocumentWord.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="TestFiles\TestDocumentNested.html">
-    <Content Include="TestFiles\TestDocumentMarkdown.md">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+      <Content Include="TestFiles\TestDocumentNested.html">
+	   <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="TestFiles\TestDocumentMarkdown.md">
+	   <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  
   </ItemGroup>
 
   <ItemGroup>

@@ -459,7 +459,7 @@
       <DockPanel >
 
          <avrtb:RichTextBox Grid.Row="0" x:Name="MainRTB" Zoom="1" IsReadOnly="False" LineBreakOnShiftEnter="True" ShowDebuggerPanelInDebugMode="False"  DisableUserCopy="False"
-                            CaretBrush="DarkBlue" CtrlKeyOpensHyperlink="True" PointerReleased="MainRTB_PointerReleased" KeyUp="MainRTB_KeyUp" Height="250" DockPanel.Dock="Top">
+                            CaretBrush="DarkBlue" CtrlKeyOpensHyperlink="True" PointerReleased="MainRTB_PointerReleased" KeyUp="MainRTB_KeyUp" DockPanel.Dock="Top">
 
 
             <!--<avrtb:RichTextBox.FlowDocument>
