@@ -438,6 +438,10 @@ internal static partial class RtfConversions
 
         switch (ied)
         {
+            case CustomInline custom:
+                iedSB.Append(GetRtfRunText(custom.Definition.FallbackText, ref currentLang));
+                break;
+
             case EditableHyperlink elink:
                 iedSB.Append($@"{{\field{{\*\fldinst HYPERLINK ""{GetRtfRunText(elink.NavigateUri, ref currentLang)}""}}{{\fldrslt ");
                 EditableRun hyperlinkRun = elink;

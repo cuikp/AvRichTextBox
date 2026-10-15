@@ -40,7 +40,7 @@ internal partial class XamlConversions
 
 
             //Save images, if any  
-            List<Paragraph> imageContainingParagraphs = [.. fdoc.AllParagraphs.Where(p => p.Inlines.Where(iline => iline is EditableInlineUIContainer eIUC && eIUC.GetChild() is Image).Any())];
+            List<Paragraph> imageContainingParagraphs = [.. fdoc.AllParagraphs.Where(p => p.Inlines.Where(iline => iline is EditableInlineUIContainer eIUC && iline is not CustomInline && eIUC.GetChild() is Image).Any())];
 
             if (imageContainingParagraphs.Count != 0)
             {
@@ -48,7 +48,7 @@ internal partial class XamlConversions
                 List<UniqueBitmap> uniqueBitmaps = [];
                 foreach (Paragraph p in imageContainingParagraphs)
                 {
-                    foreach (EditableInlineUIContainer imageUIContainer in p.Inlines.Where(iline => iline is EditableInlineUIContainer iuc && iuc.GetChild() is Image))
+                    foreach (EditableInlineUIContainer imageUIContainer in p.Inlines.Where(iline => iline is EditableInlineUIContainer iuc && iline is not CustomInline && iuc.GetChild() is Image))
                     {
                         if (imageUIContainer.GetChild() is Image thisImg)
                         {
@@ -279,6 +279,8 @@ internal partial class XamlConversions
     internal static string GetParagraphXaml(Paragraph par, bool isXamlPackage)
     {
         StringBuilder parXaml = new("<Paragraph ");
+        if (par is CustomBlock)
+            parXaml.Append($"xmlns:custom=\"{CustomContentXaml.Namespace}\" custom:Block=\"true\" ");
         parXaml.Append(
            $"FontFamily=\"{par.FontFamily.Name}\"" +
            $" FontWeight=\"{par.FontWeight}\"" +
@@ -304,6 +306,10 @@ internal partial class XamlConversions
         {
             switch (ied)
             {
+                case CustomInline custom:
+                    runXamlBuilder.Append(CustomContentXaml.Write(custom));
+                    break;
+
                 case EditableRun erun:
 
                     if (erun.Text == "") continue; // don't save empty runs

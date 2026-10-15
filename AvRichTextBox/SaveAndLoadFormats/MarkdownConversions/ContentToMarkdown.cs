@@ -126,6 +126,13 @@ internal static partial class MarkdownConversions
                 if (format != previous) { Flush(); previous = format; }
                 text.Append(run.InlineText);
             }
+            else if (inline is CustomInline custom)
+            {
+                // Custom content is written as its fallback text, like the other text formats.
+                var format = new RunFormat(false, false, false, null, null);
+                if (format != previous) { Flush(); previous = format; }
+                text.Append(custom.Definition.FallbackText);
+            }
             else
             {
                 Flush();

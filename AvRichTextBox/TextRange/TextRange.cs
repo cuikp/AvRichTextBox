@@ -303,6 +303,12 @@ public class TextRange : INotifyPropertyChanged, IDisposable
                 break;
             case ContentDataFormat.Xaml:
 
+                if (myFlowDoc.SelectionContainsCustomContent(this))
+                {
+                    stream.Write(Encoding.UTF8.GetBytes(myFlowDoc.GetCustomSelectionXaml(this)));
+                    break;
+                }
+
                 StringBuilder rangeXamlBuilder = new(SectionTextDefault);
                 rangeXamlBuilder.Append(GetParagraphRunsXaml(myFlowDoc.GetTextRangeInlines(this, addToDoc: false).createdInlines, isXamlPackage: false));
                 rangeXamlBuilder.Append("</Section>");
@@ -316,7 +322,7 @@ public class TextRange : INotifyPropertyChanged, IDisposable
 
             case ContentDataFormat.Text:
 
-                byte[] textStringBytes = Encoding.UTF8.GetBytes(this.Text);
+                byte[] textStringBytes = Encoding.UTF8.GetBytes(myFlowDoc.SelectionContainsCustomContent(this) ? myFlowDoc.GetCustomSelectionText(this) : this.Text);
                 stream.Write(textStringBytes, 0, textStringBytes.Length);
                 break;
 
@@ -339,11 +345,16 @@ public class TextRange : INotifyPropertyChanged, IDisposable
             return;
         }
 
-        myFlowDoc.DeleteRange(this, false, false, false);
-
         byte[] streamBytes = new byte[stream.Length];
         stream.ReadExactly(streamBytes);
         string readString = Encoding.UTF8.GetString(streamBytes, 0, streamBytes.Length);
+        if (dataFormat == ContentDataFormat.Xaml && readString.Contains(CustomContentXaml.Namespace, StringComparison.Ordinal))
+        {
+            myFlowDoc.InsertCustomSelectionXaml(readString, this);
+            return;
+        }
+
+        myFlowDoc.DeleteRange(this, false, false, false);
         List<int> addedBlockIds = []; // dummy or use for undo
 
         switch (dataFormat)

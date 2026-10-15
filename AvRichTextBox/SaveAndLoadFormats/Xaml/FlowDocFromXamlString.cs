@@ -415,10 +415,8 @@ internal partial class XamlConversions
 
     internal static Paragraph GetParagraph(XmlNode parNode, FlowDocument fdoc, Dictionary<string, string> inherited, int listLevel)
     {
-        Paragraph newPar = new()
-        {
-            LeftIndent = TwipToPix(listLevel * ListLevelIndentTwips)
-        };
+        Paragraph newPar = CustomContentXaml.IsBlock(parNode) ? new CustomBlock() : new Paragraph();
+        newPar.LeftIndent = TwipToPix(listLevel * ListLevelIndentTwips);
 
         foreach ((string name, string value) in EffectiveAttributes(inherited, parNode))
         {
@@ -475,6 +473,11 @@ internal partial class XamlConversions
     {
         foreach (XmlNode inlineNode in containerNode.ChildNodes.OfType<XmlNode>())
         {
+            if (CustomContentXaml.IsInline(inlineNode))
+            {
+                par.Inlines.Add(CustomContentXaml.Read(inlineNode));
+                continue;
+            }
             switch (inlineNode.Name)
             {
                 // Text directly in the paragraph without <Run> (WPF: implicit run with the paragraph format). HTML
