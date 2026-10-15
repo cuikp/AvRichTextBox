@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Nested HTML sample</title>
+  <style>body { font-family: sans-serif; }</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>Nested HTML sample</h1>
+    <p>This file is structured like typical web pages and mail bodies: the content sits inside container elements instead of paragraphs directly in the body.</p>
+  </header>
+  <main>
+    <section>
+      <h2>Text in containers</h2>
+      <div>A line written directly in a div, as mail clients do.</div>
+      <div><br></div>
+      <div>The line above is empty. This one has <b>bold</b>, <i>italic</i> and a <a href="https://github.com/cuikp/AvRichTextBox">link</a>.</div>
+    </section>
+    <section>
+      <h2>Lists</h2>
+      <ul>
+        <li>First item</li>
+        <li>Second item
+          <ol>
+            <li>Nested step one</li>
+            <li>Nested step two</li>
+          </ol>
+        </li>
+        <li>Third item</li>
+      </ul>
+      <ol start="3">
+        <li>Numbered list starting at three</li>
+        <li>Next number</li>
+      </ol>
+    </section>
+    <section>
+      <h2>Quote</h2>
+      <blockquote><p>A paragraph inside a blockquote.</p></blockquote>
+    </section>
+    <section>
+      <h2>Table</h2>
+      <div>
+        <table style="width:420px">
+          <colgroup><col/><col/></colgroup>
+          <tr><td>Plain text in a cell</td><td><p>Paragraph in a cell</p></td></tr>
+          <tr><td>Line one<br>Line two</td><td><b>Bold</b> text without a paragraph</td></tr>
+        </table>
+      </div>
+    </section>
+  </main>
+  <footer>
+    <p>End of the sample.</p>
+  </footer>
+</div>
+</body>
+</html>
