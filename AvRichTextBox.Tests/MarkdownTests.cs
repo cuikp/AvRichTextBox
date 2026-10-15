@@ -3,6 +3,7 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Media;
+using Avalonia.Media.TextFormatting;
 using System.Text;
 using Xunit;
 
@@ -320,6 +321,16 @@ public class MarkdownTests
     [InlineData("trailing spaces  ")]
     [InlineData("    ")]
     [InlineData("# heading *literal* [brackets] 1. list")]
+    [InlineData("1. not a list")]
+    [InlineData("2) not a list")]
+    [InlineData("- not a list")]
+    [InlineData("+ not a list")]
+    [InlineData("> not a quote")]
+    [InlineData("---")]
+    [InlineData("===")]
+    [InlineData("#hashtag and # sign")]
+    [InlineData("a_b _c_ *d* ~~e~~ `f` <g> [h] &amp; |i|")]
+    [InlineData("C:\\Users\\name and <https://example.com>")]
     public void SaveMarkdown_ExportsLiteralEditorTextWithoutIntroducingMarkup(string text)
     {
         var document = Load("");
@@ -327,10 +338,82 @@ public class MarkdownTests
         paragraph.Inlines.Clear();
         paragraph.Inlines.Add(new EditableRun(text));
         var reloaded = Load(document.SaveMarkdown());
-        var result = Assert.Single(reloaded.Blocks.OfType<Paragraph>());
+        var result = Assert.IsType<Paragraph>(Assert.Single(reloaded.Blocks));
         Assert.Equal(text, Text(result));
-        Assert.Equal(0, result.MarkdownInfo!.HeadingLevel);
-        Assert.False(result.MarkdownInfo.IsCodeBlock);
+        Assert.Equal(new MarkdownBlockInfo(), result.MarkdownInfo);
         Assert.False(result.HasListMarker);
+        Assert.Empty(result.Inlines.OfType<EditableHyperlink>());
+        Assert.All(result.Inlines.OfType<EditableRun>(), run => Assert.Equal(FontWeight.Normal, run.FontWeight));
+    }
+
+    // Block markers after a hard line break start a line as well.
+    [AvaloniaFact]
+    public void SaveMarkdown_EscapesBlockMarkersAfterLineBreaks()
+    {
+        var document = Load("");
+        var paragraph = Assert.Single(document.Blocks.OfType<Paragraph>());
+        paragraph.Inlines.Clear();
+        paragraph.Inlines.Add(new EditableRun("first"));
+        paragraph.Inlines.Add(new EditableLineBreak());
+        paragraph.Inlines.Add(new EditableRun("1. second"));
+        paragraph.Inlines.Add(new EditableLineBreak());
+        paragraph.Inlines.Add(new EditableRun("---"));
+        var reloaded = Load(document.SaveMarkdown());
+        var result = Assert.IsType<Paragraph>(Assert.Single(reloaded.Blocks));
+        Assert.Equal(Text(paragraph), Text(result));
+        Assert.False(result.HasListMarker);
+    }
+
+    [AvaloniaFact]
+    public void SaveMarkdown_LeavesOrdinaryPunctuationUnescaped()
+    {
+        const string text = "Version 1.2 - see a > b, C# notes (draft), \"quotes\", a+b=c, snake_case and AT&T!";
+        var document = Load("");
+        var paragraph = Assert.Single(document.Blocks.OfType<Paragraph>());
+        paragraph.Inlines.Clear();
+        paragraph.Inlines.Add(new EditableRun(text));
+
+        Assert.Equal(text, document.SaveMarkdown());
+    }
+
+    [AvaloniaFact]
+    public void SaveMarkdown_HeadingsAndTableHeadersHaveNoBoldMarkers()
+    {
+        const string markdown = "# Title\n\n| A | B |\n| --- | --- |\n| 1 | 2 |";
+
+        Assert.Equal(markdown, Load(markdown).SaveMarkdown());
+    }
+
+    [AvaloniaFact]
+    public void SaveMarkdown_HeadingEndingWithHash_KeepsTheHash()
+    {
+        var reloaded = Load(Load("# Issue \\#").SaveMarkdown());
+
+        Assert.Equal("Issue #", Text(Assert.Single(reloaded.AllParagraphs)));
+    }
+
+    [AvaloniaTheory]
+    [InlineData("- a\n- b\n    - c\n- d\n\n1. x\n2. y", "- a\n- b\n  - c\n- d\n\n1. x\n2. y")]
+    [InlineData("- a\n\n- b", "- a\n\n- b")]
+    [InlineData("1. one\n2. two\n\nText\n\n4. four", "1. one\n2. two\n\nText\n\n4. four")]
+    public void SaveMarkdown_TightListsHaveNoBlankLinesAndLooseListsKeepThem(string expected, string markdown)
+    {
+        Assert.Equal(expected, Load(markdown).SaveMarkdown());
+    }
+
+    // Avalonia does not resolve the CSS generic name "monospace"; equal widths for narrow and wide letters show that
+    // a monospaced font was found.
+    [AvaloniaFact]
+    public void Code_UsesAMonospacedFont()
+    {
+        var document = Load("Text `code` here\n\n```\nblock\n```");
+
+        foreach (var run in new[] { Runs(document).First(run => run.Text == "code"), Runs(document).First(run => run.Text!.StartsWith("block")) })
+        {
+            var typeface = new Typeface(run.FontFamily);
+            double narrow = new TextLayout("iiiiiiiiii", typeface, 16, Brushes.Black).Width;
+            double wide = new TextLayout("WWWWWWWWWW", typeface, 16, Brushes.Black).Width;
+            Assert.Equal(narrow, wide, 1);
+        }
     }
 }

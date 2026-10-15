@@ -18,6 +18,10 @@ internal static partial class MarkdownConversions
         .DisableHtml()
         .Build();
 
+    // Avalonia does not resolve the CSS generic name "monospace", so code uses a fallback list of monospaced fonts
+    // found on Windows, macOS and Linux.
+    private static readonly FontFamily CodeFontFamily = new("Cascadia Mono, Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, Courier New, monospace");
+
     internal static List<Block> Parse(string markdown)
     {
         ArgumentNullException.ThrowIfNull(markdown);
@@ -41,7 +45,7 @@ internal static partial class MarkdownConversions
                         if (itemBlocks.FirstOrDefault() is Paragraph first)
                         {
                             first.ListMarker = list.IsOrdered ? number.ToString(CultureInfo.InvariantCulture) + "." : "•";
-                            first.MarkdownInfo = first.MarkdownInfo! with { ListIndent = info.ListIndent };
+                            first.MarkdownInfo = first.MarkdownInfo! with { ListIndent = info.ListIndent, LooseList = list.IsLoose };
                             first.LeftIndent = info.ListIndent * 8 + 24;
                             first.FirstLineIndent = -24;
                         }
@@ -61,7 +65,7 @@ internal static partial class MarkdownConversions
                         IsCodeBlock = true,
                         CodeLanguage = code is FencedCodeBlock fenced ? fenced.Info ?? "" : ""
                     });
-                    codeParagraph.FontFamily = new FontFamily("monospace");
+                    codeParagraph.FontFamily = CodeFontFamily;
                     codeParagraph.Inlines.Add(new EditableRun(code.Lines.ToString())
                     {
                         FontFamily = codeParagraph.FontFamily
@@ -167,7 +171,7 @@ internal static partial class MarkdownConversions
         run.FontStyle = format.Italic ? FontStyle.Italic : FontStyle.Normal;
         if (format.Strike && run is not EditableHyperlink)
             run.TextDecorations = new TextDecorationCollection { new TextDecoration { Location = TextDecorationLocation.Strikethrough } };
-        if (info?.IsCode == true) run.FontFamily = new FontFamily("monospace");
+        if (info?.IsCode == true) run.FontFamily = CodeFontFamily;
         target.Inlines.Add(run);
     }
 

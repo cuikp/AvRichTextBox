@@ -155,6 +155,38 @@ public partial class MainWindow : Window
 
     }
 
+    private void SaveMarkdownFileMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        MainRTB.SaveMarkdownDoc(Path.Combine(Path.GetDirectoryName(OpenFilePath)!, OpenFileName + ".md"));
+    }
+
+    private async void LoadMarkdownFileMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        FilePickerOpenOptions filePickerOptions = new()
+        {
+            Title = "Open Markdown file",
+            SuggestedStartLocation = await StorageProvider.TryGetFolderFromPathAsync(Path.Combine(AppContext.BaseDirectory, "TestFiles")),
+            FileTypeFilter = [new("Markdown files") { Patterns = ["*.md"], }],
+            AllowMultiple = false
+        };
+
+        var topLevel = TopLevel.GetTopLevel(this);
+        var files = await topLevel!.StorageProvider.OpenFilePickerAsync(filePickerOptions);
+
+        if (files.Count == 1)
+        {
+            string? f = files[0].TryGetLocalPath();
+            if (f != null)
+            {
+                OpenFilePath = f;
+                MainRTB.LoadMarkdownDoc(f);
+                ShowPagePaddingValue();
+            }
+
+        }
+
+    }
+
     private void OpenTestFilesFolderMenuItem_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
 
