@@ -32,6 +32,9 @@
                   <Separator/>
                   <MenuItem Header="Load Html file" Click="LoadHtmlFileMenuItem_Click"/>
                   <MenuItem Header="Save Html file" Click="SaveHtmlFileMenuItem_Click"/>
+                  <Separator/>
+                  <MenuItem Header="Load Markdown file" Click="LoadMarkdownFileMenuItem_Click"/>
+                  <MenuItem Header="Save Markdown file" Click="SaveMarkdownFileMenuItem_Click"/>
                   <Separator Height="2"/>
                   <MenuItem Header="Open test files folder" Click="OpenTestFilesFolderMenuItem_Click"/>
                </MenuItem>
