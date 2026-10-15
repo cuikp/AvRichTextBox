@@ -7,6 +7,7 @@ internal sealed record MarkdownBlockInfo(
     int ListIndent = 0,
     bool IsCodeBlock = false,
     string CodeLanguage = "",
-    bool IsThematicBreak = false);
+    bool IsThematicBreak = false,
+    bool LooseList = false);
 
 internal sealed record MarkdownInlineInfo(bool IsCode = false, bool IsImage = false, string Title = "");
